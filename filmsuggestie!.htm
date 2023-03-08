@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=0.9">
+	<title>Filmsuggestie!</title>
+	<style>
+		body {
+			background-color: #222;
+			font-family: Arial, sans-serif;
+			color: #eee;
+		}
+		
+		.center {
+			display: flex; 
+			flex-direction: column; 
+			align-items: center; 
+			justify-content: center; 
+			height: 80vh;
+		}
+		
+		input[type=text] {
+			padding: 20px 20px;
+			border-radius: 40px;
+			border: none;
+			width: 88%;
+			margin-bottom: 20px;
+		}
+		
+		input[type=submit] {
+			padding: 20px 20px;
+			background-color: #008CBA;
+			color: #fff;
+			border: none;
+			border-radius: 40px;
+			cursor: pointer;
+		}
+		
+		input[type=submit]:hover {
+			background-color: #008CBA;
+		}
+	</style>
+</head>
+<body>
+	<div class="center">
+		<form action="" method="get">
+			<input type="text" name="keywords" placeholder="Vul hier een of meerdere trefwoorden in..">
+			<input type="submit" value="Suggereer een film!">
+		</form>
+	</div>
+	
+	<script>
+		let form = document.querySelector("form");
+		form.addEventListener("submit", function(event) {
+			event.preventDefault();
+			let keywords = encodeURIComponent(document.querySelector("input[name='keywords']").value);
+			let url = `https://you.com/search?q=Suggereer+een+film+gebaseerd+op+de+volgende+trefwoorden%3A+%5B${keywords}%5D.+Geef+antwoord+op+de+volgende+manier%3A+Op+de+eerste+regel+de+titel+van+de+film+met+tussen+haakjes+het+jaartal+waarin+de+film+is+verschenen%2C+dan+een+regel+overslaan%2C+op+de+volgende+regel+een+url+die+op+de+volgende+manier+is+opgebouwd%3A+Een+basis-url+(https%3A%2F%2Fwww.vprogids.nl%2Fcinema%2Fzoek.html%3Ftypes%3DMOVIE%26q%3D)+met+daaraan+vastgemaakt+de+titel+van+de+film+(zonder+jaartal).+Eventuele+spaties+in+de+titel+dienen+door+%2520+vervangen+te+worden.+Dan+weer+een+regel+overslaan+en+vervolgens+een+korte+Nederlandse+beschrijving+van+de+film.&fromSearchBar=true&tbm=youchat`;
+			window.location.replace(url);
+		});
+	</script>
+</body>
+</html>
