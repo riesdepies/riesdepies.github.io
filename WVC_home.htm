@@ -1,1 +1,53 @@
-<!DOCTYPE html> <html> <head> <meta name="viewport" content="width=device-width, initial-scale=0.8"> <title>Movie Search</title> <style> body { background-color: #000000; color: #ffffff; } .container { display: flex; justify-content: center; align-items: center; height: 80vh; } .input-container { padding: 10px; border-radius: 10px; background-color: #222222; } input { padding: 10px; border-radius: 10px; font-size: 1.2em; } button { padding: 10px; margin-left: 10px; font-size: 1.2em; background-color: #BBBBBB; border: none; border-radius: 10px; } </style> <script> async function searchMovie() { let movieTitle = document.getElementById('movie-title').value; const response = await fetch(`http://www.omdbapi.com/?t=${movieTitle}&apikey=e167142f`); const data = await response.json(); window.location.href = `https://autoembed.to/movie/imdb/${data.imdbID}`; } </script> </head> <body> <div class="container"> <div class="input-container"> <input type="text" id="movie-title" placeholder="Enter movie title.."> <button onclick="searchMovie()">Watch!</button> </div> </div> </body> </html>
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta name="viewport" content="width=device-width, initial-scale=0.8">
+        <title>Movie Search</title>
+        <style>
+            body {
+                background-color: #000000;
+                color: #ffffff;
+            }
+            .container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 80vh;
+            }
+            .input-container {
+                padding: 10px;
+                border-radius: 10px;
+                background-color: #222222;
+            }
+            input {
+                padding: 10px;
+                border-radius: 10px;
+                font-size: 1.2em;
+            }
+            button {
+                padding: 10px;
+                margin-left: 10px;
+                font-size: 1.2em;
+                background-color: #BBBBBB;
+                border: none;
+                border-radius: 10px;
+            }
+        </style>
+        <script>
+            async function searchMovie() {
+                let movieTitle = document.getElementById('movie-title').value;
+                const response = await fetch(`http://www.omdbapi.com/?t=${movieTitle}&apikey=e167142f`);
+                const data = await response.json();
+                window.location.href = `https://autoembed.to/movie/imdb/${data.imdbID}`;
+            }
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="input-container">
+                <input type="text" id="movie-title" placeholder="Enter movie title..">
+                <button onclick="searchMovie()">Watch!</button>
+            </div>
+        </div>
+    </body>
+</html>
