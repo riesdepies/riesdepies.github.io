@@ -1,1 +1,55 @@
-<!DOCTYPE html> <html> <head> <meta name="viewport" content="width=device-width, initial-scale=0.8"> <title>Movie Search</title> <style> body { background-color: #000000; color: #ffffff; } .container { display: flex; justify-content: center; align-items: center; height: 80vh; } .input-container { padding: 10px; border-radius: 10px; background-color: #222222; } input { padding: 10px; border-radius: 10px; font-size: 1.2em; } button { padding: 10px; margin-left: 10px; font-size: 1.2em; background-color: #BBBBBB; border: none; border-radius: 10px; } </style> <script> async function searchMovie() { let movieTitle = document.getElementById('movie-title').value; const response = await fetch(`http://www.omdbapi.com/?t=${movieTitle}&apikey=e167142f`); const data = await response.json(); window.location.href = `https://autoembed.to/movie/imdb/${data.imdbID}`; } </script> </head> <body> <div class="container"> <div class="input-container"> <input type="text" id="movie-title" placeholder="Enter movie title.."> <button onclick="searchMovie()">Watch!</button> </div> </div> </body> </html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fetch IMDB ID from Movie Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #222222;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    #container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    #input {
+      width: 300px;
+      padding: 10px;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    #submit {
+      padding: 8px;
+      font-size: 20px;
+      background-color: #333333;
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <input type="text" id="input" placeholder="Enter Movie Title">
+    <button id="submit">Watch!</button>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const submit = document.getElementById('submit');
+
+    submit.addEventListener('click', () => {
+      // Make API request
+      fetch(`http://www.omdbapi.com/?t=${input.value}&apikey=e167142f`)
+        .then(response => response.json())
+        .then(data => {
+          const imdbID = data.imdbID;
+          // Redirect to page with IMDB ID
+          window.location.href = `https://www.2embed.to/embed/imdb/movie?id=${imdbID}`;
+        });
+    });
+  </script>
+</body>
+</html>
