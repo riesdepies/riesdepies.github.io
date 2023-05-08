@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Chat met OpenAI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #chat-container {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      position: relative;
+      z-index: 1;
+    }
+    #chat-input {
+      display: flex;
+      margin: 10px;
+      border-top: 1px solid #ccc;
+      padding: 10px;
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      background-color: white;
+      z-index: 2;
+    }
+    input {
+      flex: 1;
+      outline: none;
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .user {
+      background-color: #007bff;
+      color: white;
+      align-self: flex-end;
+      max-width: 70%;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+    .bot {
+      background-color: #f1f1f1;
+      color: #000;
+      align-self: flex-start;
+      max-width: 70%;
+      margin-right: auto;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <!-- Chat berichten zullen hier worden weergegeven -->
+  </div>
+  <div id="chat-input">
+    <input type="text" id="input-message" placeholder="Typ hier uw bericht...">
+    <button id="send-btn">Verstuur</button>
+  </div>
+  <script>
+    async function sendToOpenAI(message) {
+      try {
+        const API_KEY = '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';
+        const API_URL = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+        const prompt = `User: ${message}\nAI:`;
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            max_tokens: 150,
+            n: 1,
+            stop: null,
+            temperature: 0.5,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error("Error: API response not ok", response);
+          return "Sorry, er is een fout opgetreden bij het verwerken van uw bericht.";
+        }
+
+        const data = await response.json();
+        return data.choices[0].text.trim();
+      } catch (error) {
+        console.error("Error: API call failed", error);
+        return "Sorry, er is een fout opgetreden bij het verwerken van uw bericht.";
+      }
+    }
+
+    document.getElementById('send-btn').addEventListener('click', async function() {
+      let inputMessage = document.getElementById('input-message');
+      let userText = inputMessage.value.trim();
+
+      if (userText) {
+        // Display user message
+        let userMessage = document.createElement('div');
+        userMessage.classList.add('message', 'user');
+        userMessage.textContent = userText;
+        document.getElementById('chat-container').appendChild(userMessage);
+        inputMessage.value = '';
+
+        // Fetch AI response and display it
+        let aiText = await sendToOpenAI(userText);
+        let aiMessage = document.createElement('div');
+        aiMessage.classList.add('message', 'bot');
+        aiMessage.textContent = aiText;
+        document.getElementById('chat-container').appendChild(aiMessage);
+      }
+    });
+
+    document.getElementById('input-message').addEventListener('keydown', function(event) {
+      // Om een bericht te verzenden wanneer de gebruiker op Enter drukt
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        document.getElementById('send-btn').click();
+      }
+    });
+  </script>
+</body>
+</html>
