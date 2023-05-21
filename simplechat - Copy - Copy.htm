@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Chat Interface</title>
+  <link rel="stylesheet" href="https://unpkg.com/simple-chat-ui/dist/simple-chat-ui.min.css">
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
+  <style>
+    .title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      background-color: #f7f7f7;
+    }
+
+    .title-bar input {
+      padding: 5px 10px;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      min-width: 300px;
+    }
+
+    .title-bar button {
+      padding: 5px 15px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="title-bar">
+    <label for="api-key-input">API-key:</label>
+    <input type="text" id="api-key-input" placeholder="Voer API-key in...">
+    <button id="copy-link">Kopieer link</button>
+  </div>
+
+  <div class="chat-wrapper">
+    <div class="chat-messages"></div>
+    <div class="chat-input">
+      <input type="text" id="chat-input-text" placeholder="Type a message..." onkeydown="
+      handleEnterKey(event)">
+      <button id="chat-send" onclick="addMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/simple-chat-ui/dist/simple-chat-ui.min.js"></script>
+  <script>
+    // Een functie om de parameterwaarde van de URL te krijgen
+    function getQueryParam(param) {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        return urlParams.get(param);
+    }
+
+    // API-key uit de URL ophalen
+    const apiKey = getQueryParam("api_key");
+
+    if (apiKey) {
+        // API-key opslaan in een cookie
+        Cookies.set("api_key", apiKey, { expires: 7 }); // Verloopt na 7 dagen
+    } else {
+        // API-key uit de cookie halen als het niet in de URL is meegevoerd
+        if (Cookies.get("api_key")) {
+            const savedApiKey = Cookies.get("api_key");
+        } else {
+            alert("Geen API-key meegevoerd. Voeg de API-key toe aan de URL of sla deze op in een cookie.");
+        }
+    }
+
+    document.getElementById("api-key-input").value = apiKey;
+    document.getElementById("copy-link").addEventListener("click", copyLinkWithApiKey);
+    document.getElementById("chat-send").addEventListener("click", addMessage);
+
+    function handleEnterKey(event) {
+      if (event.key === "Enter") {
+        addMessage();
+      }
+    }
+
+    function copyLinkWithApiKey() {
+      const newApiKey = document.getElementById("api-key-input").value;
+      const baseUrl = window.location.href.split("?")[0];
+
+      if (newApiKey) {
+        const newUrl = `${baseUrl}?api_key=${encodeURIComponent(newApiKey)}`;
+        const tempInput = document.createElement("input");
+
+        document.body.appendChild(tempInput);
+        tempInput.value = newUrl;
+        tempInput.select();
+        document.execCommand("copy");
+
+        document.body.removeChild(tempInput);
+        alert("Link gekopieerd!");
+      } else {
+        alert("Voer de API-key in voordat u de link kopieert.");
+      }
+    }
+
+    async function addMessage() {
+      const input = document.getElementById("chat-input-text");
+      const messagesContainer = document.getElementsByClassName("chat-messages")[0];
+
+      if (input.value) {
+        const message = document.createElement("div");
+        message.textContent = input.value;
+        message.className = "message message-user";
+        messagesContainer.appendChild(message);
+
+        let userMessage = input.value;
+        input.value = "";
+
+        // Get the response from the OpenAI API
+        let aiResponse = await sendToOpenAI(userMessage);
+
+        if (aiResponse) {
+          let aiMessage = document.createElement("div");
+          aiMessage.textContent = aiResponse;
+          aiMessage.className = "message message-bot";
+          messagesContainer.appendChild(aiMessage);
+        }
+      }
+    }
+
+    async function sendToOpenAI(promptText) {
+      const currentApiKey = apiKey || savedApiKey;
+
+      try {
+        let response = await axios.post(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: promptText }]
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${currentApiKey}`,
+            },
+          }
+        );
+
+        if (response.data.choices && response.data.choices.length > 0) {
+          return response.data.choices[0].message.content.trim();
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.error("Error sending API request:", error);
+        return null;
+      }
+    }
+  </script>
+</body>
+</html>
