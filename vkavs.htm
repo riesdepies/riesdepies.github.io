@@ -5,11 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VK.com Adult Video Search</title>
+    <link rel="shortcut icon" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMjMuMDRDMCAxMi4xNzg4IDAgNi43NDgyNiAzLjM3NDEzIDMuMzc0MTNDNi43NDgyNiAwIDEyLjE3ODggMCAyMy4wNCAwSDI0Ljk2QzM1LjgyMTIgMCA0MS4yNTE3IDAgNDQuNjI1OSAzLjM3NDEzQzQ4IDYuNzQ4MjYgNDggMTIuMTc4OCA0OCAyMy4wNFYyNC45NkM0OCAzNS44MjEyIDQ4IDQxLjI1MTcgNDQuNjI1OSA0NC42MjU5QzQxLjI1MTcgNDggMzUuODIxMiA0OCAyNC45NiA0OEgyMy4wNEMxMi4xNzg4IDQ4IDYuNzQ4MjYgNDggMy4zNzQxMyA0NC42MjU5QzAgNDEuMjUxNyAwIDM1LjgyMTIgMCAyNC45NlYyMy4wNFoiIGZpbGw9IiMwMDc3RkYiLz4KPHBhdGggZD0iTTI1LjU0IDM0LjU4MDFDMTQuNiAzNC41ODAxIDguMzYwMSAyNy4wODAxIDguMTAwMSAxNC42MDAxSDEzLjU4MDFDMTMuNzYwMSAyMy43NjAxIDE3LjggMjcuNjQwMSAyMSAyOC40NDAxVjE0LjYwMDFIMjYuMTYwMlYyMi41MDAxQzI5LjMyMDIgMjIuMTYwMSAzMi42Mzk4IDE4LjU2MDEgMzMuNzU5OCAxNC42MDAxSDM4LjkxOTlDMzguMDU5OSAxOS40ODAxIDM0LjQ1OTkgMjMuMDgwMSAzMS44OTk5IDI0LjU2MDFDMzQuNDU5OSAyNS43NjAxIDM4LjU2MDEgMjguOTAwMSA0MC4xMjAxIDM0LjU4MDFIMzQuNDM5OUMzMy4yMTk5IDMwLjc4MDEgMzAuMTgwMiAyNy44NDAxIDI2LjE2MDIgMjcuNDQwMVYzNC41ODAxSDI1LjU0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==" />
     <style>
         * {
             box-sizing: border-box;
         }
-
         body, html {
             height: 100%;
             margin: 0;
@@ -17,7 +17,6 @@
             overflow: hidden;
             font-family: Arial, sans-serif;
         }
-
         body {
             background-color: #fff;
             color: #808C98;
@@ -27,20 +26,17 @@
             align-items: center;
             justify-content: flex-start;
         }
-
         h1 {
             font-size: 24px;
             color: #2D86E0;
             margin-bottom: 20px;
             font-weight: 900; /* Zeer vette titel */
         }
-
         .search-container {
             position: relative;
             width: 100%;
             max-width: 500px;
         }
-
         .search-icon {
             width: 20px;
             height: 20px;
@@ -51,7 +47,6 @@
             fill: #808C98;
             z-index: 3;
         }
-
         .search-box {
             background-color: #ECEDF1;
             padding: 10px 40px 10px 35px;
@@ -64,16 +59,13 @@
             position: relative;
             z-index: 2;
         }
-
         .search-box::placeholder {
             color: #808C98; /* Grijs voor de placeholder */
         }
-
         .search-box:focus {
             border: 1px solid #808C98;
             outline: none;
         }
-
         .clear-button {
             position: absolute;
             right: 10px;
@@ -86,16 +78,13 @@
             cursor: pointer;
             z-index: 3;
         }
-
         input[type="search"]::-webkit-search-cancel-button {
             -webkit-appearance: none;
             display: none;
         }
-
         input[type="search"]::-moz-search-cancel-button {
             display: none;
         }
-
         input[type="search"]::-ms-clear {
             display: none;
         }
@@ -118,7 +107,6 @@
                 window.location.href = searchUrl;
             }
         });
-
         function clearSearch() {
             var searchBox = document.getElementById('search-box');
             searchBox.value = '';
