@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DaddyLiveHD 18+ Channels</title>
+    <style>
+        body, html {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #282C2F;
+            color: white;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .title-bar {
+            background-color: #282C2F;
+            color: white;
+            padding: 10px 10px;
+            font-size: 20px;
+            text-align: center;
+        }
+        .title-bar span.hd {
+            color: #5384D3;
+        }
+        .responsive-iframe-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            padding-top: 58.25%;
+            flex-grow: 2;
+        }
+        .responsive-iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            flex-grow: 0;
+        }
+        #channelInput {
+            flex-grow: 1;
+            padding: 10px;
+            margin: 0 10px;
+            border-radius: 5px;
+            border: 1px solid #5384D3;
+            background-color: #33383B;
+            color: white;
+        }
+        button {
+            background-color: #5384D3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .channel-list {
+            display: flex;
+            justify-content: space-around;
+            padding: 0 20px;
+            flex-grow: 1;
+        }
+        .channel-column {
+            list-style: none;
+            padding: 0;
+            width: calc(50% - 10px);
+        }
+        .channel-column li {
+            background-color: #33383B;
+            padding: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .channel-column li.active {
+            border: 1px solid #5384D3;
+        }
+        .channel-column li input[type="checkbox"] {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        DaddyLive<span class="hd">HD</span> 18+ Channels
+    </div>
+    <div class="responsive-iframe-container">
+        <iframe id="liveStream" src="about:blank" allowfullscreen></iframe>
+    </div>
+    <div class="controls">
+        <button id="leftButton" onclick="zap(-1)">Prev</button>
+        <form onsubmit="updateChannelName(); return false;">
+            <input type="text" id="channelInput" placeholder="Select a channel" autocomplete="off"/>
+        </form>
+        <button id="rightButton" onclick="zap(1)">Next</button>
+    </div>
+    <div class="channel-list">
+        <ul class="channel-column" id="channelColumn1"></ul>
+        <ul class="channel-column" id="channelColumn2"></ul>
+    </div>
+    <script>
+        let currentStreamIndex = parseInt(localStorage.getItem('currentStreamIndex')) || 0;
+        let channelNames = JSON.parse(localStorage.getItem('channelNames')) || Array.from({length: 20}, (_, i) => `Channel ${i + 1}`);
+        let activeChannels = JSON.parse(localStorage.getItem('activeChannels')) || new Array(20).fill(true);
+
+        function init() {
+            generateChannelList();
+            updateStream();
+        }
+
+        function generateChannelList() {
+            const column1 = document.getElementById('channelColumn1');
+            const column2 = document.getElementById('channelColumn2');
+            column1.innerHTML = '';
+            column2.innerHTML = '';
+            channelNames.forEach((name, index) => {
+                const li = document.createElement("li");
+                li.className = index === currentStreamIndex ? 'active' : '';
+                li.addEventListener('click', () => selectChannel(index, true));
+                
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = activeChannels[index];
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleChannelActiveState(index);
+                });
+
+                const label = document.createElement("span");
+                label.textContent = name;
+                li.appendChild(checkbox);
+                li.appendChild(label);
+                (index < 10 ? column1 : column2).appendChild(li);
+            });
+        }
+
+        function updateStream() {
+            const iframe = document.getElementById('liveStream');
+            iframe.src = `https://dlhd.sx/embed/stream-${currentStreamIndex + 501}.php`;
+            document.getElementById('channelInput').value = channelNames[currentStreamIndex];
+            highlightActiveChannel();
+        }
+
+        function selectChannel(index, directSelect = false) {
+            if (directSelect || activeChannels[index]) {
+                currentStreamIndex = index;
+                localStorage.setItem('currentStreamIndex', currentStreamIndex.toString());
+                updateStream();
+            }
+        }
+
+        function toggleChannelActiveState(index) {
+            activeChannels[index] = !activeChannels[index];
+            localStorage.setItem('activeChannels', JSON.stringify(activeChannels));
+        }
+
+        function highlightActiveChannel() {
+            document.querySelectorAll('.channel-column li').forEach((li, idx) => {
+                li.classList.toggle('active', idx === currentStreamIndex);
+            });
+        }
+
+        function zap(direction) {
+            let newIndex = (currentStreamIndex + direction + channelNames.length) % channelNames.length;
+            while (!activeChannels[newIndex]) {
+                newIndex = (newIndex + direction + channelNames.length) % channelNames.length;
+                if(newIndex === currentStreamIndex) { // Avoid infinite loop if all channels are deactivated
+                    break;
+                }
+            }
+            selectChannel(newIndex);
+        }
+
+        function updateChannelName() {
+            const newName = document.getElementById('channelInput').value.trim();
+            if (newName) {
+                channelNames[currentStreamIndex] = newName;
+                localStorage.setItem('channelNames', JSON.stringify(channelNames));
+                generateChannelList();
+            }
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+
