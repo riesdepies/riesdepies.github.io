@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Open Willekeurige Cartoon Pagina</title>
+</head>
+<body>
+    <script>
+        function generateRandomDate(startDate, endDate) {
+            // Genereer een willekeurige datum tussen startDate en endDate
+            let timeDifference = endDate - startDate;
+            let randomTime = Math.random() * timeDifference;
+            let randomDate = new Date(startDate.getTime() + randomTime);
+
+            // Controleer of de gegenereerde datum op een zondag valt en genereer opnieuw indien nodig
+            while (randomDate.getDay() === 0) {
+                randomTime = Math.random() * timeDifference;
+                randomDate = new Date(startDate.getTime() + randomTime);
+            }
+            return randomDate;
+        }
+
+        function formatDate(date) {
+            let dd = String(date.getDate()).padStart(2, '0');
+            let mm = String(date.getMonth() + 1).padStart(2, '0'); // Maanden zijn 0-indexed in JavaScript
+            let yyyy = date.getFullYear();
+            return `${yyyy}${mm}${dd}`;
+        }
+
+        function generateURL() {
+            let startDate = new Date('2015-05-04');
+            let endDate = new Date();
+
+            let randomValidDate = generateRandomDate(startDate, endDate);
+            let dateString = formatDate(randomValidDate);
+            let fullURL = `https://dirkjan.nl/cartoon/${dateString}`;
+
+            // Open de URL in het huidige venster
+            window.location.href = fullURL;
+        }
+
+        // Roep de functie aan wanneer de pagina geladen wordt
+        window.onload = generateURL;
+    </script>
+</body>
+</html>
