@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard Paste Web Page</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: pan-down;
+        }
+
+        #pasteButton {
+            padding: 20px 40px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, color 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        #pasteButton:visited {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <a id="pasteButton" href="#" onclick="pasteClipboard(event)">Paste Xtream data</a>
+
+    <script>
+        async function pasteClipboard(event) {
+            event.preventDefault(); // Prevent the default action
+
+            const button = document.getElementById('pasteButton');
+            // Avoid processing if button is in error state (red)
+            if (button.style.backgroundColor === 'red') {
+                return;
+            }
+
+            try {
+                const text = await navigator.clipboard.readText();
+                const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+                const lineCount = lines.length;
+
+                let url = '';
+
+                if (lineCount === 3 && isValidUrl(lines[0])) {
+                    const [serverAddress, username, password] = lines;
+                    url = `${serverAddress}/get.php?username=${username}&password=${password}&type=m3u_plus`;
+                } else if (lineCount === 4 && isValidUrl(lines[0])) {
+                    const [serverAddress, port, username, password] = lines;
+                    url = `${serverAddress}:${port}/get.php?username=${username}&password=${password}&type=m3u_plus`;
+                } else {
+                    showButtonMessage('Unexpected clipboard contents', 'red', 2000);
+                    return;
+                }
+
+                // Copy the constructed URL to clipboard
+                await navigator.clipboard.writeText(url);
+
+                // Change the button to indicate success and provide the URL
+                button.innerText = 'M3U url copied. Tap to open';
+                button.style.backgroundColor = 'green';
+                button.setAttribute('href', url);
+                button.removeAttribute('onclick'); // Remove the onclick event to allow default hyperlink behavior
+                button.onclick = null;
+
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                showButtonMessage('Unexpected clipboard contents', 'red', 2000);
+            }
+        }
+
+        function isValidUrl(str) {
+            try {
+                new URL(str);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function showButtonMessage(message, color, duration) {
+            const button = document.getElementById('pasteButton');
+            const originalText = button.innerText;
+            const originalColor = button.style.backgroundColor;
+            const originalHref = button.getAttribute('href');
+            const originalOnclick = button.getAttribute('onclick');
+
+            // Temporarily change the button's text and color
+            button.innerText = message;
+            button.style.backgroundColor = color;
+
+            // Disable the button temporarily
+            button.removeAttribute('href');
+            button.removeAttribute('onclick');
+
+            // Reset the button after the specified duration
+            setTimeout(() => {
+                button.innerText = originalText;
+                button.style.backgroundColor = originalColor;
+                button.setAttribute('href', originalHref);
+                // Restore the onclick function for pasteClipboard
+                button.setAttribute('onclick', 'pasteClipboard(event)');
+            }, duration);
+        }
+
+        // Swipe down to refresh functionality
+        let startY;
+
+        window.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].pageY;
+        });
+
+        window.addEventListener('touchmove', function(e) {
+            const currentY = e.touches[0].pageY;
+
+            if (currentY - startY > 100) { // You can adjust this threshold
+                location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
