@@ -15,7 +15,6 @@
             align-items: center;
             touch-action: pan-down;
         }
-
         #pasteButton {
             padding: 20px 40px;
             background-color: #007bff;
@@ -29,7 +28,6 @@
             text-align: center;
             display: inline-block;
         }
-
         #pasteButton:visited {
             color: white;
         }
@@ -37,30 +35,26 @@
 </head>
 <body>
     <a id="pasteButton" href="#" onclick="pasteClipboard(event)">Paste Xtream data</a>
-
     <script>
         async function pasteClipboard(event) {
             event.preventDefault(); // Prevent the default action
-
             const button = document.getElementById('pasteButton');
             // Avoid processing if button is in error state (red)
             if (button.style.backgroundColor === 'red') {
                 return;
             }
-
             try {
                 const text = await navigator.clipboard.readText();
                 const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
                 const lineCount = lines.length;
-
                 let url = '';
 
-                if (lineCount === 3 && isValidUrl(lines[0])) {
+                if (lineCount === 3 && isValidUrlOrAddress(lines[0])) {
                     const [serverAddress, username, password] = lines;
-                    url = `${serverAddress}/get.php?username=${username}&password=${password}&type=m3u_plus`;
-                } else if (lineCount === 4 && isValidUrl(lines[0])) {
+                    url = `${ensureHttpProtocol(serverAddress)}/get.php?username=${username}&password=${password}&type=m3u_plus`;
+                } else if (lineCount === 4 && isValidUrlOrAddress(lines[0])) {
                     const [serverAddress, port, username, password] = lines;
-                    url = `${serverAddress}:${port}/get.php?username=${username}&password=${password}&type=m3u_plus`;
+                    url = `${ensureHttpProtocol(serverAddress)}:${port}/get.php?username=${username}&password=${password}&type=m3u_plus`;
                 } else {
                     showButtonMessage('Unexpected clipboard contents', 'red', 2000);
                     return;
@@ -75,11 +69,14 @@
                 button.setAttribute('href', url);
                 button.removeAttribute('onclick'); // Remove the onclick event to allow default hyperlink behavior
                 button.onclick = null;
-
             } catch (err) {
                 console.error('Failed to read clipboard contents: ', err);
                 showButtonMessage('Unexpected clipboard contents', 'red', 2000);
             }
+        }
+
+        function isValidUrlOrAddress(str) {
+            return isValidUrl(str) || isValidServerAddress(str);
         }
 
         function isValidUrl(str) {
@@ -91,21 +88,30 @@
             }
         }
 
+        function isValidServerAddress(str) {
+            // A simplistic check to see if the string looks like a domain or IP address
+            return /^[a-zA-Z0-9.-]+$/.test(str);
+        }
+
+        function ensureHttpProtocol(address) {
+            if (!/^https?:\/\//.test(address)) {
+                return 'http://' + address;
+            }
+            return address;
+        }
+
         function showButtonMessage(message, color, duration) {
             const button = document.getElementById('pasteButton');
             const originalText = button.innerText;
             const originalColor = button.style.backgroundColor;
             const originalHref = button.getAttribute('href');
             const originalOnclick = button.getAttribute('onclick');
-
             // Temporarily change the button's text and color
             button.innerText = message;
             button.style.backgroundColor = color;
-
             // Disable the button temporarily
             button.removeAttribute('href');
             button.removeAttribute('onclick');
-
             // Reset the button after the specified duration
             setTimeout(() => {
                 button.innerText = originalText;
@@ -118,14 +124,11 @@
 
         // Swipe down to refresh functionality
         let startY;
-
         window.addEventListener('touchstart', function(e) {
             startY = e.touches[0].pageY;
         });
-
         window.addEventListener('touchmove', function(e) {
             const currentY = e.touches[0].pageY;
-
             if (currentY - startY > 100) { // You can adjust this threshold
                 location.reload();
             }
