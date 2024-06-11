@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #videoPlayer {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="videoPlayer" controls playsinline>
+    <source src="http://nettv-host.one:80/5c:c1:d7:17:58:6a./5t5r8jaukd/1954" type="application/x-mpegURL">
+    Your browser does not support the video tag.
+  </video>
+
+  <script>
+    // Check if the browser supports casting
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      // Add a cast button to the video player controls
+      const videoPlayer = document.getElementById('videoPlayer');
+      const castButton = document.createElement('button');
+      castButton.textContent = 'Cast';
+      videoPlayer.controls = true;
+      videoPlayer.appendChild(castButton);
+
+      // Add an event listener to the cast button
+      castButton.addEventListener('click', async () => {
+        try {
+          // Get the display media stream
+          const displayMediaStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true
+          });
+
+          // Create a new MediaStream object from the video element's src
+          const videoStream = new MediaStream(videoPlayer.srcObject.getTracks());
+
+          // Combine the display media stream and video stream
+          const combinedStream = new MediaStream([
+            ...displayMediaStream.getTracks(),
+            ...videoStream.getTracks()
+          ]);
+
+          // Cast the combined stream
+          const castSession = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: displayMediaStream.id
+              }
+            }
+          });
+
+          // Handle the cast session
+          // ...
+        } catch (error) {
+          console.error('Error casting:', error);
+        }
+      });
+    } else {
+      console.log('Casting is not supported in this browser.');
+    }
+  </script>
+
+</body>
+</html>
