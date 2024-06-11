@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Stream with Chromecast</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+    }
+
+    #videoPlayer {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="videoPlayer" controls playsinline>
+    <source src="http://nettv-host.one:80/5c:c1:d7:17:58:6a./5t5r8jaukd/1954" type="application/x-mpegURL">
+    Your browser does not support the video tag.
+  </video>
+
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+  <script>
+    window.onload = function() {
+      // Replace with your receiver application ID
+      const receiverApplicationId = 'YOUR_RECEIVER_APPLICATION_ID'; 
+
+      // Initialize the Cast API
+      cast.framework.CastContext.getInstance().setOptions({
+        receiverApplicationId: receiverApplicationId,
+        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+      });
+
+      // Get the Cast button from the CastContext
+      const castButton = cast.framework.CastContext.getInstance().getCastButtonElement();
+
+      // Append the Cast button to the video player controls
+      const videoPlayer = document.getElementById('videoPlayer');
+      videoPlayer.controls = true;
+      videoPlayer.appendChild(castButton);
+
+      // Listen for the session state change
+      cast.framework.CastContext.getInstance().addEventListener(
+        cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+        (event) => {
+          if (event.sessionState === cast.framework.SessionState.SESSION_STARTED) {
+            // Cast the video when a session starts
+            startCasting();
+          }
+        }
+      );
+    };
+
+    // Function to start casting
+    async function startCasting() {
+      const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+      try {
+        await castSession.loadMedia({
+          mediaInfo: cast.framework.messages.MediaInfo.create({
+            contentId: 'http://nettv-host.one:80/5c:c1:d7:17:58:6a./5t5r8jaukd/1954', // Your stream URL
+            contentType: 'application/x-mpegURL', // Adjust if needed
+            streamType: 'BUFFERED', // Or 'LIVE' depending on the stream
+          }),
+        });
+        console.log('Media loaded successfully');
+      } catch (error) {
+        console.error('Error loading media:', error);
+      }
+    }
+  </script>
+
+</body>
+</html>
