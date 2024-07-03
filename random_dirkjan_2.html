@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Willekeurige Dirkjan Cartoon</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Zorgt ervoor dat de body de volledige hoogte van de viewport vult */
+        }
+
+        .frame-container {
+            position: absolute;
+            top: 0.5vh; /* Kleinere marge top */
+            right: 0.5vw; /* Kleinere marge rechts */
+            bottom: 0.5vh; /* Kleinere marge bottom */
+            left: 0.5vw; /* Kleinere marge links */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #cartoonDate {
+            font-size: 1.2em;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        #cartoonImage {
+            max-width: calc(100% - 60px);
+            max-height: calc(100% - 60px);
+            object-fit: contain;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        button {
+            background-color: #3f51b5;
+            border: none;
+            color: white;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin: 0 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        button:hover {
+            background-color: #303f9f;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (orientation: portrait) {
+            .content {
+                transform: rotate(90deg);
+                transform-origin: center;
+                width: 100vh;
+                height: 100vw;
+            }
+        }
+
+        @media (orientation: landscape) {
+            .content {
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+            }
+
+            #cartoonDate {
+                position: absolute;
+                top: 10px;
+                left: 0;
+                right: 0;
+            }
+
+            #cartoonImage {
+                margin-right: 20px; /* Voeg wat ruimte toe tussen de afbeelding en de knoppen */
+                max-width: calc(100% - 140px); /* Ruimte over voor de knoppen */
+                max-height: calc(100% - 60px);
+            }
+
+            #controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="frame-container">
+        <div class="content" id="container">
+            <h2 id="cartoonDate"></h2>
+            <img id="cartoonImage" src="" alt="Dirkjan Cartoon">
+            <div id="controls">
+                <button id="prevDay"><i class="material-icons-round">arrow_back</i></button>
+                <button id="shuffle"><i class="material-icons-round">autorenew</i></button>
+                <button id="nextDay"><i class="material-icons-round">arrow_forward</i></button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentDate;
+
+        function generateRandomDate(startDate, endDate) {
+            let timeDifference = endDate - startDate;
+            let randomTime = Math.random() * timeDifference;
+            let randomDate = new Date(startDate.getTime() + randomTime);
+            while (randomDate.getDay() === 0) {
+                randomTime = Math.random() * timeDifference;
+                randomDate = new Date(startDate.getTime() + randomTime);
+            }
+            return randomDate;
+        }
+
+        function formatDate(date) {
+            let dd = String(date.getDate()).padStart(2, '0');
+            let mm = String(date.getMonth() + 1).padStart(2, '0');
+            let yyyy = date.getFullYear();
+            return `${yyyy}${mm}${dd}`;
+        }
+
+        function getCartoonURL(date) {
+            return `https://dirkjan.nl/cartoon/${formatDate(date)}`;
+        }
+
+        function formatDisplayDate(date) {
+            const days = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'];
+            const months = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+            return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+
+        async function fetchCartoon(url) {
+            try {
+                const response = await fetch(`https://api.codetabs.com/v1/proxy?quest=${url}`);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const imageUrl = doc.querySelector('meta[property="og:image"]').getAttribute('content');
+                document.getElementById('cartoonImage').src = imageUrl;
+                document.getElementById('cartoonDate').textContent = formatDisplayDate(currentDate);
+            } catch (error) {
+                console.error('Error fetching cartoon:', error);
+            }
+        }
+
+        function loadRandomCartoon() {
+            const startDate = new Date('2015-05-04');
+            const endDate = new Date();
+            currentDate = generateRandomDate(startDate, endDate);
+            fetchCartoon(getCartoonURL(currentDate));
+        }
+
+        function changeDay(days) {
+            do {
+                currentDate.setDate(currentDate.getDate() + days);
+            } while (currentDate.getDay() === 0);
+            fetchCartoon(getCartoonURL(currentDate));
+        }
+
+        document.getElementById('shuffle').addEventListener('click', loadRandomCartoon);
+        document.getElementById('prevDay').addEventListener('click', () => changeDay(-1));
+        document.getElementById('nextDay').addEventListener('click', () => changeDay(1));
+
+        loadRandomCartoon();
+    </script>
+</body>
+</html>
