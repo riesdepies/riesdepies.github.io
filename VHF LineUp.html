@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valkhof Festival Lineup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+        }
+        .tab-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background-color: #ddd;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
+        #artistList {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .artist-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .artist-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .artist-info {
+            padding: 15px;
+        }
+        .artist-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        .artist-card a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tab-container">
+        <button class="tab active" data-url="https://valkhoffestival.nl/lineup/">Hele week</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/13-juli/">Zaterdag</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/14-juli/">Zondag</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/15-juli/">Maandag</button>
+    </div>
+    <div class="tab-container">
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/16-juli/">Dinsdag</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/17-juli/">Woensdag</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/18-juli/">Donderdag</button>
+        <button class="tab" data-url="https://valkhoffestival.nl/speeldag/19-juli/">Vrijdag</button>
+    </div>
+    <div id="artistList"></div>
+
+    <script>
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        const BASE_URL = 'https://valkhoffestival.nl';
+        const cachedData = {};
+
+        function getFullUrl(url) {
+            if (url.startsWith('http')) {
+                return url;
+            } else if (url.startsWith('/')) {
+                return `${BASE_URL}${url}`;
+            } else {
+                return `${BASE_URL}/${url}`;
+            }
+        }
+
+        function getResizedImageUrl(url, width) {
+            const parsedUrl = new URL(url);
+            parsedUrl.searchParams.set('w', width);
+            return parsedUrl.toString();
+        }
+
+        async function fetchArtists(url) {
+            if (cachedData[url]) {
+                displayArtists(cachedData[url]);
+                return;
+            }
+
+            try {
+                const response = await fetch(CORS_PROXY + url);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const artistLinks = doc.querySelectorAll('a.artist');
+                
+                const artists = Array.from(artistLinks).map(link => {
+                    const name = link.querySelector('.nameplate h2').textContent.trim();
+                    let imageUrl = link.querySelector('.artist-inner').style.getPropertyValue('--background-image').slice(4, -1).replace(/["']/g, "");
+                    imageUrl = getFullUrl(imageUrl);
+                    imageUrl = getResizedImageUrl(imageUrl, 600); // Request a 600px wide image
+                    const artistUrl = getFullUrl(link.getAttribute('href'));
+                    
+                    return { name, imageUrl, artistUrl };
+                });
+
+                cachedData[url] = artists;
+                displayArtists(artists);
+            } catch (error) {
+                console.error('Error fetching artists:', error);
+            }
+        }
+
+        function displayArtists(artists) {
+            const artistList = document.getElementById('artistList');
+            artistList.innerHTML = '';
+            
+            artists.forEach(artist => {
+                const card = document.createElement('div');
+                card.className = 'artist-card';
+                card.innerHTML = `
+                    <img src="${artist.imageUrl}" alt="${artist.name}" loading="lazy">
+                    <div class="artist-info">
+                        <h2>${artist.name}</h2>
+                        <a href="${artist.artistUrl}" target="_blank">Meer info</a>
+                    </div>
+                `;
+                artistList.appendChild(card);
+            });
+        }
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                fetchArtists(this.dataset.url);
+            });
+        });
+
+        // Initial load
+        fetchArtists('https://valkhoffestival.nl/lineup/');
+    </script>
+</body>
+</html>
