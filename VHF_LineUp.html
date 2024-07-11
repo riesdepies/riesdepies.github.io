@@ -54,10 +54,13 @@
             margin: 0 0 10px 0;
             font-size: 18px;
         }
-        .artist-card a {
-            color: #007bff;
-            text-decoration: none;
+        .artist-details {
             font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .artist-description {
+            font-size: 14px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -114,7 +117,7 @@
                     const name = link.querySelector('.nameplate h2').textContent.trim();
                     let imageUrl = link.querySelector('.artist-inner').style.getPropertyValue('--background-image').slice(4, -1).replace(/["']/g, "");
                     imageUrl = getFullUrl(imageUrl);
-                    imageUrl = getResizedImageUrl(imageUrl, 600); // Request a 600px wide image
+                    imageUrl = getResizedImageUrl(imageUrl, 600);
                     const artistUrl = getFullUrl(link.getAttribute('href'));
                     
                     return { name, imageUrl, artistUrl };
@@ -127,22 +130,78 @@
             }
         }
 
-        function displayArtists(artists) {
+        async function fetchArtistInfo(artist) {
+            const cacheKey = `artist_${artist.name}`;
+            const cachedInfo = localStorage.getItem(cacheKey);
+            
+            if (cachedInfo) {
+                return JSON.parse(cachedInfo);
+            }
+
+            try {
+                const response = await fetch(CORS_PROXY + artist.artistUrl);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const meta = doc.querySelector('.meta');
+                const description = doc.querySelector('.description p');
+
+                const tags = Array.from(meta.querySelectorAll('.tag'));
+                const info = {
+                    genres: tags.slice(0, -3).map(tag => tag.textContent.trim()),
+                    podium: tags[tags.length - 3] ? tags[tags.length - 3].textContent.trim() : 'Onbekend',
+                    datum: tags[tags.length - 2] ? tags[tags.length - 2].textContent.trim() : 'Onbekend',
+                    tijd: tags[tags.length - 1] ? tags[tags.length - 1].textContent.trim() : 'Onbekend',
+                    description: description ? description.textContent.trim() : 'Geen beschrijving beschikbaar'
+                };
+
+                localStorage.setItem(cacheKey, JSON.stringify(info));
+                return info;
+            } catch (error) {
+                console.error(`Error fetching info for ${artist.name}:`, error);
+                return null;
+            }
+        }
+
+        async function displayArtists(artists) {
             const artistList = document.getElementById('artistList');
             artistList.innerHTML = '';
             
-            artists.forEach(artist => {
+            for (const artist of artists) {
                 const card = document.createElement('div');
                 card.className = 'artist-card';
                 card.innerHTML = `
-                    <img src="${artist.imageUrl}" alt="${artist.name}" loading="lazy">
+                    <img src="${CORS_PROXY}${artist.imageUrl}" alt="${artist.name}" loading="lazy">
                     <div class="artist-info">
                         <h2>${artist.name}</h2>
-                        <a href="${artist.artistUrl}" target="_blank">Meer info</a>
+                        <div class="artist-details">Laden...</div>
+                        <div class="artist-description">Laden...</div>
                     </div>
                 `;
                 artistList.appendChild(card);
-            });
+
+                // Fetch artist info asynchronously
+                const info = await fetchArtistInfo(artist);
+                if (info) {
+                    card.querySelector('.artist-details').innerHTML = `
+                        <p>Genres: ${info.genres.join(', ')}</p>
+                        <p>Podium: ${info.podium}</p>
+                        <p>Datum: ${info.datum}</p>
+                        <p>Tijd: ${info.tijd}</p>
+                    `;
+                    card.querySelector('.artist-description').innerHTML = `
+                        <p>${info.description}</p>
+                    `;
+                } else {
+                    card.querySelector('.artist-details').textContent = 'Informatie niet beschikbaar';
+                    card.querySelector('.artist-description').textContent = 'Beschrijving niet beschikbaar';
+                }
+
+                if (!localStorage.getItem(`artist_${artist.name}`)) {
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wacht 1 seconde tussen elke nieuwe request
+                }
+            }
         }
 
         document.querySelectorAll('.tab').forEach(tab => {
