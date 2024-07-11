@@ -11,13 +11,13 @@
             padding: 10px;
             background-color: #f0f0f0;
         }
-        .tab-container {
+        .tab-container, .proxy-container {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
             margin-bottom: 10px;
         }
-        .tab {
+        .tab, .proxy-button {
             flex: 1;
             padding: 10px;
             background-color: #ddd;
@@ -25,7 +25,7 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .tab.active {
+        .tab.active, .proxy-button.active {
             background-color: #007bff;
             color: white;
         }
@@ -65,6 +65,12 @@
     </style>
 </head>
 <body>
+    <div class="proxy-container">
+        <button class="proxy-button active" data-proxy="https://corsproxy.io/?">CORSProxy.io</button>
+        <button class="proxy-button" data-proxy="https://api.allorigins.win/raw?url=">All Origins</button>
+        <button class="proxy-button" data-proxy="https://cors.eu.org/">CORS.eu.org</button>
+        <button class="proxy-button" data-proxy="https://api.codetabs.com/v1/proxy?quest=">CodeTabs Proxy</button>
+    </div>
     <div class="tab-container">
         <button class="tab active" data-url="https://valkhoffestival.nl/lineup/">Hele week</button>
         <button class="tab" data-url="https://valkhoffestival.nl/speeldag/13-juli/">Zaterdag</button>
@@ -80,7 +86,7 @@
     <div id="artistList"></div>
 
     <script>
-        const CORS_PROXY = 'https://corsproxy.io/?';
+        let CORS_PROXY = 'https://corsproxy.io/?';
         const BASE_URL = 'https://valkhoffestival.nl';
         const cachedData = {};
 
@@ -172,7 +178,7 @@
                 const card = document.createElement('div');
                 card.className = 'artist-card';
                 card.innerHTML = `
-                    <img src="${artist.imageUrl}" alt="${artist.name}" loading="lazy">
+                    <img src="${CORS_PROXY}${artist.imageUrl}" alt="${artist.name}" loading="lazy">
                     <div class="artist-info">
                         <h2>${artist.name}</h2>
                         <div class="artist-details">Laden...</div>
@@ -209,6 +215,15 @@
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 fetchArtists(this.dataset.url);
+            });
+        });
+
+        document.querySelectorAll('.proxy-button').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.proxy-button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                CORS_PROXY = this.dataset.proxy;
+                fetchArtists(document.querySelector('.tab.active').dataset.url);
             });
         });
 
