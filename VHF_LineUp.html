@@ -151,9 +151,14 @@
     <div id="artistList"></div>
 
     <script>
-        const CORS_PROXY = 'https://corsproxy.io/?', BASE_URL = 'https://valkhoffestival.nl';
-        let cachedData = {}, currentArtists = [], activePodia = JSON.parse(localStorage.getItem('activePodia')) || [],
-            favorites = JSON.parse(localStorage.getItem('favorites')) || [], showingFavorites = false;
+        const CORS_PROXY = 'https://corsproxy.io/?',
+            BASE_URL = 'https://valkhoffestival.nl';
+        let cachedData = {},
+            currentArtists = [],
+            activePodia = JSON.parse(localStorage.getItem('activePodia')) || [],
+            favorites = JSON.parse(localStorage.getItem('favorites')) || [],
+            showingFavorites = false,
+            currentTab = localStorage.getItem('currentTab') || 'https://valkhoffestival.nl/lineup/';
 
         const getFullUrl = url => url.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 
@@ -252,6 +257,7 @@
                 if (matchesSearch && matchesPodium && matchesFavorites) {
                     filteredArtists.push(artist);
                 }
+                updateArtistCount(filteredArtists.length); // Real-time update
             }
             displayArtists(filteredArtists);
         };
@@ -271,8 +277,11 @@
         };
 
         const clearLocalStorage = () => {
-            if (confirm('Weet je zeker dat je alle opgeslagen gegevens wilt wissen?')) {
-                localStorage.clear();
+            if (confirm('Weet je zeker dat je alle opgeslagen gegevens wilt wissen behalve favorieten?')) {
+                const allKeys = Object.keys(localStorage);
+                allKeys.forEach(key => {
+                    if (key !== 'favorites') localStorage.removeItem(key);
+                });
                 location.reload();
             }
         };
@@ -281,6 +290,7 @@
             tab.addEventListener('click', function () {
                 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
+                localStorage.setItem('currentTab', this.dataset.url);
                 fetchArtists(this.dataset.url);
             });
         });
@@ -313,7 +323,14 @@
         });
 
         updateFilterButtons();
-        fetchArtists('https://valkhoffestival.nl/lineup/');
+
+        // Laad het laatst geselecteerde tabblad vanuit localStorage.
+        document.querySelectorAll('.tab').forEach(tab => {
+            if (tab.dataset.url === currentTab) {
+                tab.classList.add('active');
+                fetchArtists(currentTab);
+            }
+        });
     </script>
 </body>
 
