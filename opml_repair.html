@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPML Repair</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: calc(100% - 2rem);
+            width: 400px;
+            margin: 0 1rem;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 200px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        .btn-secondary {
+            background-color: white;
+            color: #007bff;
+            border: 1px solid #007bff;
+        }
+        .btn-large {
+            transform: scale(1.1);
+        }
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OPML Repair</h1>
+        <input type="file" id="fileInput" accept=".opml,.xml">
+        <button id="uploadBtn" class="btn btn-primary btn-large" onclick="document.getElementById('fileInput').click()">Upload OPML file</button>
+        <button id="repairBtn" class="btn btn-secondary" onclick="repairAndDownload()" disabled>Repair & download</button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const repairBtn = document.getElementById('repairBtn');
+
+        fileInput.addEventListener('change', (event) => {
+            if (event.target.files.length > 0) {
+                uploadBtn.classList.remove('btn-primary', 'btn-large');
+                uploadBtn.classList.add('btn-secondary');
+                repairBtn.classList.remove('btn-secondary');
+                repairBtn.classList.add('btn-primary', 'btn-large');
+                repairBtn.disabled = false;
+            }
+        });
+
+        function repairAndDownload() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                const repairedContent = repairXML(content);
+                downloadFile(repairedContent, file.name.replace('.xml', '_repaired.xml'));
+            };
+            reader.readAsText(file);
+        }
+
+        function repairXML(xml) {
+            if (!xml.trim().startsWith('<?xml')) {
+                xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + xml;
+            }
+            
+            xml = xml.replace(/&(?!(?:amp|lt|gt|quot|apos);)/g, "&amp;");
+            
+            return formatXml(xml);
+        }
+
+        function formatXml(xml) {
+            let formatted = '';
+            let indent = '';
+            const tab = '  ';
+            xml.split(/>\s*</).forEach(function(node) {
+                if (node.match( /^\/\w/ )) indent = indent.substring(tab.length);
+                formatted += indent + '<' + node + '>\r\n';
+                if (node.match( /^<?\w[^>]*[^\/]$/ )) indent += tab;
+            });
+            return formatted.substring(1, formatted.length-3);
+        }
+
+        function downloadFile(content, filename) {
+            const blob = new Blob([new TextEncoder().encode(content)], { type: 'text/xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
