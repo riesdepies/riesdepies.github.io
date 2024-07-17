@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xtream Fetcher</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF6B00;
+            --background-color: #1E1E1E;
+            --text-color: #E0E0E0;
+            --card-background: #2D2D2D;
+            --link-color: #4A90E2;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        .title-bar {
+            background-color: var(--card-background);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .title-bar h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 10px;
+        }
+        #date-navigator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--card-background);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #current-date {
+            font-size: 1em;
+            font-weight: 600;
+            text-align: center;
+            flex-grow: 1;
+        }
+        button {
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #FF8C00;
+        }
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        #result {
+            background-color: var(--card-background);
+            padding: 20px 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        #accounts-count {
+            color: var(--primary-color);
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .server-group {
+            margin-bottom: 10px;
+            background-color: #3D3D3D;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .server-header {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .server-accounts {
+            display: none;
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .account-item {
+            margin-bottom: 5px;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+        .account-item a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        .account-item a:hover {
+            text-decoration: underline;
+        }
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .spinner {
+            border: 3px solid #3D3D3D;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #error-message {
+            color: #FF4136;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-bar">
+        <h1>Xtream Fetcher</h1>
+    </div>
+    <div class="container">
+        <div id="date-navigator">
+            <button id="prev-date">&lt;</button>
+            <div id="current-date"></div>
+            <button id="next-date">&gt;</button>
+        </div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Fetching accounts...</p>
+        </div>
+        <div id="error-message"></div>
+        <div id="result">
+            <div id="accounts-count"></div>
+            <div id="accounts-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+        const accountsList = document.getElementById('accounts-list');
+        const accountsCountDiv = document.getElementById('accounts-count');
+        const currentDateDiv = document.getElementById('current-date');
+        const prevDateBtn = document.getElementById('prev-date');
+        const nextDateBtn = document.getElementById('next-date');
+        const loadingDiv = document.getElementById('loading');
+        const errorMessageDiv = document.getElementById('error-message');
+        const corsProxy = "https://api.codetabs.com/v1/proxy?quest=";
+        const baseUrl = "https://www.stbemucode.com/search/label/iptv";
+
+        let currentDateIndex = 0;
+        let availableDates = [];
+        let sourceUrls = {};
+        let cache = {};
+
+        async function init() {
+            loadingDiv.style.display = 'block';
+            try {
+                const response = await fetch(corsProxy + encodeURIComponent(baseUrl));
+                const content = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+
+                const links = doc.querySelectorAll('a');
+                for (const link of links) {
+                    const href = link.getAttribute('href');
+                    if (href && href.includes('xtream-codes-iptv-m3u-playlists')) {
+                        const dateMatch = href.match(/(\d{2})(\d{2})(\d{4})/);
+                        if (dateMatch) {
+                            const dateString = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+                            if (!sourceUrls[dateString]) {
+                                sourceUrls[dateString] = [];
+                            }
+                            sourceUrls[dateString].push(href);
+                        }
+                    }
+                }
+
+                availableDates = Object.keys(sourceUrls).sort().reverse();
+                updateDateDisplay();
+                await fetchForCurrentDate();
+            } catch (error) {
+                console.error('Error initializing:', error);
+                errorMessageDiv.textContent = 'Failed to initialize. Please try refreshing the page.';
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function formatDate(dateString) {
+            const [year, month, day] = dateString.split('-');
+            const date = new Date(year, month - 1, day);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function updateDateDisplay() {
+            if (availableDates.length > 0) {
+                currentDateDiv.textContent = formatDate(availableDates[currentDateIndex]);
+                prevDateBtn.disabled = currentDateIndex === availableDates.length - 1;
+                nextDateBtn.disabled = currentDateIndex === 0;
+            } else {
+                currentDateDiv.textContent = 'No dates available';
+                prevDateBtn.disabled = true;
+                nextDateBtn.disabled = true;
+            }
+        }
+
+        async function processUrl(url) {
+            try {
+                const response = await fetch(corsProxy + encodeURIComponent(url));
+                const content = await response.text();
+
+                const accounts = [];
+
+                // Zoek naar Xtream Codes m3u URLs
+                const xtreamCodeRegex = /https?:\/\/[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]+type=m3u(?:_plus)?/gi;
+                const xtreamAccounts = [...new Set(content.match(xtreamCodeRegex) || [])].map(url => url.replace(/([^:]\/)\/+/g, '$1'));
+                accounts.push(...xtreamAccounts);
+
+                // Zoek naar accountinformatie in andere formaten
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                const paragraphs = doc.querySelectorAll('p');
+
+                for (let i = 0; i < paragraphs.length; i++) {
+                    const urlMatch = paragraphs[i].textContent.match(/https?:\/\/[^\s]+/);
+                    if (urlMatch) {
+                        let url = urlMatch[0].replace(/\/$/, ''); // Verwijder trailing slash
+                        let username = '';
+                        let password = '';
+
+                        // Zoek naar username en password in de volgende paragrafen
+                        for (let j = i + 1; j < paragraphs.length && j < i + 3; j++) {
+                            const text = paragraphs[j].textContent.trim();
+                            if (text.startsWith('username=')) {
+                                username = text.split('=')[1];
+                            } else if (text.startsWith('password=')) {
+                                password = text.split('=')[1];
+                            }
+                        }
+
+                        if (username && password) {
+                            const m3uUrl = `${url}/get.php?username=${username}&password=${password}&type=m3u_plus`.replace(/([^:]\/)\/+/g, '$1');
+                            accounts.push(m3uUrl);
+                        }
+                    }
+                }
+
+                return accounts;
+            } catch (error) {
+                console.error('Error processing URL:', error);
+                return [];
+            }
+        }
+
+        function groupAccountsByServer(accounts) {
+            const groupedAccounts = {};
+            accounts.forEach(account => {
+                const url = new URL(account);
+                const server = url.hostname;
+                if (!groupedAccounts[server]) {
+                    groupedAccounts[server] = [];
+                }
+                groupedAccounts[server].push(account);
+            });
+            return groupedAccounts;
+        }
+
+        function extractUsernameFromUrl(url) {
+            const match = url.match(/username=([^&]+)/);
+            return match ? decodeURIComponent(match[1]) : 'Unknown User';
+        }
+
+        function displayResults(accounts) {
+            accountsCountDiv.textContent = `${accounts.length} accounts fetched`;
+            accountsList.innerHTML = '';
+            const groupedAccounts = groupAccountsByServer(accounts);
+
+            Object.entries(groupedAccounts).forEach(([server, serverAccounts]) => {
+                const serverGroup = document.createElement('div');
+                serverGroup.className = 'server-group';
+
+                const serverHeader = document.createElement('div');
+                serverHeader.className = 'server-header';
+                serverHeader.textContent = `${server} (${serverAccounts.length})`;
+                serverHeader.onclick = toggleServerAccounts;
+
+                const accountsContainer = document.createElement('div');
+                accountsContainer.className = 'server-accounts';
+
+                serverAccounts.forEach(account => {
+                    const accountItem = document.createElement('div');
+                    accountItem.className = 'account-item';
+
+                    const username = extractUsernameFromUrl(account);
+
+                    const link = document.createElement('a');
+                    link.href = account.replace(/&amp;/g, '&');
+                    link.textContent = username;
+
+                    accountItem.appendChild(link);
+                    accountsContainer.appendChild(accountItem);
+                });
+
+                serverGroup.appendChild(serverHeader);
+                serverGroup.appendChild(accountsContainer);
+                accountsList.appendChild(serverGroup);
+            });
+
+            if (Object.keys(groupedAccounts).length === 0) {
+                accountsList.innerHTML = '<div class="server-group">No Xtream Codes accounts found.</div>';
+            }
+        }
+
+        function toggleServerAccounts(event) {
+            const serverGroup = event.target.closest('.server-group');
+            const accountsContainer = serverGroup.querySelector('.server-accounts');
+            const isExpanded = accountsContainer.style.display === 'block';
+
+            // Collapse all server groups
+            document.querySelectorAll('.server-accounts').forEach(container => {
+                container.style.display = 'none';
+            });
+
+            // Expand the clicked group if it was not already expanded
+            if (!isExpanded) {
+                accountsContainer.style.display = 'block';
+            }
+        }
+
+        async function fetchForCurrentDate() {
+            loadingDiv.style.display = 'block';
+            accountsList.innerHTML = '';
+            accountsCountDiv.textContent = '';
+            errorMessageDiv.textContent = '';
+
+            const currentDate = availableDates[currentDateIndex];
+
+            if (cache[currentDate]) {
+                displayResults(cache[currentDate]);
+                loadingDiv.style.display = 'none';
+                return;
+            }
+
+            try {
+                const urls = sourceUrls[currentDate];
+                const accountPromises = urls.map(processUrl);
+                const accountsArrays = await Promise.all(accountPromises);
+                const allAccounts = [...new Set(accountsArrays.flat())];
+                displayResults(allAccounts);
+                cache[currentDate] = allAccounts;
+            } catch (error) {
+                errorMessageDiv.textContent = 'An error occurred while fetching accounts.';
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        prevDateBtn.addEventListener('click', () => {
+            if (currentDateIndex < availableDates.length - 1) {
+                currentDateIndex++;
+                updateDateDisplay();
+                fetchForCurrentDate();
+            }
+        });
+
+        nextDateBtn.addEventListener('click', () => {
+            if (currentDateIndex > 0) {
+                currentDateIndex--;
+                updateDateDisplay();
+                fetchForCurrentDate();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
