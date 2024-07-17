@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
             --card-background: #2D2D2D;
             --link-color: #4A90E2;
         }
+
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -21,23 +23,27 @@
             color: var(--text-color);
             line-height: 1.6;
         }
+
         .title-bar {
             background-color: var(--card-background);
             padding: 15px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         .title-bar h1 {
             margin: 0;
             color: var(--primary-color);
             font-size: 1.8em;
             font-weight: 600;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px 10px;
         }
+
         #date-navigator {
             display: flex;
             justify-content: space-between;
@@ -46,14 +52,16 @@
             background-color: var(--card-background);
             padding: 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         #current-date {
             font-size: 1em;
             font-weight: 600;
             text-align: center;
             flex-grow: 1;
         }
+
         button {
             background-color: var(--primary-color);
             border: none;
@@ -64,58 +72,85 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         button:hover {
             background-color: #FF8C00;
         }
+
         button:disabled {
             background-color: #666;
             cursor: not-allowed;
         }
+
         #result {
             background-color: var(--card-background);
             padding: 20px 10px;
             border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
         }
+
+        #accounts-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
         #accounts-count {
             color: var(--primary-color);
             font-size: 1.2em;
             text-align: center;
-            margin-bottom: 15px;
         }
+
+        #copy-accounts {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: absolute;
+            right: 10px; /* Adjusted to align with the 'next' button */
+            display: none;
+        }
+
         .server-group {
             margin-bottom: 10px;
             background-color: #3D3D3D;
             padding: 10px;
             border-radius: 5px;
         }
+
         .server-header {
             cursor: pointer;
             font-weight: bold;
         }
+
         .server-accounts {
             display: none;
             margin-top: 10px;
             padding-left: 20px;
         }
+
         .account-item {
             margin-bottom: 5px;
             word-break: break-all;
             font-size: 0.9em;
         }
+
         .account-item a {
             color: var(--link-color);
             text-decoration: none;
         }
+
         .account-item a:hover {
             text-decoration: underline;
         }
+
         #loading {
             display: none;
             text-align: center;
             margin-top: 20px;
         }
+
         .spinner {
             border: 3px solid #3D3D3D;
             border-top: 3px solid var(--primary-color);
@@ -125,18 +160,32 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
+
         #error-message {
             color: #FF4136;
             text-align: center;
             margin-top: 20px;
             font-weight: 600;
         }
+
+        .material-icons {
+            font-size: 24px;
+            color: #FFFFFF;
+        }
     </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
+
 <body>
     <div class="title-bar">
         <h1>Xtream Fetcher</h1>
@@ -153,11 +202,13 @@
         </div>
         <div id="error-message"></div>
         <div id="result">
-            <div id="accounts-count"></div>
+            <div id="accounts-info">
+                <div id="accounts-count"></div>
+                <span id="copy-accounts" class="material-icons">content_copy</span>
+            </div>
             <div id="accounts-list"></div>
         </div>
     </div>
-
     <script>
         const resultDiv = document.getElementById('result');
         const accountsList = document.getElementById('accounts-list');
@@ -167,6 +218,7 @@
         const nextDateBtn = document.getElementById('next-date');
         const loadingDiv = document.getElementById('loading');
         const errorMessageDiv = document.getElementById('error-message');
+        const copyAccountsBtn = document.getElementById('copy-accounts');
         const corsProxy = "https://api.codetabs.com/v1/proxy?quest=";
         const baseUrl = "https://www.stbemucode.com/search/label/iptv";
 
@@ -177,6 +229,7 @@
 
         async function init() {
             loadingDiv.style.display = 'block';
+            copyAccountsBtn.style.display = 'none'; // Hide copy button during loading
             try {
                 const response = await fetch(corsProxy + encodeURIComponent(baseUrl));
                 const content = await response.text();
@@ -332,6 +385,13 @@
             if (Object.keys(groupedAccounts).length === 0) {
                 accountsList.innerHTML = '<div class="server-group">No Xtream Codes accounts found.</div>';
             }
+
+            // Show the copy button if there are accounts
+            if (accounts.length > 0) {
+                copyAccountsBtn.style.display = 'block';
+            } else {
+                copyAccountsBtn.style.display = 'none';
+            }
         }
 
         function toggleServerAccounts(event) {
@@ -352,6 +412,7 @@
 
         async function fetchForCurrentDate() {
             loadingDiv.style.display = 'block';
+            copyAccountsBtn.style.display = 'none'; // Hide copy button during loading
             accountsList.innerHTML = '';
             accountsCountDiv.textContent = '';
             errorMessageDiv.textContent = '';
@@ -394,7 +455,24 @@
             }
         });
 
+        copyAccountsBtn.addEventListener('click', async () => {
+            const accounts = [];
+            document.querySelectorAll('.account-item a').forEach(link => accounts.push(link.href));
+            const accountText = accounts.join('\n\n');
+            try {
+                await navigator.clipboard.writeText(accountText);
+                copyAccountsBtn.textContent = 'check_circle';
+
+                setTimeout(() => {
+                    copyAccountsBtn.textContent = 'content_copy';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        });
+
         init();
     </script>
 </body>
+
 </html>
