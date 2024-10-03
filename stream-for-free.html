@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream for Free!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .search-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none; /* Hidden by default; shown when adblocker is detected */
+        }
+        .message-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            border-radius: 8px;
+            background: #ffcccb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .search-box {
+            display: flex;
+            padding-bottom: 10px;
+        }
+        input[type="text"] {
+            width: calc(100% - 100px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 80px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .checkbox-container {
+            text-align: left;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container" id="adblock">
+        <h1>Stream for Free!</h1>
+        <form id="searchForm">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Type a movie or TV show.." required>
+                <button type="submit">Search</button>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="englishOnly">
+                <label for="englishOnly">English only</label>
+            </div>
+        </form>
+    </div>
+
+    <div class="message-container hidden" id="no-adblock">
+        <h1>Please install an ad blocker first!</h1>
+        <p><a href="https://ublockorigin.com/" target="_blank">uBlock Origin</a></p>
+        <p><a href="https://brave.com/" target="_blank">Brave Browser</a></p>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            var testImg = document.createElement('img');
+            testImg.src = 'https://pagead2.googlesyndication.com/pagead/imgad?id=CICAgKDbTB6AgQEQARgBM';
+            testImg.onerror = function() {
+                // Ad blocker detected
+                document.getElementById('adblock').style.display = 'block';
+            };
+            testImg.onload = function() {
+                // No ad blocker detected
+                document.getElementById('no-adblock').classList.remove('hidden');
+            };
+            testImg.style.display = 'none';
+            document.body.appendChild(testImg);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchForm = document.getElementById('searchForm');
+            const searchInput = document.getElementById('searchInput');
+            const englishOnlyCheckbox = document.getElementById('englishOnly');
+
+            // Load preference from local storage
+            const isEnglishOnly = localStorage.getItem('englishOnly') === 'true';
+            englishOnlyCheckbox.checked = isEnglishOnly;
+
+            searchForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Get search query
+                const query = searchInput.value.trim();
+                if (!query) return;
+                
+                // Build the search URL
+                let searchUrl = `https://yandex.com/search/?text=${encodeURIComponent(query)}+watch+free+online`;
+                if (englishOnlyCheckbox.checked) {
+                    searchUrl += '&lang=en';
+                }
+                
+                // Save preference to local storage
+                localStorage.setItem('englishOnly', englishOnlyCheckbox.checked);
+
+                // Redirect to Yandex search
+                window.location.href = searchUrl;
+            });
+        });
+    </script>
+</body>
+</html>
