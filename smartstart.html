@@ -229,7 +229,7 @@
         const faviconInput = document.getElementById('favicon-url');
         const deleteButton = document.querySelector('.delete-icon');
         const saveButton = document.querySelector('.save-icon');
-        
+
         let editIndex = -1;
         let originalEngine = {};
 
@@ -303,7 +303,7 @@
             editIndex = -1;
         }
 
-        function openEditorModal(engine = null, index = -1) {
+        async function openEditorModal(engine = null, index = -1) {
             editIndex = index;
 
             const title = engine ? 'Edit Search Engine' : 'Add Search Engine';
@@ -321,9 +321,23 @@
 
             deleteButton.style.display = engine ? 'inline-block' : 'none';
 
+            // Alleen controleren op klembord-inhoud bij het toevoegen van een nieuwe zoekmachine
+            if (!engine && navigator.clipboard) {
+                try {
+                    const clipboardText = await navigator.clipboard.readText();
+                    const isValidUrl = clipboardText.includes('%s') || /hoi/i.test(clipboardText);
+
+                    if (isValidUrl && !clipboardText.includes('\n')) {
+                        urlInput.value = clipboardText;
+                    }
+                } catch (error) {
+                    console.error('Fout bij het lezen van het klembord:', error);
+                }
+            }
+
             checkForChanges();
             document.getElementById('editor-modal').style.display = 'flex';
-            
+
             // Focus op het URL-veld alleen als we een nieuwe zoekmachine toevoegen
             if (engine === null) {
                 urlInput.focus();
@@ -333,8 +347,8 @@
         function checkForChanges() {
             const urlNotEmpty = urlInput.value.trim() !== '';
             const wasChanged = (
-                nameInput.value.trim() !== originalEngine.name || 
-                urlInput.value.trim() !== originalEngine.url || 
+                nameInput.value.trim() !== originalEngine.name ||
+                urlInput.value.trim() !== originalEngine.url ||
                 faviconInput.value.trim() !== originalEngine.faviconUrl
             );
 
