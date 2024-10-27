@@ -50,6 +50,7 @@
             background: white;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             outline: none;
+            autocomplete: off;
         }
         #buttons-grid {
             display: grid;
@@ -189,7 +190,7 @@
 <body>
     <div class="container">
         <div id="search-container">
-            <input type="text" id="search-box" placeholder="Search...">
+            <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
         </div>
         <div id="buttons-grid"></div>
     </div>
@@ -198,11 +199,11 @@
             <span class="material-icons close-icon" onclick="closeEditorModal()">close</span>
             <h3 id="editor-modal-title">Add or Edit Search Engine</h3>
             <label for="engine-name" id="label-engine-name">Name</label>
-            <input type="text" id="engine-name" placeholder="Leave empty for default name">
+            <input type="text" id="engine-name" placeholder="Leave empty for default name" autocomplete="off">
             <label for="favicon-url" id="label-favicon-url">Favicon URL</label>
-            <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false">
+            <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
             <label for="engine-url" id="label-engine-url">Search URL (%s for query)</label>
-            <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false">
+            <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
             <div class="button-container">
                 <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
                 <span class="material-icons save-icon" onclick="saveEngine()">check</span>
@@ -222,46 +223,35 @@
             { name: 'LinkedIn', url: 'https://www.linkedin.com/search/results/all/?keywords=%s' },
             { name: 'GitHub', url: 'https://github.com/search?q=%s' }
         ];
-
         const searchBox = document.getElementById('search-box');
         const nameInput = document.getElementById('engine-name');
         const urlInput = document.getElementById('engine-url');
         const faviconInput = document.getElementById('favicon-url');
         const deleteButton = document.querySelector('.delete-icon');
         const saveButton = document.querySelector('.save-icon');
-
         let editIndex = -1;
         let originalEngine = {};
-
         function getFaviconUrl(url) {
             const domain = new URL(url, 'http://localhost').hostname;
             return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
         }
-
         function createSearchButton(engine, index) {
             const button = document.createElement('button');
             button.className = 'search-button';
-
             const img = document.createElement('img');
             img.src = engine.faviconUrl || getFaviconUrl(engine.url);
             img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
-
             const span = document.createElement('span');
             span.textContent = engine.name || "Unnamed";
-
             button.appendChild(img);
             button.appendChild(span);
-
             button.addEventListener('click', () => handleClick(engine));
-
             button.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 openEditorModal(engine, index);
             });
-
             return button;
         }
-
         function handleClick(engine) {
             const query = searchBox.value.trim();
             if (engine.url.includes('%s')) {
@@ -271,28 +261,22 @@
                 window.location.href = engine.url;
             }
         }
-
         function renderButtons() {
             const grid = document.getElementById('buttons-grid');
             grid.innerHTML = '';
-
             searchEngines.forEach((engine, index) => {
                 grid.appendChild(createSearchButton(engine, index));
             });
-
             const addButton = document.createElement('button');
             addButton.className = 'search-button';
             addButton.id = 'add-button';
-
             const icon = document.createElement('span');
             icon.className = 'material-icons';
             icon.textContent = 'add';
-
             addButton.appendChild(icon);
             addButton.onclick = () => openEditorModal();
             grid.appendChild(addButton);
         }
-
         function closeEditorModal() {
             document.getElementById('editor-modal').style.display = 'none';
             nameInput.value = '';
@@ -302,37 +286,27 @@
             saveButton.style.display = 'none'; // Hide save button when closing
             editIndex = -1;
         }
-
         async function openEditorModal(engine = null, index = -1) {
             editIndex = index;
-
             const title = engine ? 'Edit Search Engine' : 'Add Search Engine';
             document.getElementById('editor-modal-title').textContent = title;
-
             nameInput.value = engine ? engine.name : '';
             urlInput.value = engine ? engine.url : '';
             faviconInput.value = engine ? (engine.faviconUrl || '') : '';
-
             originalEngine = {
                 name: nameInput.value,
                 url: urlInput.value,
                 faviconUrl: faviconInput.value
             };
-
             deleteButton.style.display = engine ? 'inline-block' : 'none';
-
-            // Alleen controleren op klembord-inhoud bij het toevoegen van een nieuwe zoekmachine
             if (!engine && navigator.clipboard) {
                 try {
                     let clipboardText = await navigator.clipboard.readText();
                     let isValidUrl = clipboardText.includes('%s');
-
-                    // Controleer of "hoi" in de tekst staat en vervang het door "%s"
                     if (!isValidUrl && /hoi/i.test(clipboardText)) {
                         isValidUrl = true;
                         clipboardText = clipboardText.replace(/hoi/gi, '%s');
                     }
-
                     if (isValidUrl && !clipboardText.includes('\n')) {
                         urlInput.value = clipboardText;
                     }
@@ -340,16 +314,12 @@
                     console.error('Fout bij het lezen van het klembord:', error);
                 }
             }
-
             checkForChanges();
             document.getElementById('editor-modal').style.display = 'flex';
-
-            // Focus op het URL-veld alleen als we een nieuwe zoekmachine toevoegen
             if (engine === null) {
                 urlInput.focus();
             }
         }
-
         function checkForChanges() {
             const urlNotEmpty = urlInput.value.trim() !== '';
             const wasChanged = (
@@ -357,43 +327,32 @@
                 urlInput.value.trim() !== originalEngine.url ||
                 faviconInput.value.trim() !== originalEngine.faviconUrl
             );
-
             if (wasChanged && urlNotEmpty) {
                 saveButton.style.display = 'block';
             } else {
                 saveButton.style.display = 'none';
             }
         }
-
         nameInput.addEventListener('input', checkForChanges);
         urlInput.addEventListener('input', checkForChanges);
         faviconInput.addEventListener('input', checkForChanges);
-
         function saveEngine() {
             let name = nameInput.value.trim();
             let url = urlInput.value.trim();
             const faviconUrl = faviconInput.value.trim();
-
             if (!url) {
                 return; // Exit if URL is not provided
             }
-
             if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
-
-            // "hoi" in URL die handmatig werd ingevoerd niet vervangen.
-
             if (!name) {
                 try {
                     const urlObj = new URL(url);
                     let hostname = urlObj.hostname;
-
-                    // Verwijder gangbare subdomeinen zoals 'www.' en 'm.'
                     if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
                         hostname = hostname.substring(hostname.indexOf('.') + 1);
                     }
-
                     const nameParts = hostname.split('.');
                     if (nameParts.length > 0) {
                         name = nameParts[0];
@@ -404,18 +363,15 @@
                     return;
                 }
             }
-
             if (editIndex >= 0) {
                 searchEngines[editIndex] = { name, url, faviconUrl };
             } else {
                 searchEngines.push({ name, url, faviconUrl });
             }
-
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
             closeEditorModal();
         }
-
         function deleteEngine() {
             if (editIndex >= 0) {
                 searchEngines.splice(editIndex, 1);
@@ -424,14 +380,12 @@
                 closeEditorModal();
             }
         }
-
         searchBox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 const query = encodeURIComponent(e.target.value);
                 window.location.href = searchEngines[0].url.replace('%s', query);
             }
         });
-
         renderButtons();
     </script>
 </body>
