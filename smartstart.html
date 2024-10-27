@@ -325,7 +325,13 @@
             if (!engine && navigator.clipboard) {
                 try {
                     const clipboardText = await navigator.clipboard.readText();
-                    const isValidUrl = clipboardText.includes('%s') || /hoi/i.test(clipboardText);
+                    let isValidUrl = clipboardText.includes('%s');
+
+                    // Controleer of "hoi" in de tekst staat en vervang het door "%s"
+                    if (!isValidUrl && /hoi/i.test(clipboardText)) {
+                        isValidUrl = true;
+                        clipboardText = clipboardText.replace(/hoi/gi, '%s');
+                    }
 
                     if (isValidUrl && !clipboardText.includes('\n')) {
                         urlInput.value = clipboardText;
