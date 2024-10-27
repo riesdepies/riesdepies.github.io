@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,12 +35,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
         }
         #search-container {
             width: 100%;
             margin-bottom: 24px;
-            position: relative;
         }
         #search-box {
             width: 100%;
@@ -52,25 +50,6 @@
             background: white;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             outline: none;
-        }
-        #suggestions {
-            position: absolute;
-            top: calc(var(--button-height) + 4px);
-            left: 0;
-            width: 100%;
-            background: white;
-            list-style-type: none;
-            padding: 0;
-            margin: 5px 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-        }
-        #suggestions li {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-        #suggestions li:hover {
-            background-color: #e0e0e0;
         }
         #buttons-grid {
             display: grid;
@@ -127,9 +106,9 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             justify-content: center;
-            align-items: flex-start;
+            align-items: flex-start; /* Verplaats dichter naar de bovenkant */
             padding: 16px;
-            padding-top: 40px;
+            padding-top: 40px; /* Voeg wat padding bovenaan toe voor ruimte */
         }
         .modal-content {
             background: white;
@@ -177,7 +156,7 @@
         }
         .delete-icon {
             color: #d9534f;
-            font-size: 30px;
+            font-size: 30px; /* Vergroot prullenbakje */
             display: none;
         }
         .save-icon {
@@ -185,7 +164,7 @@
             position: absolute;
             bottom: 10px;
             right: 10px;
-            font-size: 32px;
+            font-size: 32px; /* Vergroot vinkje */
             display: none;
         }
         @media (max-width: 480px) {
@@ -211,7 +190,6 @@
     <div class="container">
         <div id="search-container">
             <input type="text" id="search-box" placeholder="Search...">
-            <ul id="suggestions"></ul>
         </div>
         <div id="buttons-grid"></div>
     </div>
@@ -220,11 +198,11 @@
             <span class="material-icons close-icon" onclick="closeEditorModal()">close</span>
             <h3 id="editor-modal-title">Add or Edit Search Engine</h3>
             <label for="engine-name" id="label-engine-name">Name</label>
-            <input type="text" id="engine-name" placeholder="Search Engine Name">
-            <label for="engine-url" id="label-engine-url">Search URL (use %s for query)</label>
+            <input type="text" id="engine-name" placeholder="Leave empty for default name">
+            <label for="engine-url" id="label-engine-url">Search URL (%s for query)</label>
             <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false">
             <label for="favicon-url" id="label-favicon-url">Favicon URL</label>
-            <input type="text" id="favicon-url" placeholder="https://example.com/favicon.ico" inputmode="url" autocapitalize="off" spellcheck="false">
+            <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false">
             <div class="button-container">
                 <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
                 <span class="material-icons save-icon" onclick="saveEngine()">check</span>
@@ -246,13 +224,12 @@
         ];
 
         const searchBox = document.getElementById('search-box');
-        const suggestionsContainer = document.getElementById('suggestions');
         const nameInput = document.getElementById('engine-name');
         const urlInput = document.getElementById('engine-url');
         const faviconInput = document.getElementById('favicon-url');
         const deleteButton = document.querySelector('.delete-icon');
         const saveButton = document.querySelector('.save-icon');
-
+        
         let editIndex = -1;
         let originalEngine = {};
 
@@ -353,8 +330,8 @@
         function checkForChanges() {
             const urlNotEmpty = urlInput.value.trim() !== '';
             const wasChanged = (
-                nameInput.value.trim() !== originalEngine.name ||
-                urlInput.value.trim() !== originalEngine.url ||
+                nameInput.value.trim() !== originalEngine.name || 
+                urlInput.value.trim() !== originalEngine.url || 
                 faviconInput.value.trim() !== originalEngine.faviconUrl
             );
 
@@ -429,38 +406,6 @@
                 window.location.href = searchEngines[0].url.replace('%s', query);
             }
         });
-
-        searchBox.addEventListener('input', function () {
-            const query = searchBox.value.trim();
-            if (query.length > 0) {
-                fetchSuggestions(query);
-            } else {
-                suggestionsContainer.innerHTML = '';
-            }
-        });
-
-        function fetchSuggestions(query) {
-            const url = `https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(query)}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => showSuggestions(data[1]))
-                .catch(error => console.error('Error fetching suggestions:', error));
-        }
-
-        function showSuggestions(suggestions) {
-            suggestionsContainer.innerHTML = '';
-
-            suggestions.forEach(suggestion => {
-                const li = document.createElement('li');
-                li.textContent = suggestion;
-                li.addEventListener('click', () => {
-                    searchBox.value = suggestion;
-                    suggestionsContainer.innerHTML = '';
-                });
-                suggestionsContainer.appendChild(li);
-            });
-        }
 
         renderButtons();
     </script>
