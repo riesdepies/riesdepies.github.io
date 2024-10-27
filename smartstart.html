@@ -324,7 +324,7 @@
             // Alleen controleren op klembord-inhoud bij het toevoegen van een nieuwe zoekmachine
             if (!engine && navigator.clipboard) {
                 try {
-                    const clipboardText = await navigator.clipboard.readText();
+                    let clipboardText = await navigator.clipboard.readText();
                     let isValidUrl = clipboardText.includes('%s');
 
                     // Controleer of "hoi" in de tekst staat en vervang het door "%s"
@@ -381,6 +381,8 @@
             if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
                 url = 'https://' + url;
             }
+
+            // "hoi" in URL die handmatig werd ingevoerd niet vervangen.
 
             if (!name) {
                 try {
