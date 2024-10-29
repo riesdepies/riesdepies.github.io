@@ -1,4 +1,6 @@
-<html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartStart</title>
@@ -13,18 +15,20 @@
             --text-color: #f5f5f5;
             --modal-background-color: #2c2c2c;
             --input-background-color: #3a3a3a;
+            --placeholder-color: #b0b0b0; /* Default placeholder-kleur */
         }
         [data-theme="light"] {
-            --background-color: #ffffff;
+            --background-color: #f5f5f5;
             --text-color: #000000;
-            --modal-background-color: #f5f5f5;
-            --input-background-color: #e0e0e0;
+            --modal-background-color: #ffffff;
+            --input-background-color: #ffffff;
         }
         [data-theme="medium"] {
-            --background-color: #2e2e2e;
+            --background-color: #5a5a5a; /* Medium light */
             --text-color: #e0e0e0;
-            --modal-background-color: #3a3a3a;
-            --input-background-color: #4a4a4a;
+            --modal-background-color: #757575; /* Herstel originele kleuren voor het modal */
+            --input-background-color: #8a8a8a; /* Herstel originele kleuren voor het modal */
+            --placeholder-color: #c0c0c0; /* Aangepaste placeholder-kleur voor medium */
         }
         * {
             box-sizing: border-box;
@@ -68,6 +72,9 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
             outline: none;
             autocomplete: off;
+        }
+        #search-box::placeholder {
+            color: var(--placeholder-color); /* Placeholder-kleur instellen */
         }
         #buttons-grid {
             display: grid;
@@ -236,7 +243,7 @@
         <div class="modal-content" onclick="event.stopPropagation();">
             <span class="material-icons close-icon" onclick="closeSettingsModal()">close</span>
             <h3>Settings</h3>
-            <label for="columns-select">Number of Columns</label>
+            <label for="columns-select">Columns</label>
             <select id="columns-select">
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -248,12 +255,12 @@
                 <option value="medium">Medium</option>
                 <option value="dark">Dark</option>
             </select>
-            <button onclick="downloadSourceWithConfig()">Download Source + Config</button>
+            <button onclick="downloadSourceWithConfig()">Download page + config as HTML</button>
         </div>
     </div>
     <script>
         let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
-        let settings = JSON.parse(localStorage.getItem('settings')) || {"columns":2,"theme":"light","consoleVisible":true};
+        let settings = JSON.parse(localStorage.getItem('settings')) || {"columns": 3, "theme": "light", "consoleVisible": true};
 
         const searchBox = document.getElementById('search-box');
         const nameInput = document.getElementById('engine-name');
@@ -319,11 +326,16 @@
             } else {
                 window.location.href = engine.url;
             }
+            engine.lastUsed = new Date().getTime();
+            localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
+            renderButtons();
         }
 
         function renderButtons() {
             const grid = document.getElementById('buttons-grid');
             grid.innerHTML = '';
+
+            searchEngines.sort((a, b) => b.lastUsed - a.lastUsed);
             searchEngines.forEach((engine, index) => {
                 grid.appendChild(createSearchButton(engine, index));
             });
@@ -457,9 +469,9 @@
                 }
             }
             if (editIndex >= 0) {
-                searchEngines[editIndex] = { name, url, faviconUrl };
+                searchEngines[editIndex] = { name, url, faviconUrl, lastUsed: searchEngines[editIndex].lastUsed };
             } else {
-                searchEngines.push({ name, url, faviconUrl });
+                searchEngines.push({ name, url, faviconUrl, lastUsed: new Date().getTime() });
             }
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
@@ -528,4 +540,6 @@
         }
 
         applySettings();
-    </script></body></html>
+    </script>
+</body>
+</html>
