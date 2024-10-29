@@ -1,16 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartStart</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
-            --button-width: clamp(100px, calc((100vw - 32px - 12px) / 3), 180px);
+            --button-width: clamp(80px, calc((100vw - 32px - 12px) / var(--columns)), 180px);
             --button-height: 36px;
             --gap: 6px;
             --columns: 3;
+            --background-color: #1e1e1e;
+            --text-color: #f5f5f5;
+            --modal-background-color: #2c2c2c;
+            --input-background-color: #3a3a3a;
+        }
+        [data-theme="light"] {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --modal-background-color: #f5f5f5;
+            --input-background-color: #e0e0e0;
+        }
+        [data-theme="medium"] {
+            --background-color: #2e2e2e;
+            --text-color: #e0e0e0;
+            --modal-background-color: #3a3a3a;
+            --input-background-color: #4a4a4a;
         }
         * {
             box-sizing: border-box;
@@ -21,12 +35,14 @@
             margin: 0;
             padding: 16px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: var(--background-color);
+            color: var(--text-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
             width: 100%;
@@ -47,14 +63,15 @@
             border-radius: 18px;
             padding: 0 20px;
             font-size: 16px;
-            background: white;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            background: var(--modal-background-color);
+            color: var(--text-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
             outline: none;
             autocomplete: off;
         }
         #buttons-grid {
             display: grid;
-            grid-template-columns: repeat(3, var(--button-width));
+            grid-template-columns: repeat(var(--columns), var(--button-width));
             gap: var(--gap);
             width: 100%;
             justify-content: center;
@@ -62,19 +79,20 @@
         .search-button {
             width: var(--button-width);
             height: var(--button-height);
-            background: white;
+            background: var(--modal-background-color);
+            color: var(--text-color);
             border: none;
             border-radius: 4px;
             display: flex;
             align-items: center;
             padding: 0 12px;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
             user-select: none;
         }
         .search-button:active {
-            background-color: #e0e0e0;
+            background-color: #444;
         }
         .search-button img {
             width: 20px;
@@ -84,7 +102,7 @@
         }
         .search-button span {
             font-size: 16px;
-            color: #333;
+            color: var(--text-color);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -95,7 +113,7 @@
             align-items: center;
         }
         #add-button .material-icons {
-            color: #666;
+            color: var(--text-color);
             font-size: 24px;
         }
         .modal {
@@ -112,7 +130,8 @@
             padding-top: 40px;
         }
         .modal-content {
-            background: white;
+            background: var(--modal-background-color);
+            color: var(--text-color);
             padding: 20px;
             padding-top: 40px;
             border-radius: 12px;
@@ -120,11 +139,13 @@
             max-width: 400px;
             position: relative;
         }
-        .modal input {
+        .modal input, .modal select, .modal button {
             width: 100%;
             margin: 8px 0 16px;
             padding: 8px;
-            border: 1px solid #ddd;
+            background: var(--input-background-color);
+            color: var(--text-color);
+            border: 1px solid #555;
             border-radius: 4px;
             font-size: 16px;
             transition: border-color 0.3s;
@@ -135,15 +156,15 @@
         }
         .modal label {
             font-size: 14px;
-            color: #555;
+            color: var(--text-color);
         }
         .button-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 16px;
-            position: relative;
             height: 44px;
+            position: relative;
         }
         .button-container .material-icons {
             cursor: pointer;
@@ -153,20 +174,21 @@
             top: 10px;
             right: 10px;
             font-size: 24px;
-            color: #333;
+            color: var(--text-color);
+            cursor: pointer;
         }
         .delete-icon {
             color: #d9534f;
-            font-size: 30px;
+            font-size: 24px;
             display: none;
         }
         .save-icon {
             color: #4CAF50;
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 32px;
+            font-size: 24px;
             display: none;
+            right: 10px;
+            bottom: 10px;
+            position: absolute;
         }
         @media (max-width: 480px) {
             :root {
@@ -187,7 +209,7 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="container">
         <div id="search-container">
             <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
@@ -198,43 +220,58 @@
         <div class="modal-content" onclick="event.stopPropagation();">
             <span class="material-icons close-icon" onclick="closeEditorModal()">close</span>
             <h3 id="editor-modal-title">Add or Edit Search Engine</h3>
-            <label for="engine-name" id="label-engine-name">Name</label>
+            <label for="engine-name">Name</label>
             <input type="text" id="engine-name" placeholder="Leave empty for default name" autocomplete="off">
-            <label for="favicon-url" id="label-favicon-url">Favicon URL</label>
+            <label for="favicon-url">Favicon URL</label>
             <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
-            <label for="engine-url" id="label-engine-url">Search URL (%s for query)</label>
+            <label for="engine-url">Search URL (%s for query)</label>
             <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
             <div class="button-container">
-                <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
                 <span class="material-icons save-icon" onclick="saveEngine()">check</span>
+                <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
             </div>
         </div>
     </div>
+    <div class="modal" id="settings-modal" onclick="closeSettingsModal()">
+        <div class="modal-content" onclick="event.stopPropagation();">
+            <span class="material-icons close-icon" onclick="closeSettingsModal()">close</span>
+            <h3>Settings</h3>
+            <label for="columns-select">Number of Columns</label>
+            <select id="columns-select">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+            <label for="theme-select">Theme</label>
+            <select id="theme-select">
+                <option value="light">Light</option>
+                <option value="medium">Medium</option>
+                <option value="dark">Dark</option>
+            </select>
+            <button onclick="downloadSourceWithConfig()">Download Source + Config</button>
+        </div>
+    </div>
     <script>
-        let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [
-            { name: 'Google', url: 'https://www.google.com/search?q=%s' },
-            { name: 'YouTube', url: 'https://www.youtube.com/results?search_query=%s' },
-            { name: 'Amazon', url: 'https://www.amazon.com/s?k=%s' },
-            { name: 'Wikipedia', url: 'https://wikipedia.org/w/index.php?search=%s' },
-            { name: 'Bing', url: 'https://www.bing.com/search?q=%s' },
-            { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=%s' },
-            { name: 'Reddit', url: 'https://www.reddit.com/search?q=%s' },
-            { name: 'Twitter', url: 'https://twitter.com/search?q=%s' },
-            { name: 'LinkedIn', url: 'https://www.linkedin.com/search/results/all/?keywords=%s' },
-            { name: 'GitHub', url: 'https://github.com/search?q=%s' }
-        ];
+        let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+        let settings = JSON.parse(localStorage.getItem('settings')) || {"columns":2,"theme":"light","consoleVisible":true};
+
         const searchBox = document.getElementById('search-box');
         const nameInput = document.getElementById('engine-name');
         const urlInput = document.getElementById('engine-url');
         const faviconInput = document.getElementById('favicon-url');
         const deleteButton = document.querySelector('.delete-icon');
         const saveButton = document.querySelector('.save-icon');
+        const columnsSelect = document.getElementById('columns-select');
+        const themeSelect = document.getElementById('theme-select');
         let editIndex = -1;
         let originalEngine = {};
+        const originalSource = document.documentElement.outerHTML;
+
         function getFaviconUrl(url) {
             const domain = new URL(url, 'http://localhost').hostname;
             return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
         }
+
         function createSearchButton(engine, index) {
             const button = document.createElement('button');
             button.className = 'search-button';
@@ -242,7 +279,7 @@
             img.src = engine.faviconUrl || getFaviconUrl(engine.url);
             img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
             const span = document.createElement('span');
-            span.textContent = engine.name || "Unnamed";
+            span.textContent = engine.name || "No name";
             button.appendChild(img);
             button.appendChild(span);
             button.addEventListener('click', () => handleClick(engine));
@@ -250,8 +287,30 @@
                 e.preventDefault();
                 openEditorModal(engine, index);
             });
+
+            let buttonTimeout;
+            let buttonSwiped = false;
+            button.addEventListener('touchstart', () => {
+                buttonSwiped = false;
+                buttonTimeout = setTimeout(() => openEditorModal(engine, index), 500);
+            });
+            button.addEventListener('touchmove', () => {
+                buttonSwiped = true;
+                clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('touchend', () => {
+                if (!buttonSwiped) clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('touchcancel', () => {
+                clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('mouseout', () => {
+                clearTimeout(buttonTimeout);
+            });
+
             return button;
         }
+
         function handleClick(engine) {
             const query = searchBox.value.trim();
             if (engine.url.includes('%s')) {
@@ -261,12 +320,14 @@
                 window.location.href = engine.url;
             }
         }
+
         function renderButtons() {
             const grid = document.getElementById('buttons-grid');
             grid.innerHTML = '';
             searchEngines.forEach((engine, index) => {
                 grid.appendChild(createSearchButton(engine, index));
             });
+
             const addButton = document.createElement('button');
             addButton.className = 'search-button';
             addButton.id = 'add-button';
@@ -274,18 +335,45 @@
             icon.className = 'material-icons';
             icon.textContent = 'add';
             addButton.appendChild(icon);
-            addButton.onclick = () => openEditorModal();
+
+            let buttonTimeout;
+            let buttonSwiped = false;
+            addButton.addEventListener('click', () => openEditorModal());
+            addButton.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                openSettingsModal();
+            });
+            addButton.addEventListener('touchstart', () => {
+                buttonSwiped = false;
+                buttonTimeout = setTimeout(openSettingsModal, 500);
+            });
+            addButton.addEventListener('touchmove', () => {
+                buttonSwiped = true;
+                clearTimeout(buttonTimeout);
+            });
+            addButton.addEventListener('touchend', () => {
+                if (!buttonSwiped) clearTimeout(buttonTimeout);
+            });
+            addButton.addEventListener('touchcancel', () => {
+                clearTimeout(buttonTimeout);
+            });
+            addButton.addEventListener('mouseout', () => {
+                clearTimeout(buttonTimeout);
+            });
+
             grid.appendChild(addButton);
         }
+
         function closeEditorModal() {
             document.getElementById('editor-modal').style.display = 'none';
             nameInput.value = '';
             urlInput.value = '';
             faviconInput.value = '';
             deleteButton.style.display = 'none';
-            saveButton.style.display = 'none'; // Hide save button when closing
+            saveButton.style.display = 'none';
             editIndex = -1;
         }
+
         async function openEditorModal(engine = null, index = -1) {
             editIndex = index;
             const title = engine ? 'Edit Search Engine' : 'Add Search Engine';
@@ -299,27 +387,30 @@
                 faviconUrl: faviconInput.value
             };
             deleteButton.style.display = engine ? 'inline-block' : 'none';
+
             if (!engine && navigator.clipboard) {
                 try {
                     let clipboardText = await navigator.clipboard.readText();
                     let isValidUrl = clipboardText.includes('%s');
-                    if (!isValidUrl && /hoi/i.test(clipboardText)) {
+                    if (!isValidUrl && /hello/i.test(clipboardText)) {
                         isValidUrl = true;
-                        clipboardText = clipboardText.replace(/hoi/gi, '%s');
+                        clipboardText = clipboardText.replace(/hello/gi, '%s');
                     }
                     if (isValidUrl && !clipboardText.includes('\n')) {
                         urlInput.value = clipboardText;
                     }
                 } catch (error) {
-                    console.error('Fout bij het lezen van het klembord:', error);
+                    console.error('Error reading clipboard:', error);
                 }
             }
+
             checkForChanges();
             document.getElementById('editor-modal').style.display = 'flex';
             if (engine === null) {
                 urlInput.focus();
             }
         }
+
         function checkForChanges() {
             const urlNotEmpty = urlInput.value.trim() !== '';
             const wasChanged = (
@@ -333,15 +424,17 @@
                 saveButton.style.display = 'none';
             }
         }
+
         nameInput.addEventListener('input', checkForChanges);
         urlInput.addEventListener('input', checkForChanges);
         faviconInput.addEventListener('input', checkForChanges);
+
         function saveEngine() {
             let name = nameInput.value.trim();
             let url = urlInput.value.trim();
             const faviconUrl = faviconInput.value.trim();
             if (!url) {
-                return; // Exit if URL is not provided
+                return;
             }
             if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
                 url = 'https://' + url;
@@ -359,7 +452,7 @@
                     }
                     name = name.charAt(0).toUpperCase() + name.slice(1);
                 } catch (error) {
-                    console.error("Ongeldige URL:", error);
+                    console.error("Invalid URL:", error);
                     return;
                 }
             }
@@ -372,6 +465,7 @@
             renderButtons();
             closeEditorModal();
         }
+
         function deleteEngine() {
             if (editIndex >= 0) {
                 searchEngines.splice(editIndex, 1);
@@ -380,13 +474,58 @@
                 closeEditorModal();
             }
         }
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'flex';
+            columnsSelect.value = settings.columns;
+            themeSelect.value = settings.theme;
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        columnsSelect.addEventListener('change', (e) => {
+            settings.columns = parseInt(e.target.value);
+            document.documentElement.style.setProperty('--columns', settings.columns);
+            localStorage.setItem('settings', JSON.stringify(settings));
+            renderButtons();
+        });
+
+        themeSelect.addEventListener('change', (e) => {
+            settings.theme = e.target.value;
+            document.body.dataset.theme = settings.theme;
+            localStorage.setItem('settings', JSON.stringify(settings));
+            renderButtons();
+        });
+
+        function downloadSourceWithConfig() {
+            const currentSearchEngines = JSON.stringify(searchEngines);
+            const updatedSource = originalSource
+                .replace(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| \[([\s\S]*?)\];/, `let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || ${currentSearchEngines};`)
+                .replace(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/, `let settings = JSON.parse(localStorage.getItem('settings')) || ${JSON.stringify(settings)};`);
+            let blob = new Blob([updatedSource], { type: 'text/html' });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            const count = searchEngines.length;
+            a.download = `SmartStart (${count} buttons).html`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
         searchBox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 const query = encodeURIComponent(e.target.value);
                 window.location.href = searchEngines[0].url.replace('%s', query);
             }
         });
-        renderButtons();
-    </script>
-</body>
-</html>
+
+        function applySettings() {
+            document.documentElement.style.setProperty('--columns', settings.columns);
+            document.body.dataset.theme = settings.theme;
+            renderButtons();
+        }
+
+        applySettings();
+    </script></body></html>
