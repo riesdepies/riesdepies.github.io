@@ -16,6 +16,7 @@
             --modal-background-color: #2c2c2c;
             --input-background-color: #3a3a3a;
             --placeholder-color: #b0b0b0; /* Default placeholder-kleur */
+            --vertical-padding: 16px;
         }
         [data-theme="light"] {
             --background-color: #f5f5f5;
@@ -26,9 +27,9 @@
         [data-theme="medium"] {
             --background-color: #5a5a5a; /* Medium light */
             --text-color: #e0e0e0;
-            --modal-background-color: #757575; /* Herstel originele kleuren voor het modal */
-            --input-background-color: #8a8a8a; /* Herstel originele kleuren voor het modal */
-            --placeholder-color: #c0c0c0; /* Aangepaste placeholder-kleur voor medium */
+            --modal-background-color: #757575;
+            --input-background-color: #8a8a8a;
+            --placeholder-color: #c0c0c0;
         }
         * {
             box-sizing: border-box;
@@ -37,7 +38,7 @@
         }
         body {
             margin: 0;
-            padding: 16px;
+            padding: var(--vertical-padding) 16px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: var(--background-color);
             color: var(--text-color);
@@ -45,8 +46,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* Zorgt ervoor dat de inhoud bovenaan begint */
             transition: background-color 0.3s, color 0.3s;
+            overflow: hidden; /* Voorkomt scrollen */
         }
         .container {
             width: 100%;
@@ -58,6 +60,7 @@
         }
         #search-container {
             width: 100%;
+            margin-top: 16px;
             margin-bottom: 24px;
         }
         #search-box {
@@ -74,7 +77,7 @@
             autocomplete: off;
         }
         #search-box::placeholder {
-            color: var(--placeholder-color); /* Placeholder-kleur instellen */
+            color: var(--placeholder-color);
         }
         #buttons-grid {
             display: grid;
@@ -216,7 +219,7 @@
         }
     </style>
 </head>
-<body data-theme="dark">
+<body data-theme="dark" onclick="focusSearchBox(event)">
     <div class="container">
         <div id="search-container">
             <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
@@ -529,9 +532,15 @@
         searchBox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 const query = encodeURIComponent(e.target.value);
-                window.location.href = searchEngines[0].url.replace('%s', query);
+                window.open(`https://google.com/search?q=${query}`, '_blank');
             }
         });
+
+        function focusSearchBox(event) {
+            if (event.target === document.body) {
+                searchBox.focus();
+            }
+        }
 
         function applySettings() {
             document.documentElement.style.setProperty('--columns', settings.columns);
@@ -540,6 +549,7 @@
         }
 
         applySettings();
+
     </script>
 </body>
 </html>
