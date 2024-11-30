@@ -15,7 +15,7 @@
             --text-color: #f5f5f5;
             --modal-background-color: #2c2c2c;
             --input-background-color: #3a3a3a;
-            --placeholder-color: #b0b0b0; /* Default placeholder-kleur */
+            --placeholder-color: #b0b0b0;
             --vertical-padding: 16px;
         }
         [data-theme="light"] {
@@ -25,7 +25,7 @@
             --input-background-color: #ffffff;
         }
         [data-theme="medium"] {
-            --background-color: #5a5a5a; /* Medium light */
+            --background-color: #5a5a5a;
             --text-color: #e0e0e0;
             --modal-background-color: #757575;
             --input-background-color: #8a8a8a;
@@ -46,9 +46,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Zorgt ervoor dat de inhoud bovenaan begint */
+            justify-content: flex-start;
             transition: background-color 0.3s, color 0.3s;
-            overflow: hidden; /* Voorkomt scrollen */
+            overflow: hidden;
         }
         .container {
             width: 100%;
@@ -217,6 +217,9 @@
                 font-size: 15px;
             }
         }
+        #import-file-input {
+            display: none;
+        }
     </style>
 </head>
 <body data-theme="dark" onclick="focusSearchBox(event)">
@@ -258,7 +261,9 @@
                 <option value="medium">Medium</option>
                 <option value="dark">Dark</option>
             </select>
-            <button onclick="downloadSourceWithConfig()">Download page + config as HTML</button>
+            <button onclick="exportSourceWithConfig()">Export page + config as HTML</button>
+            <button onclick="document.getElementById('import-file-input').click()">Import config from HTML</button>
+            <input type="file" id="import-file-input" accept=".html" onchange="importConfigFromHTML()">
         </div>
     </div>
     <script>
@@ -447,7 +452,8 @@
         function saveEngine() {
             let name = nameInput.value.trim();
             let url = urlInput.value.trim();
-            const faviconUrl = faviconInput.value.trim();
+            let faviconUrl = faviconInput.value.trim();
+
             if (!url) {
                 return;
             }
@@ -462,15 +468,18 @@
                         hostname = hostname.substring(hostname.indexOf('.') + 1);
                     }
                     const nameParts = hostname.split('.');
-                    if (nameParts.length > 0) {
-                        name = nameParts[0];
-                    }
+                    name = nameParts.length > 0 ? nameParts[0] : '';
                     name = name.charAt(0).toUpperCase() + name.slice(1);
                 } catch (error) {
                     console.error("Invalid URL:", error);
                     return;
                 }
             }
+
+            if (faviconUrl && !/^https?:\/\//i.test(faviconUrl)) {
+                faviconUrl = getFaviconUrl(`http://${faviconUrl}`);
+            }
+
             if (editIndex >= 0) {
                 searchEngines[editIndex] = { name, url, faviconUrl, lastUsed: searchEngines[editIndex].lastUsed };
             } else {
@@ -514,7 +523,7 @@
             renderButtons();
         });
 
-        function downloadSourceWithConfig() {
+        function exportSourceWithConfig() {
             const currentSearchEngines = JSON.stringify(searchEngines);
             const updatedSource = originalSource
                 .replace(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| \[([\s\S]*?)\];/, `let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || ${currentSearchEngines};`)
@@ -527,6 +536,28 @@
             a.download = `SmartStart (${count} buttons).html`;
             a.click();
             window.URL.revokeObjectURL(url);
+        }
+
+        async function importConfigFromHTML() {
+            const fileInput = document.getElementById('import-file-input');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(e.target.result, 'text/html');
+                    const importedEngines = JSON.parse(doc.querySelector('script').textContent.match(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| ([\s\S]*?);/)[1]);
+                    const importedSettings = JSON.parse(doc.querySelector('script').textContent.match(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/)[1]);
+                    searchEngines = importedEngines;
+                    settings = importedSettings;
+                    localStorage.setItem('searchEngines', JSON.stringify(importedEngines));
+                    localStorage.setItem('settings', JSON.stringify(importedSettings));
+                    applySettings();
+                    closeSettingsModal();
+                    alert('Configuration imported successfully!');
+                };
+                reader.readAsText(file);
+            }
         }
 
         searchBox.addEventListener('keypress', (e) => {
@@ -549,7 +580,6 @@
         }
 
         applySettings();
-
     </script>
 </body>
 </html>
