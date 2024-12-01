@@ -292,7 +292,7 @@
             const button = document.createElement('button');
             button.className = 'search-button';
             const img = document.createElement('img');
-            img.src = engine.faviconUrl || getFaviconUrl(engine.url);
+            img.src = engine.faviconUrl || getFaviconUrl(engine.url || engine.bookmarkUrl);
             img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
             const span = document.createElement('span');
             span.textContent = engine.name || "No name";
@@ -328,9 +328,9 @@
         }
 
         function handleClick(engine) {
-            const query = searchBox.value.trim();
-            const url = query ? engine.url.replace('%s', encodeURIComponent(query)) : (engine.bookmarkUrl || new URL(engine.url).origin);
-            window.location.href = url;
+            // Use bookmarkUrl if searchUrl is empty
+            const url = engine.url ? engine.url.replace('%s', encodeURIComponent(searchBox.value.trim())) : engine.bookmarkUrl;
+            window.location.href = url || engine.bookmarkUrl;
 
             engine.lastUsed = new Date().getTime();
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
@@ -433,7 +433,7 @@
         }
 
         function checkForChanges() {
-            const urlNotEmpty = urlInput.value.trim() !== '';
+            const urlNotEmpty = urlInput.value.trim() !== '' || bookmarkInput.value.trim() !== '';
             const wasChanged = (
                 nameInput.value.trim() !== originalEngine.name ||
                 urlInput.value.trim() !== originalEngine.url ||
@@ -458,15 +458,19 @@
             let faviconUrl = faviconInput.value.trim();
             let bookmarkUrl = bookmarkInput.value.trim();
 
-            if (!url) {
+            if (!url && !bookmarkUrl) {
                 return;
             }
-            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
+            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url) && url) {
                 url = 'https://' + url;
+            }
+            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(bookmarkUrl) && bookmarkUrl) {
+                bookmarkUrl = 'https://' + bookmarkUrl;
             }
             if (!name) {
                 try {
-                    const urlObj = new URL(url);
+                    const mainUrl = url || bookmarkUrl;
+                    const urlObj = new URL(mainUrl);
                     let hostname = urlObj.hostname;
                     if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
                         hostname = hostname.substring(hostname.indexOf('.') + 1);
@@ -492,11 +496,6 @@
                 if (faviconUrl.includes('.')) {
                     faviconUrl = getFaviconUrl(`https://${faviconUrl}`);
                 }
-            }
-
-            // Ensure bookmark URL has http(s)://
-            if (bookmarkUrl && !/^[a-z][a-z0-9+.-]*:\/\//i.test(bookmarkUrl)) {
-                bookmarkUrl = 'https://' + bookmarkUrl;
             }
 
             if (editIndex >= 0) {
