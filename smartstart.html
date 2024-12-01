@@ -137,7 +137,7 @@
             justify-content: center;
             align-items: flex-start;
             padding: 16px;
-            padding-top: 40px;
+            padding-top: 16px;
         }
         .modal-content {
             background: var(--modal-background-color);
@@ -234,6 +234,8 @@
             <input type="text" id="engine-name" placeholder="Leave empty for default name" autocomplete="off">
             <label for="favicon-url">Favicon URL</label>
             <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
+            <label for="bookmark-url">Bookmark URL</label>
+            <input type="text" id="bookmark-url" placeholder="Leave empty for default bookmark" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
             <label for="engine-url">Search URL (%s for query)</label>
             <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
             <div class="button-container">
@@ -271,6 +273,7 @@
         const nameInput = document.getElementById('engine-name');
         const urlInput = document.getElementById('engine-url');
         const faviconInput = document.getElementById('favicon-url');
+        const bookmarkInput = document.getElementById('bookmark-url');
         const deleteButton = document.querySelector('.delete-icon');
         const saveButton = document.querySelector('.save-icon');
         const columnsSelect = document.getElementById('columns-select');
@@ -326,12 +329,9 @@
 
         function handleClick(engine) {
             const query = searchBox.value.trim();
-            if (engine.url.includes('%s')) {
-                const url = query ? engine.url.replace('%s', encodeURIComponent(query)) : new URL(engine.url).origin;
-                window.location.href = url;
-            } else {
-                window.location.href = engine.url;
-            }
+            const url = query ? engine.url.replace('%s', encodeURIComponent(query)) : (engine.bookmarkUrl || new URL(engine.url).origin);
+            window.location.href = url;
+
             engine.lastUsed = new Date().getTime();
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
@@ -387,6 +387,7 @@
             nameInput.value = '';
             urlInput.value = '';
             faviconInput.value = '';
+            bookmarkInput.value = '';
             deleteButton.style.display = 'none';
             saveButton.style.display = 'none';
             editIndex = -1;
@@ -399,10 +400,12 @@
             nameInput.value = engine ? engine.name : '';
             urlInput.value = engine ? engine.url : '';
             faviconInput.value = engine ? (engine.faviconUrl || '') : '';
+            bookmarkInput.value = engine ? (engine.bookmarkUrl || '') : '';
             originalEngine = {
                 name: nameInput.value,
                 url: urlInput.value,
-                faviconUrl: faviconInput.value
+                faviconUrl: faviconInput.value,
+                bookmarkUrl: bookmarkInput.value
             };
             deleteButton.style.display = engine ? 'inline-block' : 'none';
 
@@ -434,7 +437,8 @@
             const wasChanged = (
                 nameInput.value.trim() !== originalEngine.name ||
                 urlInput.value.trim() !== originalEngine.url ||
-                faviconInput.value.trim() !== originalEngine.faviconUrl
+                faviconInput.value.trim() !== originalEngine.faviconUrl ||
+                bookmarkInput.value.trim() !== originalEngine.bookmarkUrl
             );
             if (wasChanged && urlNotEmpty) {
                 saveButton.style.display = 'block';
@@ -446,11 +450,13 @@
         nameInput.addEventListener('input', checkForChanges);
         urlInput.addEventListener('input', checkForChanges);
         faviconInput.addEventListener('input', checkForChanges);
+        bookmarkInput.addEventListener('input', checkForChanges);
 
         function saveEngine() {
             let name = nameInput.value.trim();
             let url = urlInput.value.trim();
             let faviconUrl = faviconInput.value.trim();
+            let bookmarkUrl = bookmarkInput.value.trim();
 
             if (!url) {
                 return;
@@ -476,15 +482,27 @@
                 }
             }
 
-            // Check if favicon input is a domain and convert to favicon URL
-            if (faviconUrl && !/^https?:\/\//i.test(faviconUrl)) {
-                faviconUrl = getFaviconUrl(`http://${faviconUrl}`);
+            // Determine if favicon URL is a domain or full URL
+            try {
+                const faviconUrlObj = new URL(faviconUrl);
+                if (faviconUrlObj.pathname === '/') {
+                    faviconUrl = getFaviconUrl(faviconUrlObj.origin);
+                }
+            } catch (error) {
+                if (faviconUrl.includes('.')) {
+                    faviconUrl = getFaviconUrl(`https://${faviconUrl}`);
+                }
+            }
+
+            // Ensure bookmark URL has http(s)://
+            if (bookmarkUrl && !/^[a-z][a-z0-9+.-]*:\/\//i.test(bookmarkUrl)) {
+                bookmarkUrl = 'https://' + bookmarkUrl;
             }
 
             if (editIndex >= 0) {
-                searchEngines[editIndex] = { name, url, faviconUrl, lastUsed: searchEngines[editIndex].lastUsed };
+                searchEngines[editIndex] = { name, url, faviconUrl, bookmarkUrl, lastUsed: searchEngines[editIndex].lastUsed };
             } else {
-                searchEngines.push({ name, url, faviconUrl, lastUsed: new Date().getTime() });
+                searchEngines.push({ name, url, faviconUrl, bookmarkUrl, lastUsed: new Date().getTime() });
             }
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
