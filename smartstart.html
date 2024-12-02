@@ -292,7 +292,7 @@
             const button = document.createElement('button');
             button.className = 'search-button';
             const img = document.createElement('img');
-            img.src = engine.faviconUrl || getFaviconUrl(engine.url || engine.bookmarkUrl);
+            img.src = engine.faviconUrl || getFaviconUrl(engine.url || engine.bookmarkUrl || '');
             img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
             const span = document.createElement('span');
             span.textContent = engine.name || "No name";
@@ -328,9 +328,20 @@
         }
 
         function handleClick(engine) {
-            // Use bookmarkUrl if searchUrl is empty
-            const url = engine.url ? engine.url.replace('%s', encodeURIComponent(searchBox.value.trim())) : engine.bookmarkUrl;
-            window.location.href = url || engine.bookmarkUrl;
+            const query = searchBox.value.trim();
+            if (query) {
+                const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
+                window.location.href = url;
+            } else if (engine.bookmarkUrl) {
+                window.location.href = engine.bookmarkUrl;
+            } else if (engine.url) {
+                try {
+                    const baseDomain = new URL(engine.url).origin;
+                    window.location.href = baseDomain;
+                } catch (error) {
+                    console.error("Invalid URL for redirection:", error);
+                }
+            }
 
             engine.lastUsed = new Date().getTime();
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
