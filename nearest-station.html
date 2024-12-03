@@ -21,8 +21,6 @@
             background-color: #f0f0f0;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            max-width: 90%;
-            word-wrap: break-word;
         }
     </style>
 </head>
@@ -31,78 +29,62 @@
 
     <script>
         async function loadStations() {
-            try {
-                const response = await fetch('stationcodes.csv');
-                const data = await response.text();
+            const response = await fetch('stationcodes.csv');
+            const data = await response.text();
+            const lines = data.split('\n');
 
-                // Ondersteun verschillende soorten nieuwe regeltekens
-                const lines = data.split(/\r?\n/).slice(1); // Verwijder de header lijn
-
-                const stations = {};
-                lines.forEach(line => {
-                    const [code, name] = line.split(',');
-                    if (code && name) {
-                        stations[code.trim()] = name.trim();
-                    }
-                });
-
-                if (Object.keys(stations).length === 0) {
-                    throw new Error('CSV-bestand is leeg of onjuist geformateerd.');
+            const stations = {};
+            lines.forEach(line => {
+                const [code, name] = line.split(',');
+                if (code && name) {
+                    stations[code.trim()] = name.trim();
                 }
+            });
 
-                document.getElementById('status').innerText = 'Stations succesvol geladen. Aantal: ' + Object.keys(stations).length;
-                return stations;
-            } catch (error) {
-                document.getElementById('status').innerText = `Er is een probleem geweest bij het laden van stationsgegevens: ${error.message}`;
-                throw error;
-            }
+            return stations;
         }
 
         async function findNearestStation() {
-            try {
-                const stations = await loadStations();
+            const stations = await loadStations();
 
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(position => {
-                        const { latitude, longitude } = position.coords;
-                        const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node(around:5000,${latitude},${longitude})[railway=station];out;`;
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node(around:5000,${latitude},${longitude})[railway=station];out;`;
 
-                        fetch(overpassUrl)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (!data.elements) {
-                                    document.getElementById('status').innerText = 'Geen geldige data ontvangen van de Overpass API.';
-                                    return;
-                                }
+                    fetch(overpassUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.elements.length > 0) {
+                                const nearestStation = data.elements[0];
+                                const stationName = nearestStation.tags.name;
 
-                                if (data.elements.length > 0) {
-                                    const nearestStation = data.elements[0];
-                                    const stationName = nearestStation.tags.name || 'Onbekend';
+                                const stationCode = Object.keys(stations).find(code => {
+                                    return stations[code].toLowerCase() === stationName.toLowerCase();
+                                });
 
-                                    const stationCode = Object.keys(stations).find(code => {
-                                        return stations[code].trim().toLowerCase() === stationName.trim().toLowerCase();
-                                    });
-
-                                    if (stationCode) {
-                                        window.location.href = `https://www.ns.nl/stationsinformatie/${stationCode}/aankomstijden`;
-                                    } else {
-                                        document.getElementById('status').innerText = `Kon het station "${stationName}" niet matchen met NS-code in de geladen gegevens.`;
-                                    }
+                                if (stationCode) {
+                                    window.location.href = `https://www.ns.nl/stationsinformatie/${stationCode}/aankomstijden`;
                                 } else {
-                                    document.getElementById('status').innerText = 'Geen stations gevonden in de buurt.';
+                                    document.getElementById('status').innerText =
+                                        'Kon geen bijbehorend NS-station vinden.';
                                 }
-                            })
-                            .catch(error => {
-                                document.getElementById('status').innerText = `Fetch error bij ophalen van stationsgegevens: ${error.message}`;
-                            });
-                    }, () => {
-                        document.getElementById('status').innerText = 'Kon locatiegegevens niet ophalen.';
-                    });
-                } else {
-                    document.getElementById('status').innerText = 'Geolocatie wordt niet ondersteund door deze browser.';
-                }
-            } catch (error) {
-                document.getElementById('status').innerText = `Fout bij het bepalen van het dichtstbijzijnde station: ${error.message}`;
+                            } else {
+                                document.getElementById('status').innerText =
+                                    'Geen stations gevonden in de buurt.';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('status').innerText =
+                                'Er is een fout opgetreden bij het ophalen van stationgegevens.';
+                        });
+                }, () => {
+                    document.getElementById('status').innerText =
+                        'Kon locatiegegevens niet ophalen.';
+                });
+            } else {
+                document.getElementById('status').innerText =
+                    'Geolocatie wordt niet ondersteund door deze browser.';
             }
         }
 
