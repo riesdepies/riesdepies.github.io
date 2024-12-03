@@ -34,7 +34,9 @@
             try {
                 const response = await fetch('stationcodes.csv');
                 const data = await response.text();
-                const lines = data.trim().split('\n');
+
+                // Ondersteun verschillende soorten nieuwe regeltekens
+                const lines = data.split(/\r?\n/).slice(1); // Verwijder de header lijn
 
                 const stations = {};
                 lines.forEach(line => {
