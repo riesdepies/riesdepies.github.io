@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dichtstbijzijnd Treinstation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            overflow: hidden;
+        }
+        #status {
+            margin: 0;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="status">Zoeken naar het dichtstbijzijnde station...</div>
+
+    <script>
+        async function loadStations() {
+            const response = await fetch('stationcodes.csv');
+            const data = await response.text();
+            const lines = data.split('\n');
+
+            const stations = {};
+            lines.forEach(line => {
+                const [code, name] = line.split(',');
+                if (code && name) {
+                    stations[code.trim()] = name.trim();
+                }
+            });
+
+            return stations;
+        }
+
+        async function findNearestStation() {
+            const stations = await loadStations();
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const { latitude, longitude } = position.coords;
+                    const overpassUrl = `https://overpass-api.de/api/interpreter?data=[out:json];node(around:5000,${latitude},${longitude})[railway=station];out;`;
+
+                    fetch(overpassUrl)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.elements.length > 0) {
+                                const nearestStation = data.elements[0];
+                                const stationName = nearestStation.tags.name;
+
+                                const stationCode = Object.keys(stations).find(code => {
+                                    return stations[code].toLowerCase() === stationName.toLowerCase();
+                                });
+
+                                if (stationCode) {
+                                    window.location.href = `https://www.ns.nl/stationsinformatie/${stationCode}/aankomstijden`;
+                                } else {
+                                    document.getElementById('status').innerText =
+                                        'Kon geen bijbehorend NS-station vinden.';
+                                }
+                            } else {
+                                document.getElementById('status').innerText =
+                                    'Geen stations gevonden in de buurt.';
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('status').innerText =
+                                'Er is een fout opgetreden bij het ophalen van stationgegevens.';
+                        });
+                }, () => {
+                    document.getElementById('status').innerText =
+                        'Kon locatiegegevens niet ophalen.';
+                });
+            } else {
+                document.getElementById('status').innerText =
+                    'Geolocatie wordt niet ondersteund door deze browser.';
+            }
+        }
+
+        window.onload = findNearestStation;
+    </script>
+</body>
+</html>
