@@ -8,24 +8,39 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: flex-start;
             align-items: center;
             height: 100vh;
             margin: 0;
             text-align: center;
             overflow: hidden;
+            padding-top: 20px;
         }
         #status {
-            margin: 0;
+            margin-bottom: 20px;
             padding: 10px 20px;
             background-color: #f0f0f0;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin: 5px 0;
+            background-color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
     <div id="status">Zoeken naar het dichtstbijzijnde station...</div>
+    <ul id="recent-stations"></ul>
 
     <script>
         async function loadStations() {
@@ -44,8 +59,34 @@
             return stations;
         }
 
+        function updateRecentStations(stationCode, stationName) {
+            let recentStations = JSON.parse(localStorage.getItem('recentStations')) || [];
+            recentStations = recentStations.filter(station => station.code !== stationCode);
+            recentStations.unshift({ code: stationCode, name: stationName });
+            if (recentStations.length > 5) {
+                recentStations.pop();
+            }
+            localStorage.setItem('recentStations', JSON.stringify(recentStations));
+            displayRecentStations();
+        }
+
+        function displayRecentStations() {
+            const recentStations = JSON.parse(localStorage.getItem('recentStations')) || [];
+            const recentList = document.getElementById('recent-stations');
+            recentList.innerHTML = '';
+            recentStations.forEach(station => {
+                const li = document.createElement('li');
+                li.innerText = station.name;
+                li.onclick = () => {
+                    window.location.href = `https://www.ns.nl/stationsinformatie/${station.code}/aankomstijden`;
+                };
+                recentList.appendChild(li);
+            });
+        }
+
         async function findNearestStation() {
             const stations = await loadStations();
+            displayRecentStations();
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -64,6 +105,7 @@
                                 });
 
                                 if (stationCode) {
+                                    updateRecentStations(stationCode, stations[stationCode]);
                                     window.location.href = `https://www.ns.nl/stationsinformatie/${stationCode}/aankomstijden`;
                                 } else {
                                     document.getElementById('status').innerText =
