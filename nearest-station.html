@@ -21,6 +21,8 @@
             background-color: #f0f0f0;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -46,6 +48,7 @@
                     throw new Error('CSV-bestand is leeg of onjuist geformateerd.');
                 }
 
+                document.getElementById('status').innerText = 'Stations succesvol geladen. Aantal: ' + Object.keys(stations).length;
                 return stations;
             } catch (error) {
                 document.getElementById('status').innerText = `Er is een probleem geweest bij het laden van stationsgegevens: ${error.message}`;
@@ -75,13 +78,13 @@
                                     const stationName = nearestStation.tags.name || 'Onbekend';
 
                                     const stationCode = Object.keys(stations).find(code => {
-                                        return stations[code].toLowerCase() === stationName.toLowerCase();
+                                        return stations[code].trim().toLowerCase() === stationName.trim().toLowerCase();
                                     });
 
                                     if (stationCode) {
                                         window.location.href = `https://www.ns.nl/stationsinformatie/${stationCode}/aankomstijden`;
                                     } else {
-                                        document.getElementById('status').innerText = `Kon het station "${stationName}" niet matchen met NS-code.`;
+                                        document.getElementById('status').innerText = `Kon het station "${stationName}" niet matchen met NS-code in de geladen gegevens.`;
                                     }
                                 } else {
                                     document.getElementById('status').innerText = 'Geen stations gevonden in de buurt.';
