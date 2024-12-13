@@ -175,6 +175,7 @@
 
         .message pre {
             width: 100%;
+            position: relative;
         }
 
         .spinner {
@@ -226,11 +227,11 @@
             padding: 5px 10px;
             cursor: pointer;
             font-size: 0.875em;
-            margin-left: 5px;
+            margin: 5px;
+            position: absolute;
         }
 
         .console-copy-code {
-            position: absolute;
             top: 10px;
             right: 10px;
         }
@@ -253,7 +254,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
 </head>
 <body>
     <div id="app-container">
@@ -307,7 +307,7 @@
         let openaiApiKeys = [];
         let currentApiKeyIndex = 0;
         let systemPrompt = localStorage.getItem('systemPrompt') || "";
-        let conversationHistory = []; // Initialize without system prompt
+        let conversationHistory = [];
         let editIndex = null;
         let consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
 
@@ -552,7 +552,7 @@
             chatOutput.scrollTop = chatOutput.scrollHeight;
 
             Prism.highlightAllUnder(newMessage);
-            addRunAndCopyButtonsToCodeBlocks();
+            addRunAndCopyButtonsToCodeBlocks(newMessage);
         }
 
         function displayPartialMessage(initialContent, sender) {
@@ -565,60 +565,76 @@
             return partialMessage;
         }
 
-        function addRunAndCopyButtonsToCodeBlocks() {
-            document.querySelectorAll('pre code').forEach((block) => {
+        function addRunAndCopyButtonsToCodeBlocks(parentElement) {
+            parentElement.querySelectorAll('pre code').forEach((block) => {
                 if (!block.parentElement.querySelector('.copy-code')) {
-                    const copyButton = document.createElement('button');
-                    copyButton.className = 'copy-code';
-                    copyButton.textContent = 'Copy';
+                    const copyButtonTop = document.createElement('button');
+                    copyButtonTop.className = 'copy-code';
+                    copyButtonTop.textContent = 'Copy';
 
-                    const runButton = document.createElement('button');
-                    runButton.className = 'run-code';
-                    runButton.textContent = 'Run';
+                    const runButtonTop = document.createElement('button');
+                    runButtonTop.className = 'run-code';
+                    runButtonTop.textContent = 'Run';
+
+                    const copyButtonBottom = document.createElement('button');
+                    copyButtonBottom.className = 'copy-code';
+                    copyButtonBottom.textContent = 'Copy';
+
+                    const runButtonBottom = document.createElement('button');
+                    runButtonBottom.className = 'run-code';
+                    runButtonBottom.textContent = 'Run';
 
                     block.parentElement.style.position = 'relative';
 
-                    copyButton.style.position = 'absolute';
-                    copyButton.style.top = '5px';
-                    copyButton.style.right = '55px';
-
-                    runButton.style.position = 'absolute';
-                    runButton.style.top = '5px';
-                    runButton.style.right = '5px';
-
-                    runButton.addEventListener('click', () => runCodeInNewTab(block.textContent));
-
-                    copyButton.addEventListener('click', function () {
-                        const originalText = copyButton.textContent;
-                        copyButton.textContent = 'Copied!';
-                        setTimeout(() => {
-                            copyButton.textContent = originalText;
-                        }, 1500);
+                    [copyButtonTop, runButtonTop].forEach(button => {
+                        button.style.position = 'absolute';
                     });
 
-                    block.parentElement.appendChild(copyButton);
-                    block.parentElement.appendChild(runButton);
-                }
-            });
+                    copyButtonTop.style.top = '5px';
+                    copyButtonTop.style.right = '55px';
+                    runButtonTop.style.top = '5px';
+                    runButtonTop.style.right = '5px';
 
-            new ClipboardJS('.copy-code, .console-copy-code', {
-                text: function (trigger) {
-                    if (trigger.classList.contains('console-copy-code')) {
-                        return trigger.previousElementSibling.textContent;
-                    }
-                    return trigger.parentElement.querySelector('pre').textContent;
+                    [copyButtonBottom, runButtonBottom].forEach(button => {
+                        button.style.position = 'absolute';
+                    });
+
+                    copyButtonBottom.style.bottom = '5px';
+                    copyButtonBottom.style.right = '55px';
+                    runButtonBottom.style.bottom = '5px';
+                    runButtonBottom.style.right = '5px';
+
+                    runButtonTop.addEventListener('click', () => runCodeInNewTab(block));
+                    runButtonBottom.addEventListener('click', () => runCodeInNewTab(block));
+
+                    copyButtonTop.addEventListener('click', () => handleCopy(block, copyButtonTop));
+                    copyButtonBottom.addEventListener('click', () => handleCopy(block, copyButtonBottom));
+
+                    block.parentElement.appendChild(copyButtonTop);
+                    block.parentElement.appendChild(runButtonTop);
+                    block.parentElement.appendChild(copyButtonBottom);
+                    block.parentElement.appendChild(runButtonBottom);
                 }
-            }).on('success', function (e) {
-                const originalText = e.trigger.textContent;
-                e.trigger.textContent = 'Copied!';
-                setTimeout(() => {
-                    e.trigger.textContent = originalText;
-                }, 1500);
-                e.clearSelection();
             });
         }
 
-        function runCodeInNewTab(code) {
+        function handleCopy(codeBlock, button) {
+            const text = codeBlock.textContent.trim();
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                    }, 1500);
+                })
+                .catch(err => {
+                    console.error("Could not copy text: ", err);
+                });
+        }
+
+        function runCodeInNewTab(codeBlock) {
+            const code = codeBlock.textContent;
             const newWindow = window.open();
             newWindow.document.open();
             newWindow.document.write(code);
@@ -675,6 +691,7 @@
             if (provider === 'gemini') {
                 modelSelect.add(new Option('gemini-1.5-flash', 'gemini-1.5-flash'));
                 modelSelect.add(new Option('gemini-1.5-pro-latest', 'gemini-1.5-pro-latest'));
+                modelSelect.add(new Option('gemini-2.0-flash-exp', 'gemini-2.0-flash-exp'));
             } else if (provider === 'openai') {
                 modelSelect.add(new Option('gpt-3.5-turbo', 'gpt-3.5-turbo'));
                 modelSelect.add(new Option('gpt-3.5-turbo-16k', 'gpt-3.5-turbo-16k'));
@@ -701,7 +718,7 @@
             constructor(apiKey, model) {
                 this.apiKey = apiKey;
                 this.model = model;
-                this.conversationHistory = [{ role: 'system', content: systemPrompt }, ...conversationHistory]; // Include prompt dynamically
+                this.conversationHistory = [{ role: 'system', content: systemPrompt }, ...conversationHistory];
             }
 
             setApiKey(apiKey) {
