@@ -58,7 +58,7 @@
             </div>
             <div id="chat-output" style="padding: 15px; flex: 1; overflow-y: auto; position: relative;"></div>
             <div id="chat-input" style="flex-shrink: 0; display: flex; padding: 15px; border-top: 1px solid #37383c; background-color: #2b2c2f; box-sizing: border-box; position: relative;">
-                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" autocomplete="off" style="flex-grow: 1; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; margin-right: 10px;">
+                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex-grow: 1; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; margin-right: 10px;">
                 <button id="send-button" onclick="sendMessage()" disabled style="padding: 10px 20px; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
                 <div class="spinner" id="loading-spinner" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                     <div style="width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px;"></div>
@@ -160,12 +160,12 @@
                 const provider = document.getElementById('api-provider').value;
                 selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
 
-                  if (editIndex !== null) {
-                      conversationHistory[editIndex].content = userInput;
-                      conversationHistory = conversationHistory.slice(0, editIndex + 1);
-                      redrawMessages();
-                      editIndex = null;
-                 } else {
+                if (editIndex !== null) {
+                    conversationHistory[editIndex].content = userInput;
+                    conversationHistory = conversationHistory.slice(0, editIndex + 1);
+                    redrawMessages();
+                    editIndex = null;
+                } else {
                     conversationHistory.push({ role: "user", content: userInput });
                     displayMessage(userInput, 'user', conversationHistory.length - 1, true);
                 }
@@ -192,13 +192,12 @@
               body: JSON.stringify({ "contents": [{ "parts": [{ "text": prompt }] }] })
            });
 
-            if (!response.ok) {
+             if (!response.ok) {
               const errorText = await response.text();
               currentApiKeyIndex++;
               return tryNextApiKeyGemini(userInput);
            }
-
-             const data = await response.json();
+              const data = await response.json();
             document.getElementById('loading-spinner').style.display = 'none';
             if (data.candidates && data.candidates.length > 0) {
               const messageText = data.candidates[0].content.parts.map(part => part.text).join("\n");
@@ -243,7 +242,7 @@
             newMessage.classList.add('message', sender);
             newMessage.setAttribute('data-index', index);
 
-             if (sender === 'user') {
+              if (sender === 'user') {
                newMessage.setAttribute('contenteditable', true);
                newMessage.addEventListener('click', () => editMessage(index));
                 let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
@@ -281,6 +280,7 @@
                       button.className = className;
                       button.textContent = text;
                       button.addEventListener('click', onClick);
+
                        button.style.position = 'absolute';
                       return button;
                    };
@@ -290,12 +290,12 @@
                     const copyButtonBottom = createButton('copy-code', 'Copy', () => handleCopy(block, copyButtonBottom));
                    const runButtonBottom = createButton('run-code', 'Run', () => runCodeInNewTab(block));
 
-                    copyButtonTop.style.top = '5px'; copyButtonTop.style.right = '55px';
+                     copyButtonTop.style.top = '5px'; copyButtonTop.style.right = '55px';
                     runButtonTop.style.top = '5px'; runButtonTop.style.right = '5px';
                    copyButtonBottom.style.bottom = '5px'; copyButtonBottom.style.right = '55px';
-                   runButtonBottom.style.bottom = '5px'; runButtonBottom.style.right = '5px';
+                    runButtonBottom.style.bottom = '5px'; runButtonBottom.style.right = '5px';
 
-                    block.parentElement.append(copyButtonTop, runButtonTop, copyButtonBottom, runButtonBottom);
+                     block.parentElement.append(copyButtonTop, runButtonTop, copyButtonBottom, runButtonBottom);
               }
            });
         };
@@ -369,13 +369,13 @@
             async getBotResponse(userMessage, onDelta) {
                  this.conversationHistory.push({ role: 'user', content: userMessage });
 
-                  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                   const response = await fetch("https://api.openai.com/v1/chat/completions", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", Authorization: "Bearer " + this.apiKey },
                     body: JSON.stringify({ model: this.model, messages: this.conversationHistory, stream: true })
                  });
 
-                 if (!response.ok) throw await response.text();
+                  if (!response.ok) throw await response.text();
                 let botResponse = '';
 
                  await this.processEventStream(response.body.getReader(), chunk => {
@@ -391,22 +391,21 @@
                    }
                 });
 
-                 return botResponse;
+                  return botResponse;
               }
-
-             async processEventStream(reader, delegate) {
-                const decoder = new TextDecoder();
-                let accumulated = '';
-                while (true) {
-                    const result = await reader.read();
-                    if (result.done) break;
-                    accumulated += decoder.decode(result.value, { stream: true });
-                   let lines = accumulated.split('\n');
-                   accumulated = lines.pop();
-                   for (let line of lines) if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') delegate(line.slice(6));
-                }
-                if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') delegate(accumulated.slice(6));
-             }
+              async processEventStream(reader, delegate) {
+                  const decoder = new TextDecoder();
+                  let accumulated = '';
+                  while (true) {
+                      const result = await reader.read();
+                      if (result.done) break;
+                      accumulated += decoder.decode(result.value, { stream: true });
+                     let lines = accumulated.split('\n');
+                     accumulated = lines.pop();
+                     for (let line of lines) if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') delegate(line.slice(6));
+                  }
+                  if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') delegate(accumulated.slice(6));
+               }
         }
     </script>
 </body>
