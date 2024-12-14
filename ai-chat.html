@@ -6,205 +6,38 @@
     <title>Chat Interface</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            background-color: #202124;
-            color: #eee;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #app-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-container {
-           display: flex;
-            flex-direction: column;
-            background-color: #2b2c2f;
-            height: 100%;
-        }
-        #settings-container {
-            width: 100%;
-            background-color: #2b2c2f;
-            padding: 20px;
-            display: none;
-            box-sizing: border-box;
-        }
-        #settings-container label {
-            margin-bottom: 5px;
-            display: block;
-        }
-        #settings-container textarea, #settings-container select {
-            width: 100%;
-            padding: 10px;
-            background-color: #333438;
-            color: #eee;
-            border: 1px solid #444549;
-            border-radius: 5px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-        }
-        #chat-output {
-           padding: 15px;
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-        }
-        .message {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            padding: 8px;
-            border-radius: 5px;
-            position: relative;
-            min-height: 1.2em;
-            max-width: 100%;
-        }
-        .message .re-send-button {
-            display: none;
-            position: absolute;
-            right: 4px;
-            top: 4px;
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            padding: 5px 8px;
-        }
-        .message.user:hover .re-send-button, .message.user:focus-within .re-send-button {
-            display: block;
-        }
-        .user {
-            background-color: #424347;
-            align-self: flex-end;
-        }
-        .assistant {
-            background-color: #3578e5;
-            align-self: flex-start;
-        }
-        .editable:focus {
-          outline: none;
-        }
-        #chat-input {
-            flex-shrink: 0;
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #37383c;
-            background-color: #2b2c2f;
-            box-sizing: border-box;
-            position: relative;
-        }
-        input[type="text"], select {
-            flex-grow: 1;
-            padding: 10px;
-            background-color: #333438;
-            color: #eee;
-            border: 1px solid #444549;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #37383c;
-        }
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-        .tab.active {
-            border-bottom: 2px solid #3578e5;
-        }
-         pre[class*="language-"] {
-            background: #2e2f33;
-            border-radius: 3px;
-            font-size: 0.875em;
-            margin: 0;
-            padding: 10px;
-            position: relative;
-            overflow-x: auto;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-        .message span {
-            width: 100%;
-            overflow-x: hidden;
-        }
-         .message pre {
-          width: 100%;
-          position: relative;
-         }
-        .spinner {
-          display: none;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-        }
-        .spinner div {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          background: #3578e5;
-          animation: spin 1s infinite ease-in-out;
-          margin: 0 5px;
-        }
-        .spinner div:nth-child(2) {
-          animation-delay: 0.1s;
-        }
-         .spinner div:nth-child(3) {
-          animation-delay: 0.2s;
-        }
-        @keyframes spin {
-          0% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(0.5);
-          }
-           100% {
-            transform: scale(1);
-          }
-        }
-        .copy-code, .console-copy-code, .run-code{
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.875em;
-            margin: 5px;
-            position: absolute;
-        }
-        .console-copy-code {
-             top: 10px;
-            right: 10px;
-        }
-        .message p{
-            margin: 0;
-        }
-        .message p+p {
-            margin-top: 1em;
-        }
+        body{font-family:sans-serif;margin:0;background-color:#202124;color:#eee;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+        #app-container{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+        #chat-container{display:flex;flex-direction:column;background-color:#2b2c2f;height:100%;}
+        #settings-container{width:100%;background-color:#2b2c2f;padding:20px;display:none;box-sizing:border-box;}
+        #settings-container label{margin-bottom:5px;display:block;}
+        #settings-container textarea, #settings-container select{width:100%;padding:10px;background-color:#333438;color:#eee;border:1px solid #444549;border-radius:5px;box-sizing:border-box;margin-bottom:15px;}
+        #chat-output{padding:15px;flex:1;overflow-y:auto;position:relative;}
+        .message{display:flex;align-items:flex-start;margin-bottom:8px;padding:8px;border-radius:5px;position:relative;min-height:1.2em;max-width:100%;}
+        .message .re-send-button{display:none;position:absolute;right:4px;top:4px;background-color:#3578e5;color:white;border:none;border-radius:5px;cursor:pointer;padding:5px 8px;}
+        .message.user:hover .re-send-button, .message.user:focus-within .re-send-button{display:block;}
+        .user{background-color:#424347;align-self:flex-end;}
+        .assistant{background-color:#3578e5;align-self:flex-start;}
+        .editable:focus{outline:none;}
+        #chat-input{flex-shrink:0;display:flex;padding:15px;border-top:1px solid #37383c;background-color:#2b2c2f;box-sizing:border-box;position:relative;}
+        input[type="text"], select{flex-grow:1;padding:10px;background-color:#333438;color:#eee;border:1px solid #444549;border-radius:5px;margin-right:10px;}
+        button{padding:10px 20px;background-color:#3578e5;color:white;border:none;border-radius:5px;cursor:pointer;}
+        button:disabled{background-color:#666;cursor:not-allowed;}
+        .tabs{display:flex;border-bottom:1px solid #37383c;}
+        .tab{padding:10px 15px;cursor:pointer;border-bottom:2px solid transparent;}
+        .tab.active{border-bottom:2px solid #3578e5;}
+        pre[class*="language-"]{background:#2e2f33;border-radius:3px;font-size:0.875em;margin:0;padding:10px;position:relative;overflow-x:auto;max-width:100%;box-sizing:border-box;}
+        .message span{width:100%;overflow-x:hidden;}
+        .message pre{width:100%;position:relative;}
+        .spinner{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+        .spinner div{width:12px;height:12px;border-radius:50%;background:#3578e5;animation:spin 1s infinite ease-in-out;margin:0 5px;}
+        .spinner div:nth-child(2){animation-delay:0.1s;}
+        .spinner div:nth-child(3){animation-delay:0.2s;}
+        @keyframes spin{0%{transform:scale(1);}50%{transform:scale(0.5);}100%{transform:scale(1);}}
+        .copy-code,.console-copy-code,.run-code{background-color:#3578e5;color:white;border:none;border-radius:5px;padding:5px 10px;cursor:pointer;font-size:.875em;margin:5px;position:absolute;}
+        .console-copy-code{top:10px;right:10px;}
+        .message p{margin:0;}
+        .message p+p{margin-top:1em;}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -223,35 +56,35 @@
                 <div class="tab" onclick="showTab('settings')" style="padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent;">Settings</div>
                 <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none; padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent;">Console</div>
             </div>
-            <div id="chat-output" style="padding: 15px; flex: 1; overflow-y: auto; position: relative;"></div>
-            <div id="chat-input" style="flex-shrink: 0; display: flex; padding: 15px; border-top: 1px solid #37383c; background-color: #2b2c2f; box-sizing: border-box; position: relative;">
-                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex-grow: 1; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; margin-right: 10px;" enterkeyhint="nextline" inputmode="text"  autocomplete="new-password">
-                <button id="send-button" onclick="sendMessage()" disabled style="padding: 10px 20px; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer;">Send</button>
-                <div class="spinner" id="loading-spinner" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                   <div style="width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px;"></div>
-                    <div style="width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px; animation-delay: 0.1s;"></div>
-                     <div style="width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px; animation-delay: 0.2s;"></div>
+            <div id="chat-output"></div>
+            <div id="chat-input">
+                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="nextline" inputmode="text" autocomplete="new-password" autofill="off" aria-label="chat input" role="textbox">
+                <button id="send-button" onclick="sendMessage()" disabled>Send</button>
+                <div class="spinner" id="loading-spinner">
+                   <div></div>
+                    <div></div>
+                     <div></div>
                 </div>
             </div>
-             <div id="settings-container" style="width: 100%; background-color: #2b2c2f; padding: 20px; display: none; box-sizing: border-box;">
-                <label for="api-key-openai" style="margin-bottom: 5px; display: block;">OpenAI API Key(s):</label>
-                <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" style="width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px;"></textarea>
-                 <label for="api-key-gemini" style="margin-bottom: 5px; display: block;">Gemini API Key(s):</label>
-                <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)" style="width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px;"></textarea>
-                <label for="api-provider" style="margin-bottom: 5px; display: block;">API Provider:</label>
-                <select id="api-provider" onchange="updateModelOptions()" style="width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px;">
+             <div id="settings-container">
+                <label for="api-key-openai">OpenAI API Key(s):</label>
+                <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)"></textarea>
+                 <label for="api-key-gemini">Gemini API Key(s):</label>
+                <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)"></textarea>
+                <label for="api-provider">API Provider:</label>
+                <select id="api-provider" onchange="updateModelOptions()">
                     <option value="openai">OpenAI</option>
                     <option value="gemini">Gemini</option>
                 </select>
-                <label for="model-select" style="margin-bottom: 5px; display: block;">Model:</label>
-                <select id="model-select" style="width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px;"></select>
-                <label for="system-prompt" style="margin-bottom: 5px; display: block;">System Prompt:</label>
-                <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt" style="width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px;"></textarea>
-                 <label style="margin-bottom: 5px; display: block;"><input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console</label>
+                <label for="model-select">Model:</label>
+                <select id="model-select"></select>
+                <label for="system-prompt">System Prompt:</label>
+                <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt"></textarea>
+                 <label><input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console</label>
             </div>
-             <div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
-                <pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
-                <button class="console-copy-code" style="background-color: #3578e5; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.875em; margin: 5px; position: absolute; top: 10px; right: 10px;">Copy</button>
+             <div id="console-container">
+                <pre id="console-output"></pre>
+                <button class="console-copy-code">Copy</button>
             </div>
         </div>
     </div>
@@ -417,13 +250,13 @@
                  newMessage.setAttribute('contenteditable', true);
                 newMessage.addEventListener('click', () => editMessage(index));
                 let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
-                newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})" style="display: none; position: absolute; right: 4px; top: 4px; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px 8px;">Resend</button>`;
+                newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
             } else {
                  const markdown = marked.parse(message, { breaks: true });
                  const formattedMessage = markdown.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                     const language = lang || 'javascript';
                     const escapedCode = escapeHtml(code.trim());
-                    return `<pre style="background: #2e2f33; border-radius: 3px; font-size: 0.875em; margin: 0; padding: 10px; position: relative; overflow-x: auto; max-width: 100%; box-sizing: border-box;"><code class="language-${language}" style="background: none;">${escapedCode}</code></pre>`;
+                    return `<pre><code class="language-${language}">${escapedCode}</code></pre>`;
                 });
               newMessage.innerHTML = `<span class="content">${formattedMessage}</span>`;
             }
