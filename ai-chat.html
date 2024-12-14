@@ -20,13 +20,8 @@
         .assistant{background-color:#3578e5;align-self:flex-start;}
         .editable:focus{outline:none;}
         #chat-input{flex-shrink:0;display:flex;padding:15px;border-top:1px solid #37383c;background-color:#2b2c2f;box-sizing:border-box;position:relative;}
-        #chat-input-area{flex-grow:1;padding:10px;background-color:#333438;color:#eee;border:1px solid #444549;border-radius:5px;margin-right:10px; outline:none;}
-         #chat-input-area[contenteditable="true"]:empty::before {
-           content: attr(placeholder);
-            color: #777;
-             display: block; /* For Firefox */
-        }
-       button{padding:10px 20px;background-color:#3578e5;color:white;border:none;border-radius:5px;cursor:pointer;}
+        input[type="text"], select{flex-grow:1;padding:10px;background-color:#333438;color:#eee;border:1px solid #444549;border-radius:5px;margin-right:10px;}
+        button{padding:10px 20px;background-color:#3578e5;color:white;border:none;border-radius:5px;cursor:pointer;}
         button:disabled{background-color:#666;cursor:not-allowed;}
         .tabs{display:flex;border-bottom:1px solid #37383c;}
         .tab{padding:10px 15px;cursor:pointer;border-bottom:2px solid transparent;}
@@ -57,13 +52,13 @@
     <div id="app-container">
         <div id="chat-container">
            <div class="tabs">
-                <div class="tab active" onclick="showTab('chat')">Chat</div>
-                <div class="tab" onclick="showTab('settings')">Settings</div>
-                <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
+                <div class="tab active" onclick="showTab('chat')" style="padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent;">Chat</div>
+                <div class="tab" onclick="showTab('settings')" style="padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent;">Settings</div>
+                <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none; padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent;">Console</div>
             </div>
             <div id="chat-output"></div>
             <div id="chat-input">
-                <div id="chat-input-area" contenteditable="true" placeholder="Type your message..."></div>
+                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="nextline" inputmode="text" autocomplete="new-password" autofill="off" aria-label="chat input" role="textbox">
                 <button id="send-button" onclick="sendMessage()" disabled>Send</button>
                 <div class="spinner" id="loading-spinner">
                    <div></div>
@@ -123,7 +118,7 @@
             const regex = provider === 'openai' ? /^sk-[a-zA-Z0-9]{48}$/gm : /AIzaSy[A-Za-z0-9_-]{33}/g;
             return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
         };
-        const toggleSendButton = () => document.getElementById("send-button").disabled = document.getElementById('chat-input-area').innerText.trim() === "";
+        const toggleSendButton = () => document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === "";
         const showTab = tabName => {
             if (document.querySelector('.tab.active').textContent === 'Settings' && tabName !== 'settings') saveSettings();
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -158,7 +153,7 @@
              displayMessage('An error occurred. Please check the "Console" tab for details.', 'assistant', conversationHistory.length);
         };
         const sendMessage = async () => {
-            const userInput = document.getElementById('chat-input-area').innerText;
+            const userInput = document.getElementById('user-input').value;
             if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0)) {
               const provider = document.getElementById('api-provider').value;
               selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
@@ -171,7 +166,7 @@
                    conversationHistory.push({ role: "user", content: userInput });
                     displayMessage(userInput, 'user', conversationHistory.length - 1, true);
                 }
-                document.getElementById('chat-input-area').innerHTML = '';
+                document.getElementById('user-input').value = '';
                 toggleSendButton();
                 document.getElementById('loading-spinner').style.display = 'flex';
                 try {
@@ -334,7 +329,7 @@
             const newText = messageElement.innerText.trim();
             if(newText !== ""){
              conversationHistory[index].content = newText;
-             document.getElementById('chat-input-area').innerText = newText;
+             document.getElementById('user-input').value = newText;
              editIndex = index;
              sendMessage();
             }
