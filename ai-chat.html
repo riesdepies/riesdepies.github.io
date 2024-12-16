@@ -427,7 +427,7 @@
 
         async function sendMessage() {
             let userInput = document.getElementById('user-input').value;
-
+             systemPrompt = document.getElementById('system-prompt').value; // Get the system prompt from the textarea
             if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0)) {
                 const provider = document.getElementById('api-provider').value;
                 selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
@@ -508,12 +508,11 @@
             }
         }
 
-
         async function tryNextApiKeyOpenAI(userInput) {
             const selectedModel = document.getElementById('model-select').value;
             if (currentApiKeyIndex < openaiApiKeys.length) {
                 const apiKey = openaiApiKeys[currentApiKeyIndex];
-                const chat = new OpenAIChat(apiKey, selectedModel);
+                 const chat = new OpenAIChat(apiKey, selectedModel, systemPrompt);
 
                 let partialMessageElement = null;
                 let botResponse = '';
@@ -557,16 +556,16 @@
             newMessage.classList.add('message', sender);
             newMessage.setAttribute('data-index', index);
 
-
             if (sender === 'user') {
                 newMessage.setAttribute('contenteditable', true);
                 newMessage.addEventListener('click', () => editMessage(index));
 
                 // Check if it is user input before escaping and adding re-send button
-                 let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
+                let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
                 newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
             } else {
-                 const markdown = marked.parse(message, { breaks: true });
+
+                const markdown = marked.parse(message, { breaks: true });
                 const codePattern = /```(\w+)?\n([\s\S]*?)```/g;
                 const formattedMessage = markdown.replace(codePattern, (match, lang, code) => {
                     const language = lang || 'javascript';
@@ -576,15 +575,12 @@
                 newMessage.innerHTML = `<span class="content">${formattedMessage}</span>`;
             }
 
-
             chatOutput.appendChild(newMessage);
             chatOutput.scrollTop = chatOutput.scrollHeight;
 
             Prism.highlightAllUnder(newMessage);
             addRunAndCopyButtonsToCodeBlocks(newMessage);
         }
-
-
 
         function displayPartialMessage(initialContent, sender) {
             let chatOutput = document.getElementById('chat-output');
@@ -722,10 +718,10 @@
             if (provider === 'gemini') {
                 modelSelect.add(new Option('gemini-1.5-flash', 'gemini-1.5-flash'));
                 modelSelect.add(new Option('gemini-1.5-pro-latest', 'gemini-1.5-pro-latest'));
-                modelSelect.add(new Option('gemini-2.0-flash-exp', 'gemini-2.0-flash-exp'));
+                 modelSelect.add(new Option('gemini-2.0-flash-exp', 'gemini-2.0-flash-exp'));
             } else if (provider === 'openai') {
                 modelSelect.add(new Option('gpt-3.5-turbo', 'gpt-3.5-turbo'));
-                modelSelect.add(new Option('gpt-3.5-turbo-16k', 'gpt-3.5-turbo-16k'));
+                 modelSelect.add(new Option('gpt-3.5-turbo-16k', 'gpt-3.5-turbo-16k'));
                 modelSelect.add(new Option('gpt-4', 'gpt-4'));
                 modelSelect.add(new Option('gpt-4-turbo', 'gpt-4-turbo'));
                 modelSelect.add(new Option('gpt-4o', 'gpt-4o'));
@@ -751,10 +747,11 @@
         showTab('chat');
 
         class OpenAIChat {
-            constructor(apiKey, model) {
+            constructor(apiKey, model, systemPrompt) {
                 this.apiKey = apiKey;
                 this.model = model;
-                this.conversationHistory = [{ role: 'system', content: systemPrompt }, ...conversationHistory];
+               this.systemPrompt = systemPrompt;
+                this.conversationHistory = [];
             }
 
             setApiKey(apiKey) {
@@ -764,13 +761,16 @@
             setModel(model) {
                 this.model = model;
             }
-
+           
             setPrePrompt(prePrompt) {
-                this.conversationHistory = [{ role: 'system', content: prePrompt }];
+               this.systemPrompt = prePrompt;
             }
 
+
             async getBotResponse(userMessage, onDelta) {
-                this.conversationHistory.push({ role: 'user', content: userMessage });
+               this.conversationHistory = [{ role: 'system', content: this.systemPrompt }, ...conversationHistory];
+                 this.conversationHistory.push({ role: 'user', content: userMessage });
+
 
                 const url = "https://api.openai.com/v1/chat/completions";
                 const response = await fetch(url, {
