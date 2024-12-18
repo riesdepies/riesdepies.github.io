@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,18 +17,21 @@
             flex-direction: column;
             overflow: hidden;
         }
+
         #app-container {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
+
         #chat-container {
             display: flex;
             flex-direction: column;
             background-color: #2b2c2f;
             height: 100%;
         }
+
         #settings-container {
             width: 100%;
             background-color: #2b2c2f;
@@ -35,11 +39,14 @@
             display: none;
             box-sizing: border-box;
         }
+
         #settings-container label {
-            margin-bottom: 5px;
             display: block;
+            margin-bottom: 5px;
         }
-        #settings-container textarea, #settings-container select {
+
+        #settings-container textarea,
+        #settings-container select {
             width: 100%;
             padding: 10px;
             background-color: #333438;
@@ -49,12 +56,14 @@
             box-sizing: border-box;
             margin-bottom: 15px;
         }
+
         #chat-output {
             padding: 15px;
             flex: 1;
             overflow-y: auto;
             position: relative;
         }
+
         .message {
             display: flex;
             align-items: flex-start;
@@ -65,6 +74,7 @@
             min-height: 1.2em;
             max-width: 100%;
         }
+
         .message .re-send-button {
             display: none;
             position: absolute;
@@ -77,21 +87,26 @@
             cursor: pointer;
             padding: 5px 8px;
         }
-        /* Only show resend button for user messages */
-        .message.user:hover .re-send-button, .message.user:focus-within .re-send-button {
+
+        .message.user:hover .re-send-button,
+        .message.user:focus-within .re-send-button {
             display: block;
         }
+
         .user {
             background-color: #424347;
             align-self: flex-end;
         }
+
         .assistant {
             background-color: #3578e5;
             align-self: flex-start;
         }
+
         .editable:focus {
             outline: none;
         }
+
         #chat-input {
             flex-shrink: 0;
             display: flex;
@@ -101,7 +116,9 @@
             box-sizing: border-box;
             position: relative;
         }
-        input[type="text"], select {
+
+        #chat-input input[type="text"],
+        #chat-input select {
             flex-grow: 1;
             padding: 10px;
             background-color: #333438;
@@ -110,7 +127,8 @@
             border-radius: 5px;
             margin-right: 10px;
         }
-        button {
+
+        #chat-input button {
             padding: 10px 20px;
             background-color: #3578e5;
             color: white;
@@ -118,22 +136,27 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        button:disabled {
+
+        #chat-input button:disabled {
             background-color: #666;
             cursor: not-allowed;
         }
+
         .tabs {
             display: flex;
             border-bottom: 1px solid #37383c;
         }
+
         .tab {
             padding: 10px 15px;
             cursor: pointer;
             border-bottom: 2px solid transparent;
         }
+
         .tab.active {
             border-bottom: 2px solid #3578e5;
         }
+
         pre[class*="language-"] {
             background: #2e2f33;
             border-radius: 3px;
@@ -145,14 +168,17 @@
             max-width: 100%;
             box-sizing: border-box;
         }
+
         .message span {
-           width: 100%;
-           overflow-x: hidden;
+            width: 100%;
+            overflow-x: hidden;
         }
+
         .message pre {
             width: 100%;
             position: relative;
         }
+
         .spinner {
             display: none;
             position: absolute;
@@ -160,6 +186,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
         .spinner div {
             width: 12px;
             height: 12px;
@@ -168,18 +195,32 @@
             animation: spin 1s infinite ease-in-out;
             margin: 0 5px;
         }
+
         .spinner div:nth-child(2) {
             animation-delay: 0.1s;
         }
+
         .spinner div:nth-child(3) {
             animation-delay: 0.2s;
         }
+
         @keyframes spin {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.5); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(0.5);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
-        .copy-code, .console-copy-code, .run-code {
+
+        .copy-code,
+        .console-copy-code,
+        .run-code {
             background-color: #3578e5;
             color: white;
             border: none;
@@ -190,15 +231,16 @@
             margin: 5px;
             position: absolute;
         }
+
         .console-copy-code {
             top: 10px;
             right: 10px;
         }
-       /* Remove extra space around messages */
+
         .message p {
-           margin: 0;
+            margin: 0;
         }
-       /* Add space between multiple paragraphs */
+
         .message p+p {
             margin-top: 1em;
         }
@@ -212,6 +254,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
     <div id="app-container">
         <div id="chat-container">
@@ -222,7 +265,8 @@
             </div>
             <div id="chat-output"></div>
             <div id="chat-input">
-                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)">
+                <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()"
+                    onkeydown="handleEnter(event)">
                 <button id="send-button" onclick="sendMessage()" disabled>Send</button>
                 <div class="spinner" id="loading-spinner">
                     <div></div>
@@ -230,26 +274,28 @@
                     <div></div>
                 </div>
             </div>
-           <div id="settings-container">
-              <label for="api-key-openai">OpenAI API Key(s):</label>
-              <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)"></textarea>
-              <label for="api-key-gemini">Gemini API Key(s):</label>
-              <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)"></textarea>
-              <label for="api-provider">API Provider:</label>
-              <select id="api-provider" onchange="updateModelOptions()">
-                  <option value="openai">OpenAI</option>
-                  <option value="gemini">Gemini</option>
-              </select>
-               <label for="model-select">Model:</label>
-               <select id="model-select"></select>
-               <label for="system-prompt">System Prompt:</label>
-               <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt"></textarea>
-               <label>
-                  <input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console
-               </label>
-           </div>
-            <div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
-                <pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
+            <div id="settings-container">
+                <label for="api-key-openai">OpenAI API Key(s):</label>
+                <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)"></textarea>
+                <label for="api-key-gemini">Gemini API Key(s):</label>
+                <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)"></textarea>
+                <label for="api-provider">API Provider:</label>
+                <select id="api-provider" onchange="updateModelOptions()">
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Gemini</option>
+                </select>
+                <label for="model-select">Model:</label>
+                <select id="model-select"></select>
+                <label for="system-prompt">System Prompt:</label>
+                <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt"></textarea>
+                <label>
+                    <input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console
+                </label>
+            </div>
+            <div id="console-container"
+                style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
+                <pre id="console-output"
+                    style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
                 <button class="console-copy-code">Copy</button>
             </div>
         </div>
@@ -269,12 +315,10 @@
             loadSettings();
             updateModelOptions();
 
-             // Console copy button functionality
-            document.querySelector('.console-copy-code').addEventListener('click', () => {
-                const consoleOutput = document.getElementById('console-output').textContent;
-                navigator.clipboard.writeText(consoleOutput);
+            const consoleCopyButton = document.querySelector('.console-copy-code');
+            consoleCopyButton.addEventListener('click', () => {
+                 copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
             });
-
         });
 
         function loadSettings() {
@@ -286,10 +330,8 @@
             document.getElementById('toggle-console').checked = consoleEnabled;
             document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
 
-
             let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
             document.getElementById('api-provider').value = lastUsedApiProvider;
-
 
             if (!lastUsedModels[lastUsedApiProvider]) {
                 setDefaultModel(lastUsedApiProvider);
@@ -298,14 +340,14 @@
             }
         }
 
-       function setDefaultModel(provider) {
-           const defaultModel = provider === "openai" ? "gpt-4o" : "gemini-2.0-flash-exp";
-           if (!lastUsedModels) {
-              lastUsedModels = {};
+        function setDefaultModel(provider) {
+            const defaultModel = provider === "openai" ? "gpt-4o" : "gemini-2.0-flash-exp";
+            if (!lastUsedModels) {
+                lastUsedModels = {};
             }
-           lastUsedModels[provider] = defaultModel;
-           localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
-           selectedModel = defaultModel;
+            lastUsedModels[provider] = defaultModel;
+            localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+            selectedModel = defaultModel;
         }
 
         marked.setOptions({
@@ -314,98 +356,89 @@
             headerIds: false
         });
 
-         function parseApiKeys(input, provider) {
+        function parseApiKeys(input, provider) {
             const regex = provider === 'openai' ? /^sk-[a-zA-Z0-9]{48}$/gm : /AIzaSy[A-Za-z0-9_-]{33}/g;
             return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
         }
 
-       function toggleSendButton() {
-            const userInput = document.getElementById('user-input');
-            document.getElementById("send-button").disabled = userInput.value.trim() === "";
+        function toggleSendButton() {
+            document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === "";
         }
 
         function showTab(tabName) {
             if (document.querySelector('.tab.active').textContent === 'Settings' && tabName !== 'settings') {
-               saveSettings();
+                saveSettings();
             }
-             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-             document.getElementById('settings-container').style.display = 'none';
-             document.getElementById('chat-output').style.display = 'none';
-             document.getElementById('chat-input').style.display = 'flex';
-             document.getElementById('console-container').style.display = 'none';
 
-             if (tabName === 'chat') {
-                  document.getElementById('chat-output').style.display = 'block';
-             } else if (tabName === "settings") {
-                  document.getElementById('settings-container').style.display = 'block';
-                  document.getElementById('chat-input').style.display = 'none';
-              } else if (tabName === "console") {
-                 document.getElementById('console-container').style.display = 'block';
-                  document.getElementById('chat-input').style.display = 'none';
-              }
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('settings-container').style.display = 'none';
+            document.getElementById('chat-output').style.display = 'none';
+            document.getElementById('chat-input').style.display = 'flex';
+            document.getElementById('console-container').style.display = 'none';
 
-           document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+            if (tabName === 'chat') {
+                document.getElementById('chat-output').style.display = 'block';
+            } else if (tabName === "settings") {
+                document.getElementById('settings-container').style.display = 'block';
+                document.getElementById('chat-input').style.display = 'none';
+            } else if (tabName === "console") {
+                document.getElementById('console-container').style.display = 'block';
+                document.getElementById('chat-input').style.display = 'none';
+            }
+            document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
         }
 
         function saveSettings() {
-            const geminiKeys = document.getElementById('api-key-gemini').value;
-            geminiApiKeys = parseApiKeys(geminiKeys, 'gemini');
-            const openaiKeys = document.getElementById('api-key-openai').value;
-            openaiApiKeys = parseApiKeys(openaiKeys, 'openai');
+            geminiApiKeys = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
+            openaiApiKeys = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
             localStorage.setItem('apiKeyGemini', geminiApiKeys.join('\n\n'));
             localStorage.setItem('apiKeyOpenAI', openaiApiKeys.join('\n\n'));
             localStorage.setItem('systemPrompt', document.getElementById('system-prompt').value);
-            localStorage.setItem('lastUsedApiProvider', document.getElementById('api-provider').value);
-           let currentProvider =  document.getElementById('api-provider').value;
-           let selectedModel = document.getElementById('model-select').value;
-           if (!lastUsedModels) {
-               lastUsedModels = {};
-           }
-          lastUsedModels[currentProvider] = selectedModel
-          localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+            let currentProvider = document.getElementById('api-provider').value;
+            let selectedModel = document.getElementById('model-select').value;
+            if (!lastUsedModels) {
+                lastUsedModels = {};
+            }
+            lastUsedModels[currentProvider] = selectedModel
+            localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+            localStorage.setItem('lastUsedApiProvider', currentProvider);
         }
 
-         function toggleConsole(enabled) {
+        function toggleConsole(enabled) {
             localStorage.setItem('consoleEnabled', enabled);
             consoleEnabled = enabled;
-             document.getElementById('console-tab').style.display = enabled ? 'block' : 'none';
-         }
+            document.getElementById('console-tab').style.display = enabled ? 'block' : 'none';
+        }
 
         function logErrorToConsole(message) {
             const consoleOutput = document.getElementById('console-output');
             consoleOutput.textContent += `${message}\n`;
-             if (!consoleEnabled) {
-                 document.getElementById('toggle-console').checked = true;
-                  toggleConsole(true);
-              }
-           displayMessage('An error occurred. Please check the "Console" tab for details.', 'assistant', conversationHistory.length);
-         }
-
+            if (!consoleEnabled) {
+                document.getElementById('toggle-console').checked = true;
+                toggleConsole(true);
+            }
+            displayMessage('An error occurred. Please check the "Console" tab for details.', 'assistant', conversationHistory.length);
+        }
 
         async function sendMessage() {
             let userInput = document.getElementById('user-input').value;
-             systemPrompt = document.getElementById('system-prompt').value; // Get the system prompt from the textarea
-
-           if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0)) {
+            systemPrompt = document.getElementById('system-prompt').value;
+            if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0)) {
                 const provider = document.getElementById('api-provider').value;
                 selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
-
-
                 if (editIndex !== null) {
                     conversationHistory[editIndex].content = userInput;
                     conversationHistory = conversationHistory.slice(0, editIndex + 1);
-                   redrawMessages();
-                   editIndex = null;
+                    redrawMessages();
+                    editIndex = null;
                 } else {
                     conversationHistory.push({ role: "user", content: userInput });
-                     displayMessage(userInput, 'user', conversationHistory.length - 1, true); // Pass true for isUserInput
+                    displayMessage(userInput, 'user', conversationHistory.length - 1, true);
                 }
-
                 document.getElementById('user-input').value = '';
-               toggleSendButton();
+                toggleSendButton();
                 document.getElementById('loading-spinner').style.display = 'flex';
-
-               try {
+                try {
                     if (provider === 'gemini') {
                         currentApiKeyIndex = 0;
                         await tryNextApiKeyGemini(userInput);
@@ -413,119 +446,112 @@
                         currentApiKeyIndex = 0;
                         await tryNextApiKeyOpenAI(userInput);
                     }
-                 } catch (error) {
-                  logErrorToConsole(error);
+                } catch (error) {
+                    logErrorToConsole(error);
                 }
-
             } else {
-              alert("Please enter your API key in the Settings.");
-              showTab('settings');
+                alert("Please enter your API key in the Settings.");
+                showTab('settings');
             }
         }
 
         async function tryNextApiKeyGemini(userInput) {
-          const selectedModel = document.getElementById('model-select').value;
-             if (currentApiKeyIndex < geminiApiKeys.length) {
-                 const apiKey = geminiApiKeys[currentApiKeyIndex];
-
+            const selectedModel = document.getElementById('model-select').value;
+            if (currentApiKeyIndex < geminiApiKeys.length) {
+                const apiKey = geminiApiKeys[currentApiKeyIndex];
                 const historyWithPrompt = [{ role: 'system', content: systemPrompt }, ...conversationHistory];
                 const context = historyWithPrompt.map(turn => `${turn.role}: ${turn.content}`).join('\n');
                 const prompt = context + "\nAssistant:";
-
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                       "contents": [{ "parts": [{ "text": prompt }] }]
+                        "contents": [{ "parts": [{ "text": prompt }] }]
                     })
                 });
-
                 if (!response.ok) {
-                   const errorText = await response.text();
-                   currentApiKeyIndex++;
-                   if (currentApiKeyIndex < geminiApiKeys.length) {
-                       await tryNextApiKeyGemini(userInput)
-                   } else {
-                       throw new Error(errorText)
-                   }
-
+                    const errorText = await response.text();
+                    currentApiKeyIndex++;
+                    if (currentApiKeyIndex < geminiApiKeys.length) {
+                        await tryNextApiKeyGemini(userInput)
+                    } else {
+                        throw new Error(errorText)
+                    }
                 } else {
                     const data = await response.json();
-                     document.getElementById('loading-spinner').style.display = 'none';
-                     if (data.candidates && data.candidates.length > 0) {
-                         const candidate = data.candidates[0];
-                         const messageText = candidate.content.parts.map(part => part.text).join("\n");
-                         conversationHistory.push({ role: "assistant", content: messageText });
-                          displayMessage(messageText, 'assistant', conversationHistory.length - 1);
-                     } else {
-                       throw new Error("The API returned an unexpected response with no candidates.");
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    if (data.candidates && data.candidates.length > 0) {
+                        const messageText = data.candidates[0].content.parts.map(part => part.text).join("\n");
+                        conversationHistory.push({ role: "assistant", content: messageText });
+                        displayMessage(messageText, 'assistant', conversationHistory.length - 1);
+                    } else {
+                        throw new Error("The API returned an unexpected response with no candidates.");
                     }
                 }
             }
         }
-         async function tryNextApiKeyOpenAI(userInput) {
-            const selectedModel = document.getElementById('model-select').value;
-              if (currentApiKeyIndex < openaiApiKeys.length) {
-                  const apiKey = openaiApiKeys[currentApiKeyIndex];
-                const chat = new OpenAIChat(apiKey, selectedModel, systemPrompt);
-                  let partialMessageElement = null;
-                  let botResponse = '';
-                  try {
-                        botResponse = await chat.getBotResponse(userInput, (delta) => {
-                         if (!partialMessageElement) {
-                            partialMessageElement = displayPartialMessage('', 'assistant');
-                         }
-                          botResponse += delta;
-                           partialMessageElement.querySelector('.content').innerHTML = marked.parse(botResponse);
-                           Prism.highlightAllUnder(partialMessageElement);
-                        });
-                       partialMessageElement.remove();
-                        conversationHistory.push({ role: "assistant", content: botResponse });
-                       displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
-                        document.getElementById('loading-spinner').style.display = 'none';
 
-                 } catch (error) {
-                        currentApiKeyIndex++;
-                      if (currentApiKeyIndex < openaiApiKeys.length) {
-                       await tryNextApiKeyOpenAI(userInput);
-                      } else {
-                         document.getElementById('loading-spinner').style.display = 'none';
+        async function tryNextApiKeyOpenAI(userInput) {
+            const selectedModel = document.getElementById('model-select').value;
+            if (currentApiKeyIndex < openaiApiKeys.length) {
+                const apiKey = openaiApiKeys[currentApiKeyIndex];
+                const chat = new OpenAIChat(apiKey, selectedModel, systemPrompt);
+                let partialMessageElement = null;
+                let botResponse = '';
+                try {
+                    botResponse = await chat.getBotResponse(userInput, (delta) => {
+                        if (!partialMessageElement) {
+                            partialMessageElement = displayPartialMessage('', 'assistant');
+                        }
+                        botResponse += delta;
+                        partialMessageElement.querySelector('.content').innerHTML = marked.parse(botResponse);
+                        Prism.highlightAllUnder(partialMessageElement);
+                    });
+                    partialMessageElement.remove();
+                    conversationHistory.push({ role: "assistant", content: botResponse });
+                    displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
+                    document.getElementById('loading-spinner').style.display = 'none';
+                } catch (error) {
+                    currentApiKeyIndex++;
+                    if (currentApiKeyIndex < openaiApiKeys.length) {
+                        await tryNextApiKeyOpenAI(userInput);
+                    } else {
+                        document.getElementById('loading-spinner').style.display = 'none';
                         throw error;
-                     }
-                  }
+                    }
+                }
             } else {
                 document.getElementById('loading-spinner').style.display = 'none';
                 throw new Error("All OpenAI API keys have been exhausted. Please check your keys in the Settings.");
             }
         }
-          function escapeHtml(unsafe) {
+
+        function escapeHtml(unsafe) {
             const div = document.createElement('div');
             div.textContent = unsafe;
             return div.innerHTML;
         }
-       function displayMessage(message, sender, index, isUserInput = false) {
-            let chatOutput = document.getElementById('chat-output');
-           let newMessage = document.createElement('div');
-             newMessage.classList.add('message', sender);
-              newMessage.setAttribute('data-index', index);
 
-              if (sender === 'user') {
-                  newMessage.setAttribute('contenteditable', true);
-                 newMessage.addEventListener('click', () => editMessage(index));
-                 // Check if it is user input before escaping and adding re-send button
-                   let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
-                  newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
-             } else {
-                 const markdown = marked.parse(message, { breaks: true });
-                 const codePattern = /```(\w+)?\n([\s\S]*?)```/g;
-                 const formattedMessage = markdown.replace(codePattern, (match, lang, code) => {
-                      const language = lang || 'javascript';
-                     const escapedCode = escapeHtml(code.trim());
-                     return `<pre><code class="language-${language}">${escapedCode}</code></pre>`;
+        function displayMessage(message, sender, index, isUserInput = false) {
+            let chatOutput = document.getElementById('chat-output');
+            let newMessage = document.createElement('div');
+            newMessage.classList.add('message', sender);
+            newMessage.setAttribute('data-index', index);
+            if (sender === 'user') {
+                newMessage.setAttribute('contenteditable', true);
+                newMessage.addEventListener('click', () => editMessage(index));
+                let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, { breaks: true });
+                newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
+            } else {
+                const markdown = marked.parse(message, { breaks: true });
+                const formattedMessage = markdown.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+                    const language = lang || 'javascript';
+                    const escapedCode = escapeHtml(code.trim());
+                    return `<pre><code class="language-${language}">${escapedCode}</code></pre>`;
                 });
-                  newMessage.innerHTML = `<span class="content">${formattedMessage}</span>`;
+                newMessage.innerHTML = `<span class="content">${formattedMessage}</span>`;
             }
             chatOutput.appendChild(newMessage);
             chatOutput.scrollTop = chatOutput.scrollHeight;
@@ -533,250 +559,205 @@
             addRunAndCopyButtonsToCodeBlocks(newMessage);
         }
 
-       function displayPartialMessage(initialContent, sender) {
+        function displayPartialMessage(initialContent, sender) {
             let chatOutput = document.getElementById('chat-output');
             let partialMessage = document.createElement('div');
             partialMessage.classList.add('message', sender, 'partial');
-           partialMessage.innerHTML = `<span class="content">${initialContent}</span>`;
+            partialMessage.innerHTML = `<span class="content">${initialContent}</span>`;
             chatOutput.appendChild(partialMessage);
             chatOutput.scrollTop = chatOutput.scrollHeight;
             return partialMessage;
         }
 
-
         function addRunAndCopyButtonsToCodeBlocks(parentElement) {
-           parentElement.querySelectorAll('pre code').forEach((block) => {
-                 if (!block.parentElement.querySelector('.copy-code')) {
-                  const copyButtonTop = document.createElement('button');
-                    copyButtonTop.className = 'copy-code';
-                   copyButtonTop.textContent = 'Copy';
-                  const runButtonTop = document.createElement('button');
-                  runButtonTop.className = 'run-code';
-                   runButtonTop.textContent = 'Run';
-
-                   const copyButtonBottom = document.createElement('button');
-                   copyButtonBottom.className = 'copy-code';
-                   copyButtonBottom.textContent = 'Copy';
-                   const runButtonBottom = document.createElement('button');
-                   runButtonBottom.className = 'run-code';
-                  runButtonBottom.textContent = 'Run';
+            parentElement.querySelectorAll('pre code').forEach((block) => {
+                if (!block.parentElement.querySelector('.copy-code')) {
+                    const copyButtonTop = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonTop));
+                    const runButtonTop = createButton('run-code', 'Run', () => runCodeInNewTab(block));
+                    const copyButtonBottom = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonBottom));
+                    const runButtonBottom = createButton('run-code', 'Run', () => runCodeInNewTab(block));
 
                     block.parentElement.style.position = 'relative';
 
-                   [copyButtonTop, runButtonTop].forEach(button => {
-                      button.style.position = 'absolute';
-                   });
-                    copyButtonTop.style.top = '5px';
-                    copyButtonTop.style.right = '55px';
-                    runButtonTop.style.top = '5px';
-                    runButtonTop.style.right = '5px';
+                    [copyButtonTop, runButtonTop].forEach((button, i) => {
+                        button.style.position = 'absolute';
+                        button.style.top = '5px';
+                        button.style.right = i === 0 ? '55px' : '5px';
+                    });
 
+                    [copyButtonBottom, runButtonBottom].forEach((button, i) => {
+                        button.style.position = 'absolute';
+                        button.style.bottom = '5px';
+                        button.style.right = i === 0 ? '55px' : '5px';
+                    });
 
-                  [copyButtonBottom, runButtonBottom].forEach(button => {
-                     button.style.position = 'absolute';
-                   });
-                    copyButtonBottom.style.bottom = '5px';
-                     copyButtonBottom.style.right = '55px';
-                     runButtonBottom.style.bottom = '5px';
-                     runButtonBottom.style.right = '5px';
-
-                    runButtonTop.addEventListener('click', () => runCodeInNewTab(block));
-                   runButtonBottom.addEventListener('click', () => runCodeInNewTab(block));
-                  copyButtonTop.addEventListener('click', () => handleCopy(block, copyButtonTop));
-                   copyButtonBottom.addEventListener('click', () => handleCopy(block, copyButtonBottom));
-
-
-                  block.parentElement.appendChild(copyButtonTop);
-                  block.parentElement.appendChild(runButtonTop);
-                   block.parentElement.appendChild(copyButtonBottom);
-                  block.parentElement.appendChild(runButtonBottom);
+                    block.parentElement.appendChild(copyButtonTop);
+                    block.parentElement.appendChild(runButtonTop);
+                    block.parentElement.appendChild(copyButtonBottom);
+                    block.parentElement.appendChild(runButtonBottom);
                 }
             });
         }
-
-
-        function handleCopy(codeBlock, button) {
-             const text = codeBlock.textContent.trim();
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                 const originalText = button.textContent;
-                    button.textContent = 'Copied!';
-                  setTimeout(() => {
-                      button.textContent = originalText;
-                   }, 1500);
-               })
-               .catch(err => {
-                 console.error("Could not copy text: ", err);
-             });
+         function createButton(className, text, clickHandler) {
+            const button = document.createElement('button');
+            button.className = className;
+            button.textContent = text;
+            button.addEventListener('click', clickHandler);
+            return button;
         }
 
-       function runCodeInNewTab(codeBlock) {
-           const code = codeBlock.textContent;
-           const newWindow = window.open();
+       function copyToClipboard(text, button) {
+           navigator.clipboard.writeText(text)
+               .then(() => {
+                    const originalText = button.textContent;
+                   button.textContent = 'Copied!';
+                    setTimeout(() => {
+                       button.textContent = originalText;
+                   }, 1500);
+                })
+               .catch(err => {
+                  console.error("Could not copy text: ", err);
+               });
+        }
+
+        function runCodeInNewTab(codeBlock) {
+            const code = codeBlock.textContent;
+            const newWindow = window.open();
             newWindow.document.open();
             newWindow.document.write(code);
-           newWindow.document.close();
-       }
-         function editMessage(index) {
-           let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
+            newWindow.document.close();
+        }
+
+        function editMessage(index) {
+            let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
             messageElement.focus();
         }
-        function ensureMinimumHeight(element) {
-             if (element.innerText.trim() === '') {
-                 element.innerHTML = '&nbsp;';
-           }
-        }
-        function placeCaretAtEnd(el) {
-              setTimeout(() => {
-                 const range = document.createRange();
-                const sel = window.getSelection();
-                range.selectNodeContents(el);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }, 0);
-        }
 
-       function resendMessage(event, index) {
+        function resendMessage(event, index) {
             event.preventDefault();
-           event.stopPropagation();
+            event.stopPropagation();
             let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
             let newText = messageElement.innerText.trim();
-
             if (newText !== "") {
-                 conversationHistory[index].content = newText;
-                 document.getElementById('user-input').value = newText;
-                 editIndex = index;
+                conversationHistory[index].content = newText;
+                document.getElementById('user-input').value = newText;
+                editIndex = index;
                 sendMessage();
             }
         }
 
         function redrawMessages() {
-          document.getElementById('chat-output').innerHTML = '';
-          conversationHistory.forEach((entry, i) => {
-             displayMessage(entry.content, entry.role, i, entry.role === 'user');
-           });
-         }
-
-          function updateModelOptions() {
-            const provider = document.getElementById('api-provider').value;
-            const modelSelect = document.getElementById('model-select');
-             modelSelect.innerHTML = '';
-
-             if (provider === 'gemini') {
-                modelSelect.add(new Option('gemini-1.5-flash', 'gemini-1.5-flash'));
-                modelSelect.add(new Option('gemini-1.5-pro-latest', 'gemini-1.5-pro-latest'));
-                modelSelect.add(new Option('gemini-2.0-flash-exp', 'gemini-2.0-flash-exp'));
-           } else if (provider === 'openai') {
-                modelSelect.add(new Option('gpt-3.5-turbo', 'gpt-3.5-turbo'));
-                modelSelect.add(new Option('gpt-3.5-turbo-16k', 'gpt-3.5-turbo-16k'));
-                modelSelect.add(new Option('gpt-4', 'gpt-4'));
-                modelSelect.add(new Option('gpt-4-turbo', 'gpt-4-turbo'));
-                modelSelect.add(new Option('gpt-4o', 'gpt-4o'));
-             }
-
-
-           if (lastUsedModels && lastUsedModels[provider]) {
-               modelSelect.value = lastUsedModels[provider];
-             } else {
-                const defaultModel = provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash-exp';
-                modelSelect.value = defaultModel;
-          }
+            document.getElementById('chat-output').innerHTML = '';
+            conversationHistory.forEach((entry, i) => {
+                displayMessage(entry.content, entry.role, i, entry.role === 'user');
+            });
         }
 
-      function adjustChatHeight() {
-        const chatContainer = document.getElementById('chat-container');
-         chatContainer.style.height = window.innerHeight + 'px';
-     }
+        function updateModelOptions() {
+            const provider = document.getElementById('api-provider').value;
+            const modelSelect = document.getElementById('model-select');
+            modelSelect.innerHTML = '';
+            const models = {
+                gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp'],
+                openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o']
+            };
 
-       window.addEventListener('resize', adjustChatHeight);
+            models[provider].forEach(model => modelSelect.add(new Option(model, model)));
+
+            if (lastUsedModels && lastUsedModels[provider]) {
+                modelSelect.value = lastUsedModels[provider];
+            } else {
+                const defaultModel = provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash-exp';
+                modelSelect.value = defaultModel;
+            }
+        }
+
+        function adjustChatHeight() {
+            document.getElementById('chat-container').style.height = window.innerHeight + 'px';
+        }
+
+        window.addEventListener('resize', adjustChatHeight);
         window.addEventListener('load', adjustChatHeight);
-
         showTab('chat');
-         class OpenAIChat {
-           constructor(apiKey, model, systemPrompt) {
+        class OpenAIChat {
+            constructor(apiKey, model, systemPrompt) {
                 this.apiKey = apiKey;
                 this.model = model;
                 this.systemPrompt = systemPrompt;
-               this.conversationHistory = [];
+                this.conversationHistory = [];
             }
-             setApiKey(apiKey) {
+            setApiKey(apiKey) {
                 this.apiKey = apiKey;
-             }
+            }
             setModel(model) {
                 this.model = model;
-             }
-           setPrePrompt(prePrompt) {
+            }
+            setPrePrompt(prePrompt) {
                 this.systemPrompt = prePrompt;
-           }
-           async getBotResponse(userMessage, onDelta) {
+            }
+            async getBotResponse(userMessage, onDelta) {
                 this.conversationHistory = [{ role: 'system', content: this.systemPrompt }, ...conversationHistory];
-                 this.conversationHistory.push({ role: 'user', content: userMessage });
+                this.conversationHistory.push({ role: 'user', content: userMessage });
                 const url = "https://api.openai.com/v1/chat/completions";
-               const response = await fetch(url, {
-                     method: "POST",
-                     headers: {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
                         "Content-Type": "application/json",
-                         Authorization: "Bearer " + this.apiKey
+                        Authorization: "Bearer " + this.apiKey
                     },
-                     body: JSON.stringify({
+                    body: JSON.stringify({
                         model: this.model,
-                         messages: this.conversationHistory,
-                       stream: true
-                   })
-               });
-
-                 if (!response.ok) {
-                   throw await response.text();
-              }
-
-               let botResponse = '';
-               await this.processEventStream(response.body.getReader(), (chunk) => {
+                        messages: this.conversationHistory,
+                        stream: true
+                    })
+                });
+                if (!response.ok) {
+                    throw await response.text();
+                }
+                let botResponse = '';
+                await this.processEventStream(response.body.getReader(), (chunk) => {
                     try {
-                         const data = JSON.parse(chunk);
-                          if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-                           const delta = data.choices[0].delta.content;
+                        const data = JSON.parse(chunk);
+                        if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
+                            const delta = data.choices[0].delta.content;
                             botResponse += delta;
                             if (onDelta) onDelta(delta);
-                         }
+                        }
                     } catch (error) {
-                          console.error("Error processing the JSON stream:", error);
+                        console.error("Error processing the JSON stream:", error);
                     }
                 });
                 return botResponse;
             }
-          async processEventStream(reader, delegate) {
+            async processEventStream(reader, delegate) {
                 const decoder = new TextDecoder();
                 let accumulated = '';
                 while (true) {
                     const result = await reader.read();
-                     if (result.done) {
+                    if (result.done) {
                         break;
-                   }
+                    }
                     accumulated += decoder.decode(result.value, { stream: true });
-
                     let lines = accumulated.split('\n');
-                   accumulated = lines.pop();
-
-                     for (let line of lines) {
-                         if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
-                           delegate(line.slice(6));
-                      }
-                 }
-             }
-              if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
-                  delegate(accumulated.slice(6));
-              }
-         }
-      }
-
-
+                    accumulated = lines.pop();
+                    for (let line of lines) {
+                        if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
+                            delegate(line.slice(6));
+                        }
+                    }
+                }
+                if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
+                    delegate(accumulated.slice(6));
+                }
+            }
+        }
         function handleEnter(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault(); // Prevent newline in input
+                event.preventDefault();
                 sendMessage();
             }
         }
     </script>
 </body>
+
 </html>
