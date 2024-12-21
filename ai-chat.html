@@ -1,296 +1,47 @@
-<html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Interface</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            background-color: #202124;
-            color: #eee;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #app-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #chat-container {
-            display: flex;
-            flex-direction: column;
-            background-color: #2b2c2f;
-            height: 100%;
-        }
-
-        #settings-container {
-            width: 100%;
-            background-color: #2b2c2f;
-            padding: 20px;
-            display: none;
-            box-sizing: border-box;
-        }
-
-        #settings-container label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        #settings-container textarea,
-        #settings-container select {
-            width: 100%;
-            padding: 10px;
-            background-color: #333438;
-            color: #eee;
-            border: 1px solid #444549;
-            border-radius: 5px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-        }
-
-        #chat-output {
-            padding: 15px;
-            flex: 1;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .message {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 8px;
-            padding: 8px;
-            border-radius: 5px;
-            position: relative;
-            min-height: 1.2em;
-            max-width: 100%;
-        }
-
-        .message .re-send-button {
-            display: none;
-            position: absolute;
-            right: 4px;
-            top: 4px;
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            padding: 5px 8px;
-        }
-
-        .message.user:hover .re-send-button,
-        .message.user:focus-within .re-send-button {
-            display: block;
-        }
-
-        .user {
-            background-color: #424347;
-            align-self: flex-end;
-        }
-
-        .assistant {
-            background-color: #3578e5;
-            align-self: flex-start;
-        }
-
-        .editable:focus {
-            outline: none;
-        }
-
-        #chat-input {
-            flex-shrink: 0;
-            display: flex;
-            padding: 15px;
-            border-top: 1px solid #37383c;
-            background-color: #2b2c2f;
-            box-sizing: border-box;
-            position: relative;
-        }
-
-        #chat-input input[type="text"],
-        #chat-input select {
-            flex-grow: 1;
-            padding: 10px;
-            background-color: #333438;
-            color: #eee;
-            border: 1px solid #444549;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-
-        #chat-input button {
-            padding: 10px 20px;
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        #chat-input button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-        }
-
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #37383c;
-        }
-
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom: 2px solid #3578e5;
-        }
-
-        pre[class*="language-"] {
-            background: #2e2f33;
-            border-radius: 3px;
-            font-size: 0.875em;
-            margin: 0;
-            padding: 10px;
-            position: relative;
-            overflow-x: auto;
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        .message span {
-            width: 100%;
-            overflow-x: hidden;
-        }
-
-        .message pre {
-            width: 100%;
-            position: relative;
-        }
-
-        .spinner {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .spinner div {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #3578e5;
-            animation: spin 1s infinite ease-in-out;
-            margin: 0 5px;
-        }
-
-        .spinner div:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-
-        .spinner div:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-
+        body { font-family: sans-serif; margin: 0; background-color: #202124; color: #eee; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        #app-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #chat-container { display: flex; flex-direction: column; background-color: #2b2c2f; height: 100%; }
+        #settings-container { width: 100%; background-color: #2b2c2f; padding: 20px; display: none; box-sizing: border-box; }
+        #settings-container label { display: block; margin-bottom: 5px; }
+        #settings-container textarea, #settings-container select { width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; }
+        #chat-output { padding: 15px; flex: 1; overflow-y: auto; position: relative; }
+        .message { display: flex; align-items: flex-start; margin-bottom: 8px; padding: 8px; border-radius: 5px; position: relative; min-height: 1.2em; max-width: 100%; }
+        .message .re-send-button { display: none; position: absolute; right: 4px; top: 4px; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 5px 8px; }
+        .message.user:hover .re-send-button, .message.user:focus-within .re-send-button { display: block; }
+        .user { background-color: #424347; align-self: flex-end; }
+        .assistant { background-color: #3578e5; align-self: flex-start; }
+        .editable:focus { outline: none; }
+        #chat-input { flex-shrink: 0; display: flex; padding: 15px; border-top: 1px solid #37383c; background-color: #2b2c2f; box-sizing: border-box; position: relative; }
+        #chat-input input[type="text"], #chat-input select { flex-grow: 1; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; margin-right: 10px; }
+        #chat-input button { padding: 10px 20px; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #chat-input button:disabled { background-color: #666; cursor: not-allowed; }
+        .tabs { display: flex; border-bottom: 1px solid #37383c; }
+        .tab { padding: 10px 15px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { border-bottom: 2px solid #3578e5; }
+        pre[class*="language-"] { background: #2e2f33; border-radius: 3px; font-size: 0.875em; margin: 0; padding: 10px; position: relative; overflow-x: auto; max-width: 100%; box-sizing: border-box; }
+        .message span { width: 100%; overflow-x: hidden; }
+        .message pre { width: 100%; position: relative; }
+        .spinner { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .spinner div { width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px; }
+        .spinner div:nth-child(2) { animation-delay: 0.1s; }
+        .spinner div:nth-child(3) { animation-delay: 0.2s; }
         @keyframes spin {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(0.5);
-            }
-
-            100% {
-                transform: scale(1);
-            }
+            0% { transform: scale(1); }
+            50% { transform: scale(0.5); }
+            100% { transform: scale(1); }
         }
-
-        .copy-code,
-        .console-copy-code,
-        .run-code {
-            background-color: #3578e5;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.875em;
-            margin: 5px;
-            position: absolute;
-        }
-
-        .console-copy-code {
-            top: 10px;
-            right: 10px;
-        }
-
-        .message p {
-            margin: 0;
-        }
-
-        .message p+p {
-            margin-top: 1em;
-        }
-
-        .developer-options {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .developer-options button {
-            background-color: transparent;
-            border: 1px solid #444549;
-            color: #eee;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.875em;
-            margin-left: 5px;
-            margin-right: 0;
-        }
-
-        .developer-options button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-        }
-
-        .developer-options button:hover {
-            background-color: #333438;
-        }
-
-        .developer-options label {
-            margin-bottom: 0;
-            margin-right: 10px;
-        }
-
-        .developer-options-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .developer-options-container button {
-            background-color: transparent;
-            border: 1px solid #444549;
-            color: #eee;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 0.875em;
-
-        }
+        .copy-code, .console-copy-code, .run-code { background-color: #3578e5; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.875em; margin: 5px; position: absolute; }
+        .console-copy-code { top: 10px; right: 10px; }
+        .message p { margin: 0; }
+        .message p+p { margin-top: 1em; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -301,26 +52,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-
 <body>
     <div id="app-container">
-        <div id="chat-container" style="height: 732px;">
+        <div id="chat-container">
             <div class="tabs">
-                <div class="tab" onclick="showTab('chat')">Chat</div>
-                <div class="tab active" onclick="showTab('settings')">Settings</div>
+                <div class="tab active" onclick="showTab('chat')">Chat</div>
+                <div class="tab" onclick="showTab('settings')">Settings</div>
                 <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
             </div>
-            <div id="chat-output" style="display: none;"></div>
-            <div id="chat-input" style="display: none;">
+            <div id="chat-output"></div>
+            <div id="chat-input">
                 <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)">
-                <button id="send-button" onclick="sendMessage()" disabled="">Send</button>
+                <button id="send-button" onclick="sendMessage()" disabled>Send</button>
                 <div class="spinner" id="loading-spinner">
-                    <div></div>
-                    <div></div>
-                    <div></div>
+                    <div></div><div></div><div></div>
                 </div>
             </div>
-            <div id="settings-container" style="display: block;">
+            <div id="settings-container">
                 <label for="api-key-openai">OpenAI API Key(s):</label>
                 <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)"></textarea>
                 <label for="api-key-gemini">Gemini API Key(s):</label>
@@ -331,15 +79,10 @@
                     <option value="gemini">Gemini</option>
                 </select>
                 <label for="model-select">Model:</label>
-                <select id="model-select"><option value="gpt-3.5-turbo">gpt-3.5-turbo</option><option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option><option value="gpt-4">gpt-4</option><option value="gpt-4-turbo">gpt-4-turbo</option><option value="gpt-4o">gpt-4o</option></select>
+                <select id="model-select"></select>
                 <label for="system-prompt">System Prompt:</label>
                 <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt"></textarea>
-                <label>Developer Options:</label>
-                <div class="developer-options-container">
-                    <button id="toggle-console-button" onclick="toggleConsoleBtn()">Enable Console</button>
-                    <button onclick="copySource()" style="margin-left: auto; margin-right: 0;">Copy Source</button>
-                </div>
-
+                <label><input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console</label>
             </div>
             <div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
                 <pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
@@ -356,31 +99,13 @@
             document.getElementById('api-key-gemini').value = geminiApiKeys.join('\n\n');
             document.getElementById('api-key-openai').value = openaiApiKeys.join('\n\n');
             document.getElementById('system-prompt').value = systemPrompt;
+            document.getElementById('toggle-console').checked = consoleEnabled;
             document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
             let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
             document.getElementById('api-provider').value = lastUsedApiProvider;
-            updateConsoleButton();
-             updateModelOptions();
-             if (lastUsedModels && lastUsedModels[lastUsedApiProvider]) {
-               document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
-                selectedModel = lastUsedModels[lastUsedApiProvider];
-            } else {
-                  setDefaultModel(lastUsedApiProvider);
-                  document.getElementById('model-select').value = selectedModel
-            }
-
+            if (!lastUsedModels[lastUsedApiProvider]) { setDefaultModel(lastUsedApiProvider); } else { document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider]; }
         }
-     function setDefaultModel(provider) {
-            const defaultModel = provider === "openai" ? "gpt-4o" : "gemini-2.0-flash-exp";
-            if (!lastUsedModels) { lastUsedModels = {}; }
-             lastUsedModels[provider] = defaultModel;
-            localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
-            selectedModel = defaultModel;
-
-        }
-        function updateConsoleButton() {
-            document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
-        }
+        function setDefaultModel(provider) { const defaultModel = provider === "openai" ? "gpt-4o" : "gemini-2.0-flash-exp"; if (!lastUsedModels) { lastUsedModels = {}; } lastUsedModels[provider] = defaultModel; localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels)); selectedModel = defaultModel; }
         marked.setOptions({ gfm: true, breaks: true, headerIds: false });
         function parseApiKeys(input, provider) { const regex = provider === 'openai' ? /^sk-[a-zA-Z0-9]{48}$/gm : /AIzaSy[A-Za-z0-9_-]{33}/g; return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n'); }
         function toggleSendButton() { document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === ""; }
@@ -407,16 +132,11 @@
             localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
             localStorage.setItem('lastUsedApiProvider', currentProvider);
         }
-        function toggleConsole(enabled) { localStorage.setItem('consoleEnabled', enabled); consoleEnabled = enabled; document.getElementById('console-tab').style.display = enabled ? 'block' : 'none'; updateConsoleButton(); }
-        function toggleConsoleBtn() {
-            const newEnabled = !consoleEnabled;
-            toggleConsole(newEnabled);
-
-        }
+        function toggleConsole(enabled) { localStorage.setItem('consoleEnabled', enabled); consoleEnabled = enabled; document.getElementById('console-tab').style.display = enabled ? 'block' : 'none'; }
         function logErrorToConsole(message) {
             const consoleOutput = document.getElementById('console-output');
             consoleOutput.textContent += `${message}\n`;
-            if (!consoleEnabled) { toggleConsole(true); }
+            if (!consoleEnabled) { document.getElementById('toggle-console').checked = true; toggleConsole(true); }
             displayMessage('An error occurred. Please check the "Console" tab for details.', 'assistant', conversationHistory.length);
         }
         function shortenMessage(text) { const words = text.split(" "); if (words.length > 6) { return `${words.slice(0, 3).join(" ")} ... ${words.slice(-3).join(" ")}`; } return text; }
@@ -557,9 +277,6 @@
                 .then(() => { const originalText = button.textContent; button.textContent = 'Copied!'; setTimeout(() => { button.textContent = originalText; }, 1500); })
                 .catch(err => { console.error("Could not copy text: ", err); });
         }
-        function copySource() {
-            copyToClipboard(document.documentElement.outerHTML, document.querySelector("#settings-container .developer-options-container button:last-child"));
-        }
         function runCodeInNewTab(codeBlock) { const code = codeBlock.textContent; const newWindow = window.open(); newWindow.document.open(); newWindow.document.write(code); newWindow.document.close(); }
         function editMessage(index) { let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`); messageElement.focus(); }
         function resendMessage(event, index) {
@@ -579,13 +296,7 @@
                 openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o']
             };
             models[provider].forEach(model => modelSelect.add(new Option(model, model)));
-            if (lastUsedModels && lastUsedModels[provider]) {
-               modelSelect.value = lastUsedModels[provider];
-            } else {
-               const defaultModel = provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash-exp';
-                 modelSelect.value = defaultModel;
-              }
-
+            if (lastUsedModels && lastUsedModels[provider]) { modelSelect.value = lastUsedModels[provider]; } else { const defaultModel = provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash-exp'; modelSelect.value = defaultModel; }
         }
         function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px'; }
         window.addEventListener('resize', adjustChatHeight);
@@ -635,6 +346,5 @@
         function logToConsole(message) { const consoleOutput = document.getElementById('console-output'); consoleOutput.textContent += `${message}\n`; }
         function handleEnter(event) { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } }
     </script>
-
-
-<style>.qc-cmp-showing { visibility: hidden !important; } body.didomi-popup-open { overflow: auto !important; } #didomi-host { visibility: hidden !important; }</style><style>.qc-cmp-showing { visibility: hidden !important; } body.didomi-popup-open { overflow: auto !important; } #didomi-host { visibility: hidden !important; }</style></body></html>
+</body>
+</html>
