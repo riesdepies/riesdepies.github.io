@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Interface</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <style>
         body {
             font-family: sans-serif;
@@ -199,6 +197,24 @@
         .message p+p {
             margin-top: 1em;
         }
+        .developer-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        .dev-button {
+            background-color: #333438;
+            color: #eee;
+            border: 1px solid #444549;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .dev-button:focus {
+            outline: none;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -211,23 +227,23 @@
 </head>
 <body>
     <div id="app-container">
-        <div id="chat-container">
+        <div id="chat-container" style="height: 634px;">
             <div class="tabs">
-                <div class="tab active" onclick="showTab('chat')">Chat</div>
-                <div class="tab" onclick="showTab('settings')">Settings</div>
-                <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
+                <div class="tab" onclick="showTab('chat')">Chat</div>
+                <div class="tab active" onclick="showTab('settings')">Settings</div>
+                <div class="tab" onclick="showTab('console')" id="console-tab" style="display: none;">Console</div>
             </div>
-            <div id="chat-output"></div>
-            <div id="chat-input">
+            <div id="chat-output" style="display: none;"></div>
+            <div id="chat-input" style="display: none;">
                 <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)">
-                <button id="send-button" onclick="sendMessage()" disabled>Send</button>
+                <button id="send-button" onclick="sendMessage()" disabled="">Send</button>
                 <div class="spinner" id="loading-spinner">
                     <div></div>
                     <div></div>
                     <div></div>
                 </div>
             </div>
-            <div id="settings-container">
+            <div id="settings-container" style="display: block;">
                 <label for="api-key-openai">OpenAI API Key(s):</label>
                 <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)"></textarea>
                 <label for="api-key-gemini">Gemini API Key(s):</label>
@@ -238,12 +254,14 @@
                     <option value="gemini">Gemini</option>
                 </select>
                 <label for="model-select">Model:</label>
-                <select id="model-select"></select>
+                <select id="model-select"><option value="gpt-3.5-turbo">gpt-3.5-turbo</option><option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option><option value="gpt-4">gpt-4</option><option value="gpt-4-turbo">gpt-4-turbo</option><option value="gpt-4o">gpt-4o</option></select>
                 <label for="system-prompt">System Prompt:</label>
                 <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt"></textarea>
-                <label>
-                    <input type="checkbox" id="toggle-console" onchange="toggleConsole(this.checked)"> Enable Console
-                </label>
+                <label>Developer Options:</label>
+                <div class="developer-buttons">
+                    <button class="dev-button" id="toggle-console" onclick="toggleConsoleButton()">Enable Console</button>
+                    <button class="dev-button" id="copy-source" onclick="copySource()">Copy Source</button>
+                </div>
             </div>
             <div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
                 <pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
@@ -265,6 +283,7 @@
         document.addEventListener("DOMContentLoaded", function () {
             loadSettings();
             updateModelOptions();
+            updateConsoleButtonText();
             const consoleCopyButton = document.querySelector('.console-copy-code');
             consoleCopyButton.addEventListener('click', () => {
                 copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
@@ -277,7 +296,6 @@
             document.getElementById('api-key-gemini').value = geminiApiKeys.join('\n\n');
             document.getElementById('api-key-openai').value = openaiApiKeys.join('\n\n');
             document.getElementById('system-prompt').value = systemPrompt;
-            document.getElementById('toggle-console').checked = consoleEnabled;
             document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
             let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
             document.getElementById('api-provider').value = lastUsedApiProvider;
@@ -341,23 +359,28 @@
             if (!lastUsedModels) {
                 lastUsedModels = {};
             }
-            lastUsedModels[currentProvider] = selectedModel
+            lastUsedModels[currentProvider] = selectedModel;
             localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
             localStorage.setItem('lastUsedApiProvider', currentProvider);
         }
 
-        function toggleConsole(enabled) {
-            localStorage.setItem('consoleEnabled', enabled);
-            consoleEnabled = enabled;
-            document.getElementById('console-tab').style.display = enabled ? 'block' : 'none';
+        function toggleConsoleButton() {
+            consoleEnabled = !consoleEnabled;
+            localStorage.setItem('consoleEnabled', consoleEnabled);
+            document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
+            updateConsoleButtonText();
+        }
+
+        function updateConsoleButtonText() {
+            document.getElementById('toggle-console').textContent = consoleEnabled ? "Disable Console" : "Enable Console";
         }
 
         function logErrorToConsole(message) {
             const consoleOutput = document.getElementById('console-output');
             consoleOutput.textContent += `${message}\n`;
             if (!consoleEnabled) {
-                document.getElementById('toggle-console').checked = true;
-                toggleConsole(true);
+                document.getElementById('toggle-console').textContent = "Disable Console";
+                toggleConsoleButton();
             }
             displayMessage('An error occurred. Please check the "Console" tab for details.', 'assistant', conversationHistory.length);
         }
@@ -446,9 +469,9 @@
                     const errorText = await response.text();
                     currentApiKeyIndex++;
                     if (currentApiKeyIndex < geminiApiKeys.length) {
-                        await tryNextApiKeyGemini(userInput)
+                        await tryNextApiKeyGemini(userInput);
                     } else {
-                        throw new Error(errorText)
+                        throw new Error(errorText);
                     }
                 } else {
                     const data = await response.json();
@@ -506,6 +529,10 @@
             const div = document.createElement('div');
             div.textContent = unsafe;
             return div.innerHTML;
+        }
+
+        function copySource() {
+            copyToClipboard(document.documentElement.outerHTML, document.getElementById('copy-source'));
         }
 
         function displayMessage(message, sender, index, isUserInput = false) {
@@ -735,5 +762,6 @@
             }
         }
     </script>
-</body>
-</html>
+
+
+</body></html>
