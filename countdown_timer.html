@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Onderhoud</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+        #timer { font-size: 2em; }
+    </style>
+</head>
+<body>
+    <h1>CV Onderhoud</h1>
+    <div id="timer"></div>
+
+    <script>
+        function updateTimer() {
+            const targetDate = new Date("2024-12-23T07:30:00");
+            const now = new Date();
+            const difference = targetDate - now;
+
+            if (difference > 0) {
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('timer').textContent =  `${hours}u ${minutes}m`;
+            } else {
+                document.getElementById('timer').textContent = "Tijd is om!";
+            }
+        }
+        updateTimer();
+        setInterval(updateTimer, 60000);
+    </script>
+</body>
+</html>
