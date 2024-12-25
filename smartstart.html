@@ -62,13 +62,14 @@
             width: 100%;
             margin-top: 16px;
             margin-bottom: 24px;
+            position: relative;
         }
         #search-box {
             width: 100%;
             height: var(--button-height);
             border: none;
             border-radius: 18px;
-            padding: 0 20px;
+            padding: 0 40px 0 20px;
             font-size: 16px;
             background: var(--modal-background-color);
             color: var(--text-color);
@@ -78,6 +79,16 @@
         }
         #search-box::placeholder {
             color: var(--placeholder-color);
+        }
+        #clear-icon {
+            display: none;
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: var(--placeholder-color);
+            cursor: pointer;
         }
         #buttons-grid {
             display: grid;
@@ -223,6 +234,7 @@
     <div class="container">
         <div id="search-container">
             <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
+            <span id="clear-icon" class="material-icons" onclick="clearSearchBox()">clear</span>
         </div>
         <div id="buttons-grid"></div>
     </div>
@@ -268,8 +280,8 @@
     <script>
         let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
         let settings = JSON.parse(localStorage.getItem('settings')) || {"columns": 3, "theme": "light", "consoleVisible": true};
-
         const searchBox = document.getElementById('search-box');
+        const clearIcon = document.getElementById('clear-icon');
         const nameInput = document.getElementById('engine-name');
         const urlInput = document.getElementById('engine-url');
         const faviconInput = document.getElementById('favicon-url');
@@ -303,7 +315,6 @@
                 e.preventDefault();
                 openEditorModal(engine, index);
             });
-
             let buttonTimeout;
             let buttonSwiped = false;
             button.addEventListener('touchstart', () => {
@@ -323,7 +334,6 @@
             button.addEventListener('mouseout', () => {
                 clearTimeout(buttonTimeout);
             });
-
             return button;
         }
 
@@ -332,6 +342,7 @@
             if (query) {
                 const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
                 window.location.href = url;
+                localStorage.setItem('lastQuery', query);
             } else if (engine.bookmarkUrl) {
                 window.location.href = engine.bookmarkUrl;
             } else if (engine.url) {
@@ -342,7 +353,6 @@
                     console.error("Invalid URL for redirection:", error);
                 }
             }
-
             engine.lastUsed = new Date().getTime();
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
@@ -351,12 +361,10 @@
         function renderButtons() {
             const grid = document.getElementById('buttons-grid');
             grid.innerHTML = '';
-
             searchEngines.sort((a, b) => b.lastUsed - a.lastUsed);
             searchEngines.forEach((engine, index) => {
                 grid.appendChild(createSearchButton(engine, index));
             });
-
             const addButton = document.createElement('button');
             addButton.className = 'search-button';
             addButton.id = 'add-button';
@@ -364,7 +372,6 @@
             icon.className = 'material-icons';
             icon.textContent = 'add';
             addButton.appendChild(icon);
-
             let buttonTimeout;
             let buttonSwiped = false;
             addButton.addEventListener('click', () => openEditorModal());
@@ -389,7 +396,6 @@
             addButton.addEventListener('mouseout', () => {
                 clearTimeout(buttonTimeout);
             });
-
             grid.appendChild(addButton);
         }
 
@@ -419,7 +425,6 @@
                 bookmarkUrl: bookmarkInput.value
             };
             deleteButton.style.display = engine ? 'inline-block' : 'none';
-
             if (!engine && navigator.clipboard) {
                 try {
                     let clipboardText = await navigator.clipboard.readText();
@@ -435,7 +440,6 @@
                     console.error('Error reading clipboard:', error);
                 }
             }
-
             checkForChanges();
             document.getElementById('editor-modal').style.display = 'flex';
             if (engine === null) {
@@ -468,7 +472,6 @@
             let url = urlInput.value.trim();
             let faviconUrl = faviconInput.value.trim();
             let bookmarkUrl = bookmarkInput.value.trim();
-
             if (!url && !bookmarkUrl) {
                 return;
             }
@@ -496,8 +499,6 @@
                     return;
                 }
             }
-
-            // Determine if favicon URL is a domain or full URL
             try {
                 const faviconUrlObj = new URL(faviconUrl);
                 if (faviconUrlObj.pathname === '/') {
@@ -508,11 +509,22 @@
                     faviconUrl = getFaviconUrl(`https://${faviconUrl}`);
                 }
             }
-
             if (editIndex >= 0) {
-                searchEngines[editIndex] = { name, url, faviconUrl, bookmarkUrl, lastUsed: searchEngines[editIndex].lastUsed };
+                searchEngines[editIndex] = {
+                    name,
+                    url,
+                    faviconUrl,
+                    bookmarkUrl,
+                    lastUsed: searchEngines[editIndex].lastUsed
+                };
             } else {
-                searchEngines.push({ name, url, faviconUrl, bookmarkUrl, lastUsed: new Date().getTime() });
+                searchEngines.push({
+                    name,
+                    url,
+                    faviconUrl,
+                    bookmarkUrl,
+                    lastUsed: new Date().getTime()
+                });
             }
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
@@ -564,21 +576,17 @@
                     const content = e.target.result;
                     const searchEnginesMatch = content.match(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| (\[.*?\]);/);
                     const settingsMatch = content.match(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| ({.*?});/);
-
                     if (searchEnginesMatch) {
                         searchEngines = JSON.parse(searchEnginesMatch[1]);
                         localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
                     }
-
                     if (settingsMatch) {
                         settings = JSON.parse(settingsMatch[1]);
                         localStorage.setItem('settings', JSON.stringify(settings));
                         applySettings();
                     }
-
                     themeSelect.value = settings.theme;
                     columnsSelect.value = settings.columns;
-
                     renderButtons();
                 };
                 reader.readAsText(file);
@@ -600,10 +608,20 @@
             window.URL.revokeObjectURL(url);
         }
 
+        searchBox.addEventListener('input', () => {
+            clearIcon.style.display = searchBox.value ? 'block' : 'none';
+        });
+
+        function clearSearchBox() {
+            searchBox.value = '';
+            clearIcon.style.display = 'none';
+        }
+
         searchBox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && e.target.value) {
                 const query = encodeURIComponent(e.target.value);
                 window.open(`https://google.com/search?q=${query}`, '_blank');
+                localStorage.setItem('lastQuery', e.target.value);
             }
         });
 
@@ -614,6 +632,8 @@
         }
 
         function applySettings() {
+            searchBox.value = localStorage.getItem('lastQuery') || '';
+            clearIcon.style.display = searchBox.value ? 'block' : 'none';
             document.documentElement.style.setProperty('--columns', settings.columns);
             document.body.dataset.theme = settings.theme;
             renderButtons();
