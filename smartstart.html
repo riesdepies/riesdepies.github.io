@@ -295,10 +295,6 @@
     let originalEngine = {};
     const originalSource = document.documentElement.outerHTML;
 
-    window.addEventListener('load', () => {
-        sessionStorage.removeItem('lastQuery');
-    });
-
     searchBox.addEventListener('input', (e) => {
         if (e.target.value.trim() !== '') {
             clearIcon.style.display = 'block';
@@ -310,6 +306,7 @@
     function clearSearch() {
         searchBox.value = '';
         clearIcon.style.display = 'none';
+        sessionStorage.removeItem('lastQuery');
     }
 
     function focusSearchBox(event) {
@@ -362,6 +359,7 @@
 
     function handleClick(engine) {
         const query = searchBox.value.trim();
+        sessionStorage.setItem('lastQuery', query);
         if (query) {
             const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
             window.location.href = url;
@@ -626,7 +624,13 @@
         renderButtons();
     }
 
-    // Do not preserve the last query when reloading the page
+    // Restore the last query from sessionStorage
+    const lastQuery = sessionStorage.getItem('lastQuery');
+    if (lastQuery) {
+        searchBox.value = lastQuery;
+        clearIcon.style.display = 'block';
+    }
+
     applySettings();
 </script>
 </body>
