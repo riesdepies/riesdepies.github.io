@@ -80,29 +80,6 @@
         #search-box::placeholder {
             color: var(--placeholder-color);
         }
-         .suggestions-box {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background: var(--modal-background-color);
-            border-radius: 0 0 12px 12px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-            z-index: 10;
-            display: none;
-        }
-        .suggestion-item {
-            padding: 8px 20px;
-            cursor: pointer;
-            font-size: 16px;
-            color: var(--text-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .suggestion-item:hover {
-            background: #444;
-        }
         .clear-icon {
             position: absolute;
             right: 12px;
@@ -258,7 +235,6 @@
     <div id="search-container">
         <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
         <span class="material-icons clear-icon" onclick="clearSearch()">close</span>
-         <div class="suggestions-box" id="suggestions-box"></div>
     </div>
     <div id="buttons-grid"></div>
 </div>
@@ -315,20 +291,15 @@
     const columnsSelect = document.getElementById('columns-select');
     const themeSelect = document.getElementById('theme-select');
     const importInput = document.getElementById('import-input');
-    const suggestionsBox = document.getElementById('suggestions-box');
     let editIndex = -1;
     let originalEngine = {};
     const originalSource = document.documentElement.outerHTML;
 
-
     searchBox.addEventListener('input', (e) => {
         if (e.target.value.trim() !== '') {
             clearIcon.style.display = 'block';
-            fetchSuggestions(e.target.value);
         } else {
             clearIcon.style.display = 'none';
-            suggestionsBox.style.display = 'none';
-             suggestionsBox.innerHTML = '';
         }
     });
 
@@ -336,8 +307,6 @@
         searchBox.value = '';
         clearIcon.style.display = 'none';
         sessionStorage.removeItem('lastQuery');
-        suggestionsBox.style.display = 'none';
-         suggestionsBox.innerHTML = '';
     }
 
     function focusSearchBox(event) {
@@ -388,9 +357,8 @@
         return button;
     }
 
-
     function handleClick(engine) {
-         const query = searchBox.value.trim();
+        const query = searchBox.value.trim();
         sessionStorage.setItem('lastQuery', query);
         if (query) {
             const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
@@ -408,10 +376,7 @@
         engine.lastUsed = new Date().getTime();
         localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
         renderButtons();
-        suggestionsBox.style.display = 'none';
-         suggestionsBox.innerHTML = '';
     }
-
 
     function renderButtons() {
         const grid = document.getElementById('buttons-grid');
@@ -454,49 +419,6 @@
         grid.appendChild(addButton);
     }
 
-     function fetchSuggestions(query) {
-            const apiUrl = `https://suggestqueries.google.com/complete/search?output=firefox&client=firefox&q=${encodeURIComponent(query)}`;
-
-             fetch(apiUrl)
-                .then(response => response.json())
-                .then(data => {
-                      if (data && data[1]) {
-                         const suggestions = data[1];
-                         renderSuggestions(suggestions);
-                     } else {
-                        suggestionsBox.style.display = 'none';
-                        suggestionsBox.innerHTML = '';
-                     }
-                })
-                .catch(error => {
-                   console.error('Error fetching suggestions:', error);
-                   suggestionsBox.style.display = 'none';
-                    suggestionsBox.innerHTML = '';
-                });
-        }
-
-    function renderSuggestions(suggestions) {
-        suggestionsBox.innerHTML = '';
-        if (suggestions && suggestions.length > 0) {
-            suggestions.forEach(suggestion => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.textContent = suggestion;
-                 item.addEventListener('click', () => {
-                    searchBox.value = suggestion;
-                    searchBox.focus();
-                    clearIcon.style.display = 'block';
-                    suggestionsBox.style.display = 'none';
-                    suggestionsBox.innerHTML = '';
-                 });
-                 suggestionsBox.appendChild(item);
-            });
-              suggestionsBox.style.display = 'block';
-        } else {
-              suggestionsBox.style.display = 'none';
-        }
-    }
-
     function closeEditorModal() {
         document.getElementById('editor-modal').style.display = 'none';
         nameInput.value = '';
@@ -521,7 +443,7 @@
         if (!engine && navigator.clipboard) {
             try {
                 let clipboardText = await navigator.clipboard.readText();
-                 let isValidUrl = clipboardText.includes('%s');
+                let isValidUrl = clipboardText.includes('%s');
                 if (!isValidUrl && /hello/i.test(clipboardText)) {
                     isValidUrl = true;
                     clipboardText = clipboardText.replace(/hello/gi, '%s');
@@ -535,7 +457,7 @@
         }
         checkForChanges();
         document.getElementById('editor-modal').style.display = 'flex';
-         if (engine === null) {
+        if (engine === null) {
             urlInput.focus();
         }
     }
@@ -565,7 +487,7 @@
         let url = urlInput.value.trim();
         let faviconUrl = faviconInput.value.trim();
         let bookmarkUrl = bookmarkInput.value.trim();
-         if (!url && !bookmarkUrl) {
+        if (!url && !bookmarkUrl) {
             return;
         }
         if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url) && url) {
@@ -579,20 +501,21 @@
                 const mainUrl = url || bookmarkUrl;
                 const urlObj = new URL(mainUrl);
                 let hostname = urlObj.hostname;
-                 if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
+                if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
                     hostname = hostname.substring(hostname.indexOf('.') + 1);
                 }
                 const nameParts = hostname.split('.');
                 if (nameParts.length > 0) {
                     name = nameParts[0];
                 }
-                 name = name.charAt(0).toUpperCase() + name.slice(1);
-             } catch (error) {
+                name = name.charAt(0).toUpperCase() + name.slice(1);
+            } catch (error) {
                 console.error("Invalid URL:", error);
                 return;
             }
-         }
-          try {
+        }
+        // Determine if favicon URL is a domain or full URL
+        try {
             const faviconUrlObj = new URL(faviconUrl);
             if (faviconUrlObj.pathname === '/') {
                 faviconUrl = getFaviconUrl(faviconUrlObj.origin);
@@ -677,10 +600,10 @@
         const currentSearchEngines = JSON.stringify(searchEngines);
         const updatedSource = originalSource
             .replace(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| \[([\s\S]*?)\];/, `let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || ${currentSearchEngines};`)
-             .replace(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/, `let settings = JSON.parse(localStorage.getItem('settings')) || ${JSON.stringify(settings)};`);
-         let blob = new Blob([updatedSource], { type: 'text/html' });
-         let url = window.URL.createObjectURL(blob);
-         let a = document.createElement('a');
+            .replace(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/, `let settings = JSON.parse(localStorage.getItem('settings')) || ${JSON.stringify(settings)};`);
+        let blob = new Blob([updatedSource], { type: 'text/html' });
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement('a');
         a.href = url;
         const count = searchEngines.length;
         a.download = `SmartStart (${count} buttons).html`;
@@ -688,13 +611,11 @@
         window.URL.revokeObjectURL(url);
     }
 
-
-     searchBox.addEventListener('keypress', (e) => {
-         if (e.key === 'Enter' && e.target.value) {
+    searchBox.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.target.value) {
             const query = encodeURIComponent(e.target.value);
             window.open(`https://google.com/search?q=${query}`, '_blank');
-             suggestionsBox.style.display = 'none';
-         }
+        }
     });
 
     function applySettings() {
