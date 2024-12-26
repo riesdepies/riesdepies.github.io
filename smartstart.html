@@ -29,7 +29,7 @@
             --text-color: #e0e0e0;
             --modal-background-color: #757575;
             --input-background-color: #8a8a8a;
-            --placeholder-color: #c0c0c0;
+             --placeholder-color: #c0c0c0;
         }
         * {
             box-sizing: border-box;
@@ -80,15 +80,40 @@
         #search-box::placeholder {
             color: var(--placeholder-color);
         }
-        .clear-icon {
+        .clear-icon-container {
             position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
+            right: 0;
+            top: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-right: 12px;
+            padding-left: 12px;
+             pointer-events: auto;
+        }
+        .clear-icon {
             cursor: pointer;
             display: none;
             font-size: 20px;
             color: var(--text-color);
+             pointer-events: auto;
+        }
+        .settings-icon-container {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-right: 12px;
+            padding-left: 12px;
+             pointer-events: auto;
+        }
+         .settings-icon {
+             cursor: pointer;
+            font-size: 20px;
+            color: var(--text-color);
+            pointer-events: auto;
         }
         #buttons-grid {
             display: grid;
@@ -108,12 +133,12 @@
             align-items: center;
             padding: 0 12px;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
             user-select: none;
         }
         .search-button:active {
-            background-color: #444;
+             background-color: #444;
         }
         .search-button img {
             width: 20px;
@@ -152,7 +177,7 @@
         }
         .modal-content {
             background: var(--modal-background-color);
-            color: var(--text-color);
+             color: var(--text-color);
             padding: 20px;
             padding-top: 40px;
             border-radius: 12px;
@@ -161,11 +186,11 @@
             position: relative;
         }
         .modal input, .modal select, .modal button {
-            width: 100%;
+             width: 100%;
             margin: 8px 0 16px;
             padding: 8px;
-            background: var(--input-background-color);
-            color: var(--text-color);
+             background: var(--input-background-color);
+             color: var(--text-color);
             border: 1px solid #555;
             border-radius: 4px;
             font-size: 16px;
@@ -179,19 +204,19 @@
             font-size: 14px;
             color: var(--text-color);
         }
-        .button-container {
+       .button-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-top: 16px;
-            height: 44px;
+           height: 44px;
             position: relative;
         }
-        .button-container .material-icons {
-            cursor: pointer;
+       .button-container .material-icons {
+             cursor: pointer;
         }
         .close-icon {
-            position: absolute;
+             position: absolute;
             top: 10px;
             right: 10px;
             font-size: 24px;
@@ -207,7 +232,7 @@
             color: #4CAF50;
             font-size: 24px;
             display: none;
-            right: 10px;
+             right: 10px;
             bottom: 10px;
             position: absolute;
         }
@@ -218,420 +243,439 @@
             body {
                 padding: 12px;
             }
-            .search-button {
+           .search-button {
                 padding: 0 8px;
             }
             .search-button img {
-                margin-right: 6px;
-            }
-            .search-button span {
+                 margin-right: 6px;
+             }
+             .search-button span {
                 font-size: 15px;
             }
         }
     </style>
 </head>
 <body data-theme="dark" onclick="focusSearchBox(event)">
-<div class="container">
-    <div id="search-container">
-        <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
-        <span class="material-icons clear-icon" onclick="clearSearch()">close</span>
+    <div class="container">
+        <div id="search-container">
+            <input type="text" id="search-box" placeholder="Search..." autocomplete="off">
+            <div class="clear-icon-container" onclick="clearSearch()"><span class="material-icons clear-icon">close</span></div>
+            <div class="settings-icon-container" onclick="openSettingsModal()"><span class="material-icons settings-icon">settings</span></div>
+        </div>
+        <div id="buttons-grid"></div>
     </div>
-    <div id="buttons-grid"></div>
-</div>
-<div class="modal" id="editor-modal" onclick="closeEditorModal()">
-    <div class="modal-content" onclick="event.stopPropagation();">
-        <span class="material-icons close-icon" onclick="closeEditorModal()">close</span>
-        <h3 id="editor-modal-title">Add or Edit Search Engine</h3>
-        <label for="engine-name">Name</label>
-        <input type="text" id="engine-name" placeholder="Leave empty for default name" autocomplete="off">
-        <label for="favicon-url">Favicon URL</label>
-        <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
-        <label for="bookmark-url">Bookmark URL</label>
-        <input type="text" id="bookmark-url" placeholder="Leave empty for default bookmark" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
-        <label for="engine-url">Search URL (%s for query)</label>
-        <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
-        <div class="button-container">
-            <span class="material-icons save-icon" onclick="saveEngine()">check</span>
-            <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
+    <div class="modal" id="editor-modal" onclick="closeEditorModal()">
+        <div class="modal-content" onclick="event.stopPropagation();">
+            <span class="material-icons close-icon" onclick="closeEditorModal()">close</span>
+            <h3 id="editor-modal-title">Add or Edit Search Engine</h3>
+            <label for="engine-name">Name</label>
+            <input type="text" id="engine-name" placeholder="Leave empty for default name" autocomplete="off">
+            <label for="favicon-url">Favicon URL</label>
+            <input type="text" id="favicon-url" placeholder="Leave empty for default favicon" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
+           <label for="bookmark-url">Bookmark URL</label>
+           <input type="text" id="bookmark-url" placeholder="Leave empty for default bookmark" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
+            <label for="engine-url">Search URL (%s for query)</label>
+            <input type="text" id="engine-url" placeholder="https://example.com/search?q=%s" inputmode="url" autocapitalize="off" spellcheck="false" autocomplete="off">
+            <div class="button-container">
+                <span class="material-icons save-icon" onclick="saveEngine()">check</span>
+                <span class="material-icons delete-icon" onclick="deleteEngine()">delete</span>
+            </div>
         </div>
     </div>
-</div>
-<div class="modal" id="settings-modal" onclick="closeSettingsModal()">
-    <div class="modal-content" onclick="event.stopPropagation();">
-        <span class="material-icons close-icon" onclick="closeSettingsModal()">close</span>
-        <h3>Settings</h3>
-        <label for="columns-select">Columns</label>
-        <select id="columns-select">
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-        </select>
-        <label for="theme-select">Theme</label>
-        <select id="theme-select">
-            <option value="light">Light</option>
-            <option value="medium">Medium</option>
-            <option value="dark">Dark</option>
-        </select>
-        <button onclick="importConfig()">Import config from HTML</button>
-        <button onclick="downloadSourceWithConfig()">Export page + config as HTML</button>
-        <input type="file" id="import-input" style="display: none;" accept=".html" onchange="handleFileImport(event)">
+    <div class="modal" id="settings-modal" onclick="closeSettingsModal()">
+        <div class="modal-content" onclick="event.stopPropagation();">
+            <span class="material-icons close-icon" onclick="closeSettingsModal()">close</span>
+            <h3>Settings</h3>
+            <label for="columns-select">Columns</label>
+            <select id="columns-select">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+            <label for="theme-select">Theme</label>
+            <select id="theme-select">
+                <option value="light">Light</option>
+                <option value="medium">Medium</option>
+                <option value="dark">Dark</option>
+            </select>
+            <button onclick="importConfig()">Import config from HTML</button>
+            <button onclick="downloadSourceWithConfig()">Export page + config as HTML</button>
+             <input type="file" id="import-input" style="display: none;" accept=".html" onchange="handleFileImport(event)">
+        </div>
     </div>
-</div>
-<script>
-    let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
-    let settings = JSON.parse(localStorage.getItem('settings')) || { "columns": 3, "theme": "light", "consoleVisible": true };
-    const searchBox = document.getElementById('search-box');
-    const clearIcon = document.querySelector('.clear-icon');
-    const nameInput = document.getElementById('engine-name');
-    const urlInput = document.getElementById('engine-url');
-    const faviconInput = document.getElementById('favicon-url');
-    const bookmarkInput = document.getElementById('bookmark-url');
-    const deleteButton = document.querySelector('.delete-icon');
-    const saveButton = document.querySelector('.save-icon');
-    const columnsSelect = document.getElementById('columns-select');
-    const themeSelect = document.getElementById('theme-select');
-    const importInput = document.getElementById('import-input');
-    let editIndex = -1;
-    let originalEngine = {};
-    const originalSource = document.documentElement.outerHTML;
+    <script>
+        let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || [];
+        let settings = JSON.parse(localStorage.getItem('settings')) || { "columns": 3, "theme": "light", "consoleVisible": true };
+        const searchBox = document.getElementById('search-box');
+        const clearIconContainer = document.querySelector('.clear-icon-container');
+        const settingsIconContainer = document.querySelector('.settings-icon-container');
+        const clearIcon = document.querySelector('.clear-icon');
+        const settingsIcon = document.querySelector('.settings-icon');
+        const nameInput = document.getElementById('engine-name');
+        const urlInput = document.getElementById('engine-url');
+        const faviconInput = document.getElementById('favicon-url');
+        const bookmarkInput = document.getElementById('bookmark-url');
+        const deleteButton = document.querySelector('.delete-icon');
+        const saveButton = document.querySelector('.save-icon');
+        const columnsSelect = document.getElementById('columns-select');
+        const themeSelect = document.getElementById('theme-select');
+         const importInput = document.getElementById('import-input');
+        let editIndex = -1;
+        let originalEngine = {};
+        const originalSource = document.documentElement.outerHTML;
 
-    searchBox.addEventListener('input', (e) => {
-        if (e.target.value.trim() !== '') {
-            clearIcon.style.display = 'block';
-        } else {
+        searchBox.addEventListener('input', (e) => {
+            if (e.target.value.trim() !== '') {
+                 clearIcon.style.display = 'block';
+                clearIconContainer.style.display = 'flex';
+                 settingsIcon.style.display = 'none';
+                settingsIconContainer.style.display = 'none';
+            } else {
+                clearIcon.style.display = 'none';
+                clearIconContainer.style.display = 'none';
+                settingsIcon.style.display = 'block';
+                settingsIconContainer.style.display = 'flex';
+            }
+        });
+
+        function clearSearch() {
+            searchBox.value = '';
             clearIcon.style.display = 'none';
+             clearIconContainer.style.display = 'none';
+            settingsIcon.style.display = 'block';
+             settingsIconContainer.style.display = 'flex';
+            sessionStorage.removeItem('lastQuery');
         }
-    });
 
-    function clearSearch() {
-        searchBox.value = '';
-        clearIcon.style.display = 'none';
-        sessionStorage.removeItem('lastQuery');
-    }
-
-    function focusSearchBox(event) {
-        if (event.target === document.body) {
-            searchBox.focus();
-        }
-    }
-
-    function getFaviconUrl(url) {
-        const domain = new URL(url, 'http://localhost').hostname;
-        return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
-    }
-
-    function createSearchButton(engine, index) {
-        const button = document.createElement('button');
-        button.className = 'search-button';
-        const img = document.createElement('img');
-        img.src = engine.faviconUrl || getFaviconUrl(engine.url || engine.bookmarkUrl || '');
-        img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
-        const span = document.createElement('span');
-        span.textContent = engine.name || "No name";
-        button.appendChild(img);
-        button.appendChild(span);
-        button.addEventListener('click', () => handleClick(engine));
-        button.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            openEditorModal(engine, index);
-        });
-        let buttonTimeout;
-        let buttonSwiped = false;
-        button.addEventListener('touchstart', () => {
-            buttonSwiped = false;
-            buttonTimeout = setTimeout(() => openEditorModal(engine, index), 500);
-        });
-        button.addEventListener('touchmove', () => {
-            buttonSwiped = true;
-            clearTimeout(buttonTimeout);
-        });
-        button.addEventListener('touchend', () => {
-            if (!buttonSwiped) clearTimeout(buttonTimeout);
-        });
-        button.addEventListener('touchcancel', () => {
-            clearTimeout(buttonTimeout);
-        });
-        button.addEventListener('mouseout', () => {
-            clearTimeout(buttonTimeout);
-        });
-        return button;
-    }
-
-    function handleClick(engine) {
-        const query = searchBox.value.trim();
-        sessionStorage.setItem('lastQuery', query);
-        if (query) {
-            const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
-            window.location.href = url;
-        } else if (engine.bookmarkUrl) {
-            window.location.href = engine.bookmarkUrl;
-        } else if (engine.url) {
-            try {
-                const baseDomain = new URL(engine.url).origin;
-                window.location.href = baseDomain;
-            } catch (error) {
-                console.error("Invalid URL for redirection:", error);
+        function focusSearchBox(event) {
+            if (event.target === document.body) {
+                searchBox.focus();
             }
         }
-        engine.lastUsed = new Date().getTime();
-        localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
-        renderButtons();
-    }
 
-    function renderButtons() {
-        const grid = document.getElementById('buttons-grid');
-        grid.innerHTML = '';
-        searchEngines.sort((a, b) => b.lastUsed - a.lastUsed);
-        searchEngines.forEach((engine, index) => {
-            grid.appendChild(createSearchButton(engine, index));
-        });
-        const addButton = document.createElement('button');
-        addButton.className = 'search-button';
-        addButton.id = 'add-button';
-        const icon = document.createElement('span');
-        icon.className = 'material-icons';
-        icon.textContent = 'add';
-        addButton.appendChild(icon);
-        let buttonTimeout;
-        let buttonSwiped = false;
-        addButton.addEventListener('click', () => openEditorModal());
-        addButton.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            openSettingsModal();
-        });
-        addButton.addEventListener('touchstart', () => {
-            buttonSwiped = false;
-            buttonTimeout = setTimeout(openSettingsModal, 500);
-        });
-        addButton.addEventListener('touchmove', () => {
-            buttonSwiped = true;
-            clearTimeout(buttonTimeout);
-        });
-        addButton.addEventListener('touchend', () => {
-            if (!buttonSwiped) clearTimeout(buttonTimeout);
-        });
-        addButton.addEventListener('touchcancel', () => {
-            clearTimeout(buttonTimeout);
-        });
-        addButton.addEventListener('mouseout', () => {
-            clearTimeout(buttonTimeout);
-        });
-        grid.appendChild(addButton);
-    }
+        function getFaviconUrl(url) {
+            const domain = new URL(url, 'http://localhost').hostname;
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        }
 
-    function closeEditorModal() {
-        document.getElementById('editor-modal').style.display = 'none';
-        nameInput.value = '';
-        urlInput.value = '';
-        faviconInput.value = '';
-        bookmarkInput.value = '';
-        deleteButton.style.display = 'none';
-        saveButton.style.display = 'none';
-        editIndex = -1;
-    }
+        function createSearchButton(engine, index) {
+            const button = document.createElement('button');
+            button.className = 'search-button';
+            const img = document.createElement('img');
+            img.src = engine.faviconUrl || getFaviconUrl(engine.url || engine.bookmarkUrl || '');
+            img.onerror = () => img.src = 'image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔍</text></svg>';
+            const span = document.createElement('span');
+            span.textContent = engine.name || "No name";
+            button.appendChild(img);
+            button.appendChild(span);
+            button.addEventListener('click', () => handleClick(engine));
+            button.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                openEditorModal(engine, index);
+            });
+            let buttonTimeout;
+            let buttonSwiped = false;
+            button.addEventListener('touchstart', () => {
+                buttonSwiped = false;
+                buttonTimeout = setTimeout(() => openEditorModal(engine, index), 500);
+            });
+            button.addEventListener('touchmove', () => {
+                buttonSwiped = true;
+                clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('touchend', () => {
+                if (!buttonSwiped) clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('touchcancel', () => {
+                 clearTimeout(buttonTimeout);
+            });
+            button.addEventListener('mouseout', () => {
+                 clearTimeout(buttonTimeout);
+            });
+            return button;
+        }
 
-    async function openEditorModal(engine = null, index = -1) {
-        editIndex = index;
-        const title = engine ? 'Edit Search Engine' : 'Add Search Engine';
-        document.getElementById('editor-modal-title').textContent = title;
-        nameInput.value = engine ? engine.name : '';
-        urlInput.value = engine ? engine.url : '';
-        faviconInput.value = engine ? (engine.faviconUrl || '') : '';
-        bookmarkInput.value = engine ? (engine.bookmarkUrl || '') : '';
-        originalEngine = { name: nameInput.value, url: urlInput.value, faviconUrl: faviconInput.value, bookmarkUrl: bookmarkInput.value };
-        deleteButton.style.display = engine ? 'inline-block' : 'none';
-        if (!engine && navigator.clipboard) {
-            try {
-                let clipboardText = await navigator.clipboard.readText();
-                let isValidUrl = clipboardText.includes('%s');
-                if (!isValidUrl && /hello/i.test(clipboardText)) {
-                    isValidUrl = true;
-                    clipboardText = clipboardText.replace(/hello/gi, '%s');
+        function handleClick(engine) {
+            const query = searchBox.value.trim();
+            sessionStorage.setItem('lastQuery', query);
+            if (query) {
+                const url = engine.url ? engine.url.replace('%s', encodeURIComponent(query)) : engine.bookmarkUrl;
+                window.location.href = url;
+            } else if (engine.bookmarkUrl) {
+                window.location.href = engine.bookmarkUrl;
+            } else if (engine.url) {
+                try {
+                     const baseDomain = new URL(engine.url).origin;
+                    window.location.href = baseDomain;
+                } catch (error) {
+                    console.error("Invalid URL for redirection:", error);
                 }
-                if (isValidUrl && !clipboardText.includes('\n')) {
-                    urlInput.value = clipboardText;
+            }
+             engine.lastUsed = new Date().getTime();
+            localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
+            renderButtons();
+        }
+
+        function renderButtons() {
+            const grid = document.getElementById('buttons-grid');
+            grid.innerHTML = '';
+            searchEngines.sort((a, b) => b.lastUsed - a.lastUsed);
+            searchEngines.forEach((engine, index) => {
+                grid.appendChild(createSearchButton(engine, index));
+            });
+            const addButton = document.createElement('button');
+            addButton.className = 'search-button';
+            addButton.id = 'add-button';
+            const icon = document.createElement('span');
+            icon.className = 'material-icons';
+            icon.textContent = 'add';
+            addButton.appendChild(icon);
+            let buttonTimeout;
+            let buttonSwiped = false;
+            addButton.addEventListener('click', () => openEditorModal());
+            addButton.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                 openSettingsModal();
+            });
+            addButton.addEventListener('touchstart', () => {
+                buttonSwiped = false;
+                buttonTimeout = setTimeout(openSettingsModal, 500);
+            });
+            addButton.addEventListener('touchmove', () => {
+                 buttonSwiped = true;
+                clearTimeout(buttonTimeout);
+            });
+            addButton.addEventListener('touchend', () => {
+                if (!buttonSwiped) clearTimeout(buttonTimeout);
+            });
+            addButton.addEventListener('touchcancel', () => {
+                 clearTimeout(buttonTimeout);
+             });
+             addButton.addEventListener('mouseout', () => {
+                 clearTimeout(buttonTimeout);
+             });
+            grid.appendChild(addButton);
+        }
+
+        function closeEditorModal() {
+            document.getElementById('editor-modal').style.display = 'none';
+            nameInput.value = '';
+            urlInput.value = '';
+            faviconInput.value = '';
+            bookmarkInput.value = '';
+             deleteButton.style.display = 'none';
+             saveButton.style.display = 'none';
+            editIndex = -1;
+        }
+
+        async function openEditorModal(engine = null, index = -1) {
+            editIndex = index;
+            const title = engine ? 'Edit Search Engine' : 'Add Search Engine';
+            document.getElementById('editor-modal-title').textContent = title;
+            nameInput.value = engine ? engine.name : '';
+            urlInput.value = engine ? engine.url : '';
+            faviconInput.value = engine ? (engine.faviconUrl || '') : '';
+            bookmarkInput.value = engine ? (engine.bookmarkUrl || '') : '';
+             originalEngine = { name: nameInput.value, url: urlInput.value, faviconUrl: faviconInput.value, bookmarkUrl: bookmarkInput.value };
+            deleteButton.style.display = engine ? 'inline-block' : 'none';
+           if (!engine && navigator.clipboard) {
+                try {
+                    let clipboardText = await navigator.clipboard.readText();
+                    let isValidUrl = clipboardText.includes('%s');
+                    if (!isValidUrl && /hello/i.test(clipboardText)) {
+                        isValidUrl = true;
+                        clipboardText = clipboardText.replace(/hello/gi, '%s');
+                    }
+                    if (isValidUrl && !clipboardText.includes('\n')) {
+                        urlInput.value = clipboardText;
+                    }
+                 } catch (error) {
+                    console.error('Error reading clipboard:', error);
                 }
-            } catch (error) {
-                console.error('Error reading clipboard:', error);
+            }
+            checkForChanges();
+            document.getElementById('editor-modal').style.display = 'flex';
+             if (engine === null) {
+               urlInput.focus();
             }
         }
-        checkForChanges();
-        document.getElementById('editor-modal').style.display = 'flex';
-        if (engine === null) {
-            urlInput.focus();
-        }
-    }
 
-    function checkForChanges() {
-        const urlNotEmpty = urlInput.value.trim() !== '' || bookmarkInput.value.trim() !== '';
-        const wasChanged = (
-            nameInput.value.trim() !== originalEngine.name ||
-            urlInput.value.trim() !== originalEngine.url ||
-            faviconInput.value.trim() !== originalEngine.faviconUrl ||
-            bookmarkInput.value.trim() !== originalEngine.bookmarkUrl
-        );
-        if (wasChanged && urlNotEmpty) {
-            saveButton.style.display = 'block';
-        } else {
-            saveButton.style.display = 'none';
+       function checkForChanges() {
+            const urlNotEmpty = urlInput.value.trim() !== '' || bookmarkInput.value.trim() !== '';
+            const wasChanged = (
+                nameInput.value.trim() !== originalEngine.name ||
+                urlInput.value.trim() !== originalEngine.url ||
+                faviconInput.value.trim() !== originalEngine.faviconUrl ||
+                bookmarkInput.value.trim() !== originalEngine.bookmarkUrl
+            );
+            if (wasChanged && urlNotEmpty) {
+                 saveButton.style.display = 'block';
+            } else {
+                 saveButton.style.display = 'none';
+             }
         }
-    }
 
-    nameInput.addEventListener('input', checkForChanges);
-    urlInput.addEventListener('input', checkForChanges);
-    faviconInput.addEventListener('input', checkForChanges);
-    bookmarkInput.addEventListener('input', checkForChanges);
+        nameInput.addEventListener('input', checkForChanges);
+        urlInput.addEventListener('input', checkForChanges);
+        faviconInput.addEventListener('input', checkForChanges);
+        bookmarkInput.addEventListener('input', checkForChanges);
 
-    function saveEngine() {
-        let name = nameInput.value.trim();
-        let url = urlInput.value.trim();
-        let faviconUrl = faviconInput.value.trim();
-        let bookmarkUrl = bookmarkInput.value.trim();
-        if (!url && !bookmarkUrl) {
-            return;
-        }
-        if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url) && url) {
-            url = 'https://' + url;
-        }
-        if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(bookmarkUrl) && bookmarkUrl) {
-            bookmarkUrl = 'https://' + bookmarkUrl;
-        }
-        if (!name) {
-            try {
-                const mainUrl = url || bookmarkUrl;
-                const urlObj = new URL(mainUrl);
-                let hostname = urlObj.hostname;
-                if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
-                    hostname = hostname.substring(hostname.indexOf('.') + 1);
-                }
-                const nameParts = hostname.split('.');
-                if (nameParts.length > 0) {
-                    name = nameParts[0];
-                }
-                name = name.charAt(0).toUpperCase() + name.slice(1);
-            } catch (error) {
-                console.error("Invalid URL:", error);
+        function saveEngine() {
+            let name = nameInput.value.trim();
+             let url = urlInput.value.trim();
+             let faviconUrl = faviconInput.value.trim();
+            let bookmarkUrl = bookmarkInput.value.trim();
+            if (!url && !bookmarkUrl) {
                 return;
             }
-        }
-        // Determine if favicon URL is a domain or full URL
-        try {
-            const faviconUrlObj = new URL(faviconUrl);
-            if (faviconUrlObj.pathname === '/') {
-                faviconUrl = getFaviconUrl(faviconUrlObj.origin);
+             if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url) && url) {
+                url = 'https://' + url;
             }
-        } catch (error) {
-            if (faviconUrl.includes('.')) {
-                faviconUrl = getFaviconUrl(`https://${faviconUrl}`);
+            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(bookmarkUrl) && bookmarkUrl) {
+                bookmarkUrl = 'https://' + bookmarkUrl;
             }
-        }
-        if (editIndex >= 0) {
-            searchEngines[editIndex] = { name, url, faviconUrl, bookmarkUrl, lastUsed: searchEngines[editIndex].lastUsed };
-        } else {
-            searchEngines.push({ name, url, faviconUrl, bookmarkUrl, lastUsed: new Date().getTime() });
-        }
-        localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
-        renderButtons();
-        closeEditorModal();
-    }
-
-    function deleteEngine() {
-        if (editIndex >= 0) {
-            searchEngines.splice(editIndex, 1);
+             if (!name) {
+                try {
+                   const mainUrl = url || bookmarkUrl;
+                     const urlObj = new URL(mainUrl);
+                   let hostname = urlObj.hostname;
+                   if (hostname.startsWith('www.') || hostname.startsWith('m.')) {
+                       hostname = hostname.substring(hostname.indexOf('.') + 1);
+                   }
+                    const nameParts = hostname.split('.');
+                    if (nameParts.length > 0) {
+                        name = nameParts[0];
+                    }
+                    name = name.charAt(0).toUpperCase() + name.slice(1);
+                } catch (error) {
+                    console.error("Invalid URL:", error);
+                     return;
+                }
+            }
+             // Determine if favicon URL is a domain or full URL
+            try {
+                const faviconUrlObj = new URL(faviconUrl);
+                if (faviconUrlObj.pathname === '/') {
+                    faviconUrl = getFaviconUrl(faviconUrlObj.origin);
+                }
+            } catch (error) {
+                if (faviconUrl.includes('.')) {
+                   faviconUrl = getFaviconUrl(`https://${faviconUrl}`);
+                }
+            }
+            if (editIndex >= 0) {
+                searchEngines[editIndex] = { name, url, faviconUrl, bookmarkUrl, lastUsed: searchEngines[editIndex].lastUsed };
+            } else {
+                searchEngines.push({ name, url, faviconUrl, bookmarkUrl, lastUsed: new Date().getTime() });
+            }
             localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
             renderButtons();
             closeEditorModal();
         }
-    }
 
-    function openSettingsModal() {
-        document.getElementById('settings-modal').style.display = 'flex';
-        columnsSelect.value = settings.columns;
-        themeSelect.value = settings.theme;
-    }
-
-    function closeSettingsModal() {
-        document.getElementById('settings-modal').style.display = 'none';
-    }
-
-    columnsSelect.addEventListener('change', (e) => {
-        settings.columns = parseInt(e.target.value);
-        document.documentElement.style.setProperty('--columns', settings.columns);
-        localStorage.setItem('settings', JSON.stringify(settings));
-        renderButtons();
-    });
-    themeSelect.addEventListener('change', (e) => {
-        settings.theme = e.target.value;
-        document.body.dataset.theme = settings.theme;
-        localStorage.setItem('settings', JSON.stringify(settings));
-        renderButtons();
-    });
-
-    function importConfig() {
-        importInput.click();
-    }
-
-    function handleFileImport(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const content = e.target.result;
-                const searchEnginesMatch = content.match(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| (\[.*?\]);/);
-                const settingsMatch = content.match(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| ({.*?});/);
-                if (searchEnginesMatch) {
-                    searchEngines = JSON.parse(searchEnginesMatch[1]);
-                    localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
-                }
-                if (settingsMatch) {
-                    settings = JSON.parse(settingsMatch[1]);
-                    localStorage.setItem('settings', JSON.stringify(settings));
-                    applySettings();
-                }
-                themeSelect.value = settings.theme;
-                columnsSelect.value = settings.columns;
+        function deleteEngine() {
+             if (editIndex >= 0) {
+                 searchEngines.splice(editIndex, 1);
+                localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
                 renderButtons();
-            };
-            reader.readAsText(file);
+                 closeEditorModal();
+             }
         }
-    }
 
-    function downloadSourceWithConfig() {
-        const currentSearchEngines = JSON.stringify(searchEngines);
-        const updatedSource = originalSource
-            .replace(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| \[([\s\S]*?)\];/, `let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || ${currentSearchEngines};`)
-            .replace(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/, `let settings = JSON.parse(localStorage.getItem('settings')) || ${JSON.stringify(settings)};`);
-        let blob = new Blob([updatedSource], { type: 'text/html' });
-        let url = window.URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        const count = searchEngines.length;
-        a.download = `SmartStart (${count} buttons).html`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    }
+         function openSettingsModal() {
+           document.getElementById('settings-modal').style.display = 'flex';
+           columnsSelect.value = settings.columns;
+           themeSelect.value = settings.theme;
+         }
 
-    searchBox.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && e.target.value) {
-            const query = encodeURIComponent(e.target.value);
-            window.open(`https://google.com/search?q=${query}`, '_blank');
+         function closeSettingsModal() {
+             document.getElementById('settings-modal').style.display = 'none';
+         }
+
+        columnsSelect.addEventListener('change', (e) => {
+            settings.columns = parseInt(e.target.value);
+            document.documentElement.style.setProperty('--columns', settings.columns);
+             localStorage.setItem('settings', JSON.stringify(settings));
+             renderButtons();
+        });
+        themeSelect.addEventListener('change', (e) => {
+            settings.theme = e.target.value;
+             document.body.dataset.theme = settings.theme;
+            localStorage.setItem('settings', JSON.stringify(settings));
+             renderButtons();
+        });
+
+         function importConfig() {
+            importInput.click();
         }
-    });
 
-    function applySettings() {
-        document.documentElement.style.setProperty('--columns', settings.columns);
-        document.body.dataset.theme = settings.theme;
-        renderButtons();
-    }
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (file) {
+                 const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                     const searchEnginesMatch = content.match(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| (\[.*?\]);/);
+                    const settingsMatch = content.match(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| ({.*?});/);
+                    if (searchEnginesMatch) {
+                        searchEngines = JSON.parse(searchEnginesMatch[1]);
+                         localStorage.setItem('searchEngines', JSON.stringify(searchEngines));
+                    }
+                    if (settingsMatch) {
+                        settings = JSON.parse(settingsMatch[1]);
+                        localStorage.setItem('settings', JSON.stringify(settings));
+                         applySettings();
+                    }
+                   themeSelect.value = settings.theme;
+                   columnsSelect.value = settings.columns;
+                    renderButtons();
+                };
+                reader.readAsText(file);
+            }
+        }
 
-    // Restore the last query from sessionStorage
-    const lastQuery = sessionStorage.getItem('lastQuery');
-    if (lastQuery) {
-        searchBox.value = lastQuery;
-        clearIcon.style.display = 'block';
-    }
+       function downloadSourceWithConfig() {
+            const currentSearchEngines = JSON.stringify(searchEngines);
+           const updatedSource = originalSource
+                .replace(/let searchEngines = JSON.parse\(localStorage\.getItem\('searchEngines'\)\) \|\| \[([\s\S]*?)\];/, `let searchEngines = JSON.parse(localStorage.getItem('searchEngines')) || ${currentSearchEngines};`)
+               .replace(/let settings = JSON.parse\(localStorage\.getItem\('settings'\)\) \|\| {([\s\S]*?)};/, `let settings = JSON.parse(localStorage.getItem('settings')) || ${JSON.stringify(settings)};`);
+            let blob = new Blob([updatedSource], { type: 'text/html' });
+             let url = window.URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            const count = searchEngines.length;
+            a.download = `SmartStart (${count} buttons).html`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
 
-    applySettings();
-</script>
+        searchBox.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.target.value) {
+                const query = encodeURIComponent(e.target.value);
+                 window.open(`https://google.com/search?q=${query}`, '_blank');
+            }
+        });
+
+        function applySettings() {
+           document.documentElement.style.setProperty('--columns', settings.columns);
+           document.body.dataset.theme = settings.theme;
+            renderButtons();
+        }
+
+        // Restore the last query from sessionStorage
+        const lastQuery = sessionStorage.getItem('lastQuery');
+        if (lastQuery) {
+             searchBox.value = lastQuery;
+              clearIcon.style.display = 'block';
+              clearIconContainer.style.display = 'flex';
+            settingsIcon.style.display = 'none';
+            settingsIconContainer.style.display = 'none';
+         } else {
+              settingsIcon.style.display = 'block';
+              settingsIconContainer.style.display = 'flex';
+        }
+
+        applySettings();
+    </script>
 </body>
 </html>
