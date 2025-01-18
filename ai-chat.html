@@ -68,7 +68,7 @@
             align-items: flex-start;
             margin-bottom: 8px;
             padding: 10px;
-            border-radius: 15px; /* Aangepaste radius voor de afgeronde hoeken */
+            border-radius: 15px;
             position: relative;
             min-height: 1.2em;
             max-width: 90%;
@@ -285,7 +285,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
-
 <body>
 <div id="app-container">
     <div id="chat-container">
@@ -608,18 +607,23 @@
         return div.innerHTML;
     }
 
-    function displayMessage(message, sender, index, isUserInput = false) {
+   function displayMessage(message, sender, index, isUserInput = false) {
         let chatOutput = document.getElementById('chat-output');
         let newMessage = document.createElement('div');
         newMessage.classList.add('message', sender);
         newMessage.setAttribute('data-index', index);
-        if (sender === 'user') {
-            newMessage.setAttribute('contenteditable', true);
-            newMessage.addEventListener('click', () => editMessage(index));
-            let escapedContent = isUserInput ? escapeHtml(message) : marked.parse(message, {breaks: true});
-            newMessage.innerHTML = `<span class="editable">${escapedContent}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
-        } else {
-            const markdown = marked.parse(message, {breaks: true});
+         if (sender === 'user') {
+             newMessage.innerHTML = `<span class="editable" contenteditable="true">${isUserInput ? escapeHtml(message) : marked.parse(message, {breaks: true})}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
+             newMessage.addEventListener('click', () => editMessage(index));
+            newMessage.querySelector('.editable').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    // Insert line break
+                    document.execCommand('insertLineBreak');
+                }
+            });
+         } else {
+            const markdown = marked.parse(message, { breaks: true });
             const formattedMessage = markdown.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                 const language = lang || 'javascript';
                 const escapedCode = escapeHtml(code.trim());
@@ -632,6 +636,7 @@
         Prism.highlightAllUnder(newMessage);
         addRunAndCopyButtonsToCodeBlocks(newMessage);
     }
+
 
     function displayPartialMessage(initialContent, sender) {
         let chatOutput = document.getElementById('chat-output');
@@ -708,17 +713,17 @@
         messageElement.focus();
     }
 
-    function resendMessage(event, index) {
-        event.preventDefault();
-        event.stopPropagation();
-        let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
-        let newText = messageElement.innerText.trim();
-        if (newText !== "") {
-            conversationHistory[index].content = newText;
-            document.getElementById('user-input').value = newText;
-            editIndex = index;
-            sendMessage();
-        }
+   function resendMessage(event, index) {
+       event.preventDefault();
+       event.stopPropagation();
+      let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
+      let newText = messageElement.innerText.trim();
+      if (newText !== "") {
+          conversationHistory[index].content = newText;
+          document.getElementById('user-input').value = newText;
+          editIndex = index;
+          sendMessage();
+       }
     }
 
     function redrawMessages() {
