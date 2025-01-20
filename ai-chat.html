@@ -124,16 +124,18 @@
             position: relative;
         }
 
-        #chat-input input[type="text"],
-        #chat-input select {
-            flex-grow: 1;
-            padding: 10px;
-            background-color: #333438;
-            color: #eee;
-            border: 1px solid #444549;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
+         #chat-input textarea {
+             flex-grow: 1;
+             padding: 10px;
+             background-color: #333438;
+             color: #eee;
+             border: 1px solid #444549;
+             border-radius: 5px;
+             margin-right: 10px;
+             resize: vertical;
+             min-height: 40px;
+             overflow-y: auto;
+         }
 
         #chat-input button {
             padding: 10px 20px;
@@ -295,7 +297,7 @@
         </div>
         <div id="chat-output"></div>
         <div id="chat-input">
-            <input type="text" id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)">
+             <textarea id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)"></textarea>
             <button id="send-button" onclick="sendMessage()" disabled="">Send</button>
             <div class="spinner" id="loading-spinner">
                 <div></div>
@@ -587,7 +589,7 @@
                 displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
                 document.getElementById('loading-spinner').style.display = 'none';
             } catch (error) {
-                currentApiKeyIndex++;
+              currentApiKeyIndex++;
                 if (currentApiKeyIndex < openaiApiKeys.length) {
                     await tryNextApiKeyOpenAI(userInput);
                 } else {
@@ -607,22 +609,25 @@
         return div.innerHTML;
     }
 
-   function displayMessage(message, sender, index, isUserInput = false) {
+    function displayMessage(message, sender, index, isUserInput = false) {
         let chatOutput = document.getElementById('chat-output');
         let newMessage = document.createElement('div');
         newMessage.classList.add('message', sender);
         newMessage.setAttribute('data-index', index);
-         if (sender === 'user') {
-             newMessage.innerHTML = `<span class="editable" contenteditable="true">${isUserInput ? escapeHtml(message) : marked.parse(message, {breaks: true})}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
-             newMessage.addEventListener('click', () => editMessage(index));
+
+        if (sender === 'user') {
+            const formattedMessage = isUserInput ? escapeHtml(message).replace(/\n/g, '<br>') : marked.parse(message, { breaks: true });
+            newMessage.innerHTML = `<span class="editable" contenteditable="true">${formattedMessage}</span><button class="re-send-button" onclick="resendMessage(event, ${index})">Resend</button>`;
+            newMessage.addEventListener('click', () => editMessage(index));
             newMessage.querySelector('.editable').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
+                    // Do nothing here
+                } else if (e.key === 'Enter' && e.shiftKey) {
                     e.preventDefault();
-                    // Insert line break
-                    document.execCommand('insertLineBreak');
+                    sendMessage();
                 }
             });
-         } else {
+        } else {
             const markdown = marked.parse(message, { breaks: true });
             const formattedMessage = markdown.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
                 const language = lang || 'javascript';
@@ -637,7 +642,6 @@
         addRunAndCopyButtonsToCodeBlocks(newMessage);
     }
 
-
     function displayPartialMessage(initialContent, sender) {
         let chatOutput = document.getElementById('chat-output');
         let partialMessage = document.createElement('div');
@@ -648,7 +652,7 @@
         return partialMessage;
     }
 
-    function addRunAndCopyButtonsToCodeBlocks(parentElement) {
+   function addRunAndCopyButtonsToCodeBlocks(parentElement) {
         parentElement.querySelectorAll('pre code').forEach((block) => {
             if (!block.parentElement.querySelector('.copy-code')) {
                 const copyButtonTop = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonTop));
@@ -659,16 +663,16 @@
                 [copyButtonTop, runButtonTop].forEach((button, i) => {
                     button.style.position = 'absolute';
                     button.style.top = '5px';
-                    button.style.right = i === 0 ? '55px' : '5px';
-                });
-                [copyButtonBottom, runButtonBottom].forEach((button, i) => {
+                   button.style.right = i === 0 ? '55px' : '5px';
+               });
+                 [copyButtonBottom, runButtonBottom].forEach((button, i) => {
                     button.style.position = 'absolute';
                     button.style.bottom = '5px';
-                    button.style.right = i === 0 ? '55px' : '5px';
-                });
+                     button.style.right = i === 0 ? '55px' : '5px';
+                 });
                 block.parentElement.appendChild(copyButtonTop);
                 block.parentElement.appendChild(runButtonTop);
-                block.parentElement.appendChild(copyButtonBottom);
+               block.parentElement.appendChild(copyButtonBottom);
                 block.parentElement.appendChild(runButtonBottom);
             }
         });
@@ -713,24 +717,24 @@
         messageElement.focus();
     }
 
-   function resendMessage(event, index) {
+    function resendMessage(event, index) {
        event.preventDefault();
-       event.stopPropagation();
-      let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
-      let newText = messageElement.innerText.trim();
-      if (newText !== "") {
-          conversationHistory[index].content = newText;
-          document.getElementById('user-input').value = newText;
-          editIndex = index;
-          sendMessage();
-       }
+        event.stopPropagation();
+       let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
+        let newText = messageElement.innerText.trim();
+        if (newText !== "") {
+            conversationHistory[index].content = newText;
+           document.getElementById('user-input').value = newText;
+            editIndex = index;
+            sendMessage();
+         }
     }
 
     function redrawMessages() {
         document.getElementById('chat-output').innerHTML = '';
-        conversationHistory.forEach((entry, i) => {
+       conversationHistory.forEach((entry, i) => {
             displayMessage(entry.content, entry.role, i, entry.role === 'user');
-        });
+       });
     }
 
     function updateModelOptions() {
@@ -759,35 +763,35 @@
     window.addEventListener('load', adjustChatHeight);
     showTab('chat');
 
-    class OpenAIChat {
+   class OpenAIChat {
         constructor(apiKey, model, systemPrompt) {
             this.apiKey = apiKey;
-            this.model = model;
+           this.model = model;
             this.systemPrompt = systemPrompt;
             this.conversationHistory = [];
         }
 
-        setApiKey(apiKey) {
+       setApiKey(apiKey) {
             this.apiKey = apiKey;
-        }
+       }
 
-        setModel(model) {
+       setModel(model) {
             this.model = model;
         }
 
-        setPrePrompt(prePrompt) {
-            this.systemPrompt = prePrompt;
+       setPrePrompt(prePrompt) {
+           this.systemPrompt = prePrompt;
         }
 
         async getBotResponse(userMessage, onDelta) {
             this.conversationHistory = [{role: 'system', content: this.systemPrompt}, ...conversationHistory];
-            this.conversationHistory.push({role: "user", content: userMessage});
-            const url = "https://api.openai.com/v1/chat/completions";
+           this.conversationHistory.push({role: "user", content: userMessage});
+           const url = "https://api.openai.com/v1/chat/completions";
             const response = await fetch(url, {
                 method: "POST",
                 headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
                 body: JSON.stringify({model: this.model, messages: this.conversationHistory, stream: true})
-            });
+           });
             if (!response.ok) {
                 throw await response.text();
             }
@@ -797,14 +801,14 @@
                 if (consoleEnabled) logJsonResponse(data);
                 if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
                     const delta = data.choices[0].delta.content;
-                    botResponse += delta;
+                   botResponse += delta;
                     if (onDelta) onDelta(delta);
                 }
-            });
+           });
             return botResponse;
         }
 
-        async processEventStream(reader, delegate) {
+       async processEventStream(reader, delegate) {
             const decoder = new TextDecoder();
             let accumulated = '';
             while (true) {
@@ -812,46 +816,46 @@
                 if (result.done) {
                     break;
                 }
-                accumulated += decoder.decode(result.value, {stream: true});
+               accumulated += decoder.decode(result.value, {stream: true});
                 const lines = accumulated.split('\n');
-                accumulated = lines.pop();
+               accumulated = lines.pop();
                 for (let line of lines) {
                     if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
                         delegate(line.slice(6));
                     }
                 }
             }
-            if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
-                delegate(accumulated.slice(6));
+           if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
+               delegate(accumulated.slice(6));
             }
         }
-    }
+   }
 
     function logToConsole(message) {
         const consoleOutput = document.getElementById('console-output');
-        consoleOutput.textContent += `${message}\n`;
-    }
+       consoleOutput.textContent += `${message}\n`;
+   }
 
     function handleEnter(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
-        }
+       if (event.key === 'Enter' && event.shiftKey) {
+           event.preventDefault();
+          sendMessage();
+       }
     }
 
     function toggleCustomModelField() {
         const modelSelect = document.getElementById('model-select');
         const customModelLabel = document.getElementById('custom-model-label');
-        const customModelInput = document.getElementById('custom-model-input');
+       const customModelInput = document.getElementById('custom-model-input');
         const provider = document.getElementById('api-provider').value;
-        if (modelSelect.value === 'custom') {
+       if (modelSelect.value === 'custom') {
             customModelLabel.classList.remove('hidden');
             customModelInput.classList.remove('hidden');
-            customModelInput.value = provider === 'openai' ? customOpenAIModel : customGeminiModel;
+           customModelInput.value = provider === 'openai' ? customOpenAIModel : customGeminiModel;
         } else {
             customModelLabel.classList.add('hidden');
             customModelInput.classList.add('hidden');
-            customModelInput.value = "";
-        }
+           customModelInput.value = "";
+       }
     }
 </script></body></html>
