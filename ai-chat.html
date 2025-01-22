@@ -310,10 +310,13 @@
             <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()"></textarea>
             <label for="api-key-gemini">Gemini API Key(s):</label>
             <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)" onchange="saveSettings()"></textarea>
+            <label for="api-key-deepseek">DeepSeek API Key(s):</label>
+            <textarea id="api-key-deepseek" rows="3" placeholder="Enter your DeepSeek API key(s)" onchange="saveSettings()"></textarea>
             <label for="api-provider">API Provider:</label>
             <select id="api-provider" onchange="updateModelOptions(); saveSettings();">
                 <option value="openai">OpenAI</option>
                 <option value="gemini">Gemini</option>
+                <option value="deepseek">DeepSeek</option>
             </select>
             <label for="model-select">Model:</label>
             <select id="model-select" onchange="toggleCustomModelField(); saveSettings();">
@@ -339,16 +342,19 @@
 <script>
     let geminiApiKeys = [];
     let openaiApiKeys = [];
+    let deepseekApiKeys = [];
     let currentApiKeyIndex = 0;
     let systemPrompt = localStorage.getItem('systemPrompt') || "";
     let conversationHistory = [];
     let geminiConversationHistory = [];
+    let deepseekConversationHistory = [];
     let editIndex = null;
     let consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
     let selectedModel = localStorage.getItem('selectedModel');
     let lastUsedModels = JSON.parse(localStorage.getItem('lastUsedModels') || '{}');
     let customGeminiModel = localStorage.getItem('customGeminiModel') || "";
     let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
+    let customDeepSeekModel = localStorage.getItem('customDeepSeekModel') || "";
     let initialHTML = document.documentElement.outerHTML;
     document.addEventListener("DOMContentLoaded", function () {
         loadSettings();
@@ -364,8 +370,10 @@
     function loadSettings() {
         geminiApiKeys = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
         openaiApiKeys = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
+        deepseekApiKeys = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
         document.getElementById('api-key-gemini').value = geminiApiKeys.join('\n\n');
         document.getElementById('api-key-openai').value = openaiApiKeys.join('\n\n');
+        document.getElementById('api-key-deepseek').value = deepseekApiKeys.join('\n\n');
         document.getElementById('system-prompt').value = systemPrompt;
         document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
         document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
@@ -376,11 +384,11 @@
         } else {
             document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
         }
-        document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : customGeminiModel;
+        document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : lastUsedApiProvider === 'gemini' ? customGeminiModel : customDeepSeekModel;
     }
 
     function setDefaultModel(provider) {
-        const defaultModel = provider === "openai" ? "gpt-4o" : "gemini-2.0-flash-exp";
+        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : "deepseek-chat";
         if (!lastUsedModels) {
             lastUsedModels = {};
         }
@@ -392,8 +400,15 @@
     marked.setOptions({gfm: true, breaks: true, headerIds: false});
 
     function parseApiKeys(input, provider) {
-        const regex = provider === 'openai' ? /^sk-[a-zA-Z0-9]{48}$/gm : /AIzaSy[A-Za-z0-9_-]{33}/g;
-        return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
+        let regex;
+        if (provider === 'openai') {
+            regex = /^sk-[a-zA-Z0-9]{48}$/gm;
+        } else if (provider === 'gemini') {
+            regex = /AIzaSy[A-Za-z0-9_-]{33}/g;
+        } else if (provider === 'deepseek') {
+           regex = /^(sk-[a-zA-Z0-9]{32})$/gm;
+        }
+      return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
     }
 
     function toggleSendButton() {
@@ -424,8 +439,10 @@
     function saveSettings() {
         geminiApiKeys = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
         openaiApiKeys = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+        deepseekApiKeys = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
         localStorage.setItem('apiKeyGemini', geminiApiKeys.join('\n\n'));
         localStorage.setItem('apiKeyOpenAI', openaiApiKeys.join('\n\n'));
+        localStorage.setItem('apiKeyDeepseek', deepseekApiKeys.join('\n\n'));
         localStorage.setItem('systemPrompt', document.getElementById('system-prompt').value);
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModel = document.getElementById('model-select').value;
@@ -433,9 +450,12 @@
             if (currentProvider === 'openai') {
                 customOpenAIModel = document.getElementById('custom-model-input').value;
                 localStorage.setItem('customOpenAIModel', customOpenAIModel);
-            } else {
+           } else if (currentProvider === 'gemini') {
                 customGeminiModel = document.getElementById('custom-model-input').value;
                 localStorage.setItem('customGeminiModel', customGeminiModel);
+           } else if (currentProvider === 'deepseek') {
+                customDeepSeekModel = document.getElementById('custom-model-input').value;
+               localStorage.setItem('customDeepSeekModel', customDeepSeekModel);
             }
         }
         if (!lastUsedModels) {
@@ -494,13 +514,13 @@
                 }
             });
         }
-        logToConsole(JSON.stringify(dataCopy, null, 2));
+       logToConsole(JSON.stringify(dataCopy, null, 2));
     }
 
     async function sendMessage() {
         let userInput = document.getElementById('user-input').value;
         systemPrompt = document.getElementById('system-prompt').value;
-        if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0)) {
+        if (userInput.trim() !== "" && (geminiApiKeys.length > 0 || openaiApiKeys.length > 0 || deepseekApiKeys.length > 0)) {
             const provider = document.getElementById('api-provider').value;
             selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
             if (editIndex !== null) {
@@ -525,6 +545,9 @@
                 } else if (provider === 'openai') {
                      currentApiKeyIndex = 0;
                      await tryNextApiKeyOpenAI(userInput);
+                } else if (provider === 'deepseek') {
+                     currentApiKeyIndex = 0;
+                     await tryNextApiKeyDeepseek(userInput);
                 }
              } catch (error) {
                 logErrorToConsole(error);
@@ -620,6 +643,61 @@
             throw new Error("All OpenAI API keys have been exhausted. Please check your keys in the Settings.");
         }
     }
+   async function tryNextApiKeyDeepseek(userInput) {
+           const selectedModel = document.getElementById('model-select').value;
+           if (currentApiKeyIndex < deepseekApiKeys.length) {
+               const apiKey = deepseekApiKeys[currentApiKeyIndex];
+               const model = selectedModel === 'custom' ? document.getElementById('custom-model-input').value : selectedModel;
+            let messages = [];
+            if (model === "deepseek-reasoner") {
+                messages = [{ role: "system", content: systemPrompt }];
+                messages = messages.concat(deepseekConversationHistory);
+                messages.push({ role: "user", content: userInput });
+            } else {
+                messages = conversationHistory.length === 0 ? [{ role: "system", content: systemPrompt }] : [...conversationHistory];
+                 messages.push({ role: "user", content: userInput });
+            }
+               const response = await fetch('https://api.deepseek.com/chat/completions', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'Authorization': `Bearer ${apiKey}`
+                   },
+                   body: JSON.stringify({
+                       "model": model,
+                       "messages": messages,
+                       "stream": false
+                   })
+               });
+               if (!response.ok) {
+                   const errorText = await response.text();
+                   currentApiKeyIndex++;
+                   if (currentApiKeyIndex < deepseekApiKeys.length) {
+                       await tryNextApiKeyDeepseek(userInput);
+                   } else {
+                       throw new Error(errorText);
+                   }
+               } else {
+                   const data = await response.json();
+                   document.getElementById('loading-spinner').style.display = 'none';
+                   if (consoleEnabled) logJsonResponse(data);
+                   if (data.choices && data.choices.length > 0) {
+                       const messageText = data.choices[0].message.content;
+                       conversationHistory.push({ role: "assistant", content: messageText });
+                        if (model === 'deepseek-reasoner') {
+                          deepseekConversationHistory.push({role: 'user', content: userInput})
+                          deepseekConversationHistory.push({role: 'assistant', content: messageText});
+                        }
+                       displayMessage(messageText, 'assistant', conversationHistory.length - 1);
+                   } else {
+                       throw new Error("The API returned an unexpected response with no choices.");
+                   }
+               }
+           } else {
+               document.getElementById('loading-spinner').style.display = 'none';
+               throw new Error("All DeepSeek API keys have been exhausted. Please check your keys in the Settings.");
+           }
+       }
 
     function escapeHtml(unsafe) {
         const div = document.createElement('div');
@@ -653,10 +731,10 @@
                 return `<pre><code class="language-${language}">${escapedCode}</code></pre>`;
             });
             newMessage.innerHTML = `<span class="content">${formattedMessage}</span>`;
-        }
-        chatOutput.appendChild(newMessage);
-        chatOutput.scrollTop = chatOutput.scrollHeight;
-        Prism.highlightAllUnder(newMessage);
+         }
+         chatOutput.appendChild(newMessage);
+         chatOutput.scrollTop = chatOutput.scrollHeight;
+         Prism.highlightAllUnder(newMessage);
         addRunAndCopyButtonsToCodeBlocks(newMessage);
     }
 
@@ -681,16 +759,16 @@
                 [copyButtonTop, runButtonTop].forEach((button, i) => {
                     button.style.position = 'absolute';
                     button.style.top = '5px';
-                   button.style.right = i === 0 ? '55px' : '5px';
+                    button.style.right = i === 0 ? '55px' : '5px';
                });
                  [copyButtonBottom, runButtonBottom].forEach((button, i) => {
-                    button.style.position = 'absolute';
-                    button.style.bottom = '5px';
-                     button.style.right = i === 0 ? '55px' : '5px';
-                 });
+                   button.style.position = 'absolute';
+                   button.style.bottom = '5px';
+                   button.style.right = i === 0 ? '55px' : '5px';
+                });
                 block.parentElement.appendChild(copyButtonTop);
                 block.parentElement.appendChild(runButtonTop);
-               block.parentElement.appendChild(copyButtonBottom);
+                block.parentElement.appendChild(copyButtonBottom);
                 block.parentElement.appendChild(runButtonBottom);
             }
         });
@@ -761,13 +839,14 @@
         modelSelect.innerHTML = '';
         const models = {
             gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp', 'gemini-exp-1206', 'custom'],
-            openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom']
+            openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom'],
+            deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom']
         };
         models[provider].forEach(model => modelSelect.add(new Option(model, model)));
         if (lastUsedModels && lastUsedModels[provider]) {
             modelSelect.value = lastUsedModels[provider];
         } else {
-            const defaultModel = provider === 'openai' ? 'gpt-4o' : 'gemini-2.0-flash-exp';
+            const defaultModel = provider === 'openai' ? 'gpt-4o' : provider === 'gemini' ? 'gemini-2.0-flash-exp' : 'deepseek-chat';
             modelSelect.value = defaultModel;
         }
         toggleCustomModelField();
@@ -869,7 +948,7 @@
        if (modelSelect.value === 'custom') {
             customModelLabel.classList.remove('hidden');
             customModelInput.classList.remove('hidden');
-           customModelInput.value = provider === 'openai' ? customOpenAIModel : customGeminiModel;
+           customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : customDeepSeekModel;
         } else {
             customModelLabel.classList.add('hidden');
             customModelInput.classList.add('hidden');
