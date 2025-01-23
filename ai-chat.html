@@ -404,7 +404,7 @@
     }
 
     function setDefaultModel(provider) {
-        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : "deepseek-reasoner";
+        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : "deepseek-chat";
         if (!lastUsedModels) {
             lastUsedModels = {};
         }
@@ -648,14 +648,14 @@
                    }
                 } else if (provider === 'deepseek') {
                     let messages = [];
+                    // Apply system prompt for deepseek-chat, same as deepseek-reasoner
+                    messages = [{role: "system", content: systemPrompt}];
                     if (selectedModel === "deepseek-reasoner") {
-                        messages = [{role: "system", content: systemPrompt}];
                         messages = messages.concat(modelSpecificConversationHistory.deepseekReasoner);
-                        messages.push({role: "user", content: userInput});
                     } else {
-                        messages = conversationHistory.length === 0 ? [{ role: "system", content: systemPrompt }] : [...conversationHistory];
-                         messages.push({ role: "user", content: userInput });
+                        messages = messages.concat(conversationHistory);
                     }
+                    messages.push({role: "user", content: userInput});
                     response = await fetch('https://api.deepseek.com/chat/completions', {
                         method: 'POST',
                         headers: {
@@ -856,16 +856,19 @@
         const provider = document.getElementById('api-provider').value;
         const modelSelect = document.getElementById('model-select');
         modelSelect.innerHTML = '';
+
         const models = {
             gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp', 'gemini-exp-1206', 'custom'],
             openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom'],
-            deepseek: ['deepseek-reasoner', 'custom']
+            deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'] //deepseek-chat bovenaan
         };
+
         models[provider].forEach(model => modelSelect.add(new Option(model, model)));
+
         if (lastUsedModels && lastUsedModels[provider]) {
             modelSelect.value = lastUsedModels[provider];
         } else {
-            const defaultModel = provider === 'openai' ? 'gpt-4o' : provider === 'gemini' ? 'gemini-2.0-flash-exp' : 'deepseek-reasoner';
+            const defaultModel = provider === 'openai' ? 'gpt-4o' : provider === 'gemini' ? 'gemini-2.0-flash-exp' : 'deepseek-chat';
             modelSelect.value = defaultModel;
         }
         toggleCustomModelField();
@@ -953,10 +956,12 @@
    }
 
     function handleEnter(event) {
-       if (event.key === 'Enter') {
-           event.preventDefault();
-          sendMessage();
-       }
+        if (event.key === 'Enter' && !event.shiftKey) {
+            if (!/Android/.test(navigator.userAgent)) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
     }
 
     function toggleCustomModelField() {
