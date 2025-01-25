@@ -111,15 +111,43 @@
             border-top-left-radius: 0;
             text-align: left;
         }
+
         .reasoning-container {
-             background-color: #2665c7;
+            background-color: #2665c7;
             border-radius: 10px;
             padding: 8px;
-             margin-top: 5px;
+            margin-top: 5px;
+            cursor: pointer;
         }
 
         .reasoning-content {
             font-size: 0.85em;
+            margin-top: 8px;
+        }
+        .reasoning-container-header {
+            font-size: 0.85em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .reasoning-container-title {
+            font-weight: 600;
+        }
+        
+        .reasoning-container-icon {
+            width: 14px;
+            height: 14px;
+            transform: rotate(0deg);
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .reasoning-container.collapsed .reasoning-container-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .reasoning-container.collapsed .reasoning-content {
+            display: none;
         }
 
         .editable:focus {
@@ -136,18 +164,18 @@
             position: relative;
         }
 
-         #chat-input textarea {
-             flex-grow: 1;
-             padding: 10px;
-             background-color: #333438;
-             color: #eee;
-             border: 1px solid #444549;
-             border-radius: 5px;
-             margin-right: 10px;
-             resize: vertical;
-             min-height: 40px;
-             overflow-y: auto;
-         }
+        #chat-input textarea {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #333438;
+            color: #eee;
+            border: 1px solid #444549;
+            border-radius: 5px;
+            margin-right: 10px;
+            resize: vertical;
+            min-height: 40px;
+            overflow-y: auto;
+        }
 
         #chat-input button {
             padding: 10px 20px;
@@ -309,7 +337,7 @@
         </div>
         <div id="chat-output"></div>
         <div id="chat-input">
-             <textarea id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)"></textarea>
+            <textarea id="user-input" placeholder="Type your message..." oninput="toggleSendButton()" onkeydown="handleEnter(event)"></textarea>
             <button id="send-button" onclick="sendMessage()" disabled="">Send</button>
             <div class="spinner" id="loading-spinner">
                 <div></div>
@@ -357,7 +385,7 @@
         openai: [],
         deepseek: []
     };
-     let currentApiKeyIndex = 0;
+    let currentApiKeyIndex = 0;
     let systemPrompt = localStorage.getItem('systemPrompt') || "";
     let conversationHistory = [];
     let modelSpecificConversationHistory = {
@@ -384,9 +412,9 @@
     });
 
     function loadSettings() {
-         apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
-         apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
-         apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
+        apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
+        apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
+        apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
         document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
@@ -422,16 +450,16 @@
         } else if (provider === 'gemini') {
             regex = /AIzaSy[A-Za-z0-9_-]{33}/g;
         } else if (provider === 'deepseek') {
-           regex = /^(sk-[a-zA-Z0-9]{32})$/gm;
+            regex = /^(sk-[a-zA-Z0-9]{32})$/gm;
         }
-      return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
+        return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
     }
 
     function toggleSendButton() {
         document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === "";
     }
 
-     function showTab(tabName) {
+    function showTab(tabName) {
         const tabs = document.querySelectorAll('.tab');
         tabs.forEach(tab => tab.classList.remove('active'));
 
@@ -467,12 +495,12 @@
             if (currentProvider === 'openai') {
                 customOpenAIModel = document.getElementById('custom-model-input').value;
                 localStorage.setItem('customOpenAIModel', customOpenAIModel);
-           } else if (currentProvider === 'gemini') {
+            } else if (currentProvider === 'gemini') {
                 customGeminiModel = document.getElementById('custom-model-input').value;
                 localStorage.setItem('customGeminiModel', customGeminiModel);
-           } else if (currentProvider === 'deepseek') {
+            } else if (currentProvider === 'deepseek') {
                 customDeepSeekModel = document.getElementById('custom-model-input').value;
-               localStorage.setItem('customDeepSeekModel', customDeepSeekModel);
+                localStorage.setItem('customDeepSeekModel', customDeepSeekModel);
             }
         }
         if (!lastUsedModels) {
@@ -520,8 +548,8 @@
                 if (choice.message && choice.message.content) {
                     choice.message.content = shortenMessage(choice.message.content);
                 }
-                 if (choice.message && choice.message.reasoning_content) {
-                     choice.message.reasoning_content = shortenMessage(choice.message.reasoning_content);
+                if (choice.message && choice.message.reasoning_content) {
+                    choice.message.reasoning_content = shortenMessage(choice.message.reasoning_content);
                 }
             });
         }
@@ -534,10 +562,10 @@
                 }
             });
         }
-       logToConsole(JSON.stringify(dataCopy, null, 2));
+        logToConsole(JSON.stringify(dataCopy, null, 2));
     }
 
-   async function sendMessage() {
+    async function sendMessage() {
         let userInput = document.getElementById('user-input').value;
         systemPrompt = document.getElementById('system-prompt').value;
         if (userInput.trim() !== "" && (apiKeys.gemini.length > 0 || apiKeys.openai.length > 0 || apiKeys.deepseek.length > 0)) {
@@ -547,26 +575,26 @@
                 conversationHistory[editIndex].content = userInput;
                 conversationHistory = conversationHistory.slice(0, editIndex + 1);
                 if(provider === 'gemini'){
-                   modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, editIndex)
+                    modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, editIndex)
                 } else if (provider === 'deepseek' && selectedModel === 'deepseek-reasoner') {
-                   modelSpecificConversationHistory.deepseekReasoner = modelSpecificConversationHistory.deepseekReasoner.slice(0, editIndex);
-               }
+                    modelSpecificConversationHistory.deepseekReasoner = modelSpecificConversationHistory.deepseekReasoner.slice(0, editIndex);
+                }
                 redrawMessages();
-                 editIndex = null;
+                editIndex = null;
             } else {
                 conversationHistory.push({role: "user", content: userInput});
-                 displayMessage(userInput, 'user', conversationHistory.length - 1, true);
+                displayMessage(userInput, 'user', conversationHistory.length - 1, true);
             }
             document.getElementById('user-input').value = '';
             toggleSendButton();
             document.getElementById('loading-spinner').style.display = 'flex';
             try {
-                 await tryNextApiKey(userInput, provider);
-             } catch (error) {
+                await tryNextApiKey(userInput, provider);
+            } catch (error) {
                 logErrorToConsole(error);
             }
         } else {
-             alert("Please enter your API key in the Settings.");
+            alert("Please enter your API key in the Settings.");
             showTab('settings');
         }
     }
@@ -593,59 +621,59 @@
                         })
                     });
 
-                     if (!response.ok) {
+                    if (!response.ok) {
                         const errorText = await response.text();
                         currentApiKeyIndex++;
                         if (currentApiKeyIndex < apiKeyArray.length) {
-                             await tryNextApiKey(userInput, provider)
-                         } else {
+                            await tryNextApiKey(userInput, provider)
+                        } else {
                             throw new Error(errorText)
                         }
-                     } else {
-                         const data = await response.json();
-                         document.getElementById('loading-spinner').style.display = 'none';
-                         if (consoleEnabled) logJsonResponse(data);
-                         if (data.candidates && data.candidates.length > 0) {
-                             const messageText = data.candidates[0].content.parts.map(part => part.text).join("\n");
-                              conversationHistory.push({role: "assistant", content: messageText});
-                              modelSpecificConversationHistory.gemini.push({
-                                 "role": "user",
-                                 "parts": [{"text": userInput}]
-                             }, {
+                    } else {
+                        const data = await response.json();
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        if (consoleEnabled) logJsonResponse(data);
+                        if (data.candidates && data.candidates.length > 0) {
+                            const messageText = data.candidates[0].content.parts.map(part => part.text).join("\n");
+                            conversationHistory.push({role: "assistant", content: messageText});
+                            modelSpecificConversationHistory.gemini.push({
+                                "role": "user",
+                                "parts": [{"text": userInput}]
+                            }, {
                                 "role": "model",
                                 "parts": [{"text": messageText}]
-                             });
-                             displayMessage(messageText, 'assistant', conversationHistory.length - 1);
+                            });
+                            displayMessage(messageText, 'assistant', conversationHistory.length - 1);
                         } else {
                             throw new Error("The API returned an unexpected response with no candidates.");
                         }
                     }
                 } else if (provider === 'openai') {
                     const chat = new OpenAIChat(apiKey, model, systemPrompt);
-                   let partialMessageElement = null;
-                   let botResponse = '';
+                    let partialMessageElement = null;
+                    let botResponse = '';
                     try {
                         botResponse = await chat.getBotResponse(userInput, (delta) => {
-                           if (!partialMessageElement) {
+                            if (!partialMessageElement) {
                                 partialMessageElement = displayPartialMessage('', 'assistant');
-                           }
-                           botResponse += delta;
-                           partialMessageElement.querySelector('.content').innerHTML = marked.parse(botResponse);
-                           Prism.highlightAllUnder(partialMessageElement);
+                            }
+                            botResponse += delta;
+                            partialMessageElement.querySelector('.content').innerHTML = marked.parse(botResponse);
+                            Prism.highlightAllUnder(partialMessageElement);
                         });
                         partialMessageElement.remove();
-                         conversationHistory.push({role: "assistant", content: botResponse});
-                         displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
+                        conversationHistory.push({role: "assistant", content: botResponse});
+                        displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
                         document.getElementById('loading-spinner').style.display = 'none';
                     } catch (error) {
                         currentApiKeyIndex++;
                         if (currentApiKeyIndex < apiKeyArray.length) {
-                           await tryNextApiKey(userInput, provider);
+                            await tryNextApiKey(userInput, provider);
                         } else {
-                             document.getElementById('loading-spinner').style.display = 'none';
-                             throw error;
+                            document.getElementById('loading-spinner').style.display = 'none';
+                            throw error;
                         }
-                   }
+                    }
                 } else if (provider === 'deepseek') {
                     let messages = [];
                     // Apply system prompt for deepseek-chat, same as deepseek-reasoner
@@ -659,44 +687,44 @@
                     response = await fetch('https://api.deepseek.com/chat/completions', {
                         method: 'POST',
                         headers: {
-                           'Content-Type': 'application/json',
-                           'Authorization': `Bearer ${apiKey}`
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
                         },
                         body: JSON.stringify({
-                           "model": model,
-                           "messages": messages,
+                            "model": model,
+                            "messages": messages,
                             "stream": false
-                       })
+                        })
                     });
                     if (!response.ok) {
                         const errorText = await response.text();
                         currentApiKeyIndex++;
                         if (currentApiKeyIndex < apiKeyArray.length) {
-                           await tryNextApiKey(userInput, provider);
+                            await tryNextApiKey(userInput, provider);
                         } else {
-                           throw new Error(errorText);
+                            throw new Error(errorText);
                         }
-                     } else {
-                         const data = await response.json();
-                         document.getElementById('loading-spinner').style.display = 'none';
-                         if (consoleEnabled) logJsonResponse(data);
-                         if (data.choices && data.choices.length > 0) {
+                    } else {
+                        const data = await response.json();
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        if (consoleEnabled) logJsonResponse(data);
+                        if (data.choices && data.choices.length > 0) {
                             const message = data.choices[0].message;
-                             const messageText = message.content;
+                            const messageText = message.content;
                             const reasoningContent = message.reasoning_content;
 
-                             conversationHistory.push({ role: "assistant", content: messageText, reasoning: reasoningContent });
-                             if (selectedModel === 'deepseek-reasoner') {
+                            conversationHistory.push({ role: "assistant", content: messageText, reasoning: reasoningContent });
+                            if (selectedModel === 'deepseek-reasoner') {
                                 modelSpecificConversationHistory.deepseekReasoner.push({role: 'user', content: userInput});
-                                 modelSpecificConversationHistory.deepseekReasoner.push({role: 'assistant', content: messageText, reasoning: reasoningContent});
+                                modelSpecificConversationHistory.deepseekReasoner.push({role: 'assistant', content: messageText, reasoning: reasoningContent});
                             }
-                             displayMessage(messageText, 'assistant', conversationHistory.length - 1, false, reasoningContent);
-                       } else {
+                            displayMessage(messageText, 'assistant', conversationHistory.length - 1, false, reasoningContent);
+                        } else {
                             throw new Error("The API returned an unexpected response with no choices.");
-                       }
+                        }
                     }
                 }
-                 currentApiKeyIndex = 0;
+                currentApiKeyIndex = 0;
             } catch (error) {
                 currentApiKeyIndex++;
                 if(currentApiKeyIndex < apiKeyArray.length){
@@ -707,7 +735,7 @@
 
             }
         } else {
-           document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('loading-spinner').style.display = 'none';
             throw new Error(`All ${provider.toUpperCase()} API keys have been exhausted. Please check your keys in the Settings.`);
         }
     }
@@ -745,15 +773,23 @@
             });
             let contentHTML = `<span class="content">${formattedMessage}</span>`;
             if (reasoning) {
-               const formattedReasoning = marked.parse(reasoning, { breaks: true });
-                contentHTML += `<div class="reasoning-container"><span class="reasoning-content">${formattedReasoning}</span></div>`;
+                contentHTML += `
+                <div class="reasoning-container collapsed" onclick="toggleReasoning(this)">
+                    <div class="reasoning-container-header">
+                        <span class="reasoning-container-title">Reasoning</span>
+                        <svg class="reasoning-container-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="reasoning-content">${marked.parse(reasoning, { breaks: true })}</div>
+                </div>`;
             }
 
             newMessage.innerHTML = contentHTML;
-         }
-         chatOutput.appendChild(newMessage);
-         chatOutput.scrollTop = chatOutput.scrollHeight;
-         Prism.highlightAllUnder(newMessage);
+        }
+        chatOutput.appendChild(newMessage);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+        Prism.highlightAllUnder(newMessage);
         addRunAndCopyButtonsToCodeBlocks(newMessage);
     }
 
@@ -765,6 +801,10 @@
         chatOutput.appendChild(partialMessage);
         chatOutput.scrollTop = chatOutput.scrollHeight;
         return partialMessage;
+    }
+    
+    function toggleReasoning(element) {
+        element.classList.toggle('collapsed');
     }
 
     function addRunAndCopyButtonsToCodeBlocks(parentElement) {
@@ -779,11 +819,11 @@
                     button.style.position = 'absolute';
                     button.style.top = '5px';
                     button.style.right = i === 0 ? '55px' : '5px';
-               });
-                 [copyButtonBottom, runButtonBottom].forEach((button, i) => {
-                   button.style.position = 'absolute';
-                   button.style.bottom = '5px';
-                   button.style.right = i === 0 ? '55px' : '5px';
+                });
+                [copyButtonBottom, runButtonBottom].forEach((button, i) => {
+                    button.style.position = 'absolute';
+                    button.style.bottom = '5px';
+                    button.style.right = i === 0 ? '55px' : '5px';
                 });
                 block.parentElement.appendChild(copyButtonTop);
                 block.parentElement.appendChild(runButtonTop);
@@ -833,23 +873,23 @@
     }
 
     function resendMessage(event, index) {
-       event.preventDefault();
+        event.preventDefault();
         event.stopPropagation();
-       let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
+        let messageElement = document.querySelector(`.message[data-index="${index}"] .editable`);
         let newText = messageElement.innerText.trim();
         if (newText !== "") {
             conversationHistory[index].content = newText;
             document.getElementById('user-input').value = newText;
             editIndex = index;
             sendMessage();
-         }
+        }
     }
 
     function redrawMessages() {
         document.getElementById('chat-output').innerHTML = '';
-       conversationHistory.forEach((entry, i) => {
-           displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning);
-       });
+        conversationHistory.forEach((entry, i) => {
+            displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning);
+        });
     }
 
     function updateModelOptions() {
@@ -882,35 +922,35 @@
     window.addEventListener('load', adjustChatHeight);
     showTab('chat');
 
-   class OpenAIChat {
+    class OpenAIChat {
         constructor(apiKey, model, systemPrompt) {
             this.apiKey = apiKey;
-           this.model = model;
+            this.model = model;
             this.systemPrompt = systemPrompt;
             this.conversationHistory = [];
         }
 
-       setApiKey(apiKey) {
+        setApiKey(apiKey) {
             this.apiKey = apiKey;
-       }
+        }
 
-       setModel(model) {
+        setModel(model) {
             this.model = model;
         }
 
-       setPrePrompt(prePrompt) {
-           this.systemPrompt = prePrompt;
+        setPrePrompt(prePrompt) {
+            this.systemPrompt = prePrompt;
         }
 
         async getBotResponse(userMessage, onDelta) {
-             this.conversationHistory = [{role: 'system', content: this.systemPrompt}, ...conversationHistory];
-           this.conversationHistory.push({role: "user", content: userMessage});
-           const url = "https://api.openai.com/v1/chat/completions";
+            this.conversationHistory = [{role: 'system', content: this.systemPrompt}, ...conversationHistory];
+            this.conversationHistory.push({role: "user", content: userMessage});
+            const url = "https://api.openai.com/v1/chat/completions";
             const response = await fetch(url, {
                 method: "POST",
                 headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
                 body: JSON.stringify({model: this.model, messages: this.conversationHistory, stream: true})
-           });
+            });
             if (!response.ok) {
                 throw await response.text();
             }
@@ -920,14 +960,14 @@
                 if (consoleEnabled) logJsonResponse(data);
                 if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
                     const delta = data.choices[0].delta.content;
-                   botResponse += delta;
+                    botResponse += delta;
                     if (onDelta) onDelta(delta);
                 }
-           });
+            });
             return botResponse;
         }
 
-       async processEventStream(reader, delegate) {
+        async processEventStream(reader, delegate) {
             const decoder = new TextDecoder();
             let accumulated = '';
             while (true) {
@@ -935,25 +975,25 @@
                 if (result.done) {
                     break;
                 }
-               accumulated += decoder.decode(result.value, {stream: true});
+                accumulated += decoder.decode(result.value, {stream: true});
                 const lines = accumulated.split('\n');
-               accumulated = lines.pop();
+                accumulated = lines.pop();
                 for (let line of lines) {
                     if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
                         delegate(line.slice(6));
                     }
                 }
             }
-           if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
-               delegate(accumulated.slice(6));
+            if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]') {
+                delegate(accumulated.slice(6));
             }
         }
-   }
+    }
 
     function logToConsole(message) {
         const consoleOutput = document.getElementById('console-output');
-       consoleOutput.textContent += `${message}\n`;
-   }
+        consoleOutput.textContent += `${message}\n`;
+    }
 
     function handleEnter(event) {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -967,16 +1007,16 @@
     function toggleCustomModelField() {
         const modelSelect = document.getElementById('model-select');
         const customModelLabel = document.getElementById('custom-model-label');
-       const customModelInput = document.getElementById('custom-model-input');
+        const customModelInput = document.getElementById('custom-model-input');
         const provider = document.getElementById('api-provider').value;
-       if (modelSelect.value === 'custom') {
+        if (modelSelect.value === 'custom') {
             customModelLabel.classList.remove('hidden');
             customModelInput.classList.remove('hidden');
-           customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : customDeepSeekModel;
+            customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : customDeepSeekModel;
         } else {
             customModelLabel.classList.add('hidden');
             customModelInput.classList.add('hidden');
-           customModelInput.value = "";
-       }
+            customModelInput.value = "";
+        }
     }
 </script></body></html>
