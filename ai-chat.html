@@ -352,11 +352,14 @@
             <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)" onchange="saveSettings()"></textarea>
             <label for="api-key-deepseek">DeepSeek API Key(s):</label>
             <textarea id="api-key-deepseek" rows="3" placeholder="Enter your DeepSeek API key(s)" onchange="saveSettings()"></textarea>
+            <label for="api-key-perplexity">Perplexity API Key(s):</label>
+            <textarea id="api-key-perplexity" rows="3" placeholder="Enter your Perplexity API key(s)" onchange="saveSettings()"></textarea>
             <label for="api-provider">API Provider:</label>
             <select id="api-provider" onchange="updateModelOptions(); saveSettings();">
                 <option value="openai">OpenAI</option>
                 <option value="gemini">Gemini</option>
                 <option value="deepseek">DeepSeek</option>
+                <option value="perplexity">Perplexity</option>
             </select>
             <label for="model-select">Model:</label>
             <select id="model-select" onchange="toggleCustomModelField(); saveSettings();">
@@ -383,7 +386,8 @@
     let apiKeys = {
         gemini: [],
         openai: [],
-        deepseek: []
+        deepseek: [],
+        perplexity: []
     };
     let currentApiKeyIndex = 0;
     let systemPrompt = localStorage.getItem('systemPrompt') || "";
@@ -399,6 +403,7 @@
     let customGeminiModel = localStorage.getItem('customGeminiModel') || "";
     let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
     let customDeepSeekModel = localStorage.getItem('customDeepSeekModel') || "";
+    let customPerplexityModel = localStorage.getItem('customPerplexityModel') || "";
     let initialHTML = document.documentElement.outerHTML;
     document.addEventListener("DOMContentLoaded", function () {
         loadSettings();
@@ -415,9 +420,11 @@
         apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
         apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
         apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
+        apiKeys.perplexity = parseApiKeys(localStorage.getItem('apiKeyPerplexity') || "", 'perplexity');
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
         document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
+        document.getElementById('api-key-perplexity').value = apiKeys.perplexity.join('\n\n');
         document.getElementById('system-prompt').value = systemPrompt;
         document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
         document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
@@ -428,11 +435,11 @@
         } else {
             document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
         }
-        document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : lastUsedApiProvider === 'gemini' ? customGeminiModel : customDeepSeekModel;
+        document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : lastUsedApiProvider === 'gemini' ? customGeminiModel : lastUsedApiProvider === 'deepseek' ? customDeepSeekModel : customPerplexityModel;
     }
 
     function setDefaultModel(provider) {
-        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : "deepseek-chat";
+        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : provider === "perplexity" ? 'sonar' : "deepseek-chat";
         if (!lastUsedModels) {
             lastUsedModels = {};
         }
@@ -451,6 +458,8 @@
             regex = /AIzaSy[A-Za-z0-9_-]{33}/g;
         } else if (provider === 'deepseek') {
             regex = /^(sk-[a-zA-Z0-9]{32})$/gm;
+        } else if (provider === 'perplexity') {
+             regex = /pplx-[a-f0-9]{48}/g;
         }
         return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
     }
@@ -485,9 +494,11 @@
         apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
         apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
         apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
+         apiKeys.perplexity = parseApiKeys(document.getElementById('api-key-perplexity').value, 'perplexity');
         localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
         localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
         localStorage.setItem('apiKeyDeepseek', apiKeys.deepseek.join('\n\n'));
+        localStorage.setItem('apiKeyPerplexity', apiKeys.perplexity.join('\n\n'));
         localStorage.setItem('systemPrompt', document.getElementById('system-prompt').value);
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModel = document.getElementById('model-select').value;
@@ -501,6 +512,9 @@
             } else if (currentProvider === 'deepseek') {
                 customDeepSeekModel = document.getElementById('custom-model-input').value;
                 localStorage.setItem('customDeepSeekModel', customDeepSeekModel);
+            } else if(currentProvider === 'perplexity'){
+                customPerplexityModel = document.getElementById('custom-model-input').value;
+                localStorage.setItem('customPerplexityModel', customPerplexityModel)
             }
         }
         if (!lastUsedModels) {
@@ -568,7 +582,7 @@
     async function sendMessage() {
         let userInput = document.getElementById('user-input').value;
         systemPrompt = document.getElementById('system-prompt').value;
-        if (userInput.trim() !== "" && (apiKeys.gemini.length > 0 || apiKeys.openai.length > 0 || apiKeys.deepseek.length > 0)) {
+        if (userInput.trim() !== "" && (apiKeys.gemini.length > 0 || apiKeys.openai.length > 0 || apiKeys.deepseek.length > 0 || apiKeys.perplexity.length > 0)) {
             const provider = document.getElementById('api-provider').value;
             selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
             if (editIndex !== null) {
@@ -719,6 +733,59 @@
                                 modelSpecificConversationHistory.deepseekReasoner.push({role: 'assistant', content: messageText, reasoning: reasoningContent});
                             }
                             displayMessage(messageText, 'assistant', conversationHistory.length - 1, false, reasoningContent);
+                        } else {
+                            throw new Error("The API returned an unexpected response with no choices.");
+                        }
+                    }
+                } else if (provider === 'perplexity') {
+                    response = await fetch('https://api.perplexity.ai/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                ...conversationHistory
+                            ],
+                            temperature: 0.2,
+                            top_p: 0.9,
+                            stream: false
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        currentApiKeyIndex++;
+                        if (currentApiKeyIndex < apiKeyArray.length) {
+                            await tryNextApiKey(userInput, provider);
+                        } else {
+                            throw new Error(errorText);
+                        }
+                    } else {
+                        const data = await response.json();
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        if (consoleEnabled) logJsonResponse(data);
+                        
+                        if (data.choices && data.choices.length > 0) {
+                            // Store the original message
+                            let fullMessage = data.choices[0].message.content;
+                            
+                            // Add citations if they exist
+                            if (data.citations && data.citations.length > 0) {
+                                fullMessage += "\n\nSources:\n" + data.citations.map(url => `- ${url}`).join('\n');
+                            }
+                            
+                            // Store the original message without citations in the conversation history
+                            conversationHistory.push({ 
+                                role: "assistant", 
+                                content: data.choices[0].message.content 
+                            });
+                            
+                            // Display the full message including citations
+                            displayMessage(fullMessage, 'assistant', conversationHistory.length - 1);
                         } else {
                             throw new Error("The API returned an unexpected response with no choices.");
                         }
@@ -900,7 +967,8 @@
         const models = {
             gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp', 'gemini-exp-1206', 'custom'],
             openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom'],
-            deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'] //deepseek-chat bovenaan
+            deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
+             perplexity: ['sonar', 'sonar-pro', 'custom']
         };
 
         models[provider].forEach(model => modelSelect.add(new Option(model, model)));
@@ -908,7 +976,9 @@
         if (lastUsedModels && lastUsedModels[provider]) {
             modelSelect.value = lastUsedModels[provider];
         } else {
-            const defaultModel = provider === 'openai' ? 'gpt-4o' : provider === 'gemini' ? 'gemini-2.0-flash-exp' : 'deepseek-chat';
+            const defaultModel = provider === 'openai' ? 'gpt-4o' : 
+                               provider === 'gemini' ? 'gemini-2.0-flash-exp' : 
+                               provider === 'perplexity' ? 'sonar' : 'deepseek-chat';
             modelSelect.value = defaultModel;
         }
         toggleCustomModelField();
@@ -1012,7 +1082,7 @@
         if (modelSelect.value === 'custom') {
             customModelLabel.classList.remove('hidden');
             customModelInput.classList.remove('hidden');
-            customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : customDeepSeekModel;
+            customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : provider === 'deepseek' ? customDeepSeekModel : customPerplexityModel;
         } else {
             customModelLabel.classList.add('hidden');
             customModelInput.classList.add('hidden');
