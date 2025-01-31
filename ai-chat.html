@@ -317,6 +317,9 @@
         .hidden {
             display: none !important;
         }
+		.api-key-container {
+			display: none;
+		}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -346,26 +349,41 @@
             </div>
         </div>
         <div id="settings-container">
-            <label for="api-key-openai">OpenAI API Key(s):</label>
-            <textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()"></textarea>
-            <label for="api-key-gemini">Gemini API Key(s):</label>
-            <textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)" onchange="saveSettings()"></textarea>
-            <label for="api-key-deepseek">DeepSeek API Key(s):</label>
-            <textarea id="api-key-deepseek" rows="3" placeholder="Enter your DeepSeek API key(s)" onchange="saveSettings()"></textarea>
-            <label for="api-key-perplexity">Perplexity API Key(s):</label>
-            <textarea id="api-key-perplexity" rows="3" placeholder="Enter your Perplexity API key(s)" onchange="saveSettings()"></textarea>
-            <label for="api-provider">API Provider:</label>
-            <select id="api-provider" onchange="updateModelOptions(); saveSettings();">
+			<label for="api-provider">API Provider:</label>
+            <select id="api-provider" onchange="updateModelOptions(); saveSettings(); updateApiKeyVisibility();">
                 <option value="openai">OpenAI</option>
                 <option value="gemini">Gemini</option>
                 <option value="deepseek">DeepSeek</option>
                 <option value="perplexity">Perplexity</option>
+                <option value="groq">Groq</option>
             </select>
             <label for="model-select">Model:</label>
             <select id="model-select" onchange="toggleCustomModelField(); saveSettings();">
             </select>
             <label for="custom-model-input" id="custom-model-label" class="hidden">Custom model:</label>
             <input type="text" id="custom-model-input" class="hidden" placeholder="Enter custom model name" onchange="saveSettings()">
+			<div id="api-key-fields">
+				<div class="api-key-container" id="openai-api-key-container">
+					<label for="api-key-openai">OpenAI API Key(s):</label>
+					<textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()"></textarea>
+				</div>
+				<div class="api-key-container" id="gemini-api-key-container">
+					<label for="api-key-gemini">Gemini API Key(s):</label>
+					<textarea id="api-key-gemini" rows="3" placeholder="Enter your Gemini API key(s)" onchange="saveSettings()"></textarea>
+				</div>
+				<div class="api-key-container" id="deepseek-api-key-container">
+					<label for="api-key-deepseek">DeepSeek API Key(s):</label>
+					<textarea id="api-key-deepseek" rows="3" placeholder="Enter your DeepSeek API key(s)" onchange="saveSettings()"></textarea>
+				</div>
+				<div class="api-key-container" id="perplexity-api-key-container">
+					<label for="api-key-perplexity">Perplexity API Key(s):</label>
+					<textarea id="api-key-perplexity" rows="3" placeholder="Enter your Perplexity API key(s)" onchange="saveSettings()"></textarea>
+				</div>
+				<div class="api-key-container" id="groq-api-key-container">
+					<label for="api-key-groq">Groq API Key(s):</label>
+					<textarea id="api-key-groq" rows="3" placeholder="Enter your Groq API key(s)" onchange="saveSettings()"></textarea>
+				</div>
+			</div>
             <label for="system-prompt">System Prompt:</label>
             <textarea id="system-prompt" rows="3" placeholder="Enter a system prompt" onchange="saveSettings()"></textarea>
             <label>Developer Options:</label>
@@ -387,7 +405,8 @@
         gemini: [],
         openai: [],
         deepseek: [],
-        perplexity: []
+        perplexity: [],
+		groq: []
     };
     let currentApiKeyIndex = 0;
     let systemPrompt = localStorage.getItem('systemPrompt') || "";
@@ -404,11 +423,13 @@
     let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
     let customDeepSeekModel = localStorage.getItem('customDeepSeekModel') || "";
 	let customPerplexityModel = localStorage.getItem('customPerplexityModel') || "";
+	let customGroqModel = localStorage.getItem('customGroqModel') || "";
     let initialHTML = document.documentElement.outerHTML;
     document.addEventListener("DOMContentLoaded", function () {
         loadSettings();
         updateModelOptions();
         toggleCustomModelField();
+		updateApiKeyVisibility();
         const consoleCopyButton = document.querySelector('.console-copy-code');
         consoleCopyButton.addEventListener('click', () => {
             copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
@@ -421,10 +442,12 @@
         apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
         apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
 		apiKeys.perplexity = parseApiKeys(localStorage.getItem('apiKeyPerplexity') || "", 'perplexity');
+		apiKeys.groq = parseApiKeys(localStorage.getItem('apiKeyGroq') || "", 'groq');
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
         document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
 		document.getElementById('api-key-perplexity').value = apiKeys.perplexity.join('\n\n');
+		document.getElementById('api-key-groq').value = apiKeys.groq.join('\n\n');
         document.getElementById('system-prompt').value = systemPrompt;
         document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
         document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
@@ -435,11 +458,11 @@
         } else {
             document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
         }
-		document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : lastUsedApiProvider === 'gemini' ? customGeminiModel : lastUsedApiProvider === 'deepseek' ? customDeepSeekModel : customPerplexityModel;
+		document.getElementById('custom-model-input').value = lastUsedApiProvider === 'openai' ? customOpenAIModel : lastUsedApiProvider === 'gemini' ? customGeminiModel : lastUsedApiProvider === 'deepseek' ? customDeepSeekModel : lastUsedApiProvider === 'perplexity' ? customPerplexityModel : customGroqModel;
     }
 
     function setDefaultModel(provider) {
-        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : provider === "perplexity" ? 'sonar' : "deepseek-chat";
+        const defaultModel = provider === "openai" ? "gpt-4o" : provider === "gemini" ? "gemini-2.0-flash-exp" : provider === "perplexity" ? 'sonar' : provider === "groq" ? "mixtral-8x7b-32768" : "deepseek-chat";
         if (!lastUsedModels) {
             lastUsedModels = {};
         }
@@ -460,6 +483,8 @@
 			regex = /^(sk-[a-zA-Z0-9]{32})$/gm;
         } else if (provider === 'perplexity') {
 			regex = /pplx-[a-f0-9]{48}/g;
+		} else if (provider === 'groq') {
+			regex = /gsk_[a-zA-Z0-9]{52}/g;
 		}
         return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n');
     }
@@ -495,10 +520,12 @@
         apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
         apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
 		apiKeys.perplexity = parseApiKeys(document.getElementById('api-key-perplexity').value, 'perplexity');
+		apiKeys.groq = parseApiKeys(document.getElementById('api-key-groq').value, 'groq');
         localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
         localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
         localStorage.setItem('apiKeyDeepseek', apiKeys.deepseek.join('\n\n'));
 		localStorage.setItem('apiKeyPerplexity', apiKeys.perplexity.join('\n\n'));
+		localStorage.setItem('apiKeyGroq', apiKeys.groq.join('\n\n'));
         localStorage.setItem('systemPrompt', document.getElementById('system-prompt').value);
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModel = document.getElementById('model-select').value;
@@ -515,7 +542,10 @@
             } else if(currentProvider === 'perplexity'){
 				customPerplexityModel = document.getElementById('custom-model-input').value;
 				localStorage.setItem('customPerplexityModel', customPerplexityModel)
-			}
+			} else if (currentProvider === 'groq') {
+                customGroqModel = document.getElementById('custom-model-input').value;
+				localStorage.setItem('customGroqModel', customGroqModel);
+            }
         }
         if (!lastUsedModels) {
             lastUsedModels = {};
@@ -582,7 +612,7 @@
     async function sendMessage() {
         let userInput = document.getElementById('user-input').value;
         systemPrompt = document.getElementById('system-prompt').value;
-        if (userInput.trim() !== "" && (apiKeys.gemini.length > 0 || apiKeys.openai.length > 0 || apiKeys.deepseek.length > 0 || apiKeys.perplexity.length > 0)) {
+        if (userInput.trim() !== "" && (apiKeys.gemini.length > 0 || apiKeys.openai.length > 0 || apiKeys.deepseek.length > 0 || apiKeys.perplexity.length > 0 || apiKeys.groq.length > 0)) {
             const provider = document.getElementById('api-provider').value;
             selectedModel = document.getElementById('model-select').value || setDefaultModel(provider);
             if (editIndex !== null) {
@@ -826,6 +856,86 @@
 						}
 					}
 				}
+				else if (provider === 'groq') {
+                    response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+							messages: [{ role: "system", content: systemPrompt }, ...conversationHistory, { role: "user", content: userInput }],
+                            model: model,
+                            temperature: 0.6,
+                            top_p: 0.95,
+                            stream: true // Enable streaming
+                        })
+                    });
+
+					if (!response.ok) {
+						const errorText = await response.text();
+						currentApiKeyIndex++;
+						if (currentApiKeyIndex < apiKeyArray.length) {
+							await tryNextApiKey(userInput, provider);
+						} else {
+							throw new Error(errorText);
+						}
+					} else {
+						const reader = response.body.getReader();
+						const decoder = new TextDecoder("utf-8");
+						let responseContent = "";
+						let partialMessageElement = displayPartialMessage('', 'assistant');
+
+
+						async function readStream() {
+							while (true) {
+								const { done, value } = await reader.read();
+								if (done) {
+									break;
+								}
+								const chunkText = decoder.decode(value, { stream: true });
+								const dataLines = chunkText.split('\n').filter(line => line.trim() !== '');
+
+								for (const line of dataLines) {
+									if (line.startsWith('data: ')) {
+										const jsonLine = line.substring(6);
+										if (jsonLine === '[DONE]') {
+											partialMessageElement.remove();
+											return;
+										}
+
+										try {
+											const json = JSON.parse(jsonLine);
+											const contentDelta = json.choices[0].delta.content;
+											if (contentDelta) {
+												responseContent += contentDelta;
+												partialMessageElement.querySelector('.content').innerHTML = marked.parse(responseContent);
+												Prism.highlightAllUnder(partialMessageElement);
+											}
+										} catch (error) {
+											console.error('Error parsing JSON:', error);
+										}
+									}
+								}
+							}
+						}
+
+						await readStream();
+                        conversationHistory.push({role: "assistant", content: responseContent});
+						
+						//Check if it is a deepseek model
+						let reasoning = null;
+						if (model.startsWith("deepseek")) {
+							const thinkMatch = responseContent.match(/<think>(.*?)<\/think>/s);
+							if (thinkMatch) {
+								reasoning = thinkMatch[1].trim();
+								responseContent = responseContent.replace(/<think>.*?<\/think>/s, "").trim();
+							}
+						}
+						displayMessage(responseContent, 'assistant', conversationHistory.length - 1, false, reasoning);
+						document.getElementById('loading-spinner').style.display = 'none';
+                    }
+				}
                 currentApiKeyIndex = 0;
             } catch (error) {
                 currentApiKeyIndex++;
@@ -994,7 +1104,7 @@
         });
     }
 
-    function updateModelOptions() {
+    async function updateModelOptions() {
         const provider = document.getElementById('api-provider').value;
         const modelSelect = document.getElementById('model-select');
         modelSelect.innerHTML = '';
@@ -1003,8 +1113,40 @@
             gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp', 'gemini-exp-1206', 'custom'],
             openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom'],
             deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
-			perplexity: ['sonar', 'sonar-pro', 'custom']
+			perplexity: ['sonar', 'sonar-pro', 'custom'],
+			groq: ['custom']
         };
+
+		if(provider === 'groq'){
+			try {
+				const apiKey = apiKeys.groq[0];
+				if(apiKey){
+					const response = await fetch('https://api.groq.com/openai/v1/models', {
+						headers: {
+							'Authorization': `Bearer ${apiKey}`
+						}
+					});
+
+					if(response.ok){
+						const data = await response.json();
+						data.data.filter(model => !model.id.includes('whisper')).forEach(model => {
+							models.groq.push(model.id);
+						});
+					} else {
+						console.error('Error loading Groq models:', await response.text());
+						models.groq = ['custom'];
+						alert('Error loading Groq models. Please check your API key.');
+					}
+				} else {
+                    models.groq = ['custom'];
+                }
+			} catch (error) {
+                console.error('Error loading Groq models:', error);
+				models.groq = ['custom'];
+                alert('Error loading Groq models. Please check your API key.');
+			}
+		}
+
 
         models[provider].forEach(model => modelSelect.add(new Option(model, model)));
 
@@ -1013,7 +1155,7 @@
         } else {
             const defaultModel = provider === 'openai' ? 'gpt-4o' :
                 provider === 'gemini' ? 'gemini-2.0-flash-exp' :
-				provider === 'perplexity' ? 'sonar' : 'deepseek-chat';
+				provider === 'perplexity' ? 'sonar' : provider === 'groq' ? 'mixtral-8x7b-32768' : 'deepseek-chat';
             modelSelect.value = defaultModel;
         }
         toggleCustomModelField();
@@ -1117,11 +1259,19 @@
 		if (modelSelect.value === 'custom') {
 			customModelLabel.classList.remove('hidden');
 			customModelInput.classList.remove('hidden');
-			customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : provider === 'deepseek' ? customDeepSeekModel : customPerplexityModel;
+			customModelInput.value = provider === 'openai' ? customOpenAIModel : provider === 'gemini' ? customGeminiModel : provider === 'deepseek' ? customDeepSeekModel : provider === 'perplexity' ? customPerplexityModel : customGroqModel;
 		} else {
 			customModelLabel.classList.add('hidden');
 			customModelInput.classList.add('hidden');
 			customModelInput.value = "";
 		}
+	}
+	
+	function updateApiKeyVisibility() {
+		const provider = document.getElementById('api-provider').value;
+		document.querySelectorAll('.api-key-container').forEach(container => {
+			container.style.display = 'none';
+		});
+		document.getElementById(`${provider}-api-key-container`).style.display = 'block';
 	}
 </script></body></html>
