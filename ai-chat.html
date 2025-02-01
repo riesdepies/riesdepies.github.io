@@ -803,59 +803,76 @@
                         }
                     }
 				} else if (provider === 'perplexity') {
-					response = await fetch('https://api.perplexity.ai/chat/completions', {
-						method: 'POST',
-						headers: {
-							'Authorization': `Bearer ${apiKey}`,
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							model: model,
-							messages: [
-								{ role: "system", content: systemPrompt },
-								...conversationHistory
-							],
-							temperature: 0.2,
-							top_p: 0.9,
-							stream: false
-						})
-					});
+                    response = await fetch('https://api.perplexity.ai/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                ...conversationHistory
+                            ],
+                            temperature: 0.2,
+                            top_p: 0.9,
+                            stream: false
+                        })
+                    });
 
-					if (!response.ok) {
-						const errorText = await response.text();
-						currentApiKeyIndex++;
-						if (currentApiKeyIndex < apiKeyArray.length) {
-							await tryNextApiKey(userInput, provider);
-						} else {
-							throw new Error(errorText);
-						}
-					} else {
-						const data = await response.json();
-						document.getElementById('loading-spinner').style.display = 'none';
-						if (consoleEnabled) logJsonResponse(data);
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        currentApiKeyIndex++;
+                        if (currentApiKeyIndex < apiKeyArray.length) {
+                            await tryNextApiKey(userInput, provider);
+                        } else {
+                            throw new Error(errorText);
+                        }
+                    } else {
+                        const data = await response.json();
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        if (consoleEnabled) logJsonResponse(data);
 
-						if (data.choices && data.choices.length > 0) {
-							// Store the original message
-							let fullMessage = data.choices[0].message.content;
+                        if (data.choices && data.choices.length > 0) {
+                            let message = data.choices[0].message.content;
 
-							// Add citations if they exist
-							if (data.citations && data.citations.length > 0) {
-								fullMessage += "\n\nSources:\n" + data.citations.map(url => `- ${url}`).join('\n');
-							}
+                            // Replace citation numbers with emoji numbers and add links
+                            if (data.citations && data.citations.length > 0) {
+                                // Create a map of citations
+                                const citationMap = data.citations.reduce((acc, url, index) => {
+                                    const emojiNumber = getEmojiNumber(index + 1);
+									// Modified to remove brackets around the emoji number and add a space
+                                    acc[`[${index + 1}]`] = `<a href="${url}" target="_blank" style="text-decoration: none; color: inherit;"> ${emojiNumber}</a>`;
+                                    return acc;
+                                }, {});
 
-							// Store the original message without citations in the conversation history
-							conversationHistory.push({
-								role: "assistant",
-								content: data.choices[0].message.content
-							});
+                                // Replace all citations in the message
+                                Object.entries(citationMap).forEach(([citation, replacement]) => {
+                                    message = message.replace(new RegExp(`\\${citation}`, 'g'), replacement);
+                                });
 
-							// Display the full message including citations
-							displayMessage(fullMessage, 'assistant', conversationHistory.length - 1);
-						} else {
-							throw new Error("The API returned an unexpected response with no choices.");
-						}
-					}
-				}
+                                // Add formatted sources section with non-breaking space to prevent line breaks after the emoji
+                                message += '\n\n---\n\n**Sources:**\n\n' + data.citations.map((url, index) => {
+                                    const emojiNumber = getEmojiNumber(index + 1);
+                                    return `${emojiNumber}&nbsp;<a href="${url}" target="_blank" style="text-decoration: none; color: inherit;">${url}</a>\n`;
+                                }).join('\n');
+                            }
+
+
+                            // Store the original message without citations in the conversation history
+                            conversationHistory.push({
+                                role: "assistant",
+                                content: data.choices[0].message.content
+                            });
+
+                            // Display the enhanced message
+                            displayMessage(message, 'assistant', conversationHistory.length - 1);
+                        } else {
+                            throw new Error("The API returned an unexpected response with no choices.");
+                        }
+                    }
+                }
 				else if (provider === 'groq') {
                     response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                         method: 'POST',
@@ -958,7 +975,7 @@
         return div.innerHTML;
     }
 
-    function displayMessage(message, sender, index, isUserInput = false, reasoning = null) {
+     function displayMessage(message, sender, index, isUserInput = false, reasoning = null) {
         let chatOutput = document.getElementById('chat-output');
         let newMessage = document.createElement('div');
         newMessage.classList.add('message', sender);
@@ -983,7 +1000,9 @@
 				const escapedCode = escapeHtml(code.trim());
 				return `<pre><code class="language-${language}">${escapedCode}</code></pre>`;
 			});
-            let contentHTML = `<span class="content">${formattedMessage}</span>`;
+			// Modify to open all links in a new tab
+            const modifiedMessage = formattedMessage.replace(/<a href="([^"]+)"/g, '<a href="$1" target="_blank"');
+            let contentHTML = `<span class="content">${modifiedMessage}</span>`;
             if (reasoning) {
                 contentHTML += `
 <div class="reasoning-container collapsed" onclick="toggleReasoning(this)">
@@ -1004,6 +1023,7 @@
         Prism.highlightAllUnder(newMessage);
         addRunAndCopyButtonsToCodeBlocks(newMessage);
     }
+
 
     function displayPartialMessage(initialContent, sender) {
         let chatOutput = document.getElementById('chat-output');
@@ -1312,4 +1332,8 @@
 		});
 		document.getElementById(`${provider}-api-key-container`).style.display = 'block';
 	}
+    function getEmojiNumber(num) {
+        const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        return emojiNumbers[num - 1] || `[${num}]`;
+    }
 </script></body></html>
