@@ -1114,50 +1114,88 @@
             openai: ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'custom'],
             deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
 			perplexity: ['sonar', 'sonar-pro', 'custom'],
-			groq: ['custom']
+			groq: []
         };
 
-		if(provider === 'groq'){
-			try {
-				const apiKey = apiKeys.groq[0];
-				if(apiKey){
-					const response = await fetch('https://api.groq.com/openai/v1/models', {
-						headers: {
-							'Authorization': `Bearer ${apiKey}`
-						}
-					});
+        // Load saved model preference
+        const savedModel = lastUsedModels && lastUsedModels[provider];
 
-					if(response.ok){
-						const data = await response.json();
-						data.data.filter(model => !model.id.includes('whisper')).forEach(model => {
-							models.groq.push(model.id);
-						});
-					} else {
-						console.error('Error loading Groq models:', await response.text());
-						models.groq = ['custom'];
-						alert('Error loading Groq models. Please check your API key.');
-					}
-				} else {
+        if (provider === 'groq') {
+            try {
+                const apiKey = apiKeys.groq[0];
+                if (apiKey) {
+                    const response = await fetch('https://api.groq.com/openai/v1/models', {
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Filter out whisper models and sort alphabetically
+                        const sortedModels = data.data
+                            .filter(model => !model.id.includes('whisper'))
+                            .map(model => model.id)
+                            .sort();
+                       
+                        // Add all models except 'custom'
+                        models.groq = sortedModels;
+                        // Add 'custom' at the end
+                        models.groq.push('custom');
+                    } else {
+                        console.error('Error loading Groq models:', await response.text());
+                        models.groq = ['custom'];
+                        alert('Error loading Groq models. Please check your API key.');
+                    }
+                } else {
                     models.groq = ['custom'];
                 }
-			} catch (error) {
+            } catch (error) {
                 console.error('Error loading Groq models:', error);
-				models.groq = ['custom'];
+                models.groq = ['custom'];
                 alert('Error loading Groq models. Please check your API key.');
-			}
-		}
+            }
+        }
 
 
-        models[provider].forEach(model => modelSelect.add(new Option(model, model)));
+        // Add options to select element
+        models[provider].forEach(model => {
+            modelSelect.add(new Option(model, model));
+        });
 
-        if (lastUsedModels && lastUsedModels[provider]) {
-            modelSelect.value = lastUsedModels[provider];
+        // Set the selected model
+        if (savedModel) {
+            // Check if the saved model exists in the current options
+            const modelExists = Array.from(modelSelect.options).some(option => option.value === savedModel);
+           
+            if (modelExists) {
+                modelSelect.value = savedModel;
+            } else {
+                // If saved model doesn't exist, select the first non-custom model
+                const firstNonCustomModel = Array.from(modelSelect.options)
+                    .find(option => option.value !== 'custom');
+                if (firstNonCustomModel) {
+                    modelSelect.value = firstNonCustomModel.value;
+                }
+            }
         } else {
+            // Set default model if no saved model exists
             const defaultModel = provider === 'openai' ? 'gpt-4o' :
                 provider === 'gemini' ? 'gemini-2.0-flash-exp' :
-				provider === 'perplexity' ? 'sonar' : provider === 'groq' ? 'mixtral-8x7b-32768' : 'deepseek-chat';
+                provider === 'perplexity' ? 'sonar' :
+                provider === 'groq' ? (models.groq.length > 1 ? models.groq[0] : 'custom') :
+                'deepseek-chat';
+           
             modelSelect.value = defaultModel;
+           
+            // Update lastUsedModels with the default
+            if (!lastUsedModels) {
+                lastUsedModels = {};
+            }
+            lastUsedModels[provider] = defaultModel;
+            localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
         }
+       
         toggleCustomModelField();
     }
 
