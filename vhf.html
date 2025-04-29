@@ -12,8 +12,6 @@
       padding: 10px;
       background: #f0f0f0;
     }
-
-    /* TAB-CONTAINER NAAR ÉÉN RIJ MET 8 KOLOMMEN */
     .tab-container {
       display: grid;
       grid-template-columns: 1.5fr repeat(7, 1fr);
@@ -33,7 +31,6 @@
       background: #007bff;
       color: #fff;
     }
-
     .filter-container {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -65,8 +62,6 @@
       background: #007bff;
       color: #fff;
     }
-
-    /* INFO-CONTAINER WIT */
     .info-container {
       background: #fff;
       border-radius: 4px;
@@ -97,7 +92,6 @@
       color: red;
       user-select: none;
     }
-
     #errorMessage {
       display: none;
       color: #a00;
@@ -107,12 +101,10 @@
       border-radius: 5px;
       margin-bottom: 10px;
     }
-
-    /* ARTIST LIST + CARDS */
     #artistList {
       display: flex;
       flex-direction: column;
-      gap: 10px;  /* gelijke ruimte als body padding */
+      gap: 10px;
     }
     .artist-card {
       background: #fff;
@@ -125,16 +117,19 @@
       margin: 0 0 10px;
       font-size: 18px;
     }
-    .artist-info, .artist-description {
+    .artist-info,
+    .artist-description {
       font-size: 14px;
       line-height: 1.4;
+    }
+    .artist-info p,
+    .artist-description p {
+      margin: 6px 0;
     }
     .artist-name {
       color: #007bff;
       text-decoration: none;
     }
-
-    /* ruim onzichtbaar raakvlak voor hartje */
     .favorite-icon {
       position: absolute;
       top: 15px;
@@ -146,13 +141,11 @@
       justify-content: center;
       cursor: pointer;
       color: red;
-      /* geen achtergrond, geen padding, transparant containervlak */
     }
   </style>
 </head>
 <body>
 
-  <!-- ÉÉN RIJ MET WEEK + 7 DAGEN -->
   <div class="tab-container">
     <button class="tab" data-url="https://valkhoffestival.nl/lineup/">Week</button>
     <button class="tab" data-url="https://valkhoffestival.nl/speeldag/12-juli/">Za</button>
@@ -176,17 +169,11 @@
   </div>
 
   <div class="info-container">
-    <span id="countText"></span>
+    <span id="countText">0 artiesten gevonden</span>
     <span class="icons-group">
-      <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">
-        sort_by_alpha
-      </span>
-      <span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">
-        access_time
-      </span>
-      <span id="favoriteToggle" class="favorite-toggle material-icons" title="Alle favorieten">
-        favorite_border
-      </span>
+      <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
+      <span id="sortTime"  class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
+      <span id="favoriteToggle" class="favorite-toggle material-icons" title="Alle favorieten">favorite_border</span>
     </span>
   </div>
 
@@ -194,277 +181,308 @@
   <div id="artistList"></div>
 
   <script>
-    (function(){
-      const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=',
-            BASE_URL   = 'https://valkhoffestival.nl',
-            PREFIX     = 'vf_';
+  (function(){
+    const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=',
+          BASE_URL   = 'https://valkhoffestival.nl',
+          PREFIX     = 'vf_';
 
-      let cachedArtistsList = {},
-          currentArtists   = [],
-          sortMode         = localStorage.getItem(PREFIX+'sortMode') || 'alpha',
-          activePodia      = JSON.parse(localStorage.getItem(PREFIX+'activePodia') || '[]'),
-          favorites        = JSON.parse(localStorage.getItem(PREFIX+'favorites')    || '[]'),
-          showingFavs      = false,
-          currentTab       = localStorage.getItem(PREFIX+'currentTab')
-                            || BASE_URL + '/lineup/';
-      const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+    let cachedArtistsList = {},
+        currentArtists   = [],
+        sortMode         = localStorage.getItem(PREFIX+'sortMode') || 'alpha',
+        activePodia      = JSON.parse(localStorage.getItem(PREFIX+'activePodia') || '[]'),
+        favorites        = JSON.parse(localStorage.getItem(PREFIX+'favorites') || '[]'),
+        showingFavs      = false,
+        currentTab       = localStorage.getItem(PREFIX+'currentTab')
+                           || BASE_URL + '/lineup/';
+    const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 
-      function showError(msg){
-        const e = document.getElementById('errorMessage');
-        e.textContent = msg;
-        e.style.display = 'block';
+    function capitalize(s){
+      if(!s) return s;
+      return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    }
+
+    function showError(msg){
+      const e = document.getElementById('errorMessage');
+      e.textContent = msg;
+      e.style.display = 'block';
+    }
+    function hideError(){
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+    function getFullUrl(url){
+      return url.startsWith('http')
+           ? url
+           : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
+    }
+
+    async function fetchArtists(url){
+      hideError();
+      currentArtists = [];
+      document.getElementById('artistList').innerHTML = '';
+      updateArtistCount(0);
+
+      if(cachedArtistsList[url]){
+        currentArtists = cachedArtistsList[url];
+        return filterAndDisplayArtists();
       }
-      function hideError(){
-        document.getElementById('errorMessage').style.display = 'none';
-      }
-      function getFullUrl(url){
-        return url.startsWith('http')
-          ? url
-          : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
-      }
-
-      async function fetchArtists(url){
-        hideError();
-        currentArtists = [];
-        document.getElementById('artistList').innerHTML = '';
-        updateArtistCount(0);
-
-        if(cachedArtistsList[url]){
-          currentArtists = cachedArtistsList[url];
-          return filterAndDisplayArtists();
-        }
-        try {
-          const res = await fetch(CORS_PROXY + url);
-          if(!res.ok){
-            showError(`Kon artiesten niet laden (status ${res.status}).`);
-            return;
-          }
-          const html = await res.text(),
-                doc  = new DOMParser().parseFromString(html,'text/html');
-
-          currentArtists = Array.from(doc.querySelectorAll('a.artist'))
-            .map(a => ({
-              name:      a.querySelector('.nameplate h2').textContent.trim(),
-              artistUrl: getFullUrl(a.getAttribute('href'))
-            }));
-
-          cachedArtistsList[url] = currentArtists;
-          filterAndDisplayArtists();
-        } catch(err){
-          console.error(err);
-          showError('Netwerkfout bij ophalen artiesten.');
-        }
-      }
-
-      async function fetchArtistInfo(artist){
-        const key    = PREFIX + 'artist_' + artist.name,
-              stored = localStorage.getItem(key);
-        if(stored) return JSON.parse(stored);
-
-        try {
-          const res = await fetch(CORS_PROXY + artist.artistUrl);
-          if(!res.ok) return null;
-          const html = await res.text(),
-                doc  = new DOMParser().parseFromString(html,'text/html'),
-                tags = Array.from(doc.querySelectorAll('.meta .tag')),
-                paras= doc.querySelectorAll('.description p');
-
-          const info = {
-            genres:      tags.slice(0,-3).map(t => t.textContent.trim()),
-            podium:      tags[tags.length-3]?.textContent.trim() || 'Onbekend',
-            datum:       tags[tags.length-2]?.textContent.trim() || 'Onbekend',
-            tijd:        tags[tags.length-1]?.textContent.trim() || 'Onbekend',
-            description: Array.from(paras)
-                           .map(p => p.textContent.trim())
-                           .filter(txt => txt)
-                           .join('\n\n')
-                           || 'Geen beschrijving beschikbaar'
-          };
-          localStorage.setItem(key, JSON.stringify(info));
-          return info;
-        } catch {
-          return null;
-        }
-      }
-
-      function parseDateTime(datum, tijd){
-        const dagNum = parseInt(datum.split(' ')[0],10),
-              [u,m]   = tijd.split(':').map(x=>parseInt(x,10));
-        return new Date(2025,6, dagNum, u||0, m||0).getTime();
-      }
-
-      function renderArtists(entries){
-        const list = document.getElementById('artistList');
-        list.innerHTML = '';
-
-        if(sortMode === 'alpha'){
-          entries.sort((a,b)=> a.artist.name.localeCompare(b.artist.name));
-        } else {
-          entries.sort((a,b)=>
-            parseDateTime(a.info.datum,a.info.tijd)
-            - parseDateTime(b.info.datum,b.info.tijd)
-          );
-        }
-
-        entries.forEach(({artist, info})=>{
-          const dagNum  = info.datum.split(' ')[0].padStart(2,'0'),
-                date    = new Date(`2025-07-${dagNum}`),
-                dagNaam = dagen[date.getDay()],
-                isFav   = favorites.includes(artist.name);
-
-          const card = document.createElement('div');
-          card.className = 'artist-card';
-          card.innerHTML = `
-            <h2>
-              <a href="${artist.artistUrl}" target="_blank" class="artist-name">
-                ${artist.name}
-              </a>
-            </h2>
-            <span class="favorite-icon material-icons" data-name="${artist.name}">
-              ${isFav ? 'favorite' : 'favorite_border'}
-            </span>
-            <div class="artist-info">
-              <p>Genres: ${info.genres.join(', ')}</p>
-              <p>Podium: ${info.podium}</p>
-              <p>Datum: ${dagNaam} ${info.datum}</p>
-              <p>Aanvang: ${info.tijd}</p>
-            </div>
-            <div class="artist-description">
-              <p>${info.description.replace(/\n\n/g,'</p><p>')}</p>
-            </div>`;
-          list.appendChild(card);
-        });
-
-        updateArtistCount(entries.length);
-      }
-
-      async function filterAndDisplayArtists(){
-        hideError();
-        const term    = document.getElementById('searchField').value.toLowerCase(),
-              entries = [];
-
-        for(const artist of currentArtists){
-          const info = await fetchArtistInfo(artist);
-          if(!info) continue;
-
-          const matchSearch = artist.name.toLowerCase().includes(term)
-            || info.description.toLowerCase().includes(term)
-            || info.genres.some(g=>g.toLowerCase().includes(term))
-            || info.podium.toLowerCase().includes(term);
-
-          const matchPodium = !activePodia.length || activePodia.includes(info.podium);
-          const matchFav    = !showingFavs     || favorites.includes(artist.name);
-
-          if(matchSearch && matchPodium && matchFav){
-            entries.push({artist, info});
-          }
-        }
-        renderArtists(entries);
-      }
-
-      function updateArtistCount(n){
-        document.getElementById('countText').textContent =
-          `${n} ${showingFavs ? 'favorieten' : 'artiesten'} gevonden`;
-      }
-
-      function updateFilterButtons(){
-        document.querySelectorAll('.filter-button').forEach(btn=>{
-          btn.classList.toggle('active',
-            activePodia.includes(btn.dataset.podium)
-          );
-        });
-      }
-
-      function updateSortIcons(){
-        document.getElementById('sortAlpha')
-          .classList.toggle('active', sortMode==='alpha');
-        document.getElementById('sortTime')
-          .classList.toggle('active', sortMode==='time');
-      }
-
-      function toggleFavorite(name){
-        const idx = favorites.indexOf(name);
-        if(idx > -1) favorites.splice(idx,1);
-        else favorites.push(name);
-        localStorage.setItem(PREFIX+'favorites', JSON.stringify(favorites));
-        filterAndDisplayArtists();
-      }
-
-      function clearLocalStorage(){
-        if(!confirm('Weet je zeker dat je alle data (behalve favorieten) wilt resetten?'))
+      try {
+        const res = await fetch(CORS_PROXY + url);
+        if(!res.ok){
+          showError(`Kon artiesten niet laden (status ${res.status}).`);
           return;
-        for(const key of Object.keys(localStorage)){
-          if(key.startsWith(PREFIX) && key!==PREFIX+'favorites'){
-            localStorage.removeItem(key);
+        }
+        const html = await res.text(),
+              doc  = new DOMParser().parseFromString(html,'text/html');
+
+        currentArtists = Array.from(doc.querySelectorAll('a.artist'))
+          .map(a => ({
+            name: a.querySelector('.nameplate h2').textContent.trim(),
+            artistUrl: getFullUrl(a.getAttribute('href'))
+          }));
+
+        cachedArtistsList[url] = currentArtists;
+        filterAndDisplayArtists();
+      } catch(err){
+        console.error(err);
+        showError('Netwerkfout bij ophalen artiesten.');
+      }
+    }
+
+    async function fetchArtistInfo(artist){
+      const key = PREFIX + 'artist_' + artist.name,
+            stored = localStorage.getItem(key);
+      if(stored) return JSON.parse(stored);
+
+      try {
+        const res = await fetch(CORS_PROXY + artist.artistUrl);
+        if(!res.ok) return null;
+        const html = await res.text(),
+              doc  = new DOMParser().parseFromString(html,'text/html'),
+              tags = Array.from(doc.querySelectorAll('.meta .tag')),
+              paras= doc.querySelectorAll('.description p');
+
+        const rawPodium = tags[tags.length-3]?.textContent.trim() || 'Onbekend';
+        const rawDatum  = tags[tags.length-2]?.textContent.trim() || 'Onbekend';
+        const rawTijd   = tags[tags.length-1]?.textContent.trim() || 'Onbekend';
+
+        // bereken duur, ook over middernacht
+        let duurTekst = '';
+        if(rawTijd.includes('-')){
+          const [start, end] = rawTijd.split('-').map(s=>s.trim());
+          const [su,sm] = start.split(':').map(n=>parseInt(n,10));
+          const [eu,em] = end.split(':').map(n=>parseInt(n,10));
+          let minutesStart = su*60 + sm;
+          let minutesEnd   = eu*60 + em;
+          if(minutesEnd <= minutesStart){
+            // over middernacht
+            minutesEnd += 24*60;
+          }
+          const diff = minutesEnd - minutesStart;
+          if(!isNaN(diff) && diff>0){
+            duurTekst = diff + ' minuten';
           }
         }
-        location.reload();
+
+        const info = {
+          genres: tags.slice(0,-3).map(t => t.textContent.trim()),
+          podium: capitalize(rawPodium),
+          datum:  rawDatum,
+          tijd:   rawTijd,
+          duur:   duurTekst,
+          description: Array.from(paras)
+            .map(p => p.textContent.trim())
+            .filter(txt => txt)
+            .join('\n\n')
+            || 'Geen beschrijving beschikbaar'
+        };
+        localStorage.setItem(key, JSON.stringify(info));
+        return info;
+      } catch {
+        return null;
       }
+    }
 
-      // Events
-      document.querySelectorAll('.tab').forEach(tab=>{
-        tab.addEventListener('click', function(){
-          document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-          this.classList.add('active');
-          localStorage.setItem(PREFIX+'currentTab', this.dataset.url);
-          fetchArtists(this.dataset.url);
-        });
-      });
-      document.querySelectorAll('.filter-button').forEach(btn=>{
-        btn.addEventListener('click', function(){
-          const p = this.dataset.podium;
-          activePodia = activePodia.includes(p)
-            ? activePodia.filter(x=>x!==p)
-            : [...activePodia, p];
-          localStorage.setItem(PREFIX+'activePodia', JSON.stringify(activePodia));
-          updateFilterButtons();
-          filterAndDisplayArtists();
-        });
-      });
-      document.getElementById('searchField').addEventListener('input', function(){
-        this.classList.toggle('has-content', this.value.length>0);
-        const v = this.value.toLowerCase();
-        if(v==='reset'||v==='clear') clearLocalStorage();
-        else filterAndDisplayArtists();
-      });
-      document.getElementById('sortAlpha').addEventListener('click', function(){
-        sortMode = 'alpha';
-        localStorage.setItem(PREFIX+'sortMode', sortMode);
-        updateSortIcons();
-        filterAndDisplayArtists();
-      });
-      document.getElementById('sortTime').addEventListener('click', function(){
-        sortMode = 'time';
-        localStorage.setItem(PREFIX+'sortMode', sortMode);
-        updateSortIcons();
-        filterAndDisplayArtists();
-      });
-      document.getElementById('favoriteToggle').addEventListener('click', function(){
-        showingFavs = !showingFavs;
-        this.textContent = showingFavs ? 'favorite' : 'favorite_border';
-        this.classList.toggle('active', showingFavs);
-        filterAndDisplayArtists();
-      });
-      document.getElementById('artistList').addEventListener('click', e=>{
-        if(e.target.classList.contains('favorite-icon')){
-          toggleFavorite(e.target.dataset.name);
-        }
-      });
+    function parseDateTime(datum, tijd){
+      const dagNum = parseInt(datum.split(' ')[0],10),
+            [u,m]   = tijd.split(':').map(x=>parseInt(x,10));
+      return new Date(2025,6, dagNum, u||0, m||0).getTime();
+    }
 
-      // Init
-      updateFilterButtons();
-      updateSortIcons();
-      const activeBtn = document.querySelector(`.tab[data-url="${currentTab}"]`);
-      if(activeBtn){
-        activeBtn.classList.add('active');
-        fetchArtists(currentTab);
+    function renderArtists(entries){
+      const list = document.getElementById('artistList');
+      list.innerHTML = '';
+
+      if(sortMode === 'alpha'){
+        entries.sort((a,b)=> a.artist.name.localeCompare(b.artist.name));
       } else {
-        const def = document.querySelector('.tab[data-url="https://valkhoffestival.nl/lineup/"]');
-        def.classList.add('active');
-        fetchArtists(def.dataset.url);
+        entries.sort((a,b)=>
+          parseDateTime(a.info.datum,a.info.tijd)
+         - parseDateTime(b.info.datum,b.info.tijd)
+        );
       }
 
-    })();
+      entries.forEach(({artist, info}) => {
+        const dagNum = info.datum.split(' ')[0].padStart(2,'0'),
+              date   = new Date(`2025-07-${dagNum}`),
+              dagNaam= dagen[date.getDay()],
+              isFav  = favorites.includes(artist.name);
+
+        const card = document.createElement('div');
+        card.className = 'artist-card';
+        card.innerHTML = `
+          <h2>
+            <a href="${artist.artistUrl}" target="_blank" class="artist-name">
+              ${artist.name}
+            </a>
+          </h2>
+          <span class="favorite-icon material-icons" data-name="${artist.name}">
+            ${isFav ? 'favorite' : 'favorite_border'}
+          </span>
+          <div class="artist-info">
+            <p>Genres: ${info.genres.join(', ')}</p>
+            <p>Podium: ${info.podium}</p>
+            <p>Datum: ${dagNaam} ${info.datum}</p>
+            <p>Tijd: ${info.tijd}${info.duur ? ' ('+info.duur+')' : ''}</p>
+          </div>
+          <div class="artist-description">
+            <p>${info.description.replace(/\n\n/g,'</p><p>')}</p>
+          </div>`;
+        list.appendChild(card);
+      });
+
+      updateArtistCount(entries.length);
+    }
+
+    async function filterAndDisplayArtists(){
+      hideError();
+      const term = document.getElementById('searchField').value.toLowerCase(),
+            entries = [];
+      updateArtistCount(0);
+
+      for(const artist of currentArtists){
+        const info = await fetchArtistInfo(artist);
+        if(!info) continue;
+
+        const matchSearch = artist.name.toLowerCase().includes(term)
+                          || info.description.toLowerCase().includes(term)
+                          || info.genres.some(g=>g.toLowerCase().includes(term))
+                          || info.podium.toLowerCase().includes(term);
+
+        const matchPodium = !activePodia.length || activePodia.includes(info.podium);
+        const matchFav    = !showingFavs  || favorites.includes(artist.name);
+
+        if(matchSearch && matchPodium && matchFav){
+          entries.push({artist, info});
+          updateArtistCount(entries.length);
+        }
+      }
+
+      renderArtists(entries);
+    }
+
+    function updateArtistCount(n){
+      document.getElementById('countText').textContent =
+        `${n} ${showingFavs ? 'favorieten' : 'artiesten'} gevonden`;
+    }
+
+    function updateFilterButtons(){
+      document.querySelectorAll('.filter-button').forEach(btn=>{
+        btn.classList.toggle('active',
+          activePodia.includes(btn.dataset.podium)
+        );
+      });
+    }
+
+    function updateSortIcons(){
+      document.getElementById('sortAlpha')
+        .classList.toggle('active', sortMode==='alpha');
+      document.getElementById('sortTime')
+        .classList.toggle('active', sortMode==='time');
+    }
+
+    function toggleFavorite(name){
+      const idx = favorites.indexOf(name);
+      if(idx > -1) favorites.splice(idx,1);
+      else          favorites.push(name);
+      localStorage.setItem(PREFIX+'favorites', JSON.stringify(favorites));
+      filterAndDisplayArtists();
+    }
+
+    function clearLocalStorage(){
+      if(!confirm('Weet je zeker dat je alle data (behalve favorieten) wilt resetten?'))
+        return;
+      for(const key of Object.keys(localStorage)){
+        if(key.startsWith(PREFIX) && key!==PREFIX+'favorites'){
+          localStorage.removeItem(key);
+        }
+      }
+      location.reload();
+    }
+
+    // Events & Init
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click', function(){
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        this.classList.add('active');
+        localStorage.setItem(PREFIX+'currentTab', this.dataset.url);
+        fetchArtists(this.dataset.url);
+      });
+    });
+    document.querySelectorAll('.filter-button').forEach(btn=>{
+      btn.addEventListener('click', function(){
+        const p = this.dataset.podium;
+        activePodia = activePodia.includes(p)
+          ? activePodia.filter(x=>x!==p)
+          : [...activePodia, p];
+        localStorage.setItem(PREFIX+'activePodia', JSON.stringify(activePodia));
+        updateFilterButtons();
+        filterAndDisplayArtists();
+      });
+    });
+    document.getElementById('searchField').addEventListener('input', function(){
+      this.classList.toggle('has-content', this.value.length>0);
+      const v = this.value.toLowerCase();
+      if(v==='reset'||v==='clear') clearLocalStorage();
+      else                          filterAndDisplayArtists();
+    });
+    document.getElementById('sortAlpha').addEventListener('click', function(){
+      sortMode = 'alpha';
+      localStorage.setItem(PREFIX+'sortMode', sortMode);
+      updateSortIcons();
+      filterAndDisplayArtists();
+    });
+    document.getElementById('sortTime').addEventListener('click', function(){
+      sortMode = 'time';
+      localStorage.setItem(PREFIX+'sortMode', sortMode);
+      updateSortIcons();
+      filterAndDisplayArtists();
+    });
+    document.getElementById('favoriteToggle').addEventListener('click', function(){
+      showingFavs = !showingFavs;
+      this.textContent = showingFavs ? 'favorite' : 'favorite_border';
+      this.classList.toggle('active', showingFavs);
+      filterAndDisplayArtists();
+    });
+    document.getElementById('artistList').addEventListener('click', e=>{
+      if(e.target.classList.contains('favorite-icon')){
+        toggleFavorite(e.target.dataset.name);
+      }
+    });
+
+    updateFilterButtons();
+    updateSortIcons();
+    const activeBtn = document.querySelector(`.tab[data-url="${currentTab}"]`);
+    if(activeBtn){
+      activeBtn.classList.add('active');
+      fetchArtists(currentTab);
+    } else {
+      const def = document.querySelector('.tab[data-url="https://valkhoffestival.nl/lineup/"]');
+      def.classList.add('active');
+      fetchArtists(def.dataset.url);
+    }
+
+  })();
   </script>
+
 </body>
 </html>
