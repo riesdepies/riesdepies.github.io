@@ -103,7 +103,7 @@ margin-bottom: 10px;
 }
 #artistList {
 display: flex;
-flex-direction: column;
+flex-direction: column; /* Noodzakelijk voor CSS 'order' property */
 gap: 10px;
 }
 .artist-card {
@@ -112,9 +112,10 @@ border-radius: 8px;
 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 padding: 15px;
 position: relative;
+/* De display wordt nu beheerd door JS (initieel 'none', dan '' of 'none') */
 }
 .artist-card h2 {
-margin: 0 0 10px; /* This margin adds space below the h2 */
+margin: 0 0 10px;
 font-size: 18px;
 }
 .artist-info,
@@ -124,7 +125,7 @@ line-height: 1.4;
 }
 .artist-info p,
 .artist-description p {
-margin: 6px 0; /* Default margin for paragraphs */
+margin: 6px 0;
 }
 .artist-name {
 color: #007bff;
@@ -140,96 +141,82 @@ display: flex;
 align-items: center;
 justify-content: center;
 cursor: pointer;
-color: red; /* Original color */
+color: red;
 }
-/* Style for Spotify iframe container - Adjusted margin-top */
 .spotify-iframe-container {
-margin-top: 20px; /* Increased space between artist name (h2 margin-bottom) and this container */
-margin-bottom: 0; /* Ensure no space below the container itself */
+margin-top: 20px;
+margin-bottom: 0;
+height: 100px;
 }
-/* Style for the iframe itself */
 .spotify-iframe-container iframe {
 border-radius: 8px;
-margin: 0; /* Remove any default margin on the iframe */
-padding: 0; /* Remove any default padding on the iframe */
-display: block;/* Treat iframe as a block element to remove extra space below */
+margin: 0;
+padding: 0;
+display: block;
+width: 100%;
+height: 100%;
 }
-
-/* Remove the top margin from the *first* paragraph in artist-info */
 .artist-info p:first-child {
 margin-top: 0;
 }
 
-
-/* === Dark Mode Stijl 3: Soft Dark Blue-Gray === */
-/* Applying dark mode rules when the body has the 'dark-mode' class */
 body.dark-mode {
-    background: #282c34; /* Donker blauwgrijs */
-    color: #abb2bf; /* Zachte, lichte tekst */
+    background: #282c34;
+    color: #abb2bf;
 }
 body.dark-mode .tab,
 body.dark-mode .filter-button,
 body.dark-mode #searchField {
-    background: #4b5059; /* Iets lichter blauwgrijs */
-    color: #c6cdd5; /* Lichtere tekst */
-    border-color: #5b6069; /* Randkleur */
+    background: #4b5059;
+    color: #c6cdd5;
+    border-color: #5b6069;
 }
 body.dark-mode .tab.active,
 body.dark-mode .filter-button.active {
-    background: #61afef; /* Zacht blauw accent */
-    color: #282c34; /* Donkere tekst op accent */
+    background: #61afef;
+    color: #282c34;
 }
 body.dark-mode #searchField::placeholder {
-    color: #98a0ad; /* Zachte placeholder */
+    color: #98a0ad;
 }
-/* Update the #searchField.has-content style for dark mode */
 body.dark-mode #searchField.has-content {
-    background: #61afef; /* Use the accent color */
-    color: #282c34; /* Use dark text on accent */
+    background: #61afef;
+    color: #282c34;
 }
-
 body.dark-mode .info-container,
 body.dark-mode .artist-card {
-    background: #3b4048; /* Containers/kaarten kleur */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Subtiele schaduw */
+    background: #3b4048;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 body.dark-mode .artist-name {
-    color: #61afef; /* Zacht blauwe linkkleur */
+    color: #61afef;
 }
 body.dark-mode .sort-icon {
-    color: #abb2bf; /* Zachte iconen */
+    color: #abb2bf;
 }
 body.dark-mode .sort-icon.active {
-    color: #61afef; /* Zacht blauw voor actieve iconen */
+    color: #61afef;
 }
 body.dark-mode .favorite-toggle {
-    color: #e06c75; /* Zacht rood */
+    color: #e06c75;
 }
 body.dark-mode #errorMessage {
     color: #e06c75;
     background: #4b3030;
     border-color: #c05050;
 }
-
-/* --- Aangepaste regel voor consistency --- */
-/* Zorg ervoor dat het hartje op de kaart dezelfde kleur heeft als het hartje in de info-balk in dark mode */
 body.dark-mode .artist-card .favorite-icon {
-   color: #e06c75; /* Match the color of body.dark-mode .favorite-toggle */
+   color: #e06c75;
 }
-
-
-/* Ensure default styles don't override dark mode where needed */
 body.dark-mode .info-container #countText {
-    color: inherit; /* Inherit color from body */
+    color: inherit;
 }
 body.dark-mode .artist-card h2 {
-    color: inherit; /* Inherit color from body */
+    color: inherit;
 }
-
-
 </style>
 </head>
-<body class="dark-mode"> <!-- Toegevoegde dark-mode class -->
+<body class="dark-mode">
 
 <div class="tab-container">
 <button class="tab" data-url="https://valkhoffestival.nl/lineup/">Week</button>
@@ -258,7 +245,7 @@ body.dark-mode .artist-card h2 {
 <span class="icons-group">
 <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
 <span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
-<span id="favoriteToggle" class="favorite-toggle material-icons" title="Alle favorieten">favorite_border</span>
+<span id="favoriteToggle" class="favorite-toggle material-icons" title="Toon favorieten">favorite_border</span>
 </span>
 </div>
 
@@ -269,17 +256,20 @@ body.dark-mode .artist-card h2 {
 (function(){
 const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=',
 BASE_URL = 'https://valkhoffestival.nl',
-PREFIX = 'vf_';
+WEEK_URL = BASE_URL + '/lineup/',
+PREFIX = 'vf_',
+ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData_v2';
 
-let cachedArtistsList = {},
-currentArtists = [],
+let allArtistsData = [],
 sortMode = localStorage.getItem(PREFIX+'sortMode') || 'alpha',
 activePodia = JSON.parse(localStorage.getItem(PREFIX+'activePodia') || '[]'),
 favorites = JSON.parse(localStorage.getItem(PREFIX+'favorites') || '[]'),
-showingFavs = false,
-currentTab = localStorage.getItem(PREFIX+'currentTab')
-|| BASE_URL + '/lineup/';
+showingFavs = JSON.parse(localStorage.getItem(PREFIX+'showingFavs') || 'false'),
+currentDayFilter = localStorage.getItem(PREFIX+'currentDayFilter') || 'Week';
+
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+const artistListElement = document.getElementById('artistList');
+let iframeObserver;
 
 function capitalize(s){
 if(!s) return s;
@@ -300,368 +290,445 @@ return url.startsWith('http')
 : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
 }
 
-async function fetchArtists(url){
-hideError();
-currentArtists = [];
-document.getElementById('artistList').innerHTML = '';
-updateArtistCount(0);
-
-if(cachedArtistsList[url]){
-currentArtists = cachedArtistsList[url];
-return filterAndDisplayArtists();
-}
-try {
-const res = await fetch(CORS_PROXY + url);
-if(!res.ok){
-showError(`Kon artiesten niet laden (status ${res.status}).`);
-return;
-}
-const html = await res.text(),
-doc = new DOMParser().parseFromString(html,'text/html');
-
-currentArtists = Array.from(doc.querySelectorAll('a.artist'))
-.map(a => ({
-name: a.querySelector('.nameplate h2').textContent.trim(),
-artistUrl: getFullUrl(a.getAttribute('href'))
-}));
-
-cachedArtistsList[url] = currentArtists;
-filterAndDisplayArtists();
-} catch(err){
-console.error(err);
-showError('Netwerkfout bij ophalen artiesten.');
-}
+function extractDayFilterFromUrl(url) {
+    if (url.includes('/lineup/')) return 'Week';
+    const match = url.match(/(\d{1,2})-([a-zA-Z]+)/i);
+    if (match) {
+        return `${parseInt(match[1], 10)} ${match[2].toLowerCase()}`;
+    }
+    return 'Week';
 }
 
-async function fetchArtistInfo(artist){
-const key = PREFIX + 'artist_' + artist.name.replace(/[^a-zA-Z0-9]/g, '_'), // Use name, sanitize key
-stored = localStorage.getItem(key);
-if(stored) return JSON.parse(stored);
+async function fetchArtistInfo(artistBasicInfo) {
+    const key = PREFIX + 'artist_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_');
+    const stored = localStorage.getItem(key);
+    if (stored) return JSON.parse(stored);
 
-try {
-const res = await fetch(CORS_PROXY + artist.artistUrl);
-if(!res.ok) return null;
-const html = await res.text(),
-doc = new DOMParser().parseFromString(html,'text/html'),
-tags = Array.from(doc.querySelectorAll('.meta .tag')),
-paras= doc.querySelectorAll('.description p');
+    try {
+        const res = await fetch(CORS_PROXY + artistBasicInfo.artistUrl);
+        if (!res.ok) return null;
+        const html = await res.text(),
+            doc = new DOMParser().parseFromString(html, 'text/html'),
+            tags = Array.from(doc.querySelectorAll('.meta .tag')),
+            paras = doc.querySelectorAll('.description p');
 
-// Extract Spotify ID
-const spotifyIframe = doc.querySelector('.spotify iframe');
-let spotifyId = null;
-if (spotifyIframe) {
-const src = spotifyIframe.getAttribute('src');
-if (src) {
-// Look for spotify:artist:<id> in the src URL
-const match = src.match(/spotify:artist:([^&?]+)/);
-if (match && match[1]) {
-spotifyId = match[1];
-}
-}
-}
+        const spotifyIframe = doc.querySelector('.spotify iframe');
+        let spotifyId = null;
+        if (spotifyIframe) {
+            const src = spotifyIframe.getAttribute('src');
+            if (src) {
+                const match = src.match(/spotify:artist:([^&?]+)/);
+                if (match && match[1]) spotifyId = match[1];
+            }
+        }
 
-const rawPodium = tags[tags.length-3]?.textContent.trim() || 'Onbekend';
-const rawDatum = tags[tags.length-2]?.textContent.trim() || 'Onbekend';
-const rawTijd = tags[tags.length-1]?.textContent.trim() || 'Onbekend';
+        const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
+        const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
+        const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
 
-// bereken duur, ook over middernacht
-let duurTekst = '';
-if(rawTijd.includes('-')){
-const [start, end] = rawTijd.split('-').map(s=>s.trim());
-const [su,sm] = start.split(':').map(n=>parseInt(n,10));
-const [eu,em] = end.split(':').map(n=>parseInt(n,10));
-if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) { // Basic validation
-let minutesStart = su*60 + sm;
-let minutesEnd = eu*60 + em;
-if(minutesEnd <= minutesStart){
-// over middernacht
-minutesEnd += 24*60;
-}
-const diff = minutesEnd - minutesStart;
-if(diff>0 && diff <= 24*60){ // Cap difference to avoid issues with very long or incorrect times
-duurTekst = diff + ' minuten';
-}
-}
-}
+        let duurTekst = '';
+        if (rawTijd.includes('-')) {
+            const [start, end] = rawTijd.split('-').map(s => s.trim());
+            const [su, sm] = start.split(':').map(n => parseInt(n, 10));
+            const [eu, em] = end.split(':').map(n => parseInt(n, 10));
+            if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
+                let minutesStart = su * 60 + sm;
+                let minutesEnd = eu * 60 + em;
+                if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
+                const diff = minutesEnd - minutesStart;
+                if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' minuten';
+            }
+        }
 
-const info = {
-genres: tags.slice(0,-3).map(t => t.textContent.trim()),
-podium: capitalize(rawPodium),
-datum: rawDatum,
-tijd: rawTijd,
-duur: duurTekst,
-description: Array.from(paras)
-.map(p => p.textContent.trim())
-.filter(txt => txt)
-.join('\n\n')
-|| 'Geen beschrijving beschikbaar',
-spotifyId: spotifyId // Store the extracted Spotify ID
-};
-localStorage.setItem(key, JSON.stringify(info));
-return info;
-} catch(err) {
-console.error(`Error fetching info for ${artist.name}:`, err);
-return null;
-}
+        const info = {
+            genres: tags.slice(0, -3).map(t => t.textContent.trim()),
+            podium: capitalize(rawPodium),
+            datum: rawDatum,
+            tijd: rawTijd,
+            duur: duurTekst,
+            description: Array.from(paras).map(p => p.textContent.trim()).filter(txt => txt).join('\n\n') || 'Geen beschrijving beschikbaar',
+            spotifyId: spotifyId
+        };
+        localStorage.setItem(key, JSON.stringify(info));
+        return info;
+    } catch (err) {
+        console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
+        return null;
+    }
 }
 
-function parseDateTime(datum, tijd){
-// Adjusted parsing to handle cases where datum/tijd might be 'Onbekend'
-if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend') return 0; // Return 0 or a very large number to sort unknowns consistently
-const parts = datum.split(' ');
-const dagNum = parseInt(parts[0], 10);
-const [u,m] = tijd.split(':').map(x=>parseInt(x,10));
+async function loadAllArtistsData() {
+    hideError();
+    const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
+    if (cachedData) {
+        try {
+            allArtistsData = JSON.parse(cachedData);
+            console.log("All artists data loaded from cache.");
+            return;
+        } catch (e) {
+            console.warn("Failed to parse allArtistsData from cache, fetching fresh.", e);
+            localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+        }
+    }
+    
+    document.getElementById('countText').textContent = 'Artiesten laden...';
 
-if (isNaN(dagNum) || isNaN(u) || isNaN(m)) return 0; // Handle parsing errors
+    try {
+        const res = await fetch(CORS_PROXY + WEEK_URL);
+        if (!res.ok) {
+            showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
+            return;
+        }
+        const html = await res.text(),
+            doc = new DOMParser().parseFromString(html, 'text/html');
 
-// Assuming year 2025 and month July (index 6)
-return new Date(2025, 6, dagNum, u, m).getTime();
+        const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
+            .map(a => ({
+                name: a.querySelector('.nameplate h2').textContent.trim(),
+                artistUrl: getFullUrl(a.getAttribute('href'))
+            }));
+
+        let fetchedCount = 0;
+        for (const basicInfo of artistBasicInfos) {
+            const info = await fetchArtistInfo(basicInfo);
+            if (info) {
+                allArtistsData.push({ artist: basicInfo, info: info });
+            } else {
+                 allArtistsData.push({ artist: basicInfo, info: {
+                    genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend',
+                    duur: '', description: 'Details konden niet geladen worden.', spotifyId: null
+                 }});
+            }
+            fetchedCount++;
+            document.getElementById('countText').textContent = `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`;
+        }
+        
+        localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
+        console.log("All artists data fetched and cached.");
+
+    } catch (err) {
+        console.error(err);
+        showError('Netwerkfout bij ophalen artiestenlijst.');
+    }
 }
 
-function renderArtists(entries){
-const list = document.getElementById('artistList');
-list.innerHTML = '';
+function parseDateTimeForSort(datum, tijd){
+    if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend' || !tijd.includes(':')) return 0;
+    
+    const datumParts = datum.split(' ');
+    if (datumParts.length < 2) return 0;
+    const dagNum = parseInt(datumParts[0], 10);
 
-if(sortMode === 'alpha'){
-entries.sort((a,b)=> a.artist.name.localeCompare(b.artist.name));
-} else {
-// Use parsed datetime for sorting, handle potential invalid dates/times
-entries.sort((a,b)=> {
-const timeA = parseDateTime(a.info.datum, a.info.tijd);
-const timeB = parseDateTime(b.info.datum, b.info.tijd);
-if (timeA === 0 && timeB === 0) return a.artist.name.localeCompare(b.artist.name); // Sort unknowns alphabetically
-if (timeA === 0) return 1; // Unknowns last
-if (timeB === 0) return -1; // Unknowns last
-return timeA - timeB;
-});
+    const startTimeStr = tijd.split('-')[0].trim();
+    const tijdParts = startTimeStr.split(':');
+    if (tijdParts.length < 2) return 0;
+
+    const u = parseInt(tijdParts[0], 10);
+    const m = parseInt(tijdParts[1], 10);
+
+    if (isNaN(dagNum) || isNaN(u) || isNaN(m)) return 0;
+    return new Date(2025, 6, dagNum, u, m).getTime();
+}
+
+function renderAllArtistCardsOnce() {
+    artistListElement.innerHTML = '';
+
+    allArtistsData.forEach(({ artist, info }) => {
+        const card = document.createElement('div');
+        card.className = 'artist-card';
+        card.style.display = 'none'; // Initieel verborgen
+
+        card.dataset.name = artist.name.toLowerCase();
+        card.dataset.podium = info.podium;
+        card.dataset.dag = info.datum;
+        card.dataset.tijdInfo = info.tijd;
+        card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
+        card.dataset.rawName = artist.name;
+        card.dataset.genres = info.genres.join(',').toLowerCase();
+        card.dataset.description = info.description.toLowerCase();
+
+        const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
+        let dagNaam = '';
+        if (dagNum) {
+            const date = new Date(`2025-07-${dagNum}`);
+            if (!isNaN(date.getTime())) {
+                dagNaam = dagen[date.getDay()];
+            }
+        }
+        
+        const isFav = favorites.includes(artist.name);
+
+        const spotifyIframeHtml = info.spotifyId
+            ? `<div class="spotify-iframe-container">
+                 <iframe data-src="https://open.spotify.com/embed/artist/${info.spotifyId}?utm_source=generator"
+                         frameBorder="0" allowfullscreen=""
+                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                         loading="lazy"></iframe>
+               </div>`
+            : '';
+
+        card.innerHTML = `
+            <h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
+            ${spotifyIframeHtml}
+            <span class="favorite-icon material-icons" data-name="${artist.name}">
+                ${isFav ? 'favorite' : 'favorite_border'}
+            </span>
+            <div class="artist-info">
+                <p>Genres: ${info.genres.join(', ') || 'Geen genres'}</p>
+                <p>Podium: ${info.podium}</p>
+                <p>Datum: ${dagNaam ? dagNaam + ' ' : ''}${info.datum}</p>
+                <p>Tijd: ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+            </div>
+            <div class="artist-description">
+                <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
+            </div>`;
+        artistListElement.appendChild(card);
+    });
+    setupIntersectionObserverForIframes();
+}
+
+function setupIntersectionObserverForIframes() {
+    const iframes = artistListElement.querySelectorAll('.spotify-iframe-container iframe[data-src]');
+    if (iframeObserver) iframeObserver.disconnect();
+
+    iframeObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const iframe = entry.target;
+                if (iframe.dataset.src) {
+                    iframe.src = iframe.dataset.src;
+                    iframe.removeAttribute('data-src');
+                }
+                observer.unobserve(iframe);
+            }
+        });
+    }, { rootMargin: '200px 0px 200px 0px' });
+
+    iframes.forEach(iframe => iframeObserver.observe(iframe));
 }
 
 
-entries.forEach(({artist, info}) => {
-const dagNum = info.datum.split(' ')[0].padStart(2,'0');
-let dagNaam = 'Onbekend';
-const date = new Date(`2025-07-${dagNum}`);
-if (!isNaN(date.getTime())) { // Check if date is valid
-dagNaam = dagen[date.getDay()];
+function applyFiltersAndSort() {
+    hideError();
+    const searchTerm = document.getElementById('searchField').value.toLowerCase();
+    let visibleCount = 0;
+
+    // Haal een HTMLCollection van kaarten op. Deze is live.
+    const cardElements = artistListElement.children; 
+
+    // 1. Filter: Bepaal zichtbaarheid en update icoon per kaart
+    for (const card of cardElements) { // HTMLCollection is itereerbaar
+        const artistName = card.dataset.name;
+        const podium = card.dataset.podium;
+        const dag = card.dataset.dag;
+        const genres = card.dataset.genres;
+        const description = card.dataset.description;
+        const rawName = card.dataset.rawName;
+
+        let matchesDay = (currentDayFilter === 'Week') || (dag === currentDayFilter);
+        let matchesPodium = !activePodia.length || activePodia.includes(podium);
+        let matchesSearch = !searchTerm ||
+            artistName.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            genres.includes(searchTerm) ||
+            podium.toLowerCase().includes(searchTerm);
+        let matchesFavs = !showingFavs || favorites.includes(rawName);
+
+        if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
+            card.style.display = ''; // Maak zichtbaar (standaard display is 'block' voor div)
+            visibleCount++;
+        } else {
+            card.style.display = 'none'; // Verberg
+        }
+        
+        // Update favorieten icoon op de kaart
+        const favIcon = card.querySelector('.favorite-icon');
+        if (favIcon) {
+            favIcon.textContent = favorites.includes(rawName) ? 'favorite' : 'favorite_border';
+        }
+    }
+    
+    // 2. Sorteren met CSS 'order':
+    // Converteer de HTMLCollection naar een Array om de sort-methode te kunnen gebruiken.
+    // Dit is een array van de *bestaande* DOM elementen.
+    const cardsArray = Array.from(cardElements); 
+
+    cardsArray.sort((a, b) => {
+        if (sortMode === 'alpha') {
+            return a.dataset.name.localeCompare(b.dataset.name);
+        } else { // 'time'
+            const timeA = parseInt(a.dataset.timestamp, 10);
+            const timeB = parseInt(b.dataset.timestamp, 10);
+            
+            const aIsUnknown = timeA === 0;
+            const bIsUnknown = timeB === 0;
+
+            if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
+            if (aIsUnknown) return 1; // Onbekende tijden (0) komen achteraan
+            if (bIsUnknown) return -1; // Onbekende tijden (0) komen achteraan
+            
+            if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name); // Zelfde tijd, sorteer op naam
+            
+            return timeA - timeB; // Sorteer op tijd
+        }
+    });
+
+    // Pas de 'order' stijl toe op basis van de gesorteerde array-index.
+    // De elementen worden niet uit de DOM gehaald of opnieuw toegevoegd.
+    // De flex container (`artistListElement`) zal ze visueel herordenen.
+    cardsArray.forEach((card, index) => {
+        card.style.order = index; 
+    });
+
+    updateArtistCount(visibleCount);
 }
-const isFav = favorites.includes(artist.name);
-
-// Construct Spotify iframe HTML if spotifyId exists
-const spotifyIframeHtml = info.spotifyId
-? `
-<div class="spotify-iframe-container">
-<iframe src="https://open.spotify.com/embed/artist/${info.spotifyId}?utm_source=generator"
-width="100%" height="100" frameBorder="0" allowfullscreen=""
-allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-loading="lazy"></iframe>
-</div>`
-: ''; // Empty string if no Spotify ID
-
-const card = document.createElement('div');
-card.className = 'artist-card';
-card.innerHTML = `
-<h2>
-<a href="${artist.artistUrl}" target="_blank" class="artist-name">
-${artist.name}
-</a>
-</h2>
-${spotifyIframeHtml} <!-- Insert the Spotify iframe here -->
-<span class="favorite-icon material-icons" data-name="${artist.name}">
-${isFav ? 'favorite' : 'favorite_border'}
-</span>
-<div class="artist-info">
-<p>Genres: ${info.genres.join(', ') || 'Geen genres'}</p>
-<p>Podium: ${info.podium}</p>
-<p>Datum: ${dagNaam !== 'Onbekend' ? dagNaam + ' ' : ''}${info.datum}</p> <!-- Show dagNaam if known -->
-<p>Tijd: ${info.tijd}${info.duur ? ' ('+info.duur+')' : ''}</p>
-</div>
-<div class="artist-description">
-<p>${info.description.replace(/\n\n/g,'</p><p>')}</p>
-</div>`;
-list.appendChild(card);
-});
-
-updateArtistCount(entries.length);
-}
-
-async function filterAndDisplayArtists(){
-hideError();
-const term = document.getElementById('searchField').value.toLowerCase(),
-entries = [];
-updateArtistCount(0); // Reset count while filtering
-
-const artistsToProcess = showingFavs
-? currentArtists.filter(artist => favorites.includes(artist.name))
-: currentArtists;
-
-// Use a temporary array to hold entries as they are processed
-const tempEntries = [];
-
-for(const artist of artistsToProcess){
-const info = await fetchArtistInfo(artist);
-// Continue only if info was successfully fetched
-if(info){
-const matchSearch = artist.name.toLowerCase().includes(term)
-|| info.description.toLowerCase().includes(term)
-|| info.genres.some(g=>g.toLowerCase().includes(term))
-|| info.podium.toLowerCase().includes(term);
-
-const matchPodium = !activePodia.length || activePodia.includes(info.podium);
-// matchFav is already handled by filtering `artistsToProcess` if showingFavs is true
-
-if(matchSearch && matchPodium){
-tempEntries.push({artist, info});
-updateArtistCount(tempEntries.length); // Update count reactively as artists load
-}
-} else {
-// If fetching info failed, still add the artist with partial info if they match filters
-// This prevents the app from blocking if some artist pages fail
-const partialInfo = { // Minimal info to avoid errors
-genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend', duur: '', description: 'Kon details niet laden.', spotifyId: null
-};
-const matchSearch = artist.name.toLowerCase().includes(term)
-|| partialInfo.description.toLowerCase().includes(term)
-|| partialInfo.podium.toLowerCase().includes(term); // Cannot match genres/time if info failed
-
-const matchPodium = !activePodia.length || activePodia.includes(partialInfo.podium);
-// matchFav handled by initial filter
-
-if(matchSearch && matchPodium){
-tempEntries.push({artist, info: partialInfo});
-updateArtistCount(tempEntries.length); // Update count
-}
-}
-}
-
-// Now render the collected entries
-renderArtists(tempEntries);
-}
-
 
 function updateArtistCount(n){
-document.getElementById('countText').textContent =
-`${n} ${showingFavs ? 'favoriet' + (n === 1 ? '' : 'en') : 'artiest' + (n === 1 ? '' : 'en')} gevonden`;
+    document.getElementById('countText').textContent =
+    `${n} ${showingFavs ? 'favoriet' + (n === 1 ? '' : 'en') : 'artiest' + (n === 1 ? '' : 'en')} gevonden`;
 }
 
-function updateFilterButtons(){
-document.querySelectorAll('.filter-button').forEach(btn=>{
-btn.classList.toggle('active',
-activePodia.includes(btn.dataset.podium)
-);
-});
+function updateFilterButtonsUI(){
+    document.querySelectorAll('.filter-button').forEach(btn=>{
+        btn.classList.toggle('active', activePodia.includes(btn.dataset.podium));
+    });
 }
 
-function updateSortIcons(){
-document.getElementById('sortAlpha')
-.classList.toggle('active', sortMode==='alpha');
-document.getElementById('sortTime')
-.classList.toggle('active', sortMode==='time');
+function updateSortIconsUI(){
+    document.getElementById('sortAlpha').classList.toggle('active', sortMode === 'alpha');
+    document.getElementById('sortTime').classList.toggle('active', sortMode === 'time');
 }
 
-function toggleFavorite(name){
-const idx = favorites.indexOf(name);
-if(idx > -1) favorites.splice(idx,1);
-else favorites.push(name);
-localStorage.setItem(PREFIX+'favorites', JSON.stringify(favorites));
-filterAndDisplayArtists(); // Re-filter/render to update icons and maybe list visibility
+function updateFavoriteToggleUI() {
+    const favToggle = document.getElementById('favoriteToggle');
+    favToggle.textContent = showingFavs ? 'favorite' : 'favorite_border';
+    favToggle.classList.toggle('active', showingFavs);
 }
 
-function clearLocalStorage(){
-if(!confirm('Weet je zeker dat je alle data (behalve favorieten) wilt resetten? Dit kan nodig zijn na website updates.'))
-return;
-for(const key of Object.keys(localStorage)){
-if(key.startsWith(PREFIX) && key!==PREFIX+'favorites'){
-localStorage.removeItem(key);
-}
-}
-location.reload(); // Reload the page to fetch data again
+function updateActiveTabUI() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const activeTabButton = document.querySelector(`.tab[data-dayfilter="${currentDayFilter}"]`);
+    if (activeTabButton) {
+        activeTabButton.classList.add('active');
+    } else {
+        const weekTab = document.querySelector('.tab[data-dayfilter="Week"]');
+        if(weekTab) weekTab.classList.add('active');
+        currentDayFilter = 'Week';
+        localStorage.setItem(PREFIX + 'currentDayFilter', currentDayFilter);
+    }
 }
 
-// Events & Init
-document.querySelectorAll('.tab').forEach(tab=>{
-tab.addEventListener('click', function(){
-document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-this.classList.add('active');
-localStorage.setItem(PREFIX+'currentTab', this.dataset.url);
-showingFavs = false; // Reset favorite filter on tab change
-document.getElementById('favoriteToggle').textContent = 'favorite_border';
-document.getElementById('favoriteToggle').classList.remove('active');
-fetchArtists(this.dataset.url);
-});
-});
-document.querySelectorAll('.filter-button').forEach(btn=>{
-btn.addEventListener('click', function(){
-const p = this.dataset.podium;
-activePodia = activePodia.includes(p)
-? activePodia.filter(x=>x!==p)
-: [...activePodia, p];
-localStorage.setItem(PREFIX+'activePodia', JSON.stringify(activePodia));
-updateFilterButtons();
-filterAndDisplayArtists();
-});
-});
-document.getElementById('searchField').addEventListener('input', function(){
-this.classList.toggle('has-content', this.value.length > 0);
-const v = this.value.toLowerCase();
-// Check for magic words *only* if the field value *is* one of them
-if(v === 'reset' || v === 'clear') {
-this.value = ''; // Clear field after command
-this.classList.remove('has-content');
-clearLocalStorage();
-} else {
-filterAndDisplayArtists();
+function toggleFavoriteOnCard(name){
+    const idx = favorites.indexOf(name);
+    if(idx > -1) favorites.splice(idx,1);
+    else favorites.push(name);
+    localStorage.setItem(PREFIX+'favorites', JSON.stringify(favorites));
+    applyFiltersAndSort(); // Update UI (icoon en telling)
 }
-});
-document.getElementById('sortAlpha').addEventListener('click', function(){
-sortMode = 'alpha';
-localStorage.setItem(PREFIX+'sortMode', sortMode);
-updateSortIcons();
-filterAndDisplayArtists();
-});
-document.getElementById('sortTime').addEventListener('click', function(){
-sortMode = 'time';
-localStorage.setItem(PREFIX+'sortMode', sortMode);
-updateSortIcons();
-filterAndDisplayArtists();
-});
-document.getElementById('favoriteToggle').addEventListener('click', function(){
-showingFavs = !showingFavs;
-this.textContent = showingFavs ? 'favorite' : 'favorite_border';
-this.classList.toggle('active', showingFavs);
-updateArtistCount(0); // Reset count during re-filter
-filterAndDisplayArtists();
-});
-document.getElementById('artistList').addEventListener('click', e=>{
-const favIcon = e.target.closest('.favorite-icon'); // Use closest to handle clicks on inner elements
-if(favIcon){
-toggleFavorite(favIcon.dataset.name);
-}
-});
 
-// Initial state setup
-updateFilterButtons();
-updateSortIcons();
-const activeBtn = document.querySelector(`.tab[data-url="${currentTab}"]`);
-if(activeBtn){
-activeBtn.classList.add('active');
-// Trigger fetchArtists for the saved tab on load
-fetchArtists(currentTab);
-} else {
-// If no saved tab, default to the first tab
-const def = document.querySelector('.tab'); // Select the first tab
-if(def){
-def.classList.add('active');
-currentTab = def.dataset.url; // Set currentTab to the default
-localStorage.setItem(PREFIX+'currentTab', currentTab);
-fetchArtists(currentTab);
-} else {
-showError('Geen tabbladen gevonden.');
+function clearLocalStorageData(){
+    if(!confirm('Weet je zeker dat je alle data (behalve favorieten en voorkeuren) wilt resetten? Dit kan nodig zijn na website updates.'))
+        return;
+    
+    for(const key of Object.keys(localStorage)){
+        if(key.startsWith(PREFIX + 'artist_') || key === ALL_ARTISTS_DATA_CACHE_KEY){
+            localStorage.removeItem(key);
+        }
+    }
+    allArtistsData = [];
+    location.reload(); 
 }
-}
-// Update favorite toggle icon on load based on showingFavs state (although showingFavs is reset on tab load)
-document.getElementById('favoriteToggle').textContent = showingFavs ? 'favorite' : 'favorite_border';
-document.getElementById('favoriteToggle').classList.toggle('active', showingFavs);
 
+function initializeEventListeners() {
+    document.querySelectorAll('.tab').forEach(tab => {
+        const dayFilterValue = extractDayFilterFromUrl(tab.dataset.url);
+        tab.dataset.dayfilter = dayFilterValue;
+
+        tab.addEventListener('click', function(){
+            currentDayFilter = this.dataset.dayfilter;
+            localStorage.setItem(PREFIX+'currentDayFilter', currentDayFilter);
+            updateActiveTabUI();
+            applyFiltersAndSort();
+        });
+    });
+
+    document.querySelectorAll('.filter-button').forEach(btn=>{
+        btn.addEventListener('click', function(){
+            const p = this.dataset.podium;
+            activePodia = activePodia.includes(p)
+                ? activePodia.filter(x=>x!==p)
+                : [...activePodia, p];
+            localStorage.setItem(PREFIX+'activePodia', JSON.stringify(activePodia));
+            updateFilterButtonsUI();
+            applyFiltersAndSort();
+        });
+    });
+
+    const searchField = document.getElementById('searchField');
+    searchField.addEventListener('input', function(){
+        this.classList.toggle('has-content', this.value.length > 0);
+        const v = this.value.toLowerCase();
+        if(v === 'reset' || v === 'clear') {
+            this.value = ''; 
+            this.classList.remove('has-content');
+            clearLocalStorageData();
+        } else {
+            applyFiltersAndSort();
+        }
+    });
+
+    document.getElementById('sortAlpha').addEventListener('click', function(){
+        sortMode = 'alpha';
+        localStorage.setItem(PREFIX+'sortMode', sortMode);
+        updateSortIconsUI();
+        applyFiltersAndSort();
+    });
+    document.getElementById('sortTime').addEventListener('click', function(){
+        sortMode = 'time';
+        localStorage.setItem(PREFIX+'sortMode', sortMode);
+        updateSortIconsUI();
+        applyFiltersAndSort();
+    });
+
+    document.getElementById('favoriteToggle').addEventListener('click', function(){
+        showingFavs = !showingFavs;
+        localStorage.setItem(PREFIX+'showingFavs', JSON.stringify(showingFavs));
+        updateFavoriteToggleUI();
+        applyFiltersAndSort();
+    });
+
+    artistListElement.addEventListener('click', e=>{
+        const favIcon = e.target.closest('.favorite-icon');
+        if(favIcon){
+            toggleFavoriteOnCard(favIcon.dataset.name);
+        }
+    });
+}
+
+async function main() {
+    initializeEventListeners(); 
+
+    updateFilterButtonsUI();
+    updateSortIconsUI();
+    updateFavoriteToggleUI();
+    updateActiveTabUI(); 
+    
+    await loadAllArtistsData();
+
+    if (allArtistsData.length > 0) {
+        renderAllArtistCardsOnce();
+        applyFiltersAndSort(); // Eerste keer filteren en sorteren
+    } else {
+        if (!document.getElementById('errorMessage').style.display || document.getElementById('errorMessage').style.display === 'none') {
+             showError('Geen artiesten data gevonden of kunnen laden.');
+        }
+        updateArtistCount(0);
+    }
+    const searchField = document.getElementById('searchField');
+    searchField.classList.toggle('has-content', searchField.value.length > 0);
+}
+
+main();
 
 })();
 </script>
