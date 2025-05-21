@@ -6,19 +6,50 @@
 <title>Valkhof Festival 2025</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
+html {
+    overflow-y: scroll;
+}
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
 body {
 font-family: Arial, sans-serif;
 margin: 0;
-padding: 10px;
+padding-left: 10px;
+padding-right: 10px;
+padding-bottom: 10px;
 background: #f0f0f0;
 }
-.tab-container {
+
+.control-bar-group {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #f0f0f0;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease-out;
+    will-change: transform;
+}
+
+.control-bar-group.hidden {
+    transform: translateY(-100%);
+}
+
+.day-filter-container,
+.filter-container {
+    margin-bottom: 5px;
+}
+
+.day-filter-container {
 display: grid;
 grid-template-columns: repeat(7, 1fr);
 gap: 5px;
-margin-bottom: 10px;
 }
-.tab {
+.day-filter-button {
 padding: 10px;
 font-size: 14px;
 text-align: center;
@@ -27,7 +58,7 @@ border: none;
 cursor: pointer;
 border-radius: 4px;
 }
-.tab.active {
+.day-filter-button.active {
 background: #007bff;
 color: #fff;
 }
@@ -35,7 +66,6 @@ color: #fff;
 display: grid;
 grid-template-columns: repeat(4, 1fr);
 gap: 5px;
-margin-bottom: 10px;
 }
 .filter-button, #searchField {
 padding: 10px;
@@ -45,7 +75,6 @@ background: #fff;
 border: 1px solid #ddd;
 border-radius: 20px;
 cursor: pointer;
-box-sizing: border-box;
 }
 .filter-button.active {
 background: #007bff;
@@ -54,6 +83,23 @@ color: #fff;
 #searchField {
 width: 100%;
 }
+/* Verberg standaard wis-knopje in search input */
+#searchField::-webkit-search-decoration,
+#searchField::-webkit-search-cancel-button,
+#searchField::-webkit-search-results-button,
+#searchField::-webkit-search-results-decoration {
+    -webkit-appearance:none; /* Oudere WebKit/Blink */
+    display: none; /* Zorgt ervoor dat het element geen ruimte inneemt */
+}
+#searchField::-ms-clear { /* Voor Edge (oudere versies) */
+    display: none;
+    width: 0;
+    height: 0;
+}
+/* Firefox toont standaard geen 'x' bij type="search" zonder form,
+   maar 'appearance: textfield' kan worden gebruikt als reset indien nodig.
+   Voor nu laten we dit weg, de bovenstaande rules zijn meestal voldoende. */
+
 #searchField:focus {
 outline: none;
 border-color: #007bff;
@@ -65,37 +111,46 @@ color: #fff;
 .info-container {
 background: #fff;
 border-radius: 4px;
-padding: 15px;
-margin-bottom: 10px;
+padding: 0 15px;
 display: flex;
 align-items: center;
 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-/* Hoogte wordt nu impliciet bepaald door content, maar zou stabiel moeten zijn */
+height: 40px;
+margin-bottom: 0;
 }
 #countText {
 font-weight: bold;
-white-space: nowrap;     /* Voorkom dat tekst naar volgende regel gaat */
-overflow: hidden;        /* Verberg tekst die niet past */
-text-overflow: ellipsis; /* Voeg "..." toe aan afgekapte tekst */
-min-width: 0;            /* Belangrijk voor ellipsis in flex items */
-margin-right: 10px;      /* Ruimte tussen tekst en iconen */
-/* flex-grow: 1;  Optioneel, als het moet uitdijen. Voor nu niet nodig. */
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+min-width: 0;
+margin-right: 10px;
 }
 .icons-group {
 margin-left: auto;
 display: flex;
 gap: 10px;
+align-items: center;
 }
-.sort-icon, .favorite-toggle { /* Gecombineerd voor font-display */
+.icons-group .material-icons {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    font-size: 22px;
+}
+.icons-group.loaded .material-icons {
+    opacity: 1;
+}
+
+.sort-icon, .favorite-toggle {
 cursor: pointer;
 color: #555;
 user-select: none;
-font-display: block; /* Voorkomt flash van tekst ligatures */
+font-display: block;
 }
 .sort-icon.active {
 color: #007bff;
 }
-.favorite-toggle { /* Specifieke kleur voor favorite blijft apart indien nodig */
+.favorite-toggle {
 color: red;
 }
 #errorMessage {
@@ -147,12 +202,12 @@ align-items: center;
 justify-content: center;
 cursor: pointer;
 color: red;
-font-display: block; /* Ook voor dit icoon */
+font-display: block;
 }
 .spotify-iframe-container {
 margin-top: 20px;
 margin-bottom: 0;
-height: 100px; /* Behoud vaste hoogte om verspringen te minimaliseren */
+height: 100px;
 }
 .spotify-iframe-container iframe {
 border-radius: 8px;
@@ -160,7 +215,7 @@ margin: 0;
 padding: 0;
 display: block;
 width: 100%;
-height: 100%; /* iframe vult de container */
+height: 100%;
 }
 .artist-info p:first-child {
 margin-top: 0;
@@ -177,14 +232,18 @@ body.dark-mode {
 background: #282c34;
 color: #abb2bf;
 }
-body.dark-mode .tab,
+body.dark-mode .control-bar-group {
+    background: #282c34;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+body.dark-mode .day-filter-button,
 body.dark-mode .filter-button,
 body.dark-mode #searchField {
 background: #4b5059;
 color: #c6cdd5;
 border-color: #5b6069;
 }
-body.dark-mode .tab.active,
+body.dark-mode .day-filter-button.active,
 body.dark-mode .filter-button.active {
 background: #61afef;
 color: #282c34;
@@ -196,7 +255,10 @@ body.dark-mode #searchField.has-content {
 background: #61afef;
 color: #282c34;
 }
-body.dark-mode .info-container,
+body.dark-mode .info-container {
+    background: #3b4048;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
 body.dark-mode .artist-card {
 background: #3b4048;
 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -204,14 +266,14 @@ box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 body.dark-mode .artist-name {
 color: #61afef;
 }
-body.dark-mode .sort-icon, body.dark-mode .favorite-toggle { /* Aangepast voor gecombineerde selector */
+body.dark-mode .sort-icon, body.dark-mode .favorite-toggle {
 color: #abb2bf;
 }
 body.dark-mode .sort-icon.active {
 color: #61afef;
 }
-body.dark-mode .favorite-toggle { /* Dark mode specifieke kleur voor favorite */
-color: #e06c75; /* Behoudt de rode tint voor favorieten */
+body.dark-mode .favorite-toggle {
+color: #e06c75;
 }
 body.dark-mode #errorMessage {
 color: #e06c75;
@@ -231,7 +293,6 @@ body.dark-mode mark {
     background-color: #61afef;
     color: #282c34;
 }
-/* Algemene Material Icons styling, zodat font-display hier ook geldt */
 .material-icons {
     font-display: block;
 }
@@ -239,34 +300,36 @@ body.dark-mode mark {
 </head>
 <body class="dark-mode">
 
-<div class="tab-container">
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/12-juli/">Za</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/13-juli/">Zo</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/14-juli/">Ma</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/15-juli/">Di</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/16-juli/">Wo</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/17-juli/">Do</button>
-<button class="tab" data-url="https://valkhoffestival.nl/speeldag/18-juli/">Vr</button>
-</div>
+<div id="controlBarGroup" class="control-bar-group">
+    <div class="day-filter-container">
+    <button class="day-filter-button" data-dayfilter="12 juli">Za</button>
+    <button class="day-filter-button" data-dayfilter="13 juli">Zo</button>
+    <button class="day-filter-button" data-dayfilter="14 juli">Ma</button>
+    <button class="day-filter-button" data-dayfilter="15 juli">Di</button>
+    <button class="day-filter-button" data-dayfilter="16 juli">Wo</button>
+    <button class="day-filter-button" data-dayfilter="17 juli">Do</button>
+    <button class="day-filter-button" data-dayfilter="18 juli">Vr</button>
+    </div>
 
-<div class="filter-container">
-<button class="filter-button" data-podium="Arc">Arc</button>
-<button class="filter-button" data-podium="Boog">Boog</button>
-<button class="filter-button" data-podium="Bloem">Bloem</button>
-<button class="filter-button" data-podium="Club Voerweg">Voerweg</button>
-<button class="filter-button" data-podium="Tuin">Tuin</button>
-<button class="filter-button" data-podium="Kapel">Kapel</button>
-<button class="filter-button" data-podium="Poort">Poort</button>
-<input type="text" id="searchField" placeholder="Zoek..">
-</div>
+    <div class="filter-container">
+    <button class="filter-button" data-podium="Arc">Arc</button>
+    <button class="filter-button" data-podium="Boog">Boog</button>
+    <button class="filter-button" data-podium="Bloem">Bloem</button>
+    <button class="filter-button" data-podium="Club Voerweg">Voerweg</button>
+    <button class="filter-button" data-podium="Tuin">Tuin</button>
+    <button class="filter-button" data-podium="Kapel">Kapel</button>
+    <button class="filter-button" data-podium="Poort">Poort</button>
+    <input type="search" id="searchField" placeholder="Zoek.." autocomplete="off">
+    </div>
 
-<div class="info-container">
-<span id="countText">0 artiesten gevonden</span>
-<span class="icons-group">
-<span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
-<span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
-<span id="favoriteToggle" class="favorite-toggle material-icons" title="Toon favorieten">favorite_border</span>
-</span>
+    <div class="info-container">
+    <span id="countText">0 artiesten gevonden</span>
+    <span class="icons-group">
+    <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
+    <span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
+    <span id="favoriteToggle" class="favorite-toggle material-icons" title="Toon favorieten">favorite_border</span>
+    </span>
+    </div>
 </div>
 
 <div id="errorMessage"></div>
@@ -287,12 +350,17 @@ searchFieldElement = document.getElementById('searchField'),
 sortAlphaElement = document.getElementById('sortAlpha'),
 sortTimeElement = document.getElementById('sortTime'),
 favoriteToggleElement = document.getElementById('favoriteToggle'),
-tabContainerElement = document.querySelector('.tab-container'),
-filterContainerElement = document.querySelector('.filter-container');
+dayFilterContainerElement = document.querySelector('.day-filter-container'),
+filterContainerElement = document.querySelector('.filter-container'),
+controlBarGroup = document.getElementById('controlBarGroup'),
+iconsGroupElement = document.querySelector('.icons-group');
+
+let lastScrollY = window.scrollY;
+let ticking = false;
 
 let allArtistsData = [],
 iframeObserver,
-searchClickShouldClear = false; // Voor zoekveld toggle functionaliteit
+searchClickShouldClear = false;
 
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
@@ -322,7 +390,8 @@ function setStoredString(keySuffix, value) {
 localStorage.setItem(PREFIX + keySuffix, value);
 }
 
-let sortMode = getStoredString('sortMode', 'alpha'),
+// Standaard sortering is nu 'time' (chronologisch)
+let sortMode = getStoredString('sortMode', 'time'),
 activePodia = getStoredJSON('activePodia', []),
 favorites = getStoredJSON('favorites', []),
 showingFavs = getStoredJSON('showingFavs', false),
@@ -344,15 +413,6 @@ function getFullUrl(url){
 return url.startsWith('http')
 ? url
 : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
-}
-
-function extractDayFilterFromUrl(url) {
-if (url.includes('/lineup/')) return 'Week';
-const match = url.match(/(\d{1,2})-([a-zA-Z]+)/i);
-if (match) {
-return `${parseInt(match[1], 10)} ${match[2].toLowerCase()}`;
-}
-return null;
 }
 
 async function fetchArtistInfo(artistBasicInfo) {
@@ -505,15 +565,14 @@ card.dataset.description = info.description.toLowerCase();
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
 let dagNaam = '';
 if (dagNum) {
-const date = new Date(`2025-07-${dagNum}`);
-if (!isNaN(date.getTime())) {
-dagNaam = dagen[date.getDay()];
-}
+    const date = new Date(2025, 6, parseInt(dagNum, 10));
+    if (!isNaN(date.getTime())) {
+        dagNaam = dagen[date.getDay()];
+    }
 }
 
 const isFav = favorites.includes(artist.name);
 
-// VERWIJDERD: loading="lazy" attribuut
 const spotifyIframeHtml = info.spotifyId
 ? `<div class="spotify-iframe-container">
 <iframe data-src="https://open.spotify.com/embed/artist/${info.spotifyId}?utm_source=generator"
@@ -546,7 +605,6 @@ function setupIntersectionObserverForIframes() {
 const iframes = artistListElement.querySelectorAll('.spotify-iframe-container iframe[data-src]');
 if (iframeObserver) iframeObserver.disconnect();
 
-// AANGEPAST: rootMargin verhoogd voor eerder laden
 iframeObserver = new IntersectionObserver((entries, observer) => {
 entries.forEach(entry => {
 if (entry.isIntersecting) {
@@ -558,7 +616,7 @@ iframe.removeAttribute('data-src');
 observer.unobserve(iframe);
 }
 });
-}, { rootMargin: '500px 0px 500px 0px' }); // Was '200px 0px 200px 0px'
+}, { rootMargin: '500px 0px 500px 0px' });
 
 iframes.forEach(iframe => iframeObserver.observe(iframe));
 }
@@ -623,6 +681,19 @@ function applyHighlight(element, searchTerm) {
     highlightNodeRecursive(element);
 }
 
+function scrollToArtistListTop() {
+    if (!artistListElement || !controlBarGroup) return;
+
+    window.scrollTo({
+        top: 0,
+        behavior: 'auto'
+    });
+
+    if (controlBarGroup) {
+        controlBarGroup.classList.remove('hidden');
+    }
+    lastScrollY = 0;
+}
 
 function applyFiltersAndSort() {
 hideError();
@@ -677,7 +748,7 @@ const cardsArray = Array.from(cardElements);
 cardsArray.sort((a, b) => {
     if (sortMode === 'alpha') {
     return a.dataset.name.localeCompare(b.dataset.name);
-    } else {
+    } else { // 'time'
     const timeA = parseInt(a.dataset.timestamp, 10);
     const timeB = parseInt(b.dataset.timestamp, 10);
 
@@ -697,11 +768,13 @@ cardsArray.forEach((card, index) => {
 });
 
 updateArtistCount(visibleCount);
+scrollToArtistListTop();
 }
 
 function updateArtistCount(n){
-countTextElement.textContent =
-`${n} ${showingFavs ? 'favoriet' + (n === 1 ? '' : 'en') : 'artiest' + (n === 1 ? '' : 'en')} gevonden`;
+const pluralSuffix = n === 1 ? '' : 'en';
+const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
+countTextElement.textContent = `${n} ${entity} gevonden`;
 }
 
 function updateFilterButtonsUI(){
@@ -721,9 +794,9 @@ favoriteToggleElement.classList.toggle('active', showingFavs);
 }
 
 function updateActiveDayTabsUI() {
-    document.querySelectorAll('.tab').forEach(t => {
-        const dayFilterForButton = t.dataset.dayfilter;
-        t.classList.toggle('active', activeDays.includes(dayFilterForButton));
+    document.querySelectorAll('.day-filter-button').forEach(btn => {
+        const dayFilterForButton = btn.dataset.dayfilter;
+        btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
     });
 }
 
@@ -748,11 +821,40 @@ allArtistsData = [];
 location.reload();
 }
 
+function updateBodyPadding() {
+    if (controlBarGroup) {
+        const headerHeight = controlBarGroup.offsetHeight;
+        document.body.style.paddingTop = `${headerHeight + 10}px`;
+    }
+}
+
+function handleScrollLogic() {
+    if (!controlBarGroup) return;
+
+    const currentScrollY = window.scrollY;
+    const scrollDelta = currentScrollY - lastScrollY;
+    const scrollThreshold = 5;
+
+    if (currentScrollY < controlBarGroup.offsetHeight) {
+        controlBarGroup.classList.remove('hidden');
+    }
+    else if (scrollDelta > scrollThreshold) {
+        controlBarGroup.classList.add('hidden');
+    }
+    else if (scrollDelta < -scrollThreshold) {
+        controlBarGroup.classList.remove('hidden');
+    }
+
+    lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+    ticking = false;
+}
+
+
 function initializeEventListeners() {
-tabContainerElement.addEventListener('click', function(e) {
-    const tab = e.target.closest('.tab');
-    if (tab) {
-        const dayFilter = tab.dataset.dayfilter;
+dayFilterContainerElement.addEventListener('click', function(e) {
+    const dayButton = e.target.closest('.day-filter-button');
+    if (dayButton) {
+        const dayFilter = dayButton.dataset.dayfilter;
         const index = activeDays.indexOf(dayFilter);
         if (index > -1) {
             activeDays.splice(index, 1);
@@ -763,10 +865,6 @@ tabContainerElement.addEventListener('click', function(e) {
         updateActiveDayTabsUI();
         applyFiltersAndSort();
     }
-});
-
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.dataset.dayfilter = extractDayFilterFromUrl(tab.dataset.url);
 });
 
 filterContainerElement.addEventListener('click', function(e){
@@ -782,7 +880,6 @@ filterContainerElement.addEventListener('click', function(e){
     }
 });
 
-// Zoekveld event listeners
 searchFieldElement.addEventListener('focus', function() {
     if (this.value.length > 0) {
         searchClickShouldClear = true;
@@ -795,14 +892,14 @@ searchFieldElement.addEventListener('click', function() {
     if (searchClickShouldClear && this.value.length > 0) {
         this.value = '';
         this.classList.remove('has-content');
-        this.blur(); // Verwijder focus, probeert keyboard te sluiten
+        this.blur();
         applyFiltersAndSort();
         searchClickShouldClear = false; 
     }
 });
 
 searchFieldElement.addEventListener('input', function(){
-    searchClickShouldClear = (this.value.length > 0); // Na typen, volgende klik (indien focus behouden) kan wissen
+    searchClickShouldClear = (this.value.length > 0);
     
     this.classList.toggle('has-content', this.value.length > 0);
     const v = this.value.toLowerCase();
@@ -817,7 +914,15 @@ searchFieldElement.addEventListener('input', function(){
 });
 
 searchFieldElement.addEventListener('blur', function() {
-    searchClickShouldClear = false; // Reset als focus verloren gaat
+    searchClickShouldClear = false;
+});
+
+// Event listener voor Enter/Search knop op toetsenbord
+searchFieldElement.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+        this.blur(); // Verwijder focus, sluit toetsenbord
+        e.preventDefault(); // Voorkom standaard actie (zoals form submit)
+    }
 });
 
 
@@ -847,13 +952,36 @@ artistListElement.addEventListener('click', e=>{
     toggleFavoriteOnCard(favIcon.dataset.name);
     }
 });
+
+window.addEventListener('scroll', () => {
+    if (!ticking) {
+        window.requestAnimationFrame(handleScrollLogic);
+        ticking = true;
+    }
+});
+
+window.addEventListener('resize', updateBodyPadding);
+
+if (document.fonts && iconsGroupElement) {
+    document.fonts.ready.then(function() {
+        iconsGroupElement.classList.add('loaded');
+    }).catch(function(e) {
+        console.warn('Fonts niet (op tijd) geladen, iconen toch getoond.', e);
+        iconsGroupElement.classList.add('loaded');
+    });
+} else if (iconsGroupElement) {
+    setTimeout(() => {
+        iconsGroupElement.classList.add('loaded');
+    }, 250);
+}
+
 }
 
 async function main() {
 initializeEventListeners();
 
 updateFilterButtonsUI();
-updateSortIconsUI();
+updateSortIconsUI(); // Roept dit aan nadat sortMode is ingesteld (eventueel default naar 'time')
 updateFavoriteToggleUI();
 updateActiveDayTabsUI();
 
@@ -869,12 +997,9 @@ if (allArtistsData.length > 0) {
     updateArtistCount(0);
 }
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
-// Initialiseer searchClickShouldClear op basis van de huidige waarde (indien pagina herlaadt met waarde)
-if (searchFieldElement.value.length > 0) {
-    // Als er bij laden al waarde is, zou een klik moeten kunnen wissen (na focus).
-    // De focus handler zal dit correct instellen.
-}
 
+updateBodyPadding();
+handleScrollLogic();
 }
 
 main();
