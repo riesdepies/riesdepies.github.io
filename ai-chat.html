@@ -70,7 +70,7 @@ max-width: 90%;
 box-sizing: border-box;
 word-wrap: break-word;
 width: fit-content;
-border: 1px solid transparent; 
+border: 1px solid transparent;
 cursor: pointer; /* Indicate the whole message is clickable for editing */
 }
 .message.user {
@@ -86,8 +86,8 @@ align-self: flex-start;
 border-top-left-radius: 0;
 text-align: left;
 }
-.message.editing { 
-    border: 1px dashed white;
+.message.editing {
+border: 1px dashed white;
 }
 .reasoning-container {
 background-color: #2665c7;
@@ -123,15 +123,15 @@ display: none;
 }
 .editable {
 /* cursor: default; Initially not like text input */
-width: 100%; 
-display: block; 
-min-height: 1.2em; 
+width: 100%;
+display: block;
+min-height: 1.2em;
 }
 .editable[contenteditable="true"] {
-    cursor: text; 
+cursor: text;
 }
 .editable:focus {
-outline: none; 
+outline: none;
 }
 #chat-input {
 flex-shrink: 0;
@@ -141,7 +141,7 @@ border-top: 1px solid #37383c;
 background-color: #2b2c2f;
 box-sizing: border-box;
 position: relative;
-align-items: flex-end; 
+align-items: flex-end;
 }
 #chat-input textarea {
 flex-grow: 1;
@@ -152,13 +152,13 @@ border: 1px solid #444549;
 border-radius: 5px;
 margin-right: 10px;
 resize: vertical;
-min-height: 20px; 
+min-height: 20px;
 line-height: 1.5;
 overflow-y: auto;
 box-sizing: border-box;
 }
 #chat-input button#send-button {
-padding: 0; 
+padding: 0;
 background-color: #3578e5;
 color: white;
 border: none;
@@ -167,12 +167,12 @@ cursor: pointer;
 display: flex;
 align-items: center;
 justify-content: center;
-flex-shrink: 0; 
-box-sizing: border-box; 
+flex-shrink: 0;
+box-sizing: border-box;
 }
 #chat-input button#send-button svg {
-width: 20px; 
-height: 20px; 
+width: 20px;
+height: 20px;
 }
 #chat-input button:disabled {
 background-color: #666;
@@ -181,7 +181,7 @@ cursor: not-allowed;
 .tabs {
 display: flex;
 border-bottom: 1px solid #37383c;
-position: relative; 
+position: relative;
 }
 .tab {
 padding: 10px 15px;
@@ -200,7 +200,7 @@ transform: translateY(-50%);
 #clear-chat-button {
 background: none;
 border: none;
-color: #e0e0e0; 
+color: #e0e0e0;
 cursor: pointer;
 padding: 5px;
 display: flex;
@@ -208,13 +208,13 @@ align-items: center;
 justify-content: center;
 }
 #clear-chat-button:hover {
-color: #fff; 
+color: #fff;
 }
 #clear-chat-button:disabled {
-color: #6c6c6c; 
+color: #6c6c6c;
 cursor: not-allowed;
 }
-#clear-chat-button svg { 
+#clear-chat-button svg {
 width: 20px;
 height: 20px;
 }
@@ -229,11 +229,11 @@ overflow-x: auto;
 max-width: 100%;
 box-sizing: border-box;
 }
-.message span.content, .message span.editable { 
+.message span.content, .message span.editable {
 width: 100%;
-overflow-x: hidden; 
+overflow-x: hidden;
 text-align: left;
-display: block; 
+display: block;
 }
 .message pre {
 width: 100%;
@@ -345,7 +345,7 @@ display: none;
 <div id="chat-input">
 <textarea id="user-input" placeholder="Type your message..." oninput="handleUserInput()" onkeydown="handleEnter(event)"></textarea>
 <button id="send-button" onclick="sendMessage()" disabled="" title="Send Message">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
 </button>
 <div class="spinner" id="loading-spinner">
 <div></div>
@@ -414,13 +414,13 @@ groq: []
 let currentApiKeyIndex = 0;
 let systemPrompt = localStorage.getItem('systemPrompt') || "";
 let conversationHistory = [];
-let modelSpecificConversationHistory = { 
-gemini: [], 
-deepseekReasoner: [] 
+let modelSpecificConversationHistory = {
+gemini: [],
+deepseekReasoner: []
 };
-let editIndex = null; 
+let editIndex = null;
 let consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
-let selectedModel = localStorage.getItem('selectedModel'); 
+let selectedModel = localStorage.getItem('selectedModel');
 let lastUsedModels = JSON.parse(localStorage.getItem('lastUsedModels') || '{}');
 let customGeminiModel = localStorage.getItem('customGeminiModel') || "";
 let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
@@ -443,7 +443,7 @@ save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .
 document.addEventListener("DOMContentLoaded", function () {
 loadSettings();
 initializeClearChatButton();
-handlePageLoadConversation(); // MODIFIED: Confirm dialog removed, shows restore icon if session exists
+handlePageLoadConversation(); 
 
 updateModelOptions();
 const consoleCopyButton = document.querySelector('.console-copy-code');
@@ -451,90 +451,77 @@ consoleCopyButton.addEventListener('click', () => {
 copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
 });
 updateConsoleButtonText();
-adjustTextareaAndButtonHeight(); 
+adjustTextareaAndButtonHeight();
 
 const chatOutputDiv = document.getElementById('chat-output');
 chatOutputDiv.addEventListener('click', (event) => {
-    if (event.target === chatOutputDiv && editIndex !== null) {
-        const activeEditableMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
-        const activeEditableSpan = activeEditableMessageDiv ? activeEditableMessageDiv.querySelector('.editable') : null;
+if (event.target === chatOutputDiv && editIndex !== null) {
+const activeEditableMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+const activeEditableSpan = activeEditableMessageDiv ? activeEditableMessageDiv.querySelector('.editable') : null;
 
-        if (activeEditableSpan) { 
-            activeEditableSpan.blur();
-        } else if (editIndex !== null) { 
-            const currentEditingMsgDiv = document.querySelector(`.message.editing`);
-            if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
-            editIndex = null;
-            updateClearChatButtonIcon();
-        }
-    }
+if (activeEditableSpan) {
+activeEditableSpan.blur();
+} else if (editIndex !== null) {
+const currentEditingMsgDiv = document.querySelector(`.message.editing`);
+if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+}
+}
 });
 });
 
 function handleUserInput() {
-    adjustTextareaAndButtonHeight(); // MODIFIED: Now limits textarea growth
-    toggleSendButton();
+adjustTextareaAndButtonHeight(); 
+toggleSendButton();
 }
 
 function adjustTextareaAndButtonHeight() {
-    const userInputArea = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
-    const computedStyle = getComputedStyle(userInputArea);
+const userInputArea = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
+const computedStyle = getComputedStyle(userInputArea);
 
-    const lineHeight = parseFloat(computedStyle.lineHeight); // e.g., 24px if font-size is 16px and line-height is 1.5
-    const paddingTop = parseFloat(computedStyle.paddingTop); // e.g., 10px
-    const paddingBottom = parseFloat(computedStyle.paddingBottom); // e.g., 10px
-    const borderTopWidth = parseFloat(computedStyle.borderTopWidth); // e.g., 1px
-    const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth); // e.g., 1px
+const lineHeight = parseFloat(computedStyle.lineHeight); 
+const paddingTop = parseFloat(computedStyle.paddingTop); 
+const paddingBottom = parseFloat(computedStyle.paddingBottom); 
+const borderTopWidth = parseFloat(computedStyle.borderTopWidth); 
+const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth); 
 
-    // Calculate the height for a single line of text, including padding and border
-    // Ensure lineHeight is a number, fallback if not (though CSS sets it to 1.5)
-    const singleLineTextHeight = isNaN(lineHeight) ? (parseFloat(computedStyle.fontSize) * 1.5 || 20) : lineHeight;
-    const heightForOneLine = singleLineTextHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+const singleLineTextHeight = isNaN(lineHeight) ? (parseFloat(computedStyle.fontSize) * 1.5 || 20) : lineHeight;
+const heightForOneLine = singleLineTextHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
 
-    // Maximum number of lines to show before scrolling
-    const maxLines = 2; 
+const maxLines = 2;
+const maxAllowedHeight = (maxLines * singleLineTextHeight) + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
 
-    // Calculate the maximum height for 'maxLines'
-    const maxAllowedHeight = (maxLines * singleLineTextHeight) + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+userInputArea.style.height = 'auto';
+let newCalculatedHeight = userInputArea.scrollHeight + borderTopWidth + borderBottomWidth;
 
-    // Reset height to 'auto' to allow scrollHeight to be calculated correctly based on content
-    userInputArea.style.height = 'auto';
-    // scrollHeight includes padding but not border. Add border for total content height.
-    let newCalculatedHeight = userInputArea.scrollHeight + borderTopWidth + borderBottomWidth; 
+let targetHeight;
 
-    let targetHeight;
+if (newCalculatedHeight > maxAllowedHeight) {
+targetHeight = maxAllowedHeight; 
+} else if (newCalculatedHeight < heightForOneLine) {
+targetHeight = heightForOneLine;
+} else {
+targetHeight = newCalculatedHeight; 
+}
 
-    if (newCalculatedHeight > maxAllowedHeight) {
-        targetHeight = maxAllowedHeight; // Cap at max height
-    } else if (newCalculatedHeight < heightForOneLine) {
-        // If content is empty or very short, ensure it's at least the height for one line
-        targetHeight = heightForOneLine;
-    } else {
-        targetHeight = newCalculatedHeight; // Grow with content up to maxAllowedHeight
-    }
-    
-    // Also respect the CSS min-height if it's larger than our calculated single line height.
-    // (Though typically, heightForOneLine will be the desired functional minimum).
-    const cssMinHeight = parseFloat(computedStyle.minHeight) || 0;
-    if (targetHeight < cssMinHeight) {
-        targetHeight = cssMinHeight;
-    }
+const cssMinHeight = parseFloat(computedStyle.minHeight) || 0;
+if (targetHeight < cssMinHeight) {
+targetHeight = cssMinHeight;
+}
 
-    userInputArea.style.height = targetHeight + 'px';
-
-    // Adjust send button height to match the final outer height of the textarea
-    // userInputArea.offsetHeight includes padding and border, which is what we want for the button.
-    const finalButtonDimension = userInputArea.offsetHeight + 'px'; 
-    sendButton.style.height = finalButtonDimension;
-    sendButton.style.width = finalButtonDimension; // Keep button square
+userInputArea.style.height = targetHeight + 'px';
+const finalButtonDimension = userInputArea.offsetHeight + 'px';
+sendButton.style.height = finalButtonDimension;
+sendButton.style.width = finalButtonDimension; 
 }
 
 
 function saveFullConversation() {
 const conversationData = {
 conversationHistory: conversationHistory,
-modelSpecificConversationHistory: modelSpecificConversationHistory 
+modelSpecificConversationHistory: modelSpecificConversationHistory
 };
 localStorage.setItem(CHAT_CONVERSATION_KEY, JSON.stringify(conversationData));
 }
@@ -552,7 +539,7 @@ redrawMessages();
 return true;
 } catch (e) {
 console.error("Error parsing saved conversation:", e);
-localStorage.removeItem(CHAT_CONVERSATION_KEY); 
+localStorage.removeItem(CHAT_CONVERSATION_KEY);
 conversationHistory = [];
 modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
 return false;
@@ -568,726 +555,714 @@ updateClearChatButtonIcon();
 }
 
 function updateClearChatButtonIcon() {
-    const button = document.getElementById('clear-chat-button');
-    if (editIndex !== null && conversationHistory[editIndex]) { 
-        const currentEditingRole = conversationHistory[editIndex].role;
-        button.innerHTML = (currentEditingRole === 'user') ? ICONS.send : ICONS.save;
-        button.title = (currentEditingRole === 'user') ? "Send Edit" : "Save Edit";
-        button.disabled = false;
-        Object.assign(button.style, {backgroundColor: '#3578e5', borderRadius: '5px', padding: '8px', color: 'white'});
-        const newSvgIcon = button.querySelector('svg');
-        if (newSvgIcon) { newSvgIcon.setAttribute('width', '20'); newSvgIcon.setAttribute('height', '20'); }
-    } else {
-        Object.assign(button.style, {backgroundColor: 'transparent', padding: '5px', color: '#e0e0e0', borderRadius: ''});
-        button.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash;
-        button.title = chatClearedState ? "Restore Chat" : "Clear Chat";
-        // Enable restore if chatClearedState is true (meaning there's something to restore or it appears cleared)
-        // Disable clear if not cleared and history is empty.
-        button.disabled = (!chatClearedState && conversationHistory.length === 0);
-        const currentSvgIcon = button.querySelector('svg');
-        if (currentSvgIcon) { currentSvgIcon.setAttribute('width', '20'); currentSvgIcon.setAttribute('height', '20'); }
-    }
+const button = document.getElementById('clear-chat-button');
+if (editIndex !== null && conversationHistory[editIndex]) {
+const currentEditingRole = conversationHistory[editIndex].role;
+button.innerHTML = (currentEditingRole === 'user') ? ICONS.send : ICONS.save;
+button.title = (currentEditingRole === 'user') ? "Send Edit" : "Save Edit";
+button.disabled = false;
+Object.assign(button.style, {backgroundColor: '#3578e5', borderRadius: '5px', padding: '8px', color: 'white'});
+const newSvgIcon = button.querySelector('svg');
+if (newSvgIcon) { newSvgIcon.setAttribute('width', '20'); newSvgIcon.setAttribute('height', '20'); }
+} else {
+Object.assign(button.style, {backgroundColor: 'transparent', padding: '5px', color: '#e0e0e0', borderRadius: ''});
+button.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash;
+button.title = chatClearedState ? "Restore Chat" : "Clear Chat";
+button.disabled = (!chatClearedState && conversationHistory.length === 0);
+const currentSvgIcon = button.querySelector('svg');
+if (currentSvgIcon) { currentSvgIcon.setAttribute('width', '20'); currentSvgIcon.setAttribute('height', '20'); }
+}
 }
 
 function handleClearChatClick() {
-    if (editIndex !== null) { 
-        const currentEditingIndex = editIndex; 
-        const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
-        const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
+if (editIndex !== null) {
+const currentEditingIndex = editIndex;
+const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
+const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
 
-        if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
-            const newText = editableMessageSpan.innerText; 
-            const originalRole = conversationHistory[currentEditingIndex].role;
-            
-            editableMessageSpan.setAttribute('contenteditable', 'false'); 
-            if(messageDiv) messageDiv.classList.remove('editing');
+if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
+const newText = editableMessageSpan.innerText;
+const originalRole = conversationHistory[currentEditingIndex].role;
 
-            if (originalRole === 'user') {
-                document.getElementById('user-input').value = newText; 
-                sendMessage(); 
-            } else { 
-                conversationHistory[currentEditingIndex].content = newText.trim(); 
-                saveFullConversation();
-                editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true }); // MODIFIED: Use marked.parse for assistant edits
-                Prism.highlightAllUnder(editableMessageSpan.closest('.message')); // Re-highlight
-                editIndex = null; 
-                updateClearChatButtonIcon(); 
-                document.getElementById('loading-spinner').style.display = 'none'; 
-            }
-        } else { 
-            const stillEditingDiv = document.querySelector(`.message.editing`);
-            if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
-            const stillEditableSpan = stillEditingDiv ? stillEditingDiv.querySelector('.editable[contenteditable="true"]') : null;
-            if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
-            editIndex = null;
-            updateClearChatButtonIcon();
-        }
-        return; 
-    }
+editableMessageSpan.setAttribute('contenteditable', 'false');
+if(messageDiv) messageDiv.classList.remove('editing');
 
-    if (chatClearedState) { 
-        if (loadFullConversation()) {
-            chatClearedState = false; 
-            localStorage.removeItem(CHAT_CLEARED_STATE_KEY); 
-        } else {
-            // Failed to load, or no actual conversation was there. Treat as fresh.
-            document.getElementById('chat-output').innerHTML = ''; 
-            conversationHistory = [];
-            modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-            chatClearedState = false; 
-            localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
-        }
-    } else { 
-        // User clicked "Clear Chat" (trash icon)
-        saveFullConversation(); // Save current state before "clearing" it from view
-        document.getElementById('chat-output').innerHTML = ''; 
-        // Keep in-memory history for potential undo by clicking restore
-        // but mark as cleared for the icon state
-        chatClearedState = true;
-        localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true'); // Persist that user *chose* to clear
-    }
-    updateClearChatButtonIcon();
+if (originalRole === 'user') {
+document.getElementById('user-input').value = newText;
+sendMessage();
+} else {
+conversationHistory[currentEditingIndex].content = newText.trim();
+saveFullConversation();
+editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true }); 
+Prism.highlightAllUnder(editableMessageSpan.closest('.message')); 
+editIndex = null;
+updateClearChatButtonIcon();
+document.getElementById('loading-spinner').style.display = 'none';
+}
+} else {
+const stillEditingDiv = document.querySelector(`.message.editing`);
+if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
+const stillEditableSpan = stillEditingDiv ? stillEditingDiv.querySelector('.editable[contenteditable="true"]') : null;
+if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
+editIndex = null;
+updateClearChatButtonIcon();
+}
+return;
+}
+
+if (chatClearedState) {
+if (loadFullConversation()) {
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+} else {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+}
+} else {
+saveFullConversation(); 
+document.getElementById('chat-output').innerHTML = '';
+chatClearedState = true;
+localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true'); 
+}
+updateClearChatButtonIcon();
 }
 
 
 function handlePageLoadConversation() {
-    const hasSavedConversation = localStorage.getItem(CHAT_CONVERSATION_KEY) !== null;
-    const userExplicitlyCleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
+const hasSavedConversation = localStorage.getItem(CHAT_CONVERSATION_KEY) !== null;
+const userExplicitlyCleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
 
-    if (hasSavedConversation) {
-        if (userExplicitlyCleared) {
-            // User had previously cleared the chat, so start empty but allow restore.
-            document.getElementById('chat-output').innerHTML = '';
-            conversationHistory = []; // In-memory is clear
-            modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-            chatClearedState = true; // Show restore icon
-        } else {
-            // Saved conversation exists and wasn't explicitly cleared by the user in a previous session.
-            // Default to showing an empty chat with the option to restore.
-            document.getElementById('chat-output').innerHTML = ''; // Clear visual output
-            conversationHistory = []; // Clear in-memory history for this view
-            modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] }; // Clear in-memory model-specific history
-            chatClearedState = true; // Set to true to show the restore icon
-                                     // Do NOT persist this to CHAT_CLEARED_STATE_KEY here.
-        }
-    } else {
-        // No saved conversation.
-        document.getElementById('chat-output').innerHTML = '';
-        conversationHistory = [];
-        modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-        chatClearedState = false; // No data, so not in "cleared" state (nothing to restore)
-        localStorage.removeItem(CHAT_CLEARED_STATE_KEY); // Clean up, if it was somehow set
-    }
-    updateClearChatButtonIcon(); // Update button icon based on the determined state
+if (hasSavedConversation) {
+if (userExplicitlyCleared) {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = []; 
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
+chatClearedState = true; 
+} else {
+document.getElementById('chat-output').innerHTML = ''; 
+conversationHistory = []; 
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] }; 
+chatClearedState = true; 
+}
+} else {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
+chatClearedState = false; 
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY); 
+}
+updateClearChatButtonIcon(); 
 }
 
 
-function loadSettings() { 
-    apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
-    apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
-    apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
-    apiKeys.perplexity = parseApiKeys(localStorage.getItem('apiKeyPerplexity') || "", 'perplexity');
-    apiKeys.groq = parseApiKeys(localStorage.getItem('apiKeyGroq') || "", 'groq');
-    document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
-    document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
-    document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
-    document.getElementById('api-key-perplexity').value = apiKeys.perplexity.join('\n\n');
-    document.getElementById('api-key-groq').value = apiKeys.groq.join('\n\n');
-    systemPrompt = localStorage.getItem('systemPrompt') || ""; 
-    document.getElementById('system-prompt').value = systemPrompt;
-    consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
-    document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
-    document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
-    let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
-    document.getElementById('api-provider').value = lastUsedApiProvider;
+function loadSettings() {
+apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
+apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
+apiKeys.deepseek = parseApiKeys(localStorage.getItem('apiKeyDeepseek') || "", 'deepseek');
+apiKeys.perplexity = parseApiKeys(localStorage.getItem('apiKeyPerplexity') || "", 'perplexity');
+apiKeys.groq = parseApiKeys(localStorage.getItem('apiKeyGroq') || "", 'groq');
+document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
+document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
+document.getElementById('api-key-perplexity').value = apiKeys.perplexity.join('\n\n');
+document.getElementById('api-key-groq').value = apiKeys.groq.join('\n\n');
+systemPrompt = localStorage.getItem('systemPrompt') || "";
+document.getElementById('system-prompt').value = systemPrompt;
+consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
+document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
+document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
+let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
+document.getElementById('api-provider').value = lastUsedApiProvider;
 
-    updateModelOptions().then(() => { 
-        if (!lastUsedModels[lastUsedApiProvider] || !Array.from(document.getElementById('model-select').options).some(opt => opt.value === lastUsedModels[lastUsedApiProvider])) {
-            setDefaultModel(lastUsedApiProvider); 
-        } else {
-            document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
-        }
-        selectedModel = document.getElementById('model-select').value; 
-        toggleCustomModelField(); 
-        updateApiKeyVisibility(); 
-    });
+updateModelOptions().then(() => {
+if (!lastUsedModels[lastUsedApiProvider] || !Array.from(document.getElementById('model-select').options).some(opt => opt.value === lastUsedModels[lastUsedApiProvider])) {
+setDefaultModel(lastUsedApiProvider);
+} else {
+document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
+}
+selectedModel = document.getElementById('model-select').value;
+toggleCustomModelField();
+updateApiKeyVisibility();
+});
 
-    customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
-    customGeminiModel = localStorage.getItem('customGeminiModel') || "";
-    customDeepSeekModel = localStorage.getItem('customDeepSeekModel') || "";
-    customPerplexityModel = localStorage.getItem('customPerplexityModel') || "";
-    customGroqModel = localStorage.getItem('customGroqModel') || "";
+customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
+customGeminiModel = localStorage.getItem('customGeminiModel') || "";
+customDeepSeekModel = localStorage.getItem('customDeepSeekModel') || "";
+customPerplexityModel = localStorage.getItem('customPerplexityModel') || "";
+customGroqModel = localStorage.getItem('customGroqModel') || "";
 
-    const currentProvider = document.getElementById('api-provider').value;
-    const currentModelSelect = document.getElementById('model-select');
-    if (currentModelSelect.value === 'custom') { 
-        const customInput = document.getElementById('custom-model-input');
-        if (currentProvider === 'openai') customInput.value = customOpenAIModel;
-        else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
-        else if (currentProvider === 'deepseek') customInput.value = customDeepSeekModel;
-        else if (currentProvider === 'perplexity') customInput.value = customPerplexityModel;
-        else if (currentProvider === 'groq') customInput.value = customGroqModel;
-    }
+const currentProvider = document.getElementById('api-provider').value;
+const currentModelSelect = document.getElementById('model-select');
+if (currentModelSelect.value === 'custom') {
+const customInput = document.getElementById('custom-model-input');
+if (currentProvider === 'openai') customInput.value = customOpenAIModel;
+else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
+else if (currentProvider === 'deepseek') customInput.value = customDeepSeekModel;
+else if (currentProvider === 'perplexity') customInput.value = customPerplexityModel;
+else if (currentProvider === 'groq') customInput.value = customGroqModel;
+}
 }
 
-function setDefaultModel(provider) { 
-    const modelSelect = document.getElementById('model-select');
-    let defaultModel = "";
-    const providerDefaultModels = {
-        gemini: 'gemini-1.5-flash', openai: 'gpt-4o', deepseek: 'deepseek-chat',
-        perplexity: 'llama-3-sonar-small-32k-chat', groq: 'mixtral-8x7b-32768' 
-    };
-    defaultModel = providerDefaultModels[provider] || "custom";
-    if (provider === 'groq') {
-        const groqOptions = Array.from(modelSelect.options).map(opt => opt.value);
-        if (groqOptions.includes("mixtral-8x7b-32768")) defaultModel = "mixtral-8x7b-32768";
-        else { const firstNonCustom = groqOptions.find(m => m !== 'custom'); defaultModel = firstNonCustom || "custom"; }
-    }
-    if (!lastUsedModels) lastUsedModels = {};
-    lastUsedModels[provider] = defaultModel;
-    localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
-    if (Array.from(modelSelect.options).some(option => option.value === defaultModel)) modelSelect.value = defaultModel;
-    else if (modelSelect.options.length > 0) {
-        const firstValidOption = Array.from(modelSelect.options).find(opt => opt.value !== 'custom');
-        modelSelect.value = firstValidOption ? firstValidOption.value : (modelSelect.options[0] ? modelSelect.options[0].value : '');
-    }
-    selectedModel = modelSelect.value; 
+function setDefaultModel(provider) {
+const modelSelect = document.getElementById('model-select');
+let defaultModel = "";
+const providerDefaultModels = {
+gemini: 'gemini-1.5-flash', openai: 'gpt-4o', deepseek: 'deepseek-chat',
+perplexity: 'llama-3-sonar-small-32k-chat', groq: 'mixtral-8x7b-32768'
+};
+defaultModel = providerDefaultModels[provider] || "custom";
+if (provider === 'groq') {
+const groqOptions = Array.from(modelSelect.options).map(opt => opt.value);
+if (groqOptions.includes("mixtral-8x7b-32768")) defaultModel = "mixtral-8x7b-32768";
+else { const firstNonCustom = groqOptions.find(m => m !== 'custom'); defaultModel = firstNonCustom || "custom"; }
+}
+if (!lastUsedModels) lastUsedModels = {};
+lastUsedModels[provider] = defaultModel;
+localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+if (Array.from(modelSelect.options).some(option => option.value === defaultModel)) modelSelect.value = defaultModel;
+else if (modelSelect.options.length > 0) {
+const firstValidOption = Array.from(modelSelect.options).find(opt => opt.value !== 'custom');
+modelSelect.value = firstValidOption ? firstValidOption.value : (modelSelect.options[0] ? modelSelect.options[0].value : '');
+}
+selectedModel = modelSelect.value;
 }
 
 marked.setOptions({gfm: true, breaks: true, headerIds: false});
-function parseApiKeys(input, provider) { 
-    let regex;
-    if (provider === 'openai') { regex = /^sk-[a-zA-Z0-9]{48}$/gm; }
-    else if (provider === 'gemini') { regex = /AIzaSy[A-Za-z0-9_-]{33}/g; }
-    else if (provider === 'deepseek') { regex = /^(sk-[a-zA-Z0-9]{32})$/gm; }
-    else if (provider === 'perplexity') { regex = /pplx-[a-f0-9]{48}/g; }
-    else if (provider === 'groq') { regex = /gsk_[a-zA-Z0-9]{52}/g; }
-    else { return []; }
-    return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filter(k => k);
+function parseApiKeys(input, provider) {
+let regex;
+if (provider === 'openai') { regex = /^sk-[a-zA-Z0-9]{48}$/gm; }
+else if (provider === 'gemini') { regex = /AIzaSy[A-Za-z0-9_-]{33}/g; }
+else if (provider === 'deepseek') { regex = /^(sk-[a-zA-Z0-9]{32})$/gm; }
+else if (provider === 'perplexity') { regex = /pplx-[a-f0-9]{48}/g; }
+else if (provider === 'groq') { regex = /gsk_[a-zA-Z0-9]{52}/g; }
+else { return []; }
+return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filter(k => k);
 }
 function toggleSendButton() { document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === ""; }
-function showTab(tabName) { 
-    const tabs = document.querySelectorAll('.tab'); tabs.forEach(tab => tab.classList.remove('active'));
+
+function showTab(tabName) {
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
     document.getElementById('settings-container').style.display = 'none';
     document.getElementById('chat-output').style.display = 'none';
     document.getElementById('chat-input').style.display = 'none';
     document.getElementById('console-container').style.display = 'none';
+    const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
+
     if (tabName === 'chat') {
         document.getElementById('chat-output').style.display = 'block';
         document.getElementById('chat-input').style.display = 'flex';
         document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
+        clearChatButtonContainer.style.display = 'block'; // Or its original display style if not 'block'
     } else if (tabName === 'settings') {
         document.getElementById('settings-container').style.display = 'block';
         document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
+        clearChatButtonContainer.style.display = 'none';
     } else if (tabName === 'console') {
         document.getElementById('console-container').style.display = 'block';
         document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
+        clearChatButtonContainer.style.display = 'none';
     }
 }
-function saveSettings() { 
-    apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
-    apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
-    apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
-    apiKeys.perplexity = parseApiKeys(document.getElementById('api-key-perplexity').value, 'perplexity');
-    apiKeys.groq = parseApiKeys(document.getElementById('api-key-groq').value, 'groq');
-    localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
-    localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
-    localStorage.setItem('apiKeyDeepseek', apiKeys.deepseek.join('\n\n'));
-    localStorage.setItem('apiKeyPerplexity', apiKeys.perplexity.join('\n\n'));
-    localStorage.setItem('apiKeyGroq', apiKeys.groq.join('\n\n'));
 
-    systemPrompt = document.getElementById('system-prompt').value; 
-    localStorage.setItem('systemPrompt', systemPrompt);
+function saveSettings() {
+apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
+apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
+apiKeys.perplexity = parseApiKeys(document.getElementById('api-key-perplexity').value, 'perplexity');
+apiKeys.groq = parseApiKeys(document.getElementById('api-key-groq').value, 'groq');
+localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
+localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
+localStorage.setItem('apiKeyDeepseek', apiKeys.deepseek.join('\n\n'));
+localStorage.setItem('apiKeyPerplexity', apiKeys.perplexity.join('\n\n'));
+localStorage.setItem('apiKeyGroq', apiKeys.groq.join('\n\n'));
 
-    let currentProvider = document.getElementById('api-provider').value;
-    let selectedModelValue = document.getElementById('model-select').value; 
-    if (selectedModelValue === 'custom') {
-        const customModelInputValue = document.getElementById('custom-model-input').value;
-        if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; localStorage.setItem('customOpenAIModel', customOpenAIModel); }
-        else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; localStorage.setItem('customGeminiModel', customGeminiModel); }
-        else if (currentProvider === 'deepseek') { customDeepSeekModel = customModelInputValue; localStorage.setItem('customDeepSeekModel', customDeepSeekModel); }
-        else if (currentProvider === 'perplexity'){ customPerplexityModel = customModelInputValue; localStorage.setItem('customPerplexityModel', customPerplexityModel); }
-        else if (currentProvider === 'groq') { customGroqModel = customModelInputValue; localStorage.setItem('customGroqModel', customGroqModel); }
-    }
-    if (!lastUsedModels) lastUsedModels = {};
-    lastUsedModels[currentProvider] = selectedModelValue;
-    localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
-    localStorage.setItem('lastUsedApiProvider', currentProvider);
-    selectedModel = selectedModelValue; 
-    toggleCustomModelField();
-    updateApiKeyVisibility();
+systemPrompt = document.getElementById('system-prompt').value;
+localStorage.setItem('systemPrompt', systemPrompt);
+
+let currentProvider = document.getElementById('api-provider').value;
+let selectedModelValue = document.getElementById('model-select').value;
+if (selectedModelValue === 'custom') {
+const customModelInputValue = document.getElementById('custom-model-input').value;
+if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; localStorage.setItem('customOpenAIModel', customOpenAIModel); }
+else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; localStorage.setItem('customGeminiModel', customGeminiModel); }
+else if (currentProvider === 'deepseek') { customDeepSeekModel = customModelInputValue; localStorage.setItem('customDeepSeekModel', customDeepSeekModel); }
+else if (currentProvider === 'perplexity'){ customPerplexityModel = customModelInputValue; localStorage.setItem('customPerplexityModel', customPerplexityModel); }
+else if (currentProvider === 'groq') { customGroqModel = customModelInputValue; localStorage.setItem('customGroqModel', customGroqModel); }
+}
+if (!lastUsedModels) lastUsedModels = {};
+lastUsedModels[currentProvider] = selectedModelValue;
+localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+localStorage.setItem('lastUsedApiProvider', currentProvider);
+selectedModel = selectedModelValue;
+toggleCustomModelField();
+updateApiKeyVisibility();
 }
 function toggleConsoleButton() { consoleEnabled = !consoleEnabled; localStorage.setItem('consoleEnabled', consoleEnabled); updateConsoleButtonText(); document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none'; }
 function updateConsoleButtonText() { document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';}
-function logErrorToConsole(message) { 
-    const consoleOutput = document.getElementById('console-output'); consoleOutput.textContent += `${message}\n`;
-    let chatOutput = document.getElementById('chat-output'); let errorMessageDiv = document.createElement('div');
-    errorMessageDiv.classList.add('message', 'assistant'); errorMessageDiv.style.backgroundColor = '#d9534f'; 
-    errorMessageDiv.innerHTML = `<span class="content">${escapeHtml(String(message).substring(0,200))}... (Check console)</span>`; 
-    chatOutput.appendChild(errorMessageDiv); chatOutput.scrollTop = chatOutput.scrollHeight;
+function logErrorToConsole(message) {
+const consoleOutput = document.getElementById('console-output'); consoleOutput.textContent += `${message}\n`;
+let chatOutput = document.getElementById('chat-output'); let errorMessageDiv = document.createElement('div');
+errorMessageDiv.classList.add('message', 'assistant'); errorMessageDiv.style.backgroundColor = '#d9534f';
+errorMessageDiv.innerHTML = `<span class="content">${escapeHtml(String(message).substring(0,200))}... (Check console)</span>`;
+chatOutput.appendChild(errorMessageDiv); chatOutput.scrollTop = chatOutput.scrollHeight;
 }
 function shortenMessage(text) { const safeText = String(text); const words = safeText.split(" "); if (words.length > 6) { return `${words.slice(0, 3).join(" ")} ... ${words.slice(-3).join(" ")}`; } return safeText; }
 function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data)); logToConsole(JSON.stringify(dataCopy, null, 2)); }
 
 async function sendMessage() {
-    let userInputFromField = document.getElementById('user-input').value; 
-    systemPrompt = document.getElementById('system-prompt').value; 
+let userInputFromField = document.getElementById('user-input').value;
+systemPrompt = document.getElementById('system-prompt').value;
 
-    // If the chat was in a "cleared" state (showing restore icon) and the user types a new message,
-    // this implies they want to start a new chat. The old "restorable" chat is abandoned.
-    if (chatClearedState && editIndex === null) { 
-        conversationHistory = []; 
-        modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-        chatClearedState = false; 
-        localStorage.removeItem(CHAT_CLEARED_STATE_KEY); // No longer in user-cleared state
-        // The CHAT_CONVERSATION_KEY still holds the old data until a new save happens.
-        // If this new message leads to a successful API call & save, it will overwrite.
-    }
-    
-    const apiKeysPresent = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== '');
-    const trimmedUserInput = userInputFromField.trim(); 
-
-    if (trimmedUserInput !== "" && apiKeysPresent) {
-        const provider = document.getElementById('api-provider').value;
-        document.getElementById('loading-spinner').style.display = 'flex';
-        let userInputForApi;
-
-        if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') { 
-            conversationHistory[editIndex].content = trimmedUserInput; 
-            conversationHistory = conversationHistory.slice(0, editIndex + 1); 
-            const numModelSpecificTurnsToKeep = Math.floor(editIndex / 2); 
-            if (modelSpecificConversationHistory.gemini) modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, numModelSpecificTurnsToKeep * 2);
-            if (modelSpecificConversationHistory.deepseekReasoner) modelSpecificConversationHistory.deepseekReasoner = modelSpecificConversationHistory.deepseekReasoner.slice(0, numModelSpecificTurnsToKeep * 2);
-            
-            userInputForApi = trimmedUserInput;
-            editIndex = null; 
-            redrawMessages(); 
-        } else { 
-            conversationHistory.push({role: "user", content: trimmedUserInput});
-            userInputForApi = trimmedUserInput;
-            displayMessage(trimmedUserInput, 'user', conversationHistory.length - 1, true);
-        }
-        
-        document.getElementById('user-input').value = '';
-        handleUserInput(); 
-
-        try { await tryNextApiKey(userInputForApi, provider); }
-        catch (error) { if (document.getElementById('loading-spinner').style.display !== 'none') document.getElementById('loading-spinner').style.display = 'none';}
-    } else if (trimmedUserInput === "" && editIndex === null) { 
-        document.getElementById('loading-spinner').style.display = 'none'; toggleSendButton(); 
-    } else if (!apiKeysPresent) {
-        document.getElementById('loading-spinner').style.display = 'none'; alert("Please enter your API key(s) in the Settings."); showTab('settings');
-        if (editIndex !== null) editIndex = null; 
-    }
-    updateClearChatButtonIcon(); 
+if (chatClearedState && editIndex === null) {
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY); 
 }
 
-async function tryNextApiKey(userInput, provider) { 
-    const currentModelSelected = document.getElementById('model-select').value;
-    const apiKeyArray = apiKeys[provider].filter(key => key.trim() !== '');
+const apiKeysPresent = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== '');
+const trimmedUserInput = userInputFromField.trim();
 
-    if (apiKeyArray.length === 0) {
-        document.getElementById('loading-spinner').style.display = 'none';
-        logErrorToConsole(`No valid API keys configured for ${provider}. Please add them in Settings.`);
-        currentApiKeyIndex = 0; updateClearChatButtonIcon(); return;
-    }
-    
-    if (currentApiKeyIndex < apiKeyArray.length) {
-        const apiKey = apiKeyArray[currentApiKeyIndex];
-        const modelToUse = currentModelSelected === 'custom' ? document.getElementById('custom-model-input').value : currentModelSelected;
-        try {
-            let response;
-            if (provider === 'gemini') {
-                let geminiApiContents = [];
-                for(let i=0; i < conversationHistory.length -1; i++) { 
-                    geminiApiContents.push({"role": conversationHistory[i].role === "user" ? "user" : "model", "parts": [{"text": conversationHistory[i].content }]});
-                }
-                geminiApiContents.push({ "role": "user", "parts": [{"text": userInput}]}); 
-                response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({"systemInstruction": { "parts": [{"text": systemPrompt }] }, "contents": geminiApiContents })
-                });
-                if (!response.ok) { 
-                    const errorText = await response.text(); currentApiKeyIndex++;
-                    if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-                    else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Gemini API Error: ${errorText}`); currentApiKeyIndex = 0;}
-                    return;
-                } else { 
-                    const reader = response.body.getReader(); const decoder = new TextDecoder();
-                    let buffer = ''; let responseText = ''; let jsonStarted = false;
-                    let partialMessageElement = displayPartialMessage('', 'assistant');
-                    while (true) {
-                        const {value, done} = await reader.read(); if (done) break;
-                        const chunk = decoder.decode(value);
-                        for (const char of chunk) {
-                            buffer += char;
-                            if (char === '{' && !jsonStarted) { jsonStarted = true; buffer = '{';}
-                            if (char === '}' && jsonStarted) {
-                                try {
-                                    const json = JSON.parse(buffer); const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                                    if (text) {
-                                        responseText += text;
-                                        if(partialMessageElement) {
-                                            const editableInPartial = partialMessageElement.querySelector('.editable');
-                                            if (editableInPartial) editableInPartial.innerHTML = marked.parse(responseText); 
-                                            Prism.highlightAllUnder(partialMessageElement);
-                                        }
-                                    }
-                                    buffer = ''; jsonStarted = false;
-                                } catch (e) { /* Malformed JSON */ }
-                            }
-                        }
-                    }
-                    if(partialMessageElement) partialMessageElement.remove();
-                    conversationHistory.push({role: "assistant", content: responseText});
-                    modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": responseText}]});
-                    displayMessage(responseText, 'assistant', conversationHistory.length - 1);
-                    document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
-                }
-            } 
-            else if (provider === 'openai') { 
-                const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt); 
-                let partialMessageElement = null; let botResponse = '';
-                try {
-                    botResponse = await chat.getBotResponse(userInput, (delta) => { 
-                        if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
-                        botResponse += delta;
-                        if (partialMessageElement) {
-                             const editableInPartial = partialMessageElement.querySelector('.editable');
-                             if (editableInPartial) editableInPartial.innerHTML = marked.parse(botResponse);
-                             Prism.highlightAllUnder(partialMessageElement);
-                        }
-                    });
-                    if (partialMessageElement) partialMessageElement.remove();
-                    conversationHistory.push({role: "assistant", content: botResponse});
-                    displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
-                    document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
-                } catch (error) {  
-                    currentApiKeyIndex++;
-                    if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-                    else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`OpenAI API Error: ${error.message || error}`); currentApiKeyIndex = 0; }
-                    return; 
-                }
-            }
-            else if (provider === 'deepseek') { 
-                 let messages = [{role: "system", content: systemPrompt}]; 
-                let historyForApi;
-                if (modelToUse === "deepseek-reasoner") {
-                    historyForApi = modelSpecificConversationHistory.deepseekReasoner.slice(); 
-                } else {
-                    historyForApi = conversationHistory.slice(0, -1).map(entry => {
-                        const { reasoning, ...rest } = entry; 
-                        return rest;
-                    });
-                }
-                messages = messages.concat(historyForApi);
-                messages.push({role: "user", content: userInput}); 
+if (trimmedUserInput !== "" && apiKeysPresent) {
+const provider = document.getElementById('api-provider').value;
+document.getElementById('loading-spinner').style.display = 'flex';
+let userInputForApi;
 
-                response = await fetch('https://api.deepseek.com/chat/completions', { 
-                    method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                    body: JSON.stringify({"model": modelToUse, "messages": messages, "stream": false })
-                });
-                if (!response.ok) { 
-                    const errorText = await response.text(); currentApiKeyIndex++;
-                    if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-                    else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`DeepSeek API Error: ${errorText}`); currentApiKeyIndex = 0; }
-                    return;
-                } else { 
-                    const data = await response.json(); document.getElementById('loading-spinner').style.display = 'none';
-                    if (consoleEnabled) logJsonResponse(data);
-                    if (data.choices && data.choices.length > 0) {
-                        const message = data.choices[0].message; const messageText = message.content; const reasoningContent = message.reasoning_content; 
-                        conversationHistory.push({ role: "assistant", content: messageText, reasoning: reasoningContent });
-                        if (modelToUse === 'deepseek-reasoner') {
-                            modelSpecificConversationHistory.deepseekReasoner.push({role: 'user', content: userInput});
-                            modelSpecificConversationHistory.deepseekReasoner.push({role: 'assistant', content: messageText, reasoning: reasoningContent});
-                        }
-                        displayMessage(messageText, 'assistant', conversationHistory.length - 1, false, reasoningContent); saveFullConversation();
-                    } else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole("DeepSeek API Error: No choices."); }
-                }
-            }
-            else if (provider === 'perplexity') { 
-                 const perplexityHistory = conversationHistory.slice(0, -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
-                response = await fetch('https://api.perplexity.ai/chat/completions', {
-                    method: 'POST', headers: {'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json'},
-                    body: JSON.stringify({ model: modelToUse, messages: [ { role: "system", content: systemPrompt }, ...perplexityHistory, { role: "user", content: userInput} ], temperature: 0.2, top_p: 0.9, stream: false })
-                });
-                if (!response.ok) { 
-                    const errorText = await response.text(); currentApiKeyIndex++;
-                    if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-                    else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Perplexity API Error: ${errorText}`); currentApiKeyIndex = 0; }
-                    return;
-                } else { 
-                    const data = await response.json(); document.getElementById('loading-spinner').style.display = 'none';
-                    if (consoleEnabled) logJsonResponse(data);
-                    if (data.choices && data.choices.length > 0) {
-                        let messageContent = data.choices[0].message.content; let reasoning = null;
-                        const thinkMatch = messageContent.match(/<think>(.*?)<\/think>/s);
-                        if (thinkMatch) { reasoning = thinkMatch[1].trim(); messageContent = messageContent.replace(/<think>.*?<\/think>/s, "").trim(); }
-                        let displayableMessage = messageContent;
-                        if (data.citations && data.citations.length > 0) { /* ... citation handling ... */ }
-                        conversationHistory.push({ role: "assistant", content: messageContent,  reasoning: reasoning });
-                        displayMessage(displayableMessage, 'assistant', conversationHistory.length - 1, false, reasoning); saveFullConversation();
-                    } else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole("Perplexity API Error: No choices."); }
-                }
-            }
-            else if (provider === 'groq') { 
-                 const groqHistory = conversationHistory.slice(0, -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
-                response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                    body: JSON.stringify({ messages: [ { role: "system", content: systemPrompt }, ...groqHistory, { role: "user", content: userInput } ], model: modelToUse, temperature: 0.6, top_p: 0.95, stream: true })
-                });
-                if (!response.ok) { 
-                    const errorText = await response.text(); currentApiKeyIndex++;
-                    if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-                    else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Groq API Error: ${errorText}`); currentApiKeyIndex = 0; }
-                    return;
-                } else { 
-                    const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8");
-                    let responseContent = ""; let partialMessageElement = displayPartialMessage('', 'assistant');
-                    async function readStream() { 
-                        while (true) {
-                            const { done, value } = await reader.read(); if (done) break;
-                            const chunkText = decoder.decode(value, { stream: true });
-                            const dataLines = chunkText.split('\n').filter(line => line.trim() !== '');
-                            for (const line of dataLines) {
-                                if (line.startsWith('data: ')) {
-                                    const jsonLine = line.substring(6); if (jsonLine === '[DONE]') { if(partialMessageElement) partialMessageElement.remove(); return; }
-                                    try {
-                                        const json = JSON.parse(jsonLine); const contentDelta = json.choices[0].delta.content;
-                                        if (contentDelta) {
-                                            responseContent += contentDelta;
-                                            if(partialMessageElement) {
-                                                const editableInPartial = partialMessageElement.querySelector('.editable');
-                                                if (editableInPartial) editableInPartial.innerHTML = marked.parse(responseContent);
-                                                Prism.highlightAllUnder(partialMessageElement);
-                                            }
-                                        }
-                                    } catch (error) { /* console.error */ }
-                                }
-                            }
-                        }
-                    }
-                    await readStream();
-                    if(partialMessageElement && document.body.contains(partialMessageElement)) partialMessageElement.remove();
-                    conversationHistory.push({role: "assistant", content: responseContent});
-                    displayMessage(responseContent, 'assistant', conversationHistory.length - 1, false, null);
-                    document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
-                }
-            }
-            currentApiKeyIndex = 0; 
-        } catch (error) { 
-            currentApiKeyIndex++;
-            if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
-            else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Unhandled API Error for ${provider}: ${error.message || String(error)}`); currentApiKeyIndex = 0;}
-            return; 
-        }
-    } else { 
-        document.getElementById('loading-spinner').style.display = 'none';
-        logErrorToConsole(`All ${provider.toUpperCase()} API keys exhausted. Check Settings.`);
-        currentApiKeyIndex = 0; 
-    }
-    updateClearChatButtonIcon(); 
+if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') {
+conversationHistory[editIndex].content = trimmedUserInput;
+conversationHistory = conversationHistory.slice(0, editIndex + 1);
+const numModelSpecificTurnsToKeep = Math.floor(editIndex / 2);
+if (modelSpecificConversationHistory.gemini) modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, numModelSpecificTurnsToKeep * 2);
+if (modelSpecificConversationHistory.deepseekReasoner) modelSpecificConversationHistory.deepseekReasoner = modelSpecificConversationHistory.deepseekReasoner.slice(0, numModelSpecificTurnsToKeep * 2);
+
+userInputForApi = trimmedUserInput;
+editIndex = null;
+redrawMessages();
+} else {
+conversationHistory.push({role: "user", content: trimmedUserInput});
+userInputForApi = trimmedUserInput;
+displayMessage(trimmedUserInput, 'user', conversationHistory.length - 1, true);
+}
+
+document.getElementById('user-input').value = '';
+handleUserInput();
+
+try { await tryNextApiKey(userInputForApi, provider); }
+catch (error) { if (document.getElementById('loading-spinner').style.display !== 'none') document.getElementById('loading-spinner').style.display = 'none';}
+} else if (trimmedUserInput === "" && editIndex === null) {
+document.getElementById('loading-spinner').style.display = 'none'; toggleSendButton();
+} else if (!apiKeysPresent) {
+document.getElementById('loading-spinner').style.display = 'none'; alert("Please enter your API key(s) in the Settings."); showTab('settings');
+if (editIndex !== null) editIndex = null;
+}
+updateClearChatButtonIcon();
+}
+
+async function tryNextApiKey(userInput, provider) {
+const currentModelSelected = document.getElementById('model-select').value;
+const apiKeyArray = apiKeys[provider].filter(key => key.trim() !== '');
+
+if (apiKeyArray.length === 0) {
+document.getElementById('loading-spinner').style.display = 'none';
+logErrorToConsole(`No valid API keys configured for ${provider}. Please add them in Settings.`);
+currentApiKeyIndex = 0; updateClearChatButtonIcon(); return;
+}
+
+if (currentApiKeyIndex < apiKeyArray.length) {
+const apiKey = apiKeyArray[currentApiKeyIndex];
+const modelToUse = currentModelSelected === 'custom' ? document.getElementById('custom-model-input').value : currentModelSelected;
+try {
+let response;
+if (provider === 'gemini') {
+let geminiApiContents = [];
+for(let i=0; i < conversationHistory.length -1; i++) {
+geminiApiContents.push({"role": conversationHistory[i].role === "user" ? "user" : "model", "parts": [{"text": conversationHistory[i].content }]});
+}
+geminiApiContents.push({ "role": "user", "parts": [{"text": userInput}]});
+response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}`, {
+method: 'POST', headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({"systemInstruction": { "parts": [{"text": systemPrompt }] }, "contents": geminiApiContents })
+});
+if (!response.ok) {
+const errorText = await response.text(); currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Gemini API Error: ${errorText}`); currentApiKeyIndex = 0;}
+return;
+} else {
+const reader = response.body.getReader(); const decoder = new TextDecoder();
+let buffer = ''; let responseText = ''; let jsonStarted = false;
+let partialMessageElement = displayPartialMessage('', 'assistant');
+while (true) {
+const {value, done} = await reader.read(); if (done) break;
+const chunk = decoder.decode(value);
+for (const char of chunk) {
+buffer += char;
+if (char === '{' && !jsonStarted) { jsonStarted = true; buffer = '{';}
+if (char === '}' && jsonStarted) {
+try {
+const json = JSON.parse(buffer); const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+if (text) {
+responseText += text;
+if(partialMessageElement) {
+const editableInPartial = partialMessageElement.querySelector('.editable');
+if (editableInPartial) editableInPartial.innerHTML = marked.parse(responseText);
+Prism.highlightAllUnder(partialMessageElement);
+}
+}
+buffer = ''; jsonStarted = false;
+} catch (e) { /* Malformed JSON */ }
+}
+}
+}
+if(partialMessageElement) partialMessageElement.remove();
+conversationHistory.push({role: "assistant", content: responseText});
+modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": responseText}]});
+displayMessage(responseText, 'assistant', conversationHistory.length - 1);
+document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+}
+}
+else if (provider === 'openai') {
+const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
+let partialMessageElement = null; let botResponse = '';
+try {
+botResponse = await chat.getBotResponse(userInput, (delta) => {
+if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
+botResponse += delta;
+if (partialMessageElement) {
+const editableInPartial = partialMessageElement.querySelector('.editable');
+if (editableInPartial) editableInPartial.innerHTML = marked.parse(botResponse);
+Prism.highlightAllUnder(partialMessageElement);
+}
+});
+if (partialMessageElement) partialMessageElement.remove();
+conversationHistory.push({role: "assistant", content: botResponse});
+displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
+document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+} catch (error) {
+currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`OpenAI API Error: ${error.message || error}`); currentApiKeyIndex = 0; }
+return;
+}
+}
+else if (provider === 'deepseek') {
+let messages = [{role: "system", content: systemPrompt}];
+let historyForApi;
+if (modelToUse === "deepseek-reasoner") {
+historyForApi = modelSpecificConversationHistory.deepseekReasoner.slice();
+} else {
+historyForApi = conversationHistory.slice(0, -1).map(entry => {
+const { reasoning, ...rest } = entry;
+return rest;
+});
+}
+messages = messages.concat(historyForApi);
+messages.push({role: "user", content: userInput});
+
+response = await fetch('https://api.deepseek.com/chat/completions', {
+method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+body: JSON.stringify({"model": modelToUse, "messages": messages, "stream": false })
+});
+if (!response.ok) {
+const errorText = await response.text(); currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`DeepSeek API Error: ${errorText}`); currentApiKeyIndex = 0; }
+return;
+} else {
+const data = await response.json(); document.getElementById('loading-spinner').style.display = 'none';
+if (consoleEnabled) logJsonResponse(data);
+if (data.choices && data.choices.length > 0) {
+const message = data.choices[0].message; const messageText = message.content; const reasoningContent = message.reasoning_content;
+conversationHistory.push({ role: "assistant", content: messageText, reasoning: reasoningContent });
+if (modelToUse === 'deepseek-reasoner') {
+modelSpecificConversationHistory.deepseekReasoner.push({role: 'user', content: userInput});
+modelSpecificConversationHistory.deepseekReasoner.push({role: 'assistant', content: messageText, reasoning: reasoningContent});
+}
+displayMessage(messageText, 'assistant', conversationHistory.length - 1, false, reasoningContent); saveFullConversation();
+} else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole("DeepSeek API Error: No choices."); }
+}
+}
+else if (provider === 'perplexity') {
+const perplexityHistory = conversationHistory.slice(0, -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
+response = await fetch('https://api.perplexity.ai/chat/completions', {
+method: 'POST', headers: {'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json'},
+body: JSON.stringify({ model: modelToUse, messages: [ { role: "system", content: systemPrompt }, ...perplexityHistory, { role: "user", content: userInput} ], temperature: 0.2, top_p: 0.9, stream: false })
+});
+if (!response.ok) {
+const errorText = await response.text(); currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Perplexity API Error: ${errorText}`); currentApiKeyIndex = 0; }
+return;
+} else {
+const data = await response.json(); document.getElementById('loading-spinner').style.display = 'none';
+if (consoleEnabled) logJsonResponse(data);
+if (data.choices && data.choices.length > 0) {
+let messageContent = data.choices[0].message.content; let reasoning = null;
+const thinkMatch = messageContent.match(/<think>(.*?)<\/think>/s);
+if (thinkMatch) { reasoning = thinkMatch[1].trim(); messageContent = messageContent.replace(/<think>.*?<\/think>/s, "").trim(); }
+let displayableMessage = messageContent;
+if (data.citations && data.citations.length > 0) { /* ... citation handling ... */ }
+conversationHistory.push({ role: "assistant", content: messageContent, reasoning: reasoning });
+displayMessage(displayableMessage, 'assistant', conversationHistory.length - 1, false, reasoning); saveFullConversation();
+} else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole("Perplexity API Error: No choices."); }
+}
+}
+else if (provider === 'groq') {
+const groqHistory = conversationHistory.slice(0, -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
+response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+body: JSON.stringify({ messages: [ { role: "system", content: systemPrompt }, ...groqHistory, { role: "user", content: userInput } ], model: modelToUse, temperature: 0.6, top_p: 0.95, stream: true })
+});
+if (!response.ok) {
+const errorText = await response.text(); currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Groq API Error: ${errorText}`); currentApiKeyIndex = 0; }
+return;
+} else {
+const reader = response.body.getReader(); const decoder = new TextDecoder("utf-8");
+let responseContent = ""; let partialMessageElement = displayPartialMessage('', 'assistant');
+async function readStream() {
+while (true) {
+const { done, value } = await reader.read(); if (done) break;
+const chunkText = decoder.decode(value, { stream: true });
+const dataLines = chunkText.split('\n').filter(line => line.trim() !== '');
+for (const line of dataLines) {
+if (line.startsWith('data: ')) {
+const jsonLine = line.substring(6); if (jsonLine === '[DONE]') { if(partialMessageElement) partialMessageElement.remove(); return; }
+try {
+const json = JSON.parse(jsonLine); const contentDelta = json.choices[0].delta.content;
+if (contentDelta) {
+responseContent += contentDelta;
+if(partialMessageElement) {
+const editableInPartial = partialMessageElement.querySelector('.editable');
+if (editableInPartial) editableInPartial.innerHTML = marked.parse(responseContent);
+Prism.highlightAllUnder(partialMessageElement);
+}
+}
+} catch (error) { /* console.error */ }
+}
+}
+}
+}
+await readStream();
+if(partialMessageElement && document.body.contains(partialMessageElement)) partialMessageElement.remove();
+conversationHistory.push({role: "assistant", content: responseContent});
+displayMessage(responseContent, 'assistant', conversationHistory.length - 1, false, null);
+document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+}
+}
+currentApiKeyIndex = 0;
+} catch (error) {
+currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Unhandled API Error for ${provider}: ${error.message || String(error)}`); currentApiKeyIndex = 0;}
+return;
+}
+} else {
+document.getElementById('loading-spinner').style.display = 'none';
+logErrorToConsole(`All ${provider.toUpperCase()} API keys exhausted. Check Settings.`);
+currentApiKeyIndex = 0;
+}
+updateClearChatButtonIcon();
 }
 
 function escapeHtml(unsafe) { const div = document.createElement('div'); div.textContent = unsafe; return div.innerHTML; }
 
 function displayMessage(message, sender, index, isUserInput = false, reasoning = null) {
-    let chatOutput = document.getElementById('chat-output');
-    let newMessageDiv = document.createElement('div');
-    newMessageDiv.classList.add('message', sender);
-    newMessageDiv.setAttribute('data-index', index);
+let chatOutput = document.getElementById('chat-output');
+let newMessageDiv = document.createElement('div');
+newMessageDiv.classList.add('message', sender);
+newMessageDiv.setAttribute('data-index', index);
 
-    const editableSpan = document.createElement('span');
-    editableSpan.classList.add('editable');
-    editableSpan.setAttribute('tabindex', '0'); 
+const editableSpan = document.createElement('span');
+editableSpan.classList.add('editable');
+editableSpan.setAttribute('tabindex', '0');
 
-    if (sender === 'user') {
-        editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
-    } else { // Assistant message
-        // Always parse assistant messages with marked, as they are expected to contain Markdown.
-        editableSpan.innerHTML = marked.parse(message, { breaks: true });
-    }
-    newMessageDiv.appendChild(editableSpan);
-    
-    newMessageDiv.addEventListener('click', function(event) {
-        if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code')) return;
+if (sender === 'user') {
+editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
+} else { 
+editableSpan.innerHTML = marked.parse(message, { breaks: true });
+}
+newMessageDiv.appendChild(editableSpan);
 
-        const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
-        const currentEditableSpan = newMessageDiv.querySelector('.editable');
+newMessageDiv.addEventListener('click', function(event) {
+if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code')) return;
 
-        if (editIndex !== null && editIndex !== messageIndexOfThisMessage) {
-            const otherMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
-            const otherEditableSpan = otherMsgDiv ? otherMsgDiv.querySelector('.editable') : null;
-            if (otherEditableSpan && otherEditableSpan.getAttribute('contenteditable') === 'true') {
-                 otherEditableSpan.blur(); 
-            }
-        }
-        
-        if (currentEditableSpan.getAttribute('contenteditable') !== 'true') {
-            currentEditableSpan.setAttribute('contenteditable', 'true');
-            editIndex = messageIndexOfThisMessage; 
-            newMessageDiv.classList.add('editing');
-            updateClearChatButtonIcon();
-            currentEditableSpan.focus(); 
-        }
-    });
+const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
+const currentEditableSpan = newMessageDiv.querySelector('.editable');
 
-    editableSpan.addEventListener('focus', (e) => {
-        const messageDiv = e.target.closest('.message');
-        if (messageDiv && e.target.getAttribute('contenteditable') === 'true') {
-            const focusedIndex = parseInt(messageDiv.dataset.index);
-            if (editIndex !== focusedIndex && editIndex !== null) { 
-                 const prevEditingMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
-                 if (prevEditingMsgDiv) prevEditingMsgDiv.classList.remove('editing');
-            }
-            editIndex = focusedIndex; 
-            messageDiv.classList.add('editing');
-            updateClearChatButtonIcon();
-        }
-    });
+if (editIndex !== null && editIndex !== messageIndexOfThisMessage) {
+const otherMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+const otherEditableSpan = otherMsgDiv ? otherMsgDiv.querySelector('.editable') : null;
+if (otherEditableSpan && otherEditableSpan.getAttribute('contenteditable') === 'true') {
+otherEditableSpan.blur();
+}
+}
 
-    editableSpan.addEventListener('blur', (e) => {
-        const messageDiv = e.target.closest('.message');
-        if (!messageDiv) return;
+if (currentEditableSpan.getAttribute('contenteditable') !== 'true') {
+currentEditableSpan.setAttribute('contenteditable', 'true');
+editIndex = messageIndexOfThisMessage;
+newMessageDiv.classList.add('editing');
+updateClearChatButtonIcon();
+currentEditableSpan.focus();
+}
+});
 
-        setTimeout(() => {
-            if (editIndex === null) { 
-                e.target.setAttribute('contenteditable', 'false');
-                messageDiv.classList.remove('editing');
-                return;
-            }
-            const blurredIndex = parseInt(messageDiv.dataset.index);
-            const saveSendButton = document.getElementById('clear-chat-button');
-            const focusWentToButton = document.activeElement === saveSendButton || saveSendButton.contains(document.activeElement);
+editableSpan.addEventListener('focus', (e) => {
+const messageDiv = e.target.closest('.message');
+if (messageDiv && e.target.getAttribute('contenteditable') === 'true') {
+const focusedIndex = parseInt(messageDiv.dataset.index);
+if (editIndex !== focusedIndex && editIndex !== null) {
+const prevEditingMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+if (prevEditingMsgDiv) prevEditingMsgDiv.classList.remove('editing');
+}
+editIndex = focusedIndex;
+messageDiv.classList.add('editing');
+updateClearChatButtonIcon();
+}
+});
 
-            if (editIndex === blurredIndex && !focusWentToButton) {
-                const newText = e.target.innerText; 
-                if (conversationHistory[blurredIndex] && conversationHistory[blurredIndex].content.trim() !== newText.trim()) {
-                    conversationHistory[blurredIndex].content = newText.trim(); 
-                    if (conversationHistory[blurredIndex].role === 'assistant') {
-                        // For assistant messages, re-parse with marked
-                        editableSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
-                    } else { // For user messages, it's always escaped plain text
-                         editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
-                    }
-                    saveFullConversation();
-                }
-                e.target.setAttribute('contenteditable', 'false');
-                messageDiv.classList.remove('editing');
-                editIndex = null;
-                updateClearChatButtonIcon();
-            } else if (editIndex !== blurredIndex) { 
-                e.target.setAttribute('contenteditable', 'false');
-                messageDiv.classList.remove('editing');
-            }
-        }, 50); 
-    });
-    
-    if (sender === 'assistant' && reasoning) { 
-        const reasoningDiv = document.createElement('div');
-        reasoningDiv.className = 'reasoning-container collapsed';
-        reasoningDiv.onclick = function() { toggleReasoning(this); };
-        reasoningDiv.innerHTML = `
-            <div class="reasoning-container-header">
-                <span class="reasoning-container-title">Reasoning</span>
-                <svg class="reasoning-container-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </div>
-            <div class="reasoning-content">${marked.parse(reasoning, { breaks: true })}</div>`;
-        newMessageDiv.appendChild(reasoningDiv);
-    }
+editableSpan.addEventListener('blur', (e) => {
+const messageDiv = e.target.closest('.message');
+if (!messageDiv) return;
 
-    chatOutput.appendChild(newMessageDiv);
-    if (chatOutput.lastChild === newMessageDiv) { 
-        chatOutput.scrollTop = chatOutput.scrollHeight;
-    }
-    Prism.highlightAllUnder(newMessageDiv); 
-    addRunAndCopyButtonsToCodeBlocks(newMessageDiv); 
+setTimeout(() => {
+if (editIndex === null) {
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+return;
+}
+const blurredIndex = parseInt(messageDiv.dataset.index);
+const saveSendButton = document.getElementById('clear-chat-button');
+const focusWentToButton = document.activeElement === saveSendButton || saveSendButton.contains(document.activeElement);
+
+if (editIndex === blurredIndex && !focusWentToButton) {
+const newText = e.target.innerText;
+if (conversationHistory[blurredIndex] && conversationHistory[blurredIndex].content.trim() !== newText.trim()) {
+conversationHistory[blurredIndex].content = newText.trim();
+if (conversationHistory[blurredIndex].role === 'assistant') {
+editableSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
+} else { 
+editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
+}
+saveFullConversation();
+}
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+} else if (editIndex !== blurredIndex) {
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+}
+}, 50);
+});
+
+if (sender === 'assistant' && reasoning) {
+const reasoningDiv = document.createElement('div');
+reasoningDiv.className = 'reasoning-container collapsed';
+reasoningDiv.onclick = function() { toggleReasoning(this); };
+reasoningDiv.innerHTML = `
+<div class="reasoning-container-header">
+<span class="reasoning-container-title">Reasoning</span>
+<svg class="reasoning-container-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="6 9 12 15 18 9"></polyline>
+</svg>
+</div>
+<div class="reasoning-content">${marked.parse(reasoning, { breaks: true })}</div>`;
+newMessageDiv.appendChild(reasoningDiv);
+}
+
+chatOutput.appendChild(newMessageDiv);
+if (chatOutput.lastChild === newMessageDiv) {
+chatOutput.scrollTop = chatOutput.scrollHeight;
+}
+Prism.highlightAllUnder(newMessageDiv);
+addRunAndCopyButtonsToCodeBlocks(newMessageDiv);
 }
 
 
-function displayPartialMessage(initialContent, sender) { 
-    let chatOutput = document.getElementById('chat-output');
-    let partialMessage = document.createElement('div');
-    partialMessage.classList.add('message', sender, 'partial');
-    const contentSpan = document.createElement('span');
-    contentSpan.classList.add('editable'); 
-    if (sender === 'assistant') contentSpan.classList.add('content');
-    contentSpan.innerHTML = initialContent; 
-    partialMessage.appendChild(contentSpan);
-    chatOutput.appendChild(partialMessage);
-    chatOutput.scrollTop = chatOutput.scrollHeight;
-    return partialMessage; 
+function displayPartialMessage(initialContent, sender) {
+let chatOutput = document.getElementById('chat-output');
+let partialMessage = document.createElement('div');
+partialMessage.classList.add('message', sender, 'partial');
+const contentSpan = document.createElement('span');
+contentSpan.classList.add('editable');
+if (sender === 'assistant') contentSpan.classList.add('content');
+contentSpan.innerHTML = initialContent;
+partialMessage.appendChild(contentSpan);
+chatOutput.appendChild(partialMessage);
+chatOutput.scrollTop = chatOutput.scrollHeight;
+return partialMessage;
 }
 
 function toggleReasoning(element) { element.classList.toggle('collapsed'); }
-function addRunAndCopyButtonsToCodeBlocks(parentElement) { 
-    parentElement.querySelectorAll('pre code').forEach((block) => {
-        if (!block.parentElement.querySelector('.copy-code')) {
-            const copyButtonTop = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonTop));
-            const runButtonTop = createButton('run-code', 'Run', () => runCodeInNewTab(block));
-            const copyButtonBottom = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonBottom));
-            const runButtonBottom = createButton('run-code', 'Run', () => runCodeInNewTab(block));
-            block.parentElement.style.position = 'relative';
-            [copyButtonTop, runButtonTop].forEach((button, i) => { button.style.position = 'absolute'; button.style.top = '5px'; button.style.right = i === 0 ? '55px' : '5px';});
-            [copyButtonBottom, runButtonBottom].forEach((button, i) => { button.style.position = 'absolute'; button.style.bottom = '5px'; button.style.right = i === 0 ? '55px' : '5px';});
-            block.parentElement.appendChild(copyButtonTop); block.parentElement.appendChild(runButtonTop);
-            block.parentElement.appendChild(copyButtonBottom); block.parentElement.appendChild(runButtonBottom);
-        }
-    });
+function addRunAndCopyButtonsToCodeBlocks(parentElement) {
+parentElement.querySelectorAll('pre code').forEach((block) => {
+if (!block.parentElement.querySelector('.copy-code')) {
+const copyButtonTop = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonTop));
+const runButtonTop = createButton('run-code', 'Run', () => runCodeInNewTab(block));
+const copyButtonBottom = createButton('copy-code', 'Copy', () => copyToClipboard(block.textContent.trim(), copyButtonBottom));
+const runButtonBottom = createButton('run-code', 'Run', () => runCodeInNewTab(block));
+block.parentElement.style.position = 'relative';
+[copyButtonTop, runButtonTop].forEach((button, i) => { button.style.position = 'absolute'; button.style.top = '5px'; button.style.right = i === 0 ? '55px' : '5px';});
+[copyButtonBottom, runButtonBottom].forEach((button, i) => { button.style.position = 'absolute'; button.style.bottom = '5px'; button.style.right = i === 0 ? '55px' : '5px';});
+block.parentElement.appendChild(copyButtonTop); block.parentElement.appendChild(runButtonTop);
+block.parentElement.appendChild(copyButtonBottom); block.parentElement.appendChild(runButtonBottom);
+}
+});
 }
 function createButton(className, text, clickHandler) { const button = document.createElement('button'); button.className = className; button.textContent = text; button.addEventListener('click', clickHandler); return button;}
 function copySource(button) { copyToClipboard(initialHTML, button); }
 function copyToClipboard(text, button) { navigator.clipboard.writeText(text).then(() => { const originalText = button.textContent; button.textContent = 'Copied!'; setTimeout(() => { button.textContent = originalText; }, 1500);}).catch(err => { console.error("Could not copy text: ", err); });}
-function runCodeInNewTab(codeBlock) { 
-    const code = codeBlock.textContent; const newWindow = window.open('', '_blank');
-    if (newWindow) {
-        newWindow.document.open();
-        const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup') || codeBlock.classList.contains('language-xml') || codeBlock.classList.contains('language-svg');
-        if (isHtml) { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Execution</title></head><body>'); newWindow.document.write(code); newWindow.document.write('</body></html>'); }
-        else { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Preview</title></head><body><pre>' + escapeHtml(code) + '</pre></body></html>');}
-        newWindow.document.close();
-    } else { alert('Failed to open a new tab. Please check your browser\'s pop-up blocker settings.'); }
+function runCodeInNewTab(codeBlock) {
+const code = codeBlock.textContent; const newWindow = window.open('', '_blank');
+if (newWindow) {
+newWindow.document.open();
+const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup') || codeBlock.classList.contains('language-xml') || codeBlock.classList.contains('language-svg');
+if (isHtml) { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Execution</title></head><body>'); newWindow.document.write(code); newWindow.document.write('</body></html>'); }
+else { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Preview</title></head><body><pre>' + escapeHtml(code) + '</pre></body></html>');}
+newWindow.document.close();
+} else { alert('Failed to open a new tab. Please check your browser\'s pop-up blocker settings.'); }
 }
 
-function redrawMessages() { 
-    document.getElementById('chat-output').innerHTML = '';
-    conversationHistory.forEach((entry, i) => { 
-        displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning); 
-    });
-    if (editIndex !== null) {
-        const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"] .editable`);
-        if(editingMessageDiv && editingMessageDiv.closest('.message').classList.contains('editing')) {
-            // This state should ideally be handled carefully. If redrawMessages is called
-            // while an edit is active, we might lose the "editing" visual state unless re-applied.
-            // For now, assuming redrawMessages is generally called when edits are not active or just completed.
-        } else {
-            // If the element for editIndex is no longer valid or not in editing state, reset.
-            const currentEditingMsgDiv = document.querySelector(`.message.editing`);
-            if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
-            editIndex = null;
-            updateClearChatButtonIcon();
-        }
-    }
+function redrawMessages() {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory.forEach((entry, i) => {
+displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning);
+});
+if (editIndex !== null) {
+const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"] .editable`);
+if(editingMessageDiv && editingMessageDiv.closest('.message').classList.contains('editing')) {
+} else {
+const currentEditingMsgDiv = document.querySelector(`.message.editing`);
+if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+}
+}
 }
 
-async function updateModelOptions() { 
+async function updateModelOptions() {
     const provider = document.getElementById('api-provider').value;
     const modelSelect = document.getElementById('model-select');
-    const oldSelectedValue = modelSelect.value; 
-    modelSelect.innerHTML = ''; 
-    const modelsByProvider = { 
-        gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-pro', 'custom'], 
-        openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo','gpt-4', 'gpt-3.5-turbo',  'custom'], 
+    const oldSelectedValue = modelSelect.value;
+    modelSelect.innerHTML = '';
+    const modelsByProvider = {
+        gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06', 'custom'],
+        openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o-mini', 'gpt-4o', 'custom'],
         deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
-        perplexity: ['llama-3-sonar-small-32k-chat', 'llama-3-sonar-large-32k-chat', 'llama-3-8b-instruct', 'llama-3-70b-instruct', 'mixtral-8x7b-instruct', 'custom'], 
-        groq: [] 
+        perplexity: ['llama-3-8b-instruct', 'llama-3-70b-instruct', 'mixtral-8x7b-instruct', 'llama-3-sonar-small-32k-chat', 'llama-3-sonar-large-32k-chat', 'custom'],
+        groq: []
     };
+
     if (provider === 'groq') {
         try {
-            const apiKey = (apiKeys.groq && apiKeys.groq.length > 0 && apiKeys.groq[0]) ? apiKeys.groq[0] : null; 
+            const apiKey = (apiKeys.groq && apiKeys.groq.length > 0 && apiKeys.groq[0]) ? apiKeys.groq[0] : null;
             if (apiKey) {
                 const response = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` }});
                 if (response.ok) {
@@ -1296,71 +1271,82 @@ async function updateModelOptions() {
                 } else { console.error('Error loading Groq models:', await response.text()); }
             }
         } catch (error) { console.error('Error loading Groq models:', error); }
-        if (!modelsByProvider.groq.includes('custom')) modelsByProvider.groq.push('custom'); 
+        if (!modelsByProvider.groq.includes('custom')) modelsByProvider.groq.push('custom');
     }
-    if (modelsByProvider[provider]) { modelsByProvider[provider].forEach(model => { modelSelect.add(new Option(model, model)); });}
+
+    if (modelsByProvider[provider]) {
+        modelsByProvider[provider].forEach(model => {
+            modelSelect.add(new Option(model, model));
+        });
+    }
+
     const savedModelForProvider = lastUsedModels && lastUsedModels[provider];
-    if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) modelSelect.value = savedModelForProvider;
-    else if (oldSelectedValue && Array.from(modelSelect.options).some(opt => opt.value === oldSelectedValue) && provider === localStorage.getItem('lastUsedApiProvider')) modelSelect.value = oldSelectedValue;
-    else setDefaultModel(provider); 
-    selectedModel = modelSelect.value; 
+    if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) {
+        modelSelect.value = savedModelForProvider;
+    } else if (oldSelectedValue && Array.from(modelSelect.options).some(opt => opt.value === oldSelectedValue) && provider === localStorage.getItem('lastUsedApiProvider')) {
+        modelSelect.value = oldSelectedValue;
+    } else {
+        setDefaultModel(provider);
+    }
+    selectedModel = modelSelect.value;
     toggleCustomModelField();
 }
+
 function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px';}
 window.addEventListener('resize', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); });
 window.addEventListener('load', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); });
-showTab('chat'); 
-class OpenAIChat { 
-    constructor(apiKey, model, systemPrompt) { this.apiKey = apiKey; this.model = model; this.systemPrompt = systemPrompt; }
-    setApiKey(apiKey) { this.apiKey = apiKey; } setModel(model) { this.model = model; } setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; } 
-    async getBotResponse(userMessage, onDelta) { 
-        const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
-        const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
-        const url = "https://api.openai.com/v1/chat/completions";
-        const response = await fetch(url, { method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey}, body: JSON.stringify({model: this.model, messages: messagesForAPI, stream: true})});
-        if (!response.ok) { throw new Error(await response.text()); }
-        let botResponse = '';
-        await this.processEventStream(response.body.getReader(), (chunk) => {
-            const data = JSON.parse(chunk);
-            if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) { const delta = data.choices[0].delta.content; botResponse += delta; if (onDelta) onDelta(delta);}
-        });
-        return botResponse;
-    }
-    async processEventStream(reader, delegate) { 
-        const decoder = new TextDecoder(); let accumulated = '';
-        while (true) {
-            const result = await reader.read(); if (result.done) break; 
-            accumulated += decoder.decode(result.value, {stream: true});
-            const lines = accumulated.split('\n'); accumulated = lines.pop();
-            for (let line of lines) if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') delegate(line.slice(6));
-        }
-        if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]' && accumulated.length > 6) delegate(accumulated.slice(6));
-    }
+showTab('chat');
+class OpenAIChat {
+constructor(apiKey, model, systemPrompt) { this.apiKey = apiKey; this.model = model; this.systemPrompt = systemPrompt; }
+setApiKey(apiKey) { this.apiKey = apiKey; } setModel(model) { this.model = model; } setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; }
+async getBotResponse(userMessage, onDelta) {
+const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
+const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
+const url = "https://api.openai.com/v1/chat/completions";
+const response = await fetch(url, { method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey}, body: JSON.stringify({model: this.model, messages: messagesForAPI, stream: true})});
+if (!response.ok) { throw new Error(await response.text()); }
+let botResponse = '';
+await this.processEventStream(response.body.getReader(), (chunk) => {
+const data = JSON.parse(chunk);
+if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) { const delta = data.choices[0].delta.content; botResponse += delta; if (onDelta) onDelta(delta);}
+});
+return botResponse;
+}
+async processEventStream(reader, delegate) {
+const decoder = new TextDecoder(); let accumulated = '';
+while (true) {
+const result = await reader.read(); if (result.done) break;
+accumulated += decoder.decode(result.value, {stream: true});
+const lines = accumulated.split('\n'); accumulated = lines.pop();
+for (let line of lines) if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') delegate(line.slice(6));
+}
+if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]' && accumulated.length > 6) delegate(accumulated.slice(6));
+}
 }
 function logToConsole(message) { document.getElementById('console-output').textContent += `${message}\n`;}
 function handleEnter(event) { if (event.key === 'Enter' && !event.shiftKey && !/Android/.test(navigator.userAgent)) { event.preventDefault(); sendMessage();}}
-function toggleCustomModelField() { 
-    const modelSelect = document.getElementById('model-select');
-    const customModelLabel = document.getElementById('custom-model-label');
-    const customModelInput = document.getElementById('custom-model-input');
-    const provider = document.getElementById('api-provider').value;
-    if (modelSelect.value === 'custom') {
-        customModelLabel.classList.remove('hidden'); customModelInput.classList.remove('hidden');
-        if (provider === 'openai') customModelInput.value = customOpenAIModel;
-        else if (provider === 'gemini') customModelInput.value = customGeminiModel;
-        else if (provider === 'deepseek') customModelInput.value = customDeepSeekModel;
-        else if (provider === 'perplexity') customModelInput.value = customPerplexityModel;
-        else if (provider === 'groq') customModelInput.value = customGroqModel;
-        else customModelInput.value = ''; 
-    } else {
-        customModelLabel.classList.add('hidden'); customModelInput.classList.add('hidden');
-    }
+function toggleCustomModelField() {
+const modelSelect = document.getElementById('model-select');
+const customModelLabel = document.getElementById('custom-model-label');
+const customModelInput = document.getElementById('custom-model-input');
+const provider = document.getElementById('api-provider').value;
+if (modelSelect.value === 'custom') {
+customModelLabel.classList.remove('hidden'); customModelInput.classList.remove('hidden');
+if (provider === 'openai') customModelInput.value = customOpenAIModel;
+else if (provider === 'gemini') customModelInput.value = customGeminiModel;
+else if (provider === 'deepseek') customModelInput.value = customDeepSeekModel;
+else if (provider === 'perplexity') customModelInput.value = customPerplexityModel;
+else if (provider === 'groq') customModelInput.value = customGroqModel;
+else customModelInput.value = '';
+} else {
+customModelLabel.classList.add('hidden'); customModelInput.classList.add('hidden');
 }
-function updateApiKeyVisibility() { 
-    const provider = document.getElementById('api-provider').value;
-    document.querySelectorAll('.api-key-container').forEach(container => { container.style.display = 'none';});
-    const targetContainer = document.getElementById(`${provider}-api-key-container`);
-    if (targetContainer) targetContainer.style.display = 'block';
+}
+function updateApiKeyVisibility() {
+const provider = document.getElementById('api-provider').value;
+document.querySelectorAll('.api-key-container').forEach(container => { container.style.display = 'none';});
+const targetContainer = document.getElementById(`${provider}-api-key-container`);
+if (targetContainer) targetContainer.style.display = 'block';
 }
 function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']; return emojiNumbers[num - 1] || `[${num}]`;}
 </script></body></html>
