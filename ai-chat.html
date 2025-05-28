@@ -608,7 +608,8 @@ function handleClearChatClick() {
             } else { 
                 conversationHistory[currentEditingIndex].content = newText.trim(); 
                 saveFullConversation();
-                editableMessageSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>'); 
+                editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true }); // MODIFIED: Use marked.parse for assistant edits
+                Prism.highlightAllUnder(editableMessageSpan.closest('.message')); // Re-highlight
                 editIndex = null; 
                 updateClearChatButtonIcon(); 
                 document.getElementById('loading-spinner').style.display = 'none'; 
@@ -1103,13 +1104,9 @@ function displayMessage(message, sender, index, isUserInput = false, reasoning =
 
     if (sender === 'user') {
         editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
-    } else { 
-        const isLikelyPlainText = !(/<\/?(p|ul|ol|li|h[1-6]|blockquote|pre|code|strong|em|a|img)>/.test(message));
-        if (isLikelyPlainText && !isUserInput) { 
-             editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
-        } else {
-            editableSpan.innerHTML = marked.parse(message, { breaks: true });
-        }
+    } else { // Assistant message
+        // Always parse assistant messages with marked, as they are expected to contain Markdown.
+        editableSpan.innerHTML = marked.parse(message, { breaks: true });
     }
     newMessageDiv.appendChild(editableSpan);
     
@@ -1169,9 +1166,8 @@ function displayMessage(message, sender, index, isUserInput = false, reasoning =
                 if (conversationHistory[blurredIndex] && conversationHistory[blurredIndex].content.trim() !== newText.trim()) {
                     conversationHistory[blurredIndex].content = newText.trim(); 
                     if (conversationHistory[blurredIndex].role === 'assistant') {
-                        // For assistant, re-escape and replace newlines if it was plain text initially
-                        // Or re-parse if it was markdown. For simplicity, now just re-escaping for assistants.
-                         editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
+                        // For assistant messages, re-parse with marked
+                        editableSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
                     } else { // For user messages, it's always escaped plain text
                          editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
                     }
