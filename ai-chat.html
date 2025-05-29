@@ -710,7 +710,7 @@ function setDefaultModel(provider) {
 const modelSelect = document.getElementById('model-select');
 let defaultModel = "";
 const providerDefaultModels = {
-gemini: 'gemini-1.5-flash', openai: 'gpt-4o', deepseek: 'deepseek-chat',
+gemini: 'gemini-2.0-flash', openai: 'gpt-4o', deepseek: 'deepseek-chat',
 perplexity: 'llama-3-sonar-small-32k-chat', groq: 'mixtral-8x7b-32768'
 };
 defaultModel = providerDefaultModels[provider] || "custom";
@@ -1253,7 +1253,7 @@ const modelSelect = document.getElementById('model-select');
 const oldSelectedValue = modelSelect.value;
 modelSelect.innerHTML = '';
 const modelsByProvider = {
-gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06', 'custom'],
+gemini: ['gemini-2.0-flash', 'gemini-2.0-pro-exp', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06', 'custom'],
 openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom'],
 deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
 perplexity: ['llama-3-8b-instruct', 'llama-3-70b-instruct', 'mixtral-8x7b-instruct', 'llama-3-sonar-small-32k-chat', 'llama-3-sonar-large-32k-chat', 'custom'],
