@@ -443,7 +443,7 @@ save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .
 document.addEventListener("DOMContentLoaded", function () {
 loadSettings();
 initializeClearChatButton();
-handlePageLoadConversation(); 
+handlePageLoadConversation();
 
 updateModelOptions();
 const consoleCopyButton = document.querySelector('.console-copy-code');
@@ -472,7 +472,7 @@ updateClearChatButtonIcon();
 });
 
 function handleUserInput() {
-adjustTextareaAndButtonHeight(); 
+adjustTextareaAndButtonHeight();
 toggleSendButton();
 }
 
@@ -481,11 +481,11 @@ const userInputArea = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const computedStyle = getComputedStyle(userInputArea);
 
-const lineHeight = parseFloat(computedStyle.lineHeight); 
-const paddingTop = parseFloat(computedStyle.paddingTop); 
-const paddingBottom = parseFloat(computedStyle.paddingBottom); 
-const borderTopWidth = parseFloat(computedStyle.borderTopWidth); 
-const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth); 
+const lineHeight = parseFloat(computedStyle.lineHeight);
+const paddingTop = parseFloat(computedStyle.paddingTop);
+const paddingBottom = parseFloat(computedStyle.paddingBottom);
+const borderTopWidth = parseFloat(computedStyle.borderTopWidth);
+const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth);
 
 const singleLineTextHeight = isNaN(lineHeight) ? (parseFloat(computedStyle.fontSize) * 1.5 || 20) : lineHeight;
 const heightForOneLine = singleLineTextHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
@@ -499,11 +499,11 @@ let newCalculatedHeight = userInputArea.scrollHeight + borderTopWidth + borderBo
 let targetHeight;
 
 if (newCalculatedHeight > maxAllowedHeight) {
-targetHeight = maxAllowedHeight; 
+targetHeight = maxAllowedHeight;
 } else if (newCalculatedHeight < heightForOneLine) {
 targetHeight = heightForOneLine;
 } else {
-targetHeight = newCalculatedHeight; 
+targetHeight = newCalculatedHeight;
 }
 
 const cssMinHeight = parseFloat(computedStyle.minHeight) || 0;
@@ -514,7 +514,7 @@ targetHeight = cssMinHeight;
 userInputArea.style.height = targetHeight + 'px';
 const finalButtonDimension = userInputArea.offsetHeight + 'px';
 sendButton.style.height = finalButtonDimension;
-sendButton.style.width = finalButtonDimension; 
+sendButton.style.width = finalButtonDimension;
 }
 
 
@@ -593,8 +593,8 @@ sendMessage();
 } else {
 conversationHistory[currentEditingIndex].content = newText.trim();
 saveFullConversation();
-editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true }); 
-Prism.highlightAllUnder(editableMessageSpan.closest('.message')); 
+editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
+Prism.highlightAllUnder(editableMessageSpan.closest('.message'));
 editIndex = null;
 updateClearChatButtonIcon();
 document.getElementById('loading-spinner').style.display = 'none';
@@ -622,10 +622,10 @@ chatClearedState = false;
 localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
 }
 } else {
-saveFullConversation(); 
+saveFullConversation();
 document.getElementById('chat-output').innerHTML = '';
 chatClearedState = true;
-localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true'); 
+localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true');
 }
 updateClearChatButtonIcon();
 }
@@ -638,23 +638,23 @@ const userExplicitlyCleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === '
 if (hasSavedConversation) {
 if (userExplicitlyCleared) {
 document.getElementById('chat-output').innerHTML = '';
-conversationHistory = []; 
+conversationHistory = [];
 modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-chatClearedState = true; 
+chatClearedState = true;
 } else {
-document.getElementById('chat-output').innerHTML = ''; 
-conversationHistory = []; 
-modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] }; 
-chatClearedState = true; 
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
+chatClearedState = true;
 }
 } else {
 document.getElementById('chat-output').innerHTML = '';
 conversationHistory = [];
 modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
-chatClearedState = false; 
-localStorage.removeItem(CHAT_CLEARED_STATE_KEY); 
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
 }
-updateClearChatButtonIcon(); 
+updateClearChatButtonIcon();
 }
 
 
@@ -744,28 +744,28 @@ return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filte
 function toggleSendButton() { document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === ""; }
 
 function showTab(tabName) {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => tab.classList.remove('active'));
-    document.getElementById('settings-container').style.display = 'none';
-    document.getElementById('chat-output').style.display = 'none';
-    document.getElementById('chat-input').style.display = 'none';
-    document.getElementById('console-container').style.display = 'none';
-    const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => tab.classList.remove('active'));
+document.getElementById('settings-container').style.display = 'none';
+document.getElementById('chat-output').style.display = 'none';
+document.getElementById('chat-input').style.display = 'none';
+document.getElementById('console-container').style.display = 'none';
+const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
 
-    if (tabName === 'chat') {
-        document.getElementById('chat-output').style.display = 'block';
-        document.getElementById('chat-input').style.display = 'flex';
-        document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
-        clearChatButtonContainer.style.display = 'block'; // Or its original display style if not 'block'
-    } else if (tabName === 'settings') {
-        document.getElementById('settings-container').style.display = 'block';
-        document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
-        clearChatButtonContainer.style.display = 'none';
-    } else if (tabName === 'console') {
-        document.getElementById('console-container').style.display = 'block';
-        document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
-        clearChatButtonContainer.style.display = 'none';
-    }
+if (tabName === 'chat') {
+document.getElementById('chat-output').style.display = 'block';
+document.getElementById('chat-input').style.display = 'flex';
+document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
+clearChatButtonContainer.style.display = 'block'; // Or its original display style if not 'block'
+} else if (tabName === 'settings') {
+document.getElementById('settings-container').style.display = 'block';
+document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
+clearChatButtonContainer.style.display = 'none';
+} else if (tabName === 'console') {
+document.getElementById('console-container').style.display = 'block';
+document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
+clearChatButtonContainer.style.display = 'none';
+}
 }
 
 function saveSettings() {
@@ -821,7 +821,7 @@ if (chatClearedState && editIndex === null) {
 conversationHistory = [];
 modelSpecificConversationHistory = { gemini: [], deepseekReasoner: [] };
 chatClearedState = false;
-localStorage.removeItem(CHAT_CLEARED_STATE_KEY); 
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
 }
 
 const apiKeysPresent = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== '');
@@ -1084,7 +1084,7 @@ editableSpan.setAttribute('tabindex', '0');
 
 if (sender === 'user') {
 editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
-} else { 
+} else {
 editableSpan.innerHTML = marked.parse(message, { breaks: true });
 }
 newMessageDiv.appendChild(editableSpan);
@@ -1146,7 +1146,7 @@ if (conversationHistory[blurredIndex] && conversationHistory[blurredIndex].conte
 conversationHistory[blurredIndex].content = newText.trim();
 if (conversationHistory[blurredIndex].role === 'assistant') {
 editableSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
-} else { 
+} else {
 editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
 }
 saveFullConversation();
@@ -1248,48 +1248,48 @@ updateClearChatButtonIcon();
 }
 
 async function updateModelOptions() {
-    const provider = document.getElementById('api-provider').value;
-    const modelSelect = document.getElementById('model-select');
-    const oldSelectedValue = modelSelect.value;
-    modelSelect.innerHTML = '';
-    const modelsByProvider = {
-        gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06', 'custom'],
-        openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o-mini', 'gpt-4o', 'custom'],
-        deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
-        perplexity: ['llama-3-8b-instruct', 'llama-3-70b-instruct', 'mixtral-8x7b-instruct', 'llama-3-sonar-small-32k-chat', 'llama-3-sonar-large-32k-chat', 'custom'],
-        groq: []
-    };
+const provider = document.getElementById('api-provider').value;
+const modelSelect = document.getElementById('model-select');
+const oldSelectedValue = modelSelect.value;
+modelSelect.innerHTML = '';
+const modelsByProvider = {
+gemini: ['gemini-1.5-flash', 'gemini-1.5-pro-latest', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-pro-preview-05-06', 'custom'],
+openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom'],
+deepseek: ['deepseek-chat', 'deepseek-reasoner', 'custom'],
+perplexity: ['llama-3-8b-instruct', 'llama-3-70b-instruct', 'mixtral-8x7b-instruct', 'llama-3-sonar-small-32k-chat', 'llama-3-sonar-large-32k-chat', 'custom'],
+groq: []
+};
 
-    if (provider === 'groq') {
-        try {
-            const apiKey = (apiKeys.groq && apiKeys.groq.length > 0 && apiKeys.groq[0]) ? apiKeys.groq[0] : null;
-            if (apiKey) {
-                const response = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` }});
-                if (response.ok) {
-                    const data = await response.json();
-                    modelsByProvider.groq = data.data.filter(model => !model.id.includes('whisper') && model.active).map(model => model.id).sort();
-                } else { console.error('Error loading Groq models:', await response.text()); }
-            }
-        } catch (error) { console.error('Error loading Groq models:', error); }
-        if (!modelsByProvider.groq.includes('custom')) modelsByProvider.groq.push('custom');
-    }
+if (provider === 'groq') {
+try {
+const apiKey = (apiKeys.groq && apiKeys.groq.length > 0 && apiKeys.groq[0]) ? apiKeys.groq[0] : null;
+if (apiKey) {
+const response = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${apiKey}` }});
+if (response.ok) {
+const data = await response.json();
+modelsByProvider.groq = data.data.filter(model => !model.id.includes('whisper') && model.active).map(model => model.id).sort();
+} else { console.error('Error loading Groq models:', await response.text()); }
+}
+} catch (error) { console.error('Error loading Groq models:', error); }
+if (!modelsByProvider.groq.includes('custom')) modelsByProvider.groq.push('custom');
+}
 
-    if (modelsByProvider[provider]) {
-        modelsByProvider[provider].forEach(model => {
-            modelSelect.add(new Option(model, model));
-        });
-    }
+if (modelsByProvider[provider]) {
+modelsByProvider[provider].forEach(model => {
+modelSelect.add(new Option(model, model));
+});
+}
 
-    const savedModelForProvider = lastUsedModels && lastUsedModels[provider];
-    if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) {
-        modelSelect.value = savedModelForProvider;
-    } else if (oldSelectedValue && Array.from(modelSelect.options).some(opt => opt.value === oldSelectedValue) && provider === localStorage.getItem('lastUsedApiProvider')) {
-        modelSelect.value = oldSelectedValue;
-    } else {
-        setDefaultModel(provider);
-    }
-    selectedModel = modelSelect.value;
-    toggleCustomModelField();
+const savedModelForProvider = lastUsedModels && lastUsedModels[provider];
+if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) {
+modelSelect.value = savedModelForProvider;
+} else if (oldSelectedValue && Array.from(modelSelect.options).some(opt => opt.value === oldSelectedValue) && provider === localStorage.getItem('lastUsedApiProvider')) {
+modelSelect.value = oldSelectedValue;
+} else {
+setDefaultModel(provider);
+}
+selectedModel = modelSelect.value;
+toggleCustomModelField();
 }
 
 function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px';}
