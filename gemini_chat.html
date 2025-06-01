@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gemini Key Finder & Chat</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+:root {
+--bg-color: #1a202c; /* Dark Grayish Blue */
+--container-bg-color: #2d3748; /* Darker Grayish Blue */
+--text-color: #cbd5e0; /* Light Grayish Blue */
+--text-muted-color: #a0aec0; /* Grayish Blue */
+--accent-color: #4a5568; /* Medium Grayish Blue for buttons */
+--accent-hover-color: #434f60; /* Slightly darker for button hover */
+--valid-key-color: #48bb78; /* Green for valid keys */
+--error-color: #e53e3e; /* Red for errors */
+--shadow-color-light: rgba(0, 0, 0, 0.2);
+--shadow-color-dark: rgba(0, 0, 0, 0.3);
+}
+
+*, *::before, *::after {
+box-sizing: border-box;
+}
+
+html {
+height: 100%;
+}
+
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: var(--bg-color);
+color: var(--text-color);
+margin: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+height: 100%;
+padding: 20px 10px; /* Provides 20px top/bottom buffer */
+overflow-y: auto;
+-webkit-tap-highlight-color: transparent;
+}
+
+.view {
+background-color: var(--container-bg-color);
+border-radius: 16px;
+padding: 60px 25px 30px 25px; /* Top padding accommodates switch button */
+width: 100%;
+max-width: 380px;
+text-align: center;
+box-shadow: 0px 8px 25px var(--shadow-color-dark), 0px 4px 10px var(--shadow-color-light);
+display: none;
+flex-direction: column;
+align-items: center;
+transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+position: relative;
+flex-shrink: 0;
+}
+
+.view.active-view {
+display: flex;
+animation: fadeInView 0.5s forwards;
+}
+
+.view.fill-space {
+flex-grow: 1;
+min-height: 0;
+}
+
+
+@keyframes fadeInView {
+from { opacity: 0; transform: translateY(15px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.view-switch-btn {
+position: absolute;
+top: 12px;
+right: 12px;
+background-color: var(--accent-color);
+color: var(--text-color);
+border: none;
+border-radius: 50%;
+width: 40px;
+height: 40px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+box-shadow: 0px 2px 6px var(--shadow-color-light);
+z-index: 10;
+}
+.view-switch-btn .material-icons {
+font-size: 20px;
+}
+.view-switch-btn:hover:not(:disabled) {
+background-color: var(--accent-hover-color);
+transform: translateY(-1px) scale(1.05);
+box-shadow: 0px 3px 8px var(--shadow-color-dark);
+}
+.view-switch-btn:disabled {
+background-color: #3a4454;
+color: #718096;
+cursor: not-allowed;
+opacity: 0.6;
+transform: none;
+box-shadow: 0px 2px 6px var(--shadow-color-light);
+}
+
+
+.container h1#pageTitle {
+color: var(--text-color);
+font-size: 1.6em;
+font-weight: 500;
+margin-top: 0;
+margin-bottom: 15px;
+opacity: 0;
+animation: fadeIn 0.8s 0.2s forwards;
+}
+
+.status-indicator {
+color: var(--text-muted-color);
+font-size: 0.85em;
+min-height: 1.5em;
+margin-bottom: 25px;
+opacity: 0;
+transition: opacity 0.4s ease-in-out;
+font-style: italic;
+}
+.status-indicator.visible {
+opacity: 1;
+}
+
+
+.score-container {
+margin-bottom: 30px;
+opacity: 0;
+animation: fadeIn 0.8s 0.4s forwards;
+}
+
+.score {
+font-size: 4.5em;
+font-weight: 600;
+color: var(--text-muted-color);
+line-height: 1;
+margin-bottom: 5px;
+transition: color 0.4s ease-out, transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.score.has-keys {
+color: var(--valid-key-color);
+}
+
+.score-label {
+font-size: 0.9em;
+color: var(--text-muted-color);
+}
+
+.view button.action-button {
+background-color: var(--accent-color);
+color: var(--text-color);
+padding: 14px 25px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 1em;
+font-weight: 500;
+width: 80%;
+max-width: 280px;
+transition: background-color 0.2s ease, opacity 0.4s ease-out, transform 0.2s ease-out, visibility 0.4s;
+opacity: 0;
+margin-top: 10px;
+}
+
+.view button.action-button:hover:not(:disabled) {
+background-color: var(--accent-hover-color);
+transform: translateY(-2px);
+}
+
+.view button.action-button:active:not(:disabled) {
+transform: translateY(0px);
+}
+
+.view button.action-button:disabled {
+background-color: #3a4454;
+color: #718096;
+cursor: not-allowed;
+}
+
+button#startButton {
+animation: fadeIn 0.8s 0.6s forwards;
+}
+
+button#copyButton {
+background-color: var(--valid-key-color);
+color: #fff;
+animation: fadeIn 0.8s 0.8s forwards;
+}
+button#copyButton.hidden {
+opacity: 0 !important;
+pointer-events: none;
+margin-top: -40px;
+visibility: hidden;
+}
+
+
+button#copyButton:hover:not(:disabled) {
+background-color: #38a169;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.chat-title {
+color: var(--text-color);
+font-size: 1.6em;
+font-weight: 500;
+margin-top: 0;
+margin-bottom: 15px;
+text-align: center;
+opacity: 0;
+animation: fadeIn 0.8s 0.2s forwards;
+flex-shrink: 0;
+}
+
+.model-switcher-container {
+display: flex;
+align-items: center;
+justify-content: center;
+margin-bottom: 20px;
+opacity: 0;
+animation: fadeIn 0.8s 0.4s forwards;
+flex-shrink: 0;
+}
+
+.model-switcher-container .switch-label {
+font-size: 0.9em;
+color: var(--text-muted-color);
+margin: 0 10px;
+}
+
+.model-switcher-container .switch {
+position: relative;
+display: inline-block;
+width: 50px;
+height: 26px;
+}
+
+.model-switcher-container .switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+
+.model-switcher-container .slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: var(--accent-color);
+transition: .4s;
+border-radius: 26px;
+}
+
+.model-switcher-container .slider:before {
+position: absolute;
+content: "";
+height: 20px;
+width: 20px;
+left: 3px;
+bottom: 3px;
+background-color: white;
+transition: .4s;
+border-radius: 50%;
+}
+
+.model-switcher-container input:checked + .slider {
+background-color: var(--valid-key-color);
+}
+
+.model-switcher-container input:focus + .slider {
+box-shadow: 0 0 1px var(--valid-key-color);
+}
+
+.model-switcher-container input:checked + .slider:before {
+transform: translateX(24px);
+}
+
+
+.chat-messages {
+flex-grow: 1;
+overflow-y: auto;
+min-height: 100px;
+margin-bottom: 15px;
+/* padding-left: 10px; */ /* REMOVED */
+/* padding-right: 10px; */ /* REMOVED */
+display: flex;
+flex-direction: column;
+gap: 10px;
+width: 100%;
+opacity: 0;
+animation: fadeIn 0.8s 0.6s forwards;
+min-width: 0;
+}
+
+.chat-message {
+padding: 10px 14px;
+border-radius: 12px;
+font-size: 0.9em;
+line-height: 1.45;
+max-width: 90%;
+word-wrap: break-word;
+box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chat-message.user {
+background-color: var(--accent-color);
+color: var(--text-color);
+align-self: flex-end;
+border-bottom-right-radius: 4px;
+text-align: left;
+}
+
+.chat-message.model {
+background-color: #3a4454;
+color: var(--text-color);
+align-self: flex-start;
+border-bottom-left-radius: 4px;
+text-align: left;
+}
+
+.chat-message.model.thinking {
+font-style: italic;
+color: var(--text-muted-color);
+background-color: transparent;
+box-shadow: none;
+padding: 5px 0;
+text-align: left;
+}
+
+.chat-message.error {
+background-color: var(--error-color);
+color: white;
+align-self: flex-start;
+text-align: left;
+}
+
+.chat-message.model pre {
+background-color: var(--bg-color);
+color: var(--text-color);
+padding: 10px;
+border-radius: 6px;
+overflow-x: auto;
+font-size: 0.87em;
+line-height: 1.3;
+border: 1px solid var(--accent-color);
+margin: 8px 0;
+text-align: left;
+}
+
+.chat-message.model code {
+background-color: var(--bg-color);
+color: var(--text-muted-color);
+padding: 2px 5px;
+border-radius: 4px;
+font-size: 0.85em;
+font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+.chat-message.model pre code {
+padding: 0;
+background-color: transparent;
+border: none;
+font-size: inherit;
+color: inherit;
+}
+
+.chat-message.model ul,
+.chat-message.model ol {
+padding-left: 25px;
+margin-top: 8px;
+margin-bottom: 8px;
+text-align: left;
+}
+.chat-message.model ul li::marker,
+.chat-message.model ol li::marker {
+color: var(--text-muted-color);
+}
+
+.chat-message.model li {
+margin-bottom: 5px;
+}
+.chat-message.model li > p:first-child {
+margin-top: 0;
+}
+.chat-message.model li > p:last-child {
+margin-bottom: 0;
+}
+
+
+.chat-message.model blockquote {
+border-left: 3px solid var(--accent-color);
+padding-left: 12px;
+margin-left: 0;
+margin-right: 0;
+margin-top: 8px;
+margin-bottom: 8px;
+font-style: italic;
+color: var(--text-muted-color);
+text-align: left;
+}
+.chat-message.model blockquote p {
+margin: 5px 0;
+}
+
+.chat-message.model table {
+border-collapse: collapse;
+margin: 12px 0;
+width: 100%;
+font-size: 0.9em;
+box-shadow: 0 1px 3px var(--shadow-color-light);
+text-align: left;
+}
+
+.chat-message.model th,
+.chat-message.model td {
+border: 1px solid var(--accent-color);
+padding: 8px 10px;
+text-align: left;
+}
+
+.chat-message.model th {
+background-color: rgba(74, 85, 104, 0.4);
+font-weight: 600;
+color: var(--text-color);
+}
+
+.chat-message.model hr {
+border: none;
+border-top: 1px solid var(--accent-color);
+margin: 15px 0;
+}
+
+.chat-message.model h1,
+.chat-message.model h2,
+.chat-message.model h3,
+.chat-message.model h4,
+.chat-message.model h5,
+.chat-message.model h6 {
+margin-top: 1em;
+margin-bottom: 0.5em;
+font-weight: 500;
+color: var(--text-color);
+text-align: left;
+}
+.chat-message.model h1 { font-size: 1.4em; }
+.chat-message.model h2 { font-size: 1.3em; }
+.chat-message.model h3 { font-size: 1.2em; }
+
+.chat-message.model a {
+color: var(--valid-key-color);
+text-decoration: none;
+}
+.chat-message.model a:hover {
+text-decoration: underline;
+}
+
+.chat-message.model > p {
+margin-top: 0.2em;
+margin-bottom: 0.2em;
+}
+.chat-message.model > p:first-child {
+margin-top: 0;
+}
+.chat-message.model > p:last-child {
+margin-bottom: 0;
+}
+
+
+.chat-input-area {
+display: flex;
+gap: 10px;
+align-items: flex-end;
+width: 100%;
+opacity: 0;
+animation: fadeIn 0.8s 0.8s forwards;
+flex-shrink: 0;
+}
+
+#chatInput {
+flex-grow: 1;
+background-color: var(--bg-color);
+color: var(--text-color);
+border: 1px solid var(--accent-color);
+border-radius: 8px;
+padding: 10px 12px;
+font-size: 0.95em;
+resize: none;
+font-family: inherit;
+line-height: 1.4;
+min-height: 42px;
+max-height: 120px;
+overflow-y: hidden;
+}
+
+#chatInput:focus {
+outline: none;
+border-color: var(--valid-key-color);
+box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.3);
+}
+
+#chatSendButton {
+background-color: var(--accent-color);
+color: var(--text-color);
+padding: 0 20px;
+height: 42px;
+width: auto;
+min-width: 80px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+font-weight: 500;
+transition: background-color 0.2s ease;
+flex-shrink: 0;
+margin-top: 0;
+}
+
+#chatSendButton:hover:not(:disabled) {
+background-color: var(--accent-hover-color);
+transform: none;
+}
+#chatSendButton:disabled {
+background-color: #3a4454;
+color: #718096;
+cursor: not-allowed;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container view" id="finderContainer">
+<button id="switchToChatBtn" class="view-switch-btn" onclick="switchView('chat')" aria-label="Switch to Chat" disabled>
+<span class="material-icons">chat</span>
+</button>
+<h1 id="pageTitle">Gemini Key Finder</h1>
+
+<div class="score-container">
+<div id="validKeysCount" class="score">0</div>
+<div class="score-label">Valid Keys Found</div>
+</div>
+
+<div id="statusIndicator" class="status-indicator">Ready to start</div>
+
+<button id="startButton" class="action-button" onclick="startExtraction()">Start Scraping</button>
+<button id="copyButton" class="action-button hidden" onclick="copyValidKeysToClipboard()">Copy Keys</button>
+</div>
+
+<div class="chat-container view" id="chatContainer">
+<button id="switchToFinderBtn" class="view-switch-btn" onclick="switchView('finder')" aria-label="Switch to Key Finder">
+<span class="material-icons">key</span>
+</button>
+<h2 class="chat-title">Gemini Chat</h2>
+
+<div class="model-switcher-container">
+<span class="switch-label" id="modelLabelFaster">Faster</span>
+<label class="switch">
+<input type="checkbox" id="modelToggle">
+<span class="slider"></span>
+</label>
+<span class="switch-label" id="modelLabelSmarter">Smarter</span>
+</div>
+
+<div class="chat-messages" id="chatMessages">
+<!-- Chat messages will appear here -->
+</div>
+<div class="chat-input-area">
+<textarea id="chatInput" placeholder="Ask Gemini..." rows="1" aria-label="Chat input"></textarea>
+<button id="chatSendButton" aria-label="Send message">Send</button>
+</div>
+</div>
+
+<script>
+const BASE_URL = 'https://grep.app/search?regexp=true&q=%28gemini.*AIzaSy%5BA-Za-z0-9_-%5D%7B33%7D%7CAIzaSy%5BA-Za-z0-9_-%5D%7B33%7D.*gemini%29';
+const API_KEY_REGEX = /AIzaSy[A-Za-z0-9_-]{33}/g;
+const KEY_VALIDATION_MODEL = 'gemini-2.5-flash-preview-05-20';
+
+const MODEL_FASTER = 'gemini-2.0-flash';
+const MODEL_SMARTER = 'gemini-2.5-flash-preview-05-20';
+
+const VALID_GEMINI_KEYS_STORAGE_KEY = 'validGeminiApiKeys';
+const CHAT_MODEL_PREFERENCE_KEY = 'geminiChatModelPreference';
+
+let foundKeys = new Set();
+let validKeysForCopy = [];
+let validKeysCountValue = 0;
+let currentPage = 1;
+let processing = false;
+let maxPages = 20;
+
+const PROXIES = [
+(url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+(url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+(url) => `https://cors.eu.org/${url}`,
+(url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+];
+let currentProxyIndex = 0;
+
+const finderContainerEl = document.getElementById('finderContainer');
+const chatContainerEl = document.getElementById('chatContainer');
+let switchToChatBtnEl;
+let switchToFinderBtnEl;
+
+const pageTitleEl = document.getElementById('pageTitle');
+const statusIndicatorEl = document.getElementById('statusIndicator');
+const validKeysCountEl = document.getElementById('validKeysCount');
+const startButtonEl = document.getElementById('startButton');
+const copyButtonEl = document.getElementById('copyButton');
+
+const chatMessagesEl = document.getElementById('chatMessages');
+const chatInputEl = document.getElementById('chatInput');
+const chatSendButtonEl = document.getElementById('chatSendButton');
+const modelToggleEl = document.getElementById('modelToggle');
+const modelLabelFasterEl = document.getElementById('modelLabelFaster');
+const modelLabelSmarterEl = document.getElementById('modelLabelSmarter');
+
+let currentChatApiKey = null;
+let conversationHistory = [];
+let chatProcessing = false;
+let currentChatModel = MODEL_FASTER;
+let currentView = 'finder';
+
+function updateModelToggleVisuals() {
+if (currentChatModel === MODEL_FASTER) {
+modelLabelFasterEl.style.fontWeight = 'bold';
+modelLabelFasterEl.style.color = 'var(--valid-key-color)';
+modelLabelSmarterEl.style.fontWeight = 'normal';
+modelLabelSmarterEl.style.color = 'var(--text-muted-color)';
+modelToggleEl.checked = false;
+} else {
+modelLabelSmarterEl.style.fontWeight = 'bold';
+modelLabelSmarterEl.style.color = 'var(--valid-key-color)';
+modelLabelFasterEl.style.fontWeight = 'normal';
+modelLabelFasterEl.style.color = 'var(--text-muted-color)';
+modelToggleEl.checked = true;
+}
+}
+
+function switchView(viewName) {
+if (viewName === currentView) {
+if (viewName === 'finder' && finderContainerEl.classList.contains('active-view')) return;
+if (viewName === 'chat' && chatContainerEl.classList.contains('active-view')) return;
+}
+
+if (viewName === 'chat' && validKeysForCopy.length === 0) {
+console.warn("Attempted to switch to chat view with no API keys.");
+return;
+}
+
+currentView = viewName;
+finderContainerEl.classList.remove('fill-space');
+chatContainerEl.classList.remove('fill-space');
+
+if (viewName === 'finder') {
+finderContainerEl.classList.add('active-view');
+chatContainerEl.classList.remove('active-view');
+} else if (viewName === 'chat') {
+chatContainerEl.classList.add('active-view');
+finderContainerEl.classList.remove('active-view');
+chatContainerEl.classList.add('fill-space');
+
+if (currentChatApiKey && (conversationHistory.length === 0 || !chatContainerEl.dataset.initialized)) {
+conversationHistory = [];
+chatMessagesEl.innerHTML = '';
+addChatMessage("Hi there! How can I assist you?", "model");
+chatInputEl.value = '';
+adjustTextareaHeight();
+chatContainerEl.dataset.initialized = "true";
+}
+}
+}
+
+function saveKeysToLocalStorage() {
+localStorage.setItem(VALID_GEMINI_KEYS_STORAGE_KEY, JSON.stringify(validKeysForCopy));
+}
+
+function loadKeysFromLocalStorage() {
+const storedKeys = localStorage.getItem(VALID_GEMINI_KEYS_STORAGE_KEY);
+if (storedKeys) {
+validKeysForCopy = JSON.parse(storedKeys);
+validKeysCountValue = validKeysForCopy.length;
+} else {
+validKeysForCopy = [];
+validKeysCountValue = 0;
+}
+}
+
+function updateStatus(message, show = true) {
+console.log("Status:", message);
+statusIndicatorEl.textContent = message;
+if (show) {
+statusIndicatorEl.classList.add('visible');
+} else {
+statusIndicatorEl.classList.remove('visible');
+}
+}
+
+function updateValidKeysCountDisplay() {
+const oldVal = parseInt(validKeysCountEl.textContent);
+validKeysCountEl.textContent = validKeysCountValue;
+
+if (validKeysCountValue > 0) {
+if (!validKeysCountEl.classList.contains('has-keys')) {
+validKeysCountEl.classList.add('has-keys');
+}
+copyButtonEl.classList.remove('hidden');
+if (switchToChatBtnEl) switchToChatBtnEl.disabled = false;
+
+if (!currentChatApiKey) {
+currentChatApiKey = validKeysForCopy[0];
+if (currentView === 'chat' && !chatContainerEl.dataset.initialized) {
+conversationHistory = [];
+chatMessagesEl.innerHTML = '';
+addChatMessage("Hi there! How can I assist you?", "model");
+chatContainerEl.dataset.initialized = "true";
+}
+}
+} else {
+if (validKeysCountEl.classList.contains('has-keys')) {
+validKeysCountEl.classList.remove('has-keys');
+}
+copyButtonEl.classList.add('hidden');
+if (switchToChatBtnEl) switchToChatBtnEl.disabled = true;
+currentChatApiKey = null;
+if (currentView === 'chat') {
+switchView('finder');
+updateStatus("No valid keys. Switched to Key Finder.");
+}
+}
+
+if (oldVal === validKeysCountValue && validKeysCountValue !== 0) return;
+
+validKeysCountEl.style.transform = 'scale(0.85)';
+validKeysCountEl.style.opacity = '0.4';
+
+setTimeout(() => {
+validKeysCountEl.textContent = validKeysCountValue;
+validKeysCountEl.style.transform = 'scale(1)';
+validKeysCountEl.style.opacity = '1';
+}, 150);
+}
+
+
+async function fetchWithProxies(url) {
+for (let i = 0; i < PROXIES.length; i++) {
+const proxyUrlBuilder = PROXIES[currentProxyIndex];
+const fullProxyUrl = proxyUrlBuilder(url);
+const proxyName = proxyUrlBuilder.toString().match(/https:\/\/([a-zA-Z0-9.-]+)/)?.[1] || 'Unknown Proxy';
+
+updateStatus(`Fetching via ${proxyName} (Page ${currentPage})...`);
+console.log(`Attempting fetch via ${proxyName} (Proxy ${currentProxyIndex + 1}/${PROXIES.length}) for ${url}`);
+
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 15000);
+const res = await fetch(fullProxyUrl, { signal: controller.signal });
+clearTimeout(timeoutId);
+
+if (!res.ok) throw new Error(`Proxy fetch failed: ${res.status} ${res.statusText}`);
+const text = await res.text();
+console.log(`Successfully fetched via ${proxyName}.`);
+return text;
+} catch (e) {
+console.error(`Proxy ${proxyName} failed: ${e.message}. Trying next...`);
+currentProxyIndex = (currentProxyIndex + 1) % PROXIES.length;
+}
+}
+updateStatus(`All proxies failed for page ${currentPage}.`);
+throw new Error(`All proxies failed to fetch ${url}`);
+}
+
+async function testApiKey(apiKey) {
+let shortKey = `${apiKey.substring(0,10)}...`;
+updateStatus(`Testing key: ${shortKey} with ${KEY_VALIDATION_MODEL}`);
+console.log(`Testing key: ${apiKey} with ${KEY_VALIDATION_MODEL}`);
+
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${KEY_VALIDATION_MODEL}:generateContent?key=${apiKey}`;
+
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+const response = await fetch(GEMINI_API_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ "contents": [{ "parts":[{ "text": "Short answer please. Are you operational?" }] }] }),
+signal: controller.signal
+});
+clearTimeout(timeoutId);
+const data = await response.json();
+
+if (!response.ok) {
+let errMsg = (data && data.error && data.error.message) ? data.error.message : `HTTP ${response.status}`;
+console.warn(`Key ${shortKey} FAILED validation: ${errMsg}`);
+return;
+}
+
+if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+console.log(`Key ${shortKey} SUCCESS! Response: ${data.candidates[0].content.parts[0].text}`);
+if (!validKeysForCopy.includes(apiKey)) {
+validKeysForCopy.push(apiKey);
+saveKeysToLocalStorage();
+}
+validKeysCountValue = validKeysForCopy.length;
+updateValidKeysCountDisplay();
+
+if (processing) {
+updateStatus(`Key found! Scan continues. Chat available.`);
+} else {
+if (currentView === 'finder' || !statusIndicatorEl.textContent.includes('Loaded')) {
+updateStatus(`Key found! Chat available.`);
+}
+}
+} else {
+let blockReason = (data.promptFeedback?.blockReason) ? `Blocked: ${data.promptFeedback.blockReason}` : "Unexpected response structure during validation";
+console.warn(`Key ${shortKey} FAILED validation (${blockReason}).`);
+}
+} catch (error) {
+let errorMsg = (error.name === 'AbortError') ? 'Request timed out during validation.' : error.message;
+console.error(`Key ${shortKey} FAILED validation. Network/request error: ${errorMsg}`);
+}
+}
+
+async function processPage(pageNumber) {
+updateStatus(`Fetching page ${pageNumber}...`);
+const urlToFetch = `${BASE_URL}&page=${pageNumber}`;
+
+try {
+const html = await fetchWithProxies(urlToFetch);
+const matches = html.matchAll(API_KEY_REGEX);
+let newKeysOnPage = 0;
+const keysToTestThisPage = [];
+
+for (const match of matches) {
+if (!foundKeys.has(match[0])) {
+foundKeys.add(match[0]);
+if (!validKeysForCopy.includes(match[0])) {
+keysToTestThisPage.push(match[0]);
+}
+newKeysOnPage++;
+}
+}
+updateStatus(`Found ${newKeysOnPage} new potential keys on page ${pageNumber}. Total unique from grep: ${foundKeys.size}.`);
+
+if (keysToTestThisPage.length > 0) {
+for (const key of keysToTestThisPage) {
+if (!processing) break;
+await testApiKey(key);
+}
+}
+return html.includes('Load More Results') || html.includes('loadMoreResults');
+} catch (error) {
+updateStatus(`Error on page ${pageNumber}. Stopping pagination.`);
+console.error(`Error processing page ${pageNumber}: ${error.message}`);
+return false;
+}
+}
+
+async function startExtraction() {
+if (processing) {
+if (startButtonEl.textContent === 'Stopping...') return;
+processing = false;
+startButtonEl.textContent = 'Stopping...';
+startButtonEl.disabled = true;
+return;
+}
+
+processing = true;
+startButtonEl.textContent = 'Stop Scraping';
+startButtonEl.disabled = false;
+
+foundKeys.clear();
+currentPage = 1;
+currentProxyIndex = 0;
+statusIndicatorEl.classList.add('visible');
+
+if (validKeysCountValue > 0) {
+updateStatus("Scanning for additional keys...");
+} else {
+updateStatus("Scanning for keys...");
+}
+
+let hasMorePages = true;
+try {
+while(hasMorePages && currentPage <= maxPages && processing) {
+hasMorePages = await processPage(currentPage);
+if (hasMorePages && processing) {
+currentPage++;
+}
+}
+} catch (error) {
+console.error("Error during scraping loop:", error);
+} finally {
+const wasManuallyStopped = !processing;
+processing = false;
+startButtonEl.textContent = 'Start Scraping';
+startButtonEl.disabled = false;
+
+if (wasManuallyStopped) {
+updateStatus("Scraping stopped by user.");
+} else if (currentPage > maxPages && hasMorePages) {
+updateStatus(`Reached max page limit (${maxPages}). Total ${validKeysCountValue} valid key(s).`);
+} else {
+updateStatus(`Scan complete. Total ${validKeysCountValue} valid key(s).`);
+}
+
+updateValidKeysCountDisplay();
+
+if (validKeysForCopy.length > 0) {
+if (currentView === 'finder') {
+if (wasManuallyStopped) {
+updateStatus(`Scan stopped. ${validKeysCountValue} valid key(s) found. Chat available.`);
+} else {
+updateStatus(`Scan complete. ${validKeysCountValue} valid key(s) found. Chat available.`);
+}
+}
+} else {
+updateStatus(`Scan complete. No valid keys found.`);
+}
+
+}
+}
+
+function copyValidKeysToClipboard() {
+if (validKeysForCopy.length === 0) {
+updateStatus("No valid keys to copy.");
+return;
+}
+const textToCopy = validKeysForCopy.join('\n\n');
+navigator.clipboard.writeText(textToCopy).then(() => {
+const originalStatus = statusIndicatorEl.textContent;
+updateStatus("Valid keys copied to clipboard!");
+const originalText = copyButtonEl.textContent;
+copyButtonEl.textContent = 'Copied!';
+setTimeout(() => {
+copyButtonEl.textContent = originalText;
+updateStatus(originalStatus);
+}, 2000);
+}).catch(err => {
+updateStatus("Failed to copy keys.");
+console.error('Failed to copy keys: ', err);
+});
+}
+
+function adjustTextareaHeight() {
+if (!chatInputEl) return;
+chatInputEl.style.height = 'auto';
+let newHeight = chatInputEl.scrollHeight;
+const maxHeight = parseInt(window.getComputedStyle(chatInputEl).maxHeight, 10) || 120;
+
+if (newHeight > maxHeight) {
+newHeight = maxHeight;
+chatInputEl.style.overflowY = 'auto';
+} else {
+chatInputEl.style.overflowY = 'hidden';
+}
+chatInputEl.style.height = `${newHeight}px`;
+}
+
+function addChatMessage(text, senderType) {
+const messageEl = document.createElement('div');
+messageEl.classList.add('chat-message');
+
+if (senderType === 'thinking') {
+messageEl.classList.add('model', 'thinking');
+messageEl.textContent = text;
+} else {
+messageEl.classList.add(senderType); // 'user', 'model', or 'error'
+if (senderType === 'user') {
+messageEl.textContent = text; // User messages are plain text
+} else if (senderType === 'error') {
+// Class 'error' is already added by messageEl.classList.add(senderType)
+messageEl.textContent = text; // Error messages are plain text
+} else if (senderType === 'model') {
+// For model, text is initially empty or a placeholder,
+// and innerHTML is updated during streaming or after a non-streaming call.
+if (text && typeof marked !== 'undefined') { // Parse if initial text is provided (e.g., initial "Hi there!" message)
+messageEl.innerHTML = marked.parse(text.trim(), { breaks: true, gfm: true });
+} else if (text) { // Fallback if marked is not available but text is present
+const pre = document.createElement('pre');
+pre.style.whiteSpace = 'pre-wrap';
+pre.style.fontFamily = 'inherit';
+pre.textContent = text.trim();
+messageEl.appendChild(pre);
+}
+// If text is empty, it will be filled by streaming logic later
+}
+}
+
+chatMessagesEl.appendChild(messageEl);
+chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+return messageEl; // Return the DOM element
+}
+
+
+async function handleChatSubmit() {
+const userInput = chatInputEl.value.trim();
+if (!userInput || chatProcessing || !currentChatApiKey) {
+if (!currentChatApiKey && validKeysForCopy.length > 0) {
+currentChatApiKey = validKeysForCopy[0];
+addChatMessage("Trying to use the first available key for chat.", "model");
+} else if (!currentChatApiKey) {
+addChatMessage("No API key available for chat. Please find keys first.", "error");
+return;
+}
+if (!userInput || chatProcessing) return;
+}
+
+chatProcessing = true;
+chatInputEl.value = '';
+chatInputEl.disabled = true;
+chatSendButtonEl.disabled = true;
+adjustTextareaHeight();
+
+addChatMessage(userInput, "user");
+conversationHistory.push({ role: "user", parts: [{ text: userInput }] });
+
+const thinkingMessageEl = addChatMessage("Gemini is thinking...", "thinking");
+let modelMessageEl = null;
+let accumulatedResponse = "";
+
+try {
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${currentChatModel}:streamGenerateContent?key=${currentChatApiKey}`;
+const requestBody = { contents: conversationHistory };
+
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 60000); // Longer timeout for streaming
+
+const response = await fetch(GEMINI_API_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(requestBody),
+signal: controller.signal
+});
+clearTimeout(timeoutId);
+
+if (thinkingMessageEl && thinkingMessageEl.parentNode) {
+thinkingMessageEl.remove();
+}
+
+if (!response.ok) {
+const errorData = await response.json().catch(() => ({ error: { message: `HTTP ${response.status}` }}));
+const errorMessage = errorData?.error?.message || `API Error: ${response.status}`;
+addChatMessage(`Error: ${errorMessage}`, "error");
+console.error("Gemini API Error:", errorMessage, errorData);
+
+if (response.status === 400 && (errorMessage.toLowerCase().includes("api key not valid") || errorMessage.toLowerCase().includes("api key is invalid") || errorMessage.toLowerCase().includes("permission denied") || errorMessage.toLowerCase().includes("api_key_invalid")) ||
+response.status === 403 || response.status === 429) {
+addChatMessage("Current API key issue (invalid/quota/permission). Trying next key...", "error");
+
+const currentKeyIndex = validKeysForCopy.indexOf(currentChatApiKey);
+if (currentKeyIndex !== -1) {
+validKeysForCopy.splice(currentKeyIndex, 1);
+}
+saveKeysToLocalStorage();
+validKeysCountValue = validKeysForCopy.length;
+updateValidKeysCountDisplay();
+
+if (validKeysForCopy.length > 0) {
+currentChatApiKey = validKeysForCopy[0];
+addChatMessage("Switched to a new API key. Please try your request again.", "model");
+} else {
+currentChatApiKey = null;
+addChatMessage("No more valid API keys available. Please run the scraper again.", "error");
+}
+}
+// No return here, finally block will handle UI state
+} else {
+// Start streaming
+modelMessageEl = addChatMessage("", "model"); // Create empty model message element
+chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+let streamBuffer = '';
+
+async function processStreamChunks() {
+while (true) {
+const { value, done } = await reader.read();
+if (done) {
+console.log("Stream finished.");
+if (accumulatedResponse) {
+conversationHistory.push({ role: "model", parts: [{ text: accumulatedResponse.trim() }] });
+}
+return;
+}
+
+streamBuffer += decoder.decode(value, { stream: true });
+
+let lastProcessedIdx = 0;
+while (true) {
+const objStartIndex = streamBuffer.indexOf('{', lastProcessedIdx);
+if (objStartIndex === -1) break;
+
+let braceDepth = 0;
+let objEndIndex = -1;
+for (let i = objStartIndex; i < streamBuffer.length; i++) {
+if (streamBuffer[i] === '{') braceDepth++;
+else if (streamBuffer[i] === '}') braceDepth--;
+
+if (braceDepth === 0 && streamBuffer[i] === '}') {
+objEndIndex = i;
+break;
+}
+}
+
+if (objEndIndex !== -1) {
+const jsonStr = streamBuffer.substring(objStartIndex, objEndIndex + 1);
+try {
+const parsedChunk = JSON.parse(jsonStr);
+const itemsToProcess = Array.isArray(parsedChunk) ? parsedChunk : [parsedChunk];
+
+itemsToProcess.forEach(item => {
+if (item.candidates && item.candidates[0]?.content?.parts[0]?.text) {
+const textContent = item.candidates[0].content.parts[0].text;
+accumulatedResponse += textContent;
+if (modelMessageEl && typeof marked !== 'undefined') {
+modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
+}
+chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+} else if (item.promptFeedback && item.promptFeedback.blockReason) {
+const blockMessage = `\n\n*Response blocked: ${item.promptFeedback.blockReason}.*`;
+console.warn("Gemini response blocked:", item.promptFeedback.blockReason);
+accumulatedResponse += blockMessage;
+if (modelMessageEl && typeof marked !== 'undefined') {
+modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
+}
+// Stream usually ends after a block reason from Gemini
+} else if (item.error) {
+console.error("Error object in Google Stream:", item.error);
+const streamErrorMessage = `Stream error: ${item.error.message}`;
+accumulatedResponse += `\n\n*${streamErrorMessage}*`;
+if (modelMessageEl && typeof marked !== 'undefined') {
+modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
+}
+throw new Error(streamErrorMessage); // Propagate to stop stream processing
+}
+});
+lastProcessedIdx = objEndIndex + 1;
+} catch (e) {
+console.warn("JSON parsing error in stream chunk, waiting for more data. Error:", e, "Chunk:", jsonStr);
+// Incomplete JSON, break inner loop and wait for more data in outer loop
+// Advance search past this potentially corrupt start to avoid infinite loop on malformed static JSON
+lastProcessedIdx = objStartIndex + 1;
+break;
+}
+} else {
+// No complete JSON object found in buffer, wait for more data
+break;
+}
+}
+streamBuffer = streamBuffer.substring(lastProcessedIdx);
+}
+}
+await processStreamChunks();
+}
+
+} catch (error) {
+// This catches errors from fetch itself, AbortError, or errors thrown from processStreamChunks
+if (thinkingMessageEl && thinkingMessageEl.parentNode) thinkingMessageEl.remove();
+
+// If modelMessageEl exists but no response was accumulated, it means an error occurred early.
+// If there's some accumulatedResponse, the error might have happened mid-stream.
+if (modelMessageEl && !accumulatedResponse) {
+modelMessageEl.remove(); // Remove empty model message if error occurred before any content
+}
+
+let errorMsg = (error.name === 'AbortError') ? 'Request timed out.' : error.message;
+// Avoid adding a generic error message if a specific one was already displayed by stream processing
+if (!accumulatedResponse.toLowerCase().includes("error:")) {
+addChatMessage(`Network or other error: ${errorMsg}`, "error");
+}
+console.error("Chat send error:", error);
+} finally {
+chatProcessing = false;
+if (currentChatApiKey) {
+chatInputEl.disabled = false;
+chatSendButtonEl.disabled = false;
+// Verwijderde regel: if (chatInputEl) chatInputEl.focus();
+} else {
+chatInputEl.disabled = true;
+chatSendButtonEl.disabled = true;
+}
+adjustTextareaHeight();
+}
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+switchToChatBtnEl = document.getElementById('switchToChatBtn');
+switchToFinderBtnEl = document.getElementById('switchToFinderBtn');
+
+loadKeysFromLocalStorage();
+updateValidKeysCountDisplay();
+
+const savedModelPreference = localStorage.getItem(CHAT_MODEL_PREFERENCE_KEY);
+if (savedModelPreference === 'smarter') {
+modelToggleEl.checked = true;
+currentChatModel = MODEL_SMARTER;
+} else {
+modelToggleEl.checked = false;
+currentChatModel = MODEL_FASTER;
+}
+updateModelToggleVisuals();
+
+if (validKeysForCopy.length > 0) {
+currentChatApiKey = validKeysForCopy[0];
+updateStatus(`Loaded ${validKeysForCopy.length} key(s). Chat available.`, true);
+switchView('chat');
+} else {
+switchView('finder');
+setTimeout(() => {
+if (currentView === 'finder') {
+updateStatus('Ready to start', true);
+}
+}, 550);
+}
+
+
+chatSendButtonEl.addEventListener('click', handleChatSubmit);
+chatInputEl.addEventListener('keypress', (event) => {
+if (event.key === 'Enter' && !event.shiftKey) {
+event.preventDefault();
+handleChatSubmit();
+}
+});
+chatInputEl.addEventListener('input', adjustTextareaHeight);
+adjustTextareaHeight();
+
+modelToggleEl.addEventListener('change', () => {
+if (modelToggleEl.checked) {
+currentChatModel = MODEL_SMARTER;
+localStorage.setItem(CHAT_MODEL_PREFERENCE_KEY, 'smarter');
+} else {
+currentChatModel = MODEL_FASTER;
+localStorage.setItem(CHAT_MODEL_PREFERENCE_KEY, 'faster');
+}
+updateModelToggleVisuals();
+console.log("Chat model switched to:", currentChatModel);
+});
+});
+
+</script>
+</body>
+</html>
