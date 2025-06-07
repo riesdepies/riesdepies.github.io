@@ -528,7 +528,8 @@ body.dark-mode #closeDockedPlayerButton:hover {
 
 <script>
 (function(){
-const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=',
+const CORS_PROXY_PRIMARY = 'https://api.codetabs.com/v1/proxy?quest=',
+CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
@@ -612,6 +613,23 @@ return url.startsWith('http')
 : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
 }
 
+async function fetchWithProxyFallback(url) {
+    const proxies = [CORS_PROXY_PRIMARY, CORS_PROXY_FALLBACK];
+    for (const proxy of proxies) {
+        try {
+            const res = await fetch(proxy + url);
+            if (res.ok) {
+                console.log(`Successfully fetched ${url} via ${proxy}`);
+                return res;
+            }
+            console.warn(`Fetch via ${proxy} failed with status ${res.status}`);
+        } catch (err) {
+            console.warn(`Fetch via ${proxy} threw an error:`, err);
+        }
+    }
+    throw new Error(`Failed to fetch ${url} using all available proxies.`);
+}
+
 async function fetchArtistInfo(artistBasicInfo) {
     const artistCacheKey = PREFIX + 'artist_info_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
     const stored = localStorage.getItem(artistCacheKey);
@@ -635,7 +653,7 @@ async function fetchArtistInfo(artistBasicInfo) {
     }
 
     try {
-        const res = await fetch(CORS_PROXY + artistBasicInfo.artistUrl);
+        const res = await fetchWithProxyFallback(artistBasicInfo.artistUrl);
         if (!res.ok) return null;
         const html = await res.text();
         const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -741,7 +759,7 @@ async function loadAllArtistsData() {
     allArtistsData = [];
     countTextElement.textContent = 'Artiesten laden...';
     try {
-        const res = await fetch(CORS_PROXY + WEEK_URL);
+        const res = await fetchWithProxyFallback(WEEK_URL);
         if (!res.ok) {
             showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
             return;
@@ -1126,6 +1144,32 @@ allArtistsData = [];
 location.reload();
 }
 
+async function runProxyTest() {
+    const proxies = {
+        'Codetabs (primary)': CORS_PROXY_PRIMARY,
+        'corsproxy.io (fallback)': CORS_PROXY_FALLBACK
+    };
+    let results = [];
+    alert('CORS proxy test gestart. Dit kan even duren...');
+
+    for (const [name, url] of Object.entries(proxies)) {
+        const startTime = performance.now();
+        try {
+            const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+            const duration = performance.now() - startTime;
+            if (res.ok) {
+                results.push(`${name}: OK (${Math.round(duration)}ms)`);
+            } else {
+                results.push(`${name}: FAIL (Status: ${res.status})`);
+            }
+        } catch (err) {
+            results.push(`${name}: FAIL (Error: ${err.name})`);
+        }
+    }
+    alert('CORS Proxy Test Resultaten:\n\n' + results.join('\n'));
+}
+
+
 function updateBodyPadding() {
     if (controlBarGroup) {
         const headerHeight = controlBarGroup.offsetHeight;
@@ -1205,17 +1249,27 @@ searchFieldElement.addEventListener('click', function() {
 
 searchFieldElement.addEventListener('input', function(){
     searchClickShouldClear = (this.value.length > 0);
-    
     this.classList.toggle('has-content', this.value.length > 0);
+    
     const v = this.value.toLowerCase();
-    if(v === 'reset' || v === 'clear') {
+    if (v === 'reset' || v === 'clear') {
         this.value = '';
         this.classList.remove('has-content');
         searchClickShouldClear = false;
         clearLocalStorageData();
-    } else {
-        applyFiltersAndSort();
+        return; 
     }
+    
+    if (v === 'proxytest' || v === 'corstest') {
+        this.value = '';
+        this.classList.remove('has-content');
+        searchClickShouldClear = false;
+        this.blur();
+        runProxyTest();
+        return;
+    }
+
+    applyFiltersAndSort();
 });
 
 searchFieldElement.addEventListener('blur', function() {
