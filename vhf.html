@@ -666,7 +666,7 @@ async function fetchArtistInfo(artistBasicInfo) {
             datum: rawDatum,
             tijd: rawTijd,
             duur: duurTekst,
-            description: Array.from(paras).map(p => p.textContent.trim()).filter(txt => txt).join('\n\n') || 'Geen beschrijving beschikbaar',
+            description: Array.from(paras).map(p => p.innerHTML.trim()).filter(html => html).join('\n\n') || 'Geen beschrijving beschikbaar',
             spotifyId: spotifyId,
             youtubeLinks: youtubeLinks
         };
@@ -794,7 +794,7 @@ card.dataset.tijdInfo = info.tijd;
 card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
 card.dataset.rawName = artist.name;
 card.dataset.genres = info.genres.join(',').toLowerCase();
-card.dataset.description = info.description.toLowerCase();
+card.dataset.description = info.description.replace(/<[^>]*>/g, ' ').toLowerCase();
 if (info.spotifyId) {
     card.dataset.spotifyId = info.spotifyId;
 }
@@ -848,10 +848,10 @@ card.innerHTML = `
 <img data-src="${imgSrc}" src="${transparentPixel}" alt="Foto van ${artist.name}" class="artist-photo lazyload">
 <div class="artist-meta-container">
     <div class="artist-info">
-        <p class="highlightable-genres">Genre: ${info.genres.join(', ') || 'Geen genres'}</p>
-        <p class="highlightable-podium">Podium: ${info.podium}</p>
-        <p>Datum: ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
-        <p>Tijd: ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+        <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
+        <p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
+        <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
+        <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
     </div>
     ${spotifyButtonHtml}
 </div>
