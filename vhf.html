@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Valkhof Festival 2025</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 html {
     overflow-y: scroll;
@@ -83,23 +84,18 @@ color: #fff;
 #searchField {
 width: 100%;
 }
-/* Verberg standaard wis-knopje in search input */
 #searchField::-webkit-search-decoration,
 #searchField::-webkit-search-cancel-button,
 #searchField::-webkit-search-results-button,
 #searchField::-webkit-search-results-decoration {
-    -webkit-appearance:none; /* Oudere WebKit/Blink */
-    display: none; /* Zorgt ervoor dat het element geen ruimte inneemt */
+    -webkit-appearance:none;
+    display: none;
 }
-#searchField::-ms-clear { /* Voor Edge (oudere versies) */
+#searchField::-ms-clear {
     display: none;
     width: 0;
     height: 0;
 }
-/* Firefox toont standaard geen 'x' bij type="search" zonder form,
-   maar 'appearance: textfield' kan worden gebruikt als reset indien nodig.
-   Voor nu laten we dit weg, de bovenstaande rules zijn meestal voldoende. */
-
 #searchField:focus {
 outline: none;
 border-color: #007bff;
@@ -174,10 +170,45 @@ box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 padding: 15px;
 position: relative;
 }
-.artist-card h2 {
-margin: 0 0 10px;
-font-size: 18px;
+.artist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
+.artist-card h2 {
+margin: 0;
+font-size: 20px;
+}
+.favorite-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: red;
+    font-display: block;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.artist-photo {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    background-color: #e0e0e0;
+}
+
+.artist-meta-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
 .artist-info,
 .artist-description {
 font-size: 14px;
@@ -187,36 +218,18 @@ line-height: 1.4;
 .artist-description p {
 margin: 6px 0;
 }
+.artist-info {
+    margin: 0;
+}
+.artist-description {
+    margin-top: 15px;
+}
+
 .artist-name {
 color: #007bff;
 text-decoration: none;
 }
-.favorite-icon {
-position: absolute;
-top: 15px;
-right: 15px;
-width: 32px;
-height: 32px;
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
-color: red;
-font-display: block;
-}
-.spotify-iframe-container {
-margin-top: 20px;
-margin-bottom: 0;
-height: 100px;
-}
-.spotify-iframe-container iframe {
-border-radius: 8px;
-margin: 0;
-padding: 0;
-display: block;
-width: 100%;
-height: 100%;
-}
+
 .artist-info p:first-child {
 margin-top: 0;
 }
@@ -227,6 +240,124 @@ mark {
     padding: 0.1em;
     border-radius: 3px;
 }
+
+.youtube-links-container {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.youtube-link-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-decoration: none;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+.youtube-link-item:hover {
+    background-color: #efefef;
+}
+
+.youtube-thumbnail {
+    width: 120px;
+    height: 67px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.youtube-title {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #333;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.spotify-play-button {
+    background-color: #1DB954;
+    color: white !important;
+    border: none;
+    padding: 8px 12px 8px 10px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    transition: background-color 0.2s;
+    flex-shrink: 0;
+}
+.spotify-play-button:hover {
+    background-color: #1ed760;
+}
+.spotify-play-button i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.docked-spotify-player-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    background-color: #282828;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease-in-out;
+    will-change: transform;
+    transform: translateY(100%) translateZ(0); /* Start met 3D transform */
+}
+
+.docked-spotify-player-wrapper.visible {
+    transform: translateY(0) translateZ(0); /* Behoud 3D transform */
+}
+
+.docked-spotify-player-container {
+    flex-grow: 1;
+    height: 100%;
+    padding: 0;
+}
+
+#docked-spotify-iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+}
+
+#closeDockedPlayerButton {
+    flex-shrink: 0;
+    background: transparent;
+    color: white;
+    border: none;
+    width: 44px;
+    height: 100%;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+}
+#closeDockedPlayerButton:hover {
+    background: rgba(255,255,255,0.1);
+}
+
 
 body.dark-mode {
 background: #282c34;
@@ -263,6 +394,9 @@ body.dark-mode .artist-card {
 background: #3b4048;
 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+body.dark-mode .artist-photo {
+    background-color: #4b5059;
+}
 body.dark-mode .artist-name {
 color: #61afef;
 }
@@ -272,16 +406,13 @@ color: #abb2bf;
 body.dark-mode .sort-icon.active {
 color: #61afef;
 }
-body.dark-mode .favorite-toggle {
+body.dark-mode .favorite-toggle, body.dark-mode .favorite-icon {
 color: #e06c75;
 }
 body.dark-mode #errorMessage {
 color: #e06c75;
 background: #4b3030;
 border-color: #c05050;
-}
-body.dark-mode .artist-card .favorite-icon {
-color: #e06c75;
 }
 body.dark-mode .info-container #countText {
 color: inherit;
@@ -293,9 +424,33 @@ body.dark-mode mark {
     background-color: #61afef;
     color: #282c34;
 }
+body.dark-mode .youtube-links-container {
+    border-top-color: #4b5059;
+}
+body.dark-mode .youtube-link-item {
+    background-color: #353a40;
+}
+body.dark-mode .youtube-link-item:hover {
+    background-color: #40454c;
+}
+body.dark-mode .youtube-thumbnail {
+}
+body.dark-mode .youtube-title {
+    color: #c6cdd5;
+}
 .material-icons {
     font-display: block;
 }
+body.dark-mode .docked-spotify-player-wrapper {
+    background-color: #181818;
+}
+body.dark-mode #closeDockedPlayerButton {
+    color: #abb2bf;
+}
+body.dark-mode #closeDockedPlayerButton:hover {
+    background: rgba(255,255,255,0.05);
+}
+
 </style>
 </head>
 <body class="dark-mode">
@@ -335,13 +490,22 @@ body.dark-mode mark {
 <div id="errorMessage"></div>
 <div id="artistList"></div>
 
+<div id="dockedSpotifyPlayerWrapper" class="docked-spotify-player-wrapper">
+    <div id="dockedSpotifyPlayerContainer" class="docked-spotify-player-container">
+    </div>
+    <button id="closeDockedPlayerButton" class="material-icons" title="Sluit player">close</button>
+</div>
+
 <script>
 (function(){
 const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
-ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData_v2';
+ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5',
+ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
+ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
+CACHE_MAX_AGE_MS = 60 * 60 * 1000;
 
 const artistListElement = document.getElementById('artistList'),
 countTextElement = document.getElementById('countText'),
@@ -353,32 +517,36 @@ favoriteToggleElement = document.getElementById('favoriteToggle'),
 dayFilterContainerElement = document.querySelector('.day-filter-container'),
 filterContainerElement = document.querySelector('.filter-container'),
 controlBarGroup = document.getElementById('controlBarGroup'),
-iconsGroupElement = document.querySelector('.icons-group');
+iconsGroupElement = document.querySelector('.icons-group'),
+dockedSpotifyPlayerWrapper = document.getElementById('dockedSpotifyPlayerWrapper'),
+dockedSpotifyPlayerContainer = document.getElementById('dockedSpotifyPlayerContainer'),
+closeDockedPlayerButton = document.getElementById('closeDockedPlayerButton');
+
+const isAndroidDevice = /android/i.test(navigator.userAgent);
 
 let lastScrollY = window.scrollY;
 let ticking = false;
 
 let allArtistsData = [],
-iframeObserver,
 searchClickShouldClear = false;
 
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
 
 function getStoredJSON(keySuffix, defaultValue) {
-const item = localStorage.getItem(PREFIX + keySuffix);
+const item = localStorage.getItem(keySuffix);
 if (item === null) return defaultValue;
 try {
 return JSON.parse(item);
 } catch (e) {
-console.warn(`Failed to parse ${PREFIX + keySuffix} from localStorage.`, e);
-localStorage.removeItem(PREFIX + keySuffix);
+console.warn(`Failed to parse ${keySuffix} from localStorage.`, e);
+localStorage.removeItem(keySuffix);
 return defaultValue;
 }
 }
 
 function setStoredJSON(keySuffix, value) {
-localStorage.setItem(PREFIX + keySuffix, JSON.stringify(value));
+localStorage.setItem(keySuffix, JSON.stringify(value));
 }
 
 function getStoredString(keySuffix, defaultValue) {
@@ -390,12 +558,11 @@ function setStoredString(keySuffix, value) {
 localStorage.setItem(PREFIX + keySuffix, value);
 }
 
-// Standaard sortering is nu 'time' (chronologisch)
 let sortMode = getStoredString('sortMode', 'time'),
-activePodia = getStoredJSON('activePodia', []),
-favorites = getStoredJSON('favorites', []),
-showingFavs = getStoredJSON('showingFavs', false),
-activeDays = getStoredJSON('activeDays', []);
+activePodia = getStoredJSON(PREFIX + 'activePodia', []),
+favorites = getStoredJSON(PREFIX + 'favorites', []),
+showingFavs = getStoredJSON(PREFIX + 'showingFavs', false),
+activeDays = getStoredJSON(PREFIX + 'activeDays', []);
 
 function capitalize(s){
 if(!s) return s;
@@ -416,115 +583,182 @@ return url.startsWith('http')
 }
 
 async function fetchArtistInfo(artistBasicInfo) {
-const artistCacheKey = PREFIX + 'artist_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_');
-const stored = localStorage.getItem(artistCacheKey);
-if (stored) return JSON.parse(stored);
+    const artistCacheKey = PREFIX + 'artist_info_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
+    const stored = localStorage.getItem(artistCacheKey);
+    if (stored) {
+        try {
+            const infoData = JSON.parse(stored);
+            const isNewStructure = infoData.youtubeLinks && infoData.youtubeLinks.length > 0 ?
+                                   typeof infoData.youtubeLinks[0].videoId !== 'undefined' :
+                                   true; 
 
-try {
-const res = await fetch(CORS_PROXY + artistBasicInfo.artistUrl);
-if (!res.ok) return null;
-const html = await res.text();
-const doc = new DOMParser().parseFromString(html, 'text/html');
-const tags = Array.from(doc.querySelectorAll('.meta .tag'));
-const paras = doc.querySelectorAll('.description p');
+            if (isNewStructure) {
+                return infoData;
+            } else {
+                console.warn(`Cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}) has old structure. Refetching.`);
+                localStorage.removeItem(artistCacheKey);
+            }
+        } catch (e) {
+            console.warn(`Failed to parse cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}). Refetching.`, e);
+            localStorage.removeItem(artistCacheKey);
+        }
+    }
 
-const spotifyIframe = doc.querySelector('.spotify iframe');
-let spotifyId = null;
-if (spotifyIframe) {
-const src = spotifyIframe.getAttribute('src');
-if (src) {
-const match = src.match(/spotify:artist:([^&?]+)/);
-if (match && match[1]) spotifyId = match[1];
-}
-}
+    try {
+        const res = await fetch(CORS_PROXY + artistBasicInfo.artistUrl);
+        if (!res.ok) return null;
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const tags = Array.from(doc.querySelectorAll('.meta .tag'));
+        const paras = doc.querySelectorAll('.description p');
 
-const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
-const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
-const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
+        const spotifyIframe = doc.querySelector('.spotify iframe');
+        let spotifyId = null;
+        if (spotifyIframe) {
+            const src = spotifyIframe.getAttribute('src');
+            if (src) {
+                const match = src.match(/spotify:artist:([^&?]+)/) || src.match(/embed\/artist\/([^&?]+)/);
+                if (match && match[1]) spotifyId = match[1];
+            }
+        }
 
-let duurTekst = '';
-if (rawTijd.includes('-')) {
-const [start, end] = rawTijd.split('-').map(s => s.trim());
-const [su, sm] = start.split(':').map(n => parseInt(n, 10));
-const [eu, em] = end.split(':').map(n => parseInt(n, 10));
-if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
-let minutesStart = su * 60 + sm;
-let minutesEnd = eu * 60 + em;
-if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
-const diff = minutesEnd - minutesStart;
-if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' minuten';
-}
-}
+        const youtubeIframes = doc.querySelectorAll('figure.wp-block-embed.is-provider-youtube iframe');
+        let youtubeLinks = [];
+        if (youtubeIframes.length > 0) {
+            youtubeIframes.forEach(iframe => {
+                const src = iframe.getAttribute('src');
+                const title = iframe.getAttribute('title');
+                if (src && title) {
+                    const videoIdMatch = src.match(/embed\/([^?]+)/);
+                    if (videoIdMatch && videoIdMatch[1]) {
+                        const videoId = videoIdMatch[1];
+                        youtubeLinks.push({
+                            url: `https://www.youtube.com/watch?v=${videoId}`,
+                            title: title,
+                            videoId: videoId
+                        });
+                    }
+                }
+            });
+        }
 
-const info = {
-genres: tags.slice(0, -3).map(t => t.textContent.trim()),
-podium: capitalize(rawPodium),
-datum: rawDatum,
-tijd: rawTijd,
-duur: duurTekst,
-description: Array.from(paras).map(p => p.textContent.trim()).filter(txt => txt).join('\n\n') || 'Geen beschrijving beschikbaar',
-spotifyId: spotifyId
-};
-localStorage.setItem(artistCacheKey, JSON.stringify(info));
-return info;
-} catch (err) {
-console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
-return null;
-}
+        const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
+        const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
+        const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
+
+        let duurTekst = '';
+        if (rawTijd.includes('-')) {
+            const [start, end] = rawTijd.split('-').map(s => s.trim());
+            const [su, sm] = start.split(':').map(n => parseInt(n, 10));
+            const [eu, em] = end.split(':').map(n => parseInt(n, 10));
+            if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
+                let minutesStart = su * 60 + sm;
+                let minutesEnd = eu * 60 + em;
+                if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
+                const diff = minutesEnd - minutesStart;
+                if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' min';
+            }
+        }
+
+        const info = {
+            genres: tags.slice(0, -3).map(t => t.textContent.trim()),
+            podium: capitalize(rawPodium),
+            datum: rawDatum,
+            tijd: rawTijd,
+            duur: duurTekst,
+            description: Array.from(paras).map(p => p.textContent.trim()).filter(txt => txt).join('\n\n') || 'Geen beschrijving beschikbaar',
+            spotifyId: spotifyId,
+            youtubeLinks: youtubeLinks
+        };
+        localStorage.setItem(artistCacheKey, JSON.stringify(info));
+        return info;
+    } catch (err) {
+        console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
+        return null;
+    }
 }
 
 async function loadAllArtistsData() {
-hideError();
-const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
-if (cachedData) {
-try {
-allArtistsData = JSON.parse(cachedData);
-console.log("All artists data loaded from cache.");
-return;
-} catch (e) {
-console.warn("Failed to parse allArtistsData from cache, fetching fresh.", e);
-localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
-}
-}
+    hideError();
 
-countTextElement.textContent = 'Artiesten laden...';
+    const cachedDataTimestamp = getStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, 0);
+    if (Date.now() - cachedDataTimestamp > CACHE_MAX_AGE_MS) {
+        console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} is older than 1 hour. Invalidating.`);
+        localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+        localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+    }
 
-try {
-const res = await fetch(CORS_PROXY + WEEK_URL);
-if (!res.ok) {
-showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
-return;
-}
-const html = await res.text();
-const doc = new DOMParser().parseFromString(html, 'text/html');
+    const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
+    if (cachedData) {
+        try {
+            let parsedAllArtistsData = JSON.parse(cachedData);
+            if (parsedAllArtistsData.length > 0 && typeof parsedAllArtistsData[0].artist.imageUrl === 'undefined') {
+                 console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} has old structure (missing imageUrl). Invalidating.`);
+                 localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+                 localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+            } else {
+                allArtistsData = parsedAllArtistsData;
+                console.log(`All artists data loaded from cache (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+                return;
+            }
+        } catch (e) {
+            console.warn(`Failed to parse ${ALL_ARTISTS_DATA_CACHE_KEY} from cache, fetching fresh.`, e);
+            localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+            localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+        }
+    }
+    
+    allArtistsData = [];
+    countTextElement.textContent = 'Artiesten laden...';
+    try {
+        const res = await fetch(CORS_PROXY + WEEK_URL);
+        if (!res.ok) {
+            showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
+            return;
+        }
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
 
-const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
-.map(a => ({
-name: a.querySelector('.nameplate h2').textContent.trim(),
-artistUrl: getFullUrl(a.getAttribute('href'))
-}));
+        const urlRegex = /url\('([^']+)'\)/;
 
-let fetchedCount = 0;
-for (const basicInfo of artistBasicInfos) {
-const info = await fetchArtistInfo(basicInfo);
-allArtistsData.push({
-artist: basicInfo,
-info: info || {
-genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend',
-duur: '', description: 'Details konden niet geladen worden.', spotifyId: null
-}
-});
-fetchedCount++;
-countTextElement.textContent = `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`;
-}
+        const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
+            .map(a => {
+                const name = a.querySelector('.nameplate h2').textContent.trim();
+                const artistUrl = getFullUrl(a.getAttribute('href'));
+                
+                const innerDiv = a.querySelector('.artist-inner');
+                const styleAttr = innerDiv?.getAttribute('style');
+                const styleMatch = styleAttr ? styleAttr.match(urlRegex) : null;
+                const imageUrl = styleMatch && styleMatch[1] ? getFullUrl(styleMatch[1]) : null;
 
-localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
-console.log("All artists data fetched and cached.");
+                return { name, artistUrl, imageUrl };
+            });
+        
+        const newAllArtistsData = [];
+        let fetchedCount = 0;
+        for (const basicInfo of artistBasicInfos) {
+            const info = await fetchArtistInfo(basicInfo);
+            newAllArtistsData.push({
+                artist: basicInfo,
+                info: info || {
+                    genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend',
+                    duur: '', description: 'Details konden niet geladen worden.', spotifyId: null,
+                    youtubeLinks: [] 
+                }
+            });
+            fetchedCount++;
+            countTextElement.textContent = `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`;
+        }
 
-} catch (err) {
-console.error(err);
-showError('Netwerkfout bij ophalen artiestenlijst.');
-}
+        allArtistsData = newAllArtistsData;
+        localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
+        setStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, Date.now());
+        console.log(`All artists data fetched and cached (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+
+    } catch (err) {
+        console.error("Error during fetch of all artists data:",err);
+        showError('Netwerkfout bij ophalen artiestenlijst.');
+    }
 }
 
 function parseDateTimeForSort(datum, tijd){
@@ -561,6 +795,13 @@ card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
 card.dataset.rawName = artist.name;
 card.dataset.genres = info.genres.join(',').toLowerCase();
 card.dataset.description = info.description.toLowerCase();
+if (info.spotifyId) {
+    card.dataset.spotifyId = info.spotifyId;
+}
+
+const placeholderImgUrl = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
+const imgSrc = artist.imageUrl || placeholderImgUrl;
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
 let dagNaam = '';
@@ -573,52 +814,76 @@ if (dagNum) {
 
 const isFav = favorites.includes(artist.name);
 
-const spotifyIframeHtml = info.spotifyId
-? `<div class="spotify-iframe-container">
-<iframe data-src="https://open.spotify.com/embed/artist/${info.spotifyId}?utm_source=generator"
-frameBorder="0" allowfullscreen=""
-allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-</div>`
+const spotifyButtonHtml = info.spotifyId
+? `<button class="spotify-play-button" data-spotify-id="${info.spotifyId}">
+    <i class="fa-brands fa-spotify"></i> Preview
+   </button>`
 : '';
 
+let youtubeLinksHtml = '';
+if (info.youtubeLinks && info.youtubeLinks.length > 0) {
+    youtubeLinksHtml = '<div class="youtube-links-container">';
+    info.youtubeLinks.forEach(ytLink => {
+        if (ytLink.videoId) {
+            const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
+            const linkUrl = isAndroidDevice ? `vnd.youtube:${ytLink.videoId}` : ytLink.url;
+            const linkTarget = isAndroidDevice ? '' : 'target="_blank"';
+            youtubeLinksHtml += `
+                <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
+                    <img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
+                    <span class="youtube-title">${ytLink.title}</span>
+                </a>`;
+        }
+    });
+    youtubeLinksHtml += '</div>';
+}
+
 card.innerHTML = `
-<h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
-${spotifyIframeHtml}
-<span class="favorite-icon material-icons" data-name="${artist.name}">
-${isFav ? 'favorite' : 'favorite_border'}
-</span>
-<div class="artist-info">
-<p class="highlightable-genres">Genres: ${info.genres.join(', ') || 'Geen genres'}</p>
-<p class="highlightable-podium">Podium: ${info.podium}</p>
-<p>Datum: ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
-<p>Tijd: ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+<div class="artist-header">
+    <h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
+    <span class="favorite-icon material-icons" data-name="${artist.name}">
+        ${isFav ? 'favorite' : 'favorite_border'}
+    </span>
+</div>
+<img data-src="${imgSrc}" src="${transparentPixel}" alt="Foto van ${artist.name}" class="artist-photo lazyload">
+<div class="artist-meta-container">
+    <div class="artist-info">
+        <p class="highlightable-genres">Genre: ${info.genres.join(', ') || 'Geen genres'}</p>
+        <p class="highlightable-podium">Podium: ${info.podium}</p>
+        <p>Datum: ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
+        <p>Tijd: ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+    </div>
+    ${spotifyButtonHtml}
 </div>
 <div class="artist-description highlightable-description">
-<p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
-</div>`;
+    <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
+</div>
+${youtubeLinksHtml}`;
 artistListElement.appendChild(card);
 });
-setupIntersectionObserverForIframes();
 }
 
-function setupIntersectionObserverForIframes() {
-const iframes = artistListElement.querySelectorAll('.spotify-iframe-container iframe[data-src]');
-if (iframeObserver) iframeObserver.disconnect();
 
-iframeObserver = new IntersectionObserver((entries, observer) => {
-entries.forEach(entry => {
-if (entry.isIntersecting) {
-const iframe = entry.target;
-if (iframe.dataset.src) {
-iframe.src = iframe.dataset.src;
-iframe.removeAttribute('data-src');
-}
-observer.unobserve(iframe);
-}
-});
-}, { rootMargin: '500px 0px 500px 0px' });
-
-iframes.forEach(iframe => iframeObserver.observe(iframe));
+function setupImageLazyLoader() {
+    const lazyImages = document.querySelectorAll('img.lazyload[data-src]');
+    if ('IntersectionObserver' in window) {
+        let imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const image = entry.target;
+                    image.src = image.dataset.src;
+                    image.classList.remove('lazyload');
+                    imageObserver.unobserve(image);
+                }
+            });
+        }, { rootMargin: '200px 0px 200px 0px' });
+        lazyImages.forEach(image => imageObserver.observe(image));
+    } else {
+        lazyImages.forEach(image => {
+            image.src = image.dataset.src;
+            image.classList.remove('lazyload');
+        });
+    }
 }
 
 function escapeRegExp(string) {
@@ -804,7 +1069,7 @@ function toggleFavoriteOnCard(name){
 const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
 else favorites.push(name);
-setStoredJSON('favorites', favorites);
+setStoredJSON(PREFIX + 'favorites', favorites);
 applyFiltersAndSort();
 }
 
@@ -813,7 +1078,7 @@ if(!confirm('Weet je zeker dat je alle data (behalve favorieten en voorkeuren) w
 return;
 
 for(const key of Object.keys(localStorage)){
-if(key.startsWith(PREFIX + 'artist_') || key === ALL_ARTISTS_DATA_CACHE_KEY){
+if(key.startsWith(PREFIX + 'artist_info_') || key === ALL_ARTISTS_DATA_CACHE_KEY || key === ALL_ARTISTS_DATA_TIMESTAMP_KEY){
 localStorage.removeItem(key);
 }
 }
@@ -861,7 +1126,7 @@ dayFilterContainerElement.addEventListener('click', function(e) {
         } else {
             activeDays.push(dayFilter);
         }
-        setStoredJSON('activeDays', activeDays);
+        setStoredJSON(PREFIX + 'activeDays', activeDays);
         updateActiveDayTabsUI();
         applyFiltersAndSort();
     }
@@ -874,7 +1139,7 @@ filterContainerElement.addEventListener('click', function(e){
     activePodia = activePodia.includes(p)
     ? activePodia.filter(x=>x!==p)
     : [...activePodia, p];
-    setStoredJSON('activePodia', activePodia);
+    setStoredJSON(PREFIX + 'activePodia', activePodia);
     updateFilterButtonsUI();
     applyFiltersAndSort();
     }
@@ -917,11 +1182,10 @@ searchFieldElement.addEventListener('blur', function() {
     searchClickShouldClear = false;
 });
 
-// Event listener voor Enter/Search knop op toetsenbord
 searchFieldElement.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' || e.keyCode === 13) {
-        this.blur(); // Verwijder focus, sluit toetsenbord
-        e.preventDefault(); // Voorkom standaard actie (zoals form submit)
+        this.blur(); 
+        e.preventDefault(); 
     }
 });
 
@@ -941,7 +1205,7 @@ sortTimeElement.addEventListener('click', function(){
 
 favoriteToggleElement.addEventListener('click', function(){
     showingFavs = !showingFavs;
-    setStoredJSON('showingFavs', showingFavs);
+    setStoredJSON(PREFIX + 'showingFavs', showingFavs);
     updateFavoriteToggleUI();
     applyFiltersAndSort();
 });
@@ -949,9 +1213,31 @@ favoriteToggleElement.addEventListener('click', function(){
 artistListElement.addEventListener('click', e=>{
     const favIcon = e.target.closest('.favorite-icon');
     if(favIcon){
-    toggleFavoriteOnCard(favIcon.dataset.name);
+      toggleFavoriteOnCard(favIcon.dataset.name);
+    }
+    const spotifyButton = e.target.closest('.spotify-play-button');
+    if (spotifyButton) {
+        const spotifyId = spotifyButton.dataset.spotifyId;
+        if (spotifyId) {
+            dockedSpotifyPlayerContainer.innerHTML = ''; // Leeg de container
+            const iframe = document.createElement('iframe');
+            iframe.id = 'docked-spotify-iframe';
+            iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+            iframe.loading = 'lazy';
+            iframe.src = `https://open.spotify.com/embed/artist/${spotifyId}?utm_source=generator&theme=0&autoplay=1`;
+            dockedSpotifyPlayerContainer.appendChild(iframe);
+            dockedSpotifyPlayerWrapper.classList.add('visible');
+        }
     }
 });
+
+closeDockedPlayerButton.addEventListener('click', () => {
+    dockedSpotifyPlayerWrapper.classList.remove('visible');
+    setTimeout(() => {
+        dockedSpotifyPlayerContainer.innerHTML = '';
+    }, 300);
+});
+
 
 window.addEventListener('scroll', () => {
     if (!ticking) {
@@ -981,7 +1267,7 @@ async function main() {
 initializeEventListeners();
 
 updateFilterButtonsUI();
-updateSortIconsUI(); // Roept dit aan nadat sortMode is ingesteld (eventueel default naar 'time')
+updateSortIconsUI(); 
 updateFavoriteToggleUI();
 updateActiveDayTabsUI();
 
@@ -989,6 +1275,9 @@ await loadAllArtistsData();
 
 if (allArtistsData.length > 0) {
     renderAllArtistCardsOnce();
+    if (typeof setupImageLazyLoader === 'function') {
+         setupImageLazyLoader();
+    }
     applyFiltersAndSort();
 } else {
     if (!errorMessageElement.style.display || errorMessageElement.style.display === 'none') {
