@@ -960,7 +960,7 @@ function scrollToArtistListTop() {
     lastScrollY = 0;
 }
 
-function applyFiltersAndSort() {
+function applyFiltersAndSort(options = {}) {
 hideError();
 const searchTerm = searchFieldElement.value.toLowerCase();
 let visibleCount = 0;
@@ -1033,7 +1033,10 @@ cardsArray.forEach((card, index) => {
 });
 
 updateArtistCount(visibleCount);
-scrollToArtistListTop();
+
+if (!options.preserveScroll) {
+    scrollToArtistListTop();
+}
 }
 
 function updateArtistCount(n){
@@ -1070,7 +1073,7 @@ const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
 else favorites.push(name);
 setStoredJSON(PREFIX + 'favorites', favorites);
-applyFiltersAndSort();
+applyFiltersAndSort({ preserveScroll: true });
 }
 
 function clearLocalStorageData(){
