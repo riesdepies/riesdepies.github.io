@@ -205,7 +205,7 @@ font-size: 20px;
 .artist-meta-container {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 15px;
 }
 
@@ -220,6 +220,7 @@ margin: 6px 0;
 }
 .artist-info {
     margin: 0;
+    flex-grow: 1;
 }
 .artist-description {
     margin-top: 15px;
@@ -282,6 +283,34 @@ mark {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+
+.spotify-buttons-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.spotify-open-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background-color: #1DB954;
+    color: white !important;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.spotify-open-button:hover {
+    background-color: #1ed760;
+}
+.spotify-open-button i {
+    font-size: 16px;
 }
 
 .spotify-play-button {
@@ -814,11 +843,18 @@ if (dagNum) {
 
 const isFav = favorites.includes(artist.name);
 
-const spotifyButtonHtml = info.spotifyId
-? `<button class="spotify-play-button" data-spotify-id="${info.spotifyId}">
-    <i class="fa-brands fa-spotify"></i> Preview
-   </button>`
-: '';
+let spotifyControlsHtml = '';
+if (info.spotifyId) {
+    spotifyControlsHtml = `
+    <div class="spotify-buttons-container">
+        <a href="spotify:artist:${info.spotifyId}" class="spotify-open-button" title="Open in Spotify" target="_blank">
+            <i class="fa-solid fa-up-right-from-square"></i>
+        </a>
+        <button class="spotify-play-button" data-spotify-id="${info.spotifyId}">
+            <i class="fa-brands fa-spotify"></i> Preview
+        </button>
+    </div>`;
+}
 
 let youtubeLinksHtml = '';
 if (info.youtubeLinks && info.youtubeLinks.length > 0) {
@@ -853,7 +889,7 @@ card.innerHTML = `
         <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
         <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
     </div>
-    ${spotifyButtonHtml}
+    ${spotifyControlsHtml}
 </div>
 <div class="artist-description highlightable-description">
     <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
