@@ -59,6 +59,9 @@ background: #ddd;
 border: none;
 cursor: pointer;
 border-radius: 4px;
+position: relative;
+overflow: hidden;
+transition: all 0.2s ease-in-out;
 }
 .day-filter-button.active {
 background: #007bff;
@@ -115,14 +118,35 @@ box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 height: 40px;
 margin-bottom: 0;
 }
-#countText {
-font-weight: bold;
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-min-width: 0;
-margin-right: 10px;
+
+/* === STYLES VOOR CYCLISCHE STATUS-ANIMATIE === */
+#statusContainer {
+    height: 20px;
+    line-height: 20px;
+    overflow: hidden;
+    position: relative;
+    flex-grow: 1;
+    min-width: 0;
+    margin-right: 10px;
 }
+#statusSlider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* De animatie voor het verticaal schuiven */
+    transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+#countText, #countdownText, #countTextClone {
+    display: block;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 20px; 
+}
+/* ========================================= */
+
 .icons-group {
 margin-left: auto;
 display: flex;
@@ -444,7 +468,9 @@ color: #e06c75;
 background: #4b3030;
 border-color: #c05050;
 }
-body.dark-mode .info-container #countText {
+body.dark-mode .info-container #countText,
+body.dark-mode .info-container #countdownText,
+body.dark-mode .info-container #countTextClone {
 color: inherit;
 }
 body.dark-mode .artist-card h2 {
@@ -481,6 +507,35 @@ body.dark-mode #closeDockedPlayerButton:hover {
     background: rgba(255,255,255,0.05);
 }
 
+/* === STIJL VOOR ACCENTUEREN HUIDIGE DAG === */
+.is-today::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 15%;
+    width: 70%;
+    height: 3px;
+    border-radius: 2px;
+    transition: background-color 0.2s ease-in-out;
+}
+/* Standaard staat: blauwe streep */
+body:not(.dark-mode) .is-today:not(.active)::after {
+    background-color: #007bff;
+}
+/* Actieve staat: donkergrijze streep */
+body:not(.dark-mode) .is-today.active::after {
+    background-color: #ddd;
+}
+/* Dark mode: blauwe streep */
+body.dark-mode .is-today:not(.active)::after {
+    background-color: #61afef;
+}
+/* Dark mode, actieve staat: donkergrijze streep */
+body.dark-mode .is-today.active::after {
+    background-color: #282c34;
+}
+/* ================================================ */
+
 </style>
 </head>
 <body class="dark-mode">
@@ -508,12 +563,21 @@ body.dark-mode #closeDockedPlayerButton:hover {
     </div>
 
     <div class="info-container">
-    <span id="countText">0 artiesten gevonden</span>
-    <span class="icons-group">
-    <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
-    <span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
-    <span id="favoriteToggle" class="favorite-toggle material-icons" title="Toon favorieten">favorite_border</span>
-    </span>
+        <!-- CONTAINER VOOR CYCLISCHE STATUS-ANIMATIE -->
+        <div id="statusContainer">
+            <div id="statusSlider">
+                <span id="countText"></span>
+                <span id="countdownText"></span>
+                <!-- Kloon van de eerste regel voor naadloze loop -->
+                <span id="countTextClone"></span>
+            </div>
+        </div>
+        <!-- EINDE AANPASSING -->
+        <span class="icons-group">
+            <span id="sortAlpha" class="sort-icon material-icons" title="Alfabetisch sorteren">sort_by_alpha</span>
+            <span id="sortTime" class="sort-icon material-icons" title="Sorteren op tijd">access_time</span>
+            <span id="favoriteToggle" class="favorite-toggle material-icons" title="Toon favorieten">favorite_border</span>
+        </span>
     </div>
 </div>
 
@@ -536,10 +600,10 @@ PREFIX = 'vf_',
 ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5',
 ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
-CACHE_MAX_AGE_MS = 60 * 60 * 1000;
+CACHE_MAX_AGE_MS = 60 * 60 * 1000,
+FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00');
 
 const artistListElement = document.getElementById('artistList'),
-countTextElement = document.getElementById('countText'),
 errorMessageElement = document.getElementById('errorMessage'),
 searchFieldElement = document.getElementById('searchField'),
 sortAlphaElement = document.getElementById('sortAlpha'),
@@ -551,7 +615,14 @@ controlBarGroup = document.getElementById('controlBarGroup'),
 iconsGroupElement = document.querySelector('.icons-group'),
 dockedSpotifyPlayerWrapper = document.getElementById('dockedSpotifyPlayerWrapper'),
 dockedSpotifyPlayerContainer = document.getElementById('dockedSpotifyPlayerContainer'),
-closeDockedPlayerButton = document.getElementById('closeDockedPlayerButton');
+closeDockedPlayerButton = document.getElementById('closeDockedPlayerButton'),
+// Elementen voor de status-animatie
+statusContainer = document.getElementById('statusContainer'),
+statusSlider = document.getElementById('statusSlider'),
+countTextElement = document.getElementById('countText'),
+countdownTextElement = document.getElementById('countdownText'),
+countTextCloneElement = document.getElementById('countTextClone');
+
 
 const isAndroidDevice = /android/i.test(navigator.userAgent);
 
@@ -560,6 +631,13 @@ let ticking = false;
 
 let allArtistsData = [],
 searchClickShouldClear = false;
+
+// Variabelen voor de status-animatie
+let statusInterval = null;
+let currentStatusIndex = 0; // 0 = count, 1 = countdown
+const SLIDE_HEIGHT = 20; // Hoogte van één slide in pixels
+const ANIMATION_INTERVAL = 5000; // Tijd per slide
+const TRANSITION_DURATION = 600; // Moet overeenkomen met CSS transition duration
 
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
@@ -757,7 +835,7 @@ async function loadAllArtistsData() {
     }
     
     allArtistsData = [];
-    countTextElement.textContent = 'Artiesten laden...';
+    updateArtistCount(0, 'Artiesten laden...');
     try {
         const res = await fetchWithProxyFallback(WEEK_URL);
         if (!res.ok) {
@@ -795,7 +873,7 @@ async function loadAllArtistsData() {
                 }
             });
             fetchedCount++;
-            countTextElement.textContent = `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`;
+            updateArtistCount(fetchedCount, `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`);
         }
 
         allArtistsData = newAllArtistsData;
@@ -1094,11 +1172,72 @@ if (!options.preserveScroll) {
 }
 }
 
-function updateArtistCount(n){
-const pluralSuffix = n === 1 ? '' : 'en';
-const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
-countTextElement.textContent = `${n} ${entity} gevonden`;
+
+// === FUNCTIES VOOR CYCLISCHE STATUS-ANIMATIE ===
+function calculateNightsToSleep() {
+    const now = new Date();
+    if (now >= FESTIVAL_START_DATE) return null;
+    const diff = FESTIVAL_START_DATE - now;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
+
+function slideStatus() {
+    const nights = calculateNightsToSleep();
+    if (nights === null) {
+        clearInterval(statusInterval);
+        statusSlider.style.transform = 'translateY(0px)';
+        return;
+    }
+    const plural = nights === 1 ? '' : 'jes';
+    countdownTextElement.textContent = `Nog ${nights} nacht${plural} slapen..`;
+    
+    currentStatusIndex++;
+    statusSlider.style.transform = `translateY(-${currentStatusIndex * SLIDE_HEIGHT}px)`;
+
+    if (currentStatusIndex === 2) { // We zijn bij de kloon aangekomen
+        setTimeout(() => {
+            statusSlider.style.transition = 'none';
+            currentStatusIndex = 0;
+            statusSlider.style.transform = 'translateY(0px)';
+            statusSlider.offsetHeight; // Forceer repaint
+            statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
+        }, TRANSITION_DURATION);
+    }
+}
+
+function startStatusAlternation() {
+    if (calculateNightsToSleep() === null) return;
+    clearInterval(statusInterval);
+    statusInterval = setInterval(slideStatus, ANIMATION_INTERVAL);
+}
+
+function updateArtistCount(n, overrideText = null){
+    clearInterval(statusInterval);
+
+    let textToShow;
+    if (overrideText) {
+        textToShow = overrideText;
+    } else {
+        const pluralSuffix = n === 1 ? '' : 'en';
+        const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
+        textToShow = `${n} ${entity} gevonden`;
+    }
+
+    countTextElement.textContent = textToShow;
+    countTextCloneElement.textContent = textToShow;
+    
+    // Reset de slider direct en zonder animatie naar de eerste slide
+    statusSlider.style.transition = 'none';
+    currentStatusIndex = 0;
+    statusSlider.style.transform = 'translateY(0px)';
+    statusSlider.offsetHeight; // Forceer repaint
+    statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
+
+    // Start de animatiecyclus opnieuw
+    startStatusAlternation();
+}
+// ===================================
+
 
 function updateFilterButtonsUI(){
 document.querySelectorAll('.filter-button').forEach(btn=>{
@@ -1198,6 +1337,18 @@ function handleScrollLogic() {
     ticking = false;
 }
 
+function highlightCurrentDayButton() {
+    const now = new Date();
+    if (now.getFullYear() === 2025 && now.getMonth() === 6) { 
+        const currentDayOfMonth = now.getDate();
+        const targetDayFilter = `${currentDayOfMonth} juli`;
+        
+        const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
+        if (todayButton) {
+            todayButton.classList.add('is-today');
+        }
+    }
+}
 
 function initializeEventListeners() {
 dayFilterContainerElement.addEventListener('click', function(e) {
@@ -1359,11 +1510,14 @@ if (document.fonts && iconsGroupElement) {
 
 async function main() {
 initializeEventListeners();
+highlightCurrentDayButton(); 
 
 updateFilterButtonsUI();
 updateSortIconsUI(); 
 updateFavoriteToggleUI();
 updateActiveDayTabsUI();
+
+// De animatiecyclus wordt nu gestart/gereset door de updateArtistCount functie
 
 await loadAllArtistsData();
 
@@ -1375,7 +1529,7 @@ if (allArtistsData.length > 0) {
     applyFiltersAndSort();
 } else {
     if (!errorMessageElement.style.display || errorMessageElement.style.display === 'none') {
-    showError('Geen artiesten data gevonden of kunnen laden.');
+        showError('Geen artiesten data gevonden of kunnen laden.');
     }
     updateArtistCount(0);
 }
