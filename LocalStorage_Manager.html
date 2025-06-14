@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Manager</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 15px;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 15px; /* Reduced padding for smaller screens */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        h1 {
+            font-size: 22px; /* Slightly smaller for mobile */
+            color: #1c1e21;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .controls, .statistics {
+            margin-bottom: 20px;
+            padding: 10px; /* Reduced padding */
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; /* Reduced gap */
+            align-items: center;
+        }
+        .controls label {
+            margin-right: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .controls select, .controls button {
+            padding: 8px 10px; /* Adjusted padding */
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+        }
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .controls button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        .controls button.danger { background-color: #dc3545; }
+        .controls button.danger:hover:not(:disabled) { background-color: #c82333; }
+        .controls button.success { background-color: #28a745; }
+        .controls button.success:hover:not(:disabled) { background-color: #218838; }
+        .controls button:disabled { background-color: #e9ecef; color: #6c757d; cursor: not-allowed;}
+
+
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            margin-bottom: 1rem;
+            /* border: 1px solid #dee2e6; Optional: border around the scrollable area */
+        }
+
+        #dataTable {
+            width: 100%; /* Table tries to fit its container */
+            border-collapse: collapse;
+        }
+        #dataTable th, #dataTable td {
+            border: 1px solid #dee2e6;
+            padding: 8px; /* Reduced padding */
+            text-align: left;
+            vertical-align: top;
+        }
+        #dataTable th {
+            background-color: #e9ecef;
+            cursor: pointer;
+            white-space: nowrap; /* Prevent headers from wrapping */
+        }
+        #dataTable th:hover {
+            background-color: #d1d6db;
+        }
+
+        /* Key column */
+        #dataTable th:nth-child(1), #dataTable td:nth-child(1) {
+            min-width: 120px;
+            white-space: normal;
+            word-break: break-all;
+        }
+        /* Value column */
+        #dataTable th:nth-child(2), #dataTable td:nth-child(2) {
+            min-width: 180px; /* Allow value to be reasonably wide */
+            white-space: normal; /* Cell itself allows wrapping */
+        }
+        #dataTable td .value-display {
+            max-height: 120px; /* Slightly reduced max-height */
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all; /* Should be break-word if pre-wrap is used effectively */
+            overflow-wrap: break-word; /* Better for pre-wrap */
+            background-color: #f8f9fa;
+            padding: 5px;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.85em; /* Slightly smaller for value display */
+        }
+        /* Size column */
+        #dataTable th:nth-child(3), #dataTable td:nth-child(3) {
+            min-width: 70px;
+            white-space: nowrap;
+        }
+        /* Actions column */
+        #dataTable th:nth-child(4), #dataTable td:nth-child(4) {
+            min-width: 100px; /* Adjusted for potentially stacked buttons */
+            white-space: nowrap; /* Cell itself, buttons inside will manage their layout */
+        }
+        #dataTable td .actions {
+            display: flex;
+            flex-direction: row; /* Default: side-by-side */
+            gap: 5px;
+        }
+        #dataTable td .actions button {
+            padding: 5px 8px;
+            font-size: 13px;
+            /* margin-right: 5px; /* Replaced by gap */
+            flex-grow: 1; /* Make buttons share space */
+        }
+
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border: 1px solid #cfe2f3;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .empty-message { text-align: center; padding: 20px; color: #6c757d; }
+
+        /* Modal Styles */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 10% auto; padding: 20px;
+            border: 1px solid #888; border-radius: 8px; width: 90%; max-width: 500px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .modal-content h2 { margin-top: 0; font-size: 20px; }
+        .modal-content label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px;}
+        .modal-content input[type="text"], .modal-content textarea {
+            width: calc(100% - 22px); /* Account for padding and border */
+            padding: 10px; margin-bottom: 12px; border: 1px solid #ccc;
+            border-radius: 4px; font-size: 14px;
+        }
+        .modal-content textarea { min-height: 80px; resize: vertical; }
+        .modal-buttons button {
+            padding: 10px 15px; margin-right: 10px; border: none;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px;
+        }
+        .modal-buttons .save-btn { background-color: #28a745; color: white; }
+        .modal-buttons .cancel-btn { background-color: #6c757d; color: white; }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            h1 { font-size: 20px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .controls label, .controls select, .controls button { width: 100%; margin-bottom: 8px; box-sizing: border-box;}
+            .controls button:last-child { margin-bottom: 0; }
+            
+            #dataTable td .actions {
+                flex-direction: column; /* Stack buttons vertically */
+                align-items: stretch; /* Make buttons take full width of action cell */
+            }
+            #dataTable td .actions button {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 5px; /* Space between stacked buttons */
+            }
+            #dataTable td .actions button:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LocalStorage Manager</h1>
+
+        <div class="controls">
+            <button id="refreshBtn">Refresh Data</button>
+            <button id="addItemBtn" class="success">Add New Item</button>
+            <div> <!-- Wrapper for sort controls for better flexbox handling on mobile -->
+                <label for="sortKey">Sort by:</label>
+                <select id="sortKey">
+                    <option value="key">Key</option>
+                    <option value="size">Size</option>
+                </select>
+            </div>
+            <div> <!-- Wrapper for order controls -->
+                <label for="sortOrder">Order:</label>
+                <select id="sortOrder">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+            <button id="clearAllBtn" class="danger">Clear All Data</button>
+        </div>
+
+        <div class="statistics">
+            <span id="totalItems">Total Items: 0</span> | 
+            <span id="totalSize">Total Size: 0 B</span>
+        </div>
+
+        <div class="table-responsive-wrapper">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th data-sort="key">Key</th>
+                        <th data-sort="value">Value</th>
+                        <th data-sort="size">Size</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody">
+                    <!-- Data rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Item</h2>
+            <div>
+                <label for="itemKey">Key:</label>
+                <input type="text" id="itemKey" name="itemKey">
+            </div>
+            <div>
+                <label for="itemValue">Value:</label>
+                <textarea id="itemValue" name="itemValue"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button id="saveItemBtn" class="save-btn">Save</button>
+                <button id="cancelItemBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const refreshBtn = document.getElementById('refreshBtn');
+        const addItemBtn = document.getElementById('addItemBtn');
+        const sortKeySelect = document.getElementById('sortKey');
+        const sortOrderSelect = document.getElementById('sortOrder');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const dataTableBody = document.getElementById('dataBody');
+        const totalItemsSpan = document.getElementById('totalItems');
+        const totalSizeSpan = document.getElementById('totalSize');
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const dataTableWrapper = document.querySelector('.table-responsive-wrapper'); // Get the wrapper
+        
+        // Modal elements
+        const itemModal = document.getElementById('itemModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const itemKeyInput = document.getElementById('itemKey');
+        const itemValueInput = document.getElementById('itemValue');
+        const saveItemBtn = document.getElementById('saveItemBtn');
+        const cancelItemBtn = document.getElementById('cancelItemBtn');
+        let currentEditKey = null;
+
+        function getStringSizeBytes(str) {
+            if (typeof str !== 'string') return 0;
+            try {
+                return new TextEncoder().encode(str).length;
+            } catch (e) { 
+                let len = str.length;
+                for (let i = str.length - 1; i >= 0; i--) {
+                    const code = str.charCodeAt(i);
+                    if (code > 0x7f && code <= 0x7ff) len++;
+                    else if (code > 0x7ff && code <= 0xffff) len += 2;
+                    if (code >= 0xDC00 && code <= 0xDFFF) i--;
+                }
+                return len;
+            }
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function getAllLocalStorageData() {
+            let data = [];
+            try {
+                if (typeof localStorage === 'undefined') {
+                    showStatus("LocalStorage is not supported by this browser.", true);
+                    return data;
+                }
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key === null) continue;
+                    const value = localStorage.getItem(key);
+                    data.push({
+                        key: key,
+                        value: value,
+                        size: getStringSizeBytes(value)
+                    });
+                }
+            } catch (e) {
+                showStatus("Error accessing LocalStorage: " + e.message, true);
+                console.error("LocalStorage access error:", e);
+            }
+            return data;
+        }
+
+        function renderData(data) {
+            dataTableBody.innerHTML = ''; 
+            let grandTotalSize = 0;
+
+            if (data.length === 0) {
+                dataTableWrapper.style.display = 'none'; // Hide table wrapper if no data
+                const p = document.createElement('p');
+                p.textContent = "LocalStorage is empty for this domain.";
+                p.className = 'empty-message';
+                // Insert the message before the status div or at a designated spot
+                if (!document.querySelector('.empty-message')) { // Avoid duplicate messages
+                    dataTableWrapper.insertAdjacentElement('afterend', p);
+                }
+            } else {
+                if(document.querySelector('.empty-message')) {
+                    document.querySelector('.empty-message').remove();
+                }
+                dataTableWrapper.style.display = 'block'; // Show table wrapper
+                data.forEach(item => {
+                    grandTotalSize += item.size;
+                    const row = dataTableBody.insertRow();
+                    
+                    row.insertCell().textContent = item.key;
+                    
+                    const valueCell = row.insertCell();
+                    const valueDisplay = document.createElement('div');
+                    valueDisplay.className = 'value-display';
+                    valueDisplay.textContent = item.value;
+                    valueCell.appendChild(valueDisplay);
+                    
+                    row.insertCell().textContent = formatBytes(item.size);
+                    
+                    const actionsCell = row.insertCell();
+                    actionsCell.className = 'actions';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.className = 'success';
+                    editBtn.onclick = () => openEditModal(item.key, item.value);
+                    actionsCell.appendChild(editBtn);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.className = 'danger';
+                    deleteBtn.onclick = () => deleteItem(item.key);
+                    actionsCell.appendChild(deleteBtn);
+                });
+            }
+
+            totalItemsSpan.textContent = `Total Items: ${data.length}`;
+            totalSizeSpan.textContent = `Total Size: ${formatBytes(grandTotalSize)}`;
+        }
+
+        function sortData(data, key, order) {
+            data.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+                if (key === 'key') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                if (valA < valB) return order === 'asc' ? -1 : 1;
+                if (valA > valB) return order === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        
+        function loadAndDisplayData() {
+            try {
+                 if (typeof localStorage === 'undefined') {
+                    showStatus("LocalStorage is not supported or is disabled.", true);
+                    dataTableWrapper.style.display = 'none';
+                    if (!document.querySelector('.empty-message')) { // Avoid duplicate messages
+                         const p = document.createElement('p');
+                         p.textContent = "LocalStorage is not supported or is disabled.";
+                         p.className = 'empty-message';
+                         dataTableWrapper.insertAdjacentElement('afterend', p);
+                    }
+                    totalItemsSpan.textContent = `Total Items: 0`;
+                    totalSizeSpan.textContent = `Total Size: 0 B`;
+                    return;
+                }
+                let data = getAllLocalStorageData();
+                const sortKeyVal = sortKeySelect.value;
+                const sortOrderVal = sortOrderSelect.value;
+                sortData(data, sortKeyVal, sortOrderVal);
+                renderData(data);
+                showStatus(`Data loaded and sorted by ${sortKeyVal} (${sortOrderVal}). Total ${data.length} items.`, false, data.length === 0);
+            } catch (e) {
+                showStatus("Error loading or displaying data: " + e.message, true);
+                console.error("Display Data Error:", e);
+            }
+        }
+
+        function deleteItem(key) {
+            if (confirm(`Are you sure you want to delete the item with key "${key}"?`)) {
+                try {
+                    localStorage.removeItem(key);
+                    loadAndDisplayData();
+                    showStatus(`Item "${key}" deleted successfully.`, false);
+                } catch (e) {
+                     showStatus(`Error deleting item "${key}": ${e.message}`, true);
+                }
+            }
+        }
+
+        function clearAllItems() {
+            if (confirm("Are you sure you want to delete ALL items from LocalStorage for this domain? This action cannot be undone.")) {
+                try {
+                    localStorage.clear();
+                    loadAndDisplayData();
+                    showStatus("All items cleared from LocalStorage.", false, true);
+                } catch (e) {
+                     showStatus(`Error clearing LocalStorage: ${e.message}`, true);
+                }
+            }
+        }
+
+        function openAddModal() {
+            currentEditKey = null; 
+            modalTitle.textContent = "Add New Item";
+            itemKeyInput.value = '';
+            itemKeyInput.disabled = false;
+            itemValueInput.value = '';
+            itemModal.style.display = "block";
+            itemKeyInput.focus();
+        }
+
+        function openEditModal(key, value) {
+            currentEditKey = key;
+            modalTitle.textContent = `Edit Item`; // Key will be in disabled input
+            itemKeyInput.value = key;
+            itemKeyInput.disabled = true;
+            itemValueInput.value = value;
+            itemModal.style.display = "block";
+            itemValueInput.focus();
+        }
+
+        function closeModal() {
+            itemModal.style.display = "none";
+            currentEditKey = null;
+        }
+
+        function saveItem() {
+            const key = itemKeyInput.value.trim();
+            const value = itemValueInput.value; 
+
+            if (!key) {
+                alert("Key cannot be empty.");
+                itemKeyInput.focus();
+                return;
+            }
+
+            try {
+                if (currentEditKey === null) { 
+                    if (localStorage.getItem(key) !== null) {
+                        if (!confirm(`An item with key "${key}" already exists. Overwrite it?`)) {
+                            return;
+                        }
+                    }
+                }
+                localStorage.setItem(key, value);
+                closeModal();
+                loadAndDisplayData();
+                showStatus(`Item "${key}" ${currentEditKey ? 'updated' : 'added'} successfully.`, false);
+            } catch (e) {
+                 if (e.name === 'QuotaExceededError' || (e.name && e.name.toLowerCase().includes('quota'))) {
+                    showStatus(`Error saving item "${key}": LocalStorage quota exceeded.`, true);
+                    alert(`Error saving item: LocalStorage quota exceeded. Try deleting some items or using a smaller value.`);
+                } else {
+                    showStatus(`Error saving item "${key}": ${e.message}`, true);
+                    alert(`Error saving item: ${e.message}`);
+                }
+            }
+        }
+        
+        function showStatus(message, isError = false, isEmpty = false) {
+            if (isEmpty && !isError) { // If it's an "empty" message but not an error, don't show status bar.
+                 statusMessageDiv.style.display = 'none';
+                 return;
+            }
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.style.backgroundColor = isError ? '#f8d7da' : '#d1ecf1';
+            statusMessageDiv.style.borderColor = isError ? '#f5c6cb' : '#bee5eb';
+            statusMessageDiv.style.color = isError ? '#721c24' : '#0c5460';
+            statusMessageDiv.style.display = 'block';
+        }
+
+        // Event Listeners
+        refreshBtn.addEventListener('click', loadAndDisplayData);
+        sortKeySelect.addEventListener('change', loadAndDisplayData);
+        sortOrderSelect.addEventListener('change', loadAndDisplayData);
+        clearAllBtn.addEventListener('click', clearAllItems);
+        addItemBtn.addEventListener('click', openAddModal);
+        
+        saveItemBtn.addEventListener('click', saveItem);
+        cancelItemBtn.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === itemModal) {
+                closeModal();
+            }
+        });
+        
+        document.querySelectorAll('#dataTable th[data-sort]').forEach(headerCell => {
+            headerCell.addEventListener('click', () => {
+                const sortVal = headerCell.getAttribute('data-sort');
+                if (sortKeySelect.value === sortVal) {
+                    sortOrderSelect.value = (sortOrderSelect.value === 'asc' ? 'desc' : 'asc');
+                } else {
+                    sortKeySelect.value = sortVal;
+                    sortOrderSelect.value = 'asc';
+                }
+                loadAndDisplayData();
+            });
+        });
+
+        loadAndDisplayData();
+    </script>
+</body>
+</html>
