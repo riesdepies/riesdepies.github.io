@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wis 'artist_' Keys</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 15px;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+        h1 {
+            font-size: 20px;
+            color: #1c1e21;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            margin: 15px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        button#deleteKeysBtn {
+            background-color: #dc3545; /* Rood voor verwijderen */
+        }
+        button#deleteKeysBtn:hover:not(:disabled) {
+            background-color: #c82333;
+        }
+        button:disabled {
+            background-color: #ccd0d5;
+            color: #8a8d91;
+            cursor: not-allowed;
+        }
+        #keysListContainer {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            min-height: 50px;
+            max-height: 200px; /* Voorkom dat de lijst te lang wordt */
+            overflow-y: auto;
+        }
+        #keysListContainer ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        #keysListContainer li {
+            padding: 5px 0;
+            font-size: 14px;
+            color: #495057;
+            border-bottom: 1px dashed #e0e0e0;
+            word-break: break-all;
+        }
+        #keysListContainer li:last-child {
+            border-bottom: none;
+        }
+        #statusMessage {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .status-info {
+            background-color: #e7f3ff;
+            border: 1px solid #cfe2f3;
+            color: #084298;
+        }
+        .status-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wis 'artist_*' Keys</h1>
+
+        <button id="scanKeysBtn">Scan naar 'artist_*' Keys</button>
+
+        <p>Gevonden sleutels:</p>
+        <div id="keysListContainer">
+            <ul id="keysList">
+                <!-- Sleutels worden hier dynamisch ingevoegd -->
+            </ul>
+        </div>
+
+        <button id="deleteKeysBtn" disabled>Wis Alle Gevonden 'artist_*' Keys</button>
+
+        <div id="statusMessage" class="status-info hidden">Status wordt hier getoond.</div>
+    </div>
+
+    <script>
+        const scanKeysBtn = document.getElementById('scanKeysBtn');
+        const deleteKeysBtn = document.getElementById('deleteKeysBtn');
+        const keysListUl = document.getElementById('keysList');
+        const statusMessageDiv = document.getElementById('statusMessage');
+
+        const KEY_PREFIX = 'artist_';
+        let foundKeys = [];
+
+        function showStatus(message, type = 'info') {
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.className = `status-${type}`; // Verwijdert 'hidden'
+        }
+
+        function scanForKeys() {
+            keysListUl.innerHTML = ''; // Maak lijst leeg
+            foundKeys = [];
+            deleteKeysBtn.disabled = true;
+
+            try {
+                if (typeof localStorage === 'undefined') {
+                    showStatus('LocalStorage wordt niet ondersteund door deze browser.', 'error');
+                    return;
+                }
+
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(KEY_PREFIX)) {
+                        foundKeys.push(key);
+                        const listItem = document.createElement('li');
+                        listItem.textContent = key;
+                        keysListUl.appendChild(listItem);
+                    }
+                }
+
+                if (foundKeys.length > 0) {
+                    showStatus(`${foundKeys.length} sleutel(s) gevonden die beginnen met '${KEY_PREFIX}'.`, 'info');
+                    deleteKeysBtn.disabled = false;
+                } else {
+                    showStatus(`Geen sleutels gevonden die beginnen met '${KEY_PREFIX}'.`, 'info');
+                }
+
+            } catch (e) {
+                showStatus(`Fout bij toegang tot LocalStorage: ${e.message}`, 'error');
+                console.error("LocalStorage access error:", e);
+            }
+        }
+
+        function deleteFoundKeys() {
+            if (foundKeys.length === 0) {
+                showStatus('Geen sleutels om te verwijderen.', 'info');
+                return;
+            }
+
+            if (confirm(`Weet je zeker dat je ${foundKeys.length} sleutel(s) die beginnen met '${KEY_PREFIX}' wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) {
+                let deletedCount = 0;
+                try {
+                    foundKeys.forEach(key => {
+                        localStorage.removeItem(key);
+                        deletedCount++;
+                    });
+                    showStatus(`${deletedCount} sleutel(s) succesvol verwijderd.`, 'success');
+                } catch (e) {
+                    showStatus(`Fout bij het verwijderen van sleutels: ${e.message}`, 'error');
+                } finally {
+                    scanForKeys(); // Her-scan om de lijst te updaten en de delete knop correct in te stellen
+                }
+            } else {
+                showStatus('Verwijderen geannuleerd.', 'info');
+            }
+        }
+
+        scanKeysBtn.addEventListener('click', scanForKeys);
+        deleteKeysBtn.addEventListener('click', deleteFoundKeys);
+
+        // Optioneel: scan direct bij het laden van de pagina
+        document.addEventListener('DOMContentLoaded', scanForKeys);
+    </script>
+</body>
+</html>
