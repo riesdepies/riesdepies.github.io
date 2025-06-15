@@ -583,11 +583,14 @@ CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
-ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5', // Kan verhoogd worden indien datastructuur cache wijzigt
+ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5',
 ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 CACHE_MAX_AGE_MS = 60 * 60 * 1000, // 1 uur
-FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00');
+FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00'),
+// *** BEGIN WIJZIGING: Placeholder URL globaal gedefinieerd ***
+PLACEHOLDER_IMG_URL = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
+// *** EINDE WIJZIGING ***
 
 const artistListElement = document.getElementById('artistList'),
 errorMessageElement = document.getElementById('errorMessage'),
@@ -602,7 +605,6 @@ iconsGroupElement = document.querySelector('.icons-group'),
 dockedSpotifyPlayerWrapper = document.getElementById('dockedSpotifyPlayerWrapper'),
 dockedSpotifyPlayerContainer = document.getElementById('dockedSpotifyPlayerContainer'),
 closeDockedPlayerButton = document.getElementById('closeDockedPlayerButton'),
-// Elementen voor de status-animatie
 statusContainer = document.getElementById('statusContainer'),
 statusSlider = document.getElementById('statusSlider'),
 countTextElement = document.getElementById('countText'),
@@ -618,7 +620,6 @@ let ticking = false;
 let allArtistsData = [],
 searchClickShouldClear = false;
 
-// Variabelen voor de status-animatie
 let statusInterval = null;
 let currentStatusIndex = 0;
 const SLIDE_HEIGHT = 20;
@@ -629,7 +630,6 @@ const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','za
 const originalHTMLMap = new WeakMap();
 
 
-// --- NIEUWE FUNCTIES VOOR NORMALISATIE EN REGEX ---
 function normalizeForSearch(str) {
   if (typeof str !== 'string') return '';
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -639,11 +639,8 @@ const charMapForRegex = {
   'a': 'aàáâãäåāăąæ', 'c': 'cçćč', 'e': 'eèéêëēĕėęě',
   'g': 'gğ', 'i': 'iıíìîï', 'o': 'oòóôõöøōŏő', 's': 'sşšś',
   'u': 'uùúûüůūŭůű', 'n': 'nñ',
-  // Directe mapping voor lowercase diakritische tekens die uniek zijn na toLowerCase()
-  // en niet direct een basis Latijns karakter zijn (zoals 'ı')
   'ı': 'iıíìîï', 'ü': 'uùúûüůūŭůű', 'ö': 'oòóôõöøōŏő',
   'ş': 'sşšś', 'ç': 'cçćč', 'ğ': 'gğ'
-  // Voeg meer toe indien nodig
 };
 
 function buildFlexibleHighlightRegex(originalSearchTerm) {
@@ -662,11 +659,9 @@ function buildFlexibleHighlightRegex(originalSearchTerm) {
         return new RegExp(regexPattern, 'gi');
     } catch (e) {
         console.error("Failed to create regex from pattern:", regexPattern, e);
-        return new RegExp(escapeRegExp(originalSearchTerm), 'gi'); // Fallback
+        return new RegExp(escapeRegExp(originalSearchTerm), 'gi');
     }
 }
-// --- EINDE NIEUWE FUNCTIES ---
-
 
 function getStoredJSON(keySuffix, defaultValue) {
 const item = localStorage.getItem(keySuffix);
@@ -942,43 +937,28 @@ artistListElement.innerHTML = '';
 allArtistsData.forEach(({ artist, info }) => {
 const card = document.createElement('div');
 card.className = 'artist-card';
-card.style.display = 'none'; // Initially hidden, made visible by filter
+card.style.display = 'none';
 
-// --- AANGEPASTE DATA-ATTRIBUTEN VOOR GENORMALISEERD ZOEKEN ---
-card.dataset.name = normalizeForSearch(artist.name); // Genormaliseerde naam voor zoeken en sorteren
-card.dataset.rawName = artist.name; // Originele naam voor display en favorieten
-card.dataset.podium = info.podium; // Podium blijft zoals het is, normalisatie gebeurt on-the-fly bij filteren
+card.dataset.name = normalizeForSearch(artist.name);
+card.dataset.rawName = artist.name;
+card.dataset.podium = info.podium;
 card.dataset.dag = info.datum;
 card.dataset.tijdInfo = info.tijd;
 card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
-card.dataset.genres = normalizeForSearch(info.genres.join(',')); // Genormaliseerde genres
-// Genormaliseerde beschrijving (HTML tags verwijderd)
+card.dataset.genres = normalizeForSearch(info.genres.join(','));
 card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
-// --- EINDE AANPASSING DATA-ATTRIBUTEN ---
 
 if (info.spotifyUri) {
 card.dataset.spotifyUri = info.spotifyUri;
 }
 
-const placeholderImgUrl = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
-let imgSrc; // Gewijzigd van const naar let
+// *** BEGIN WIJZIGING: URLs voor proxy en fallback voorbereiden ***
+const proxiedImageUrlForDataSrc = artist.imageUrl
+    ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
+    : PLACEHOLDER_IMG_URL; // Als er geen originele URL is, wordt de 'geproxiede' URL de placeholder.
 
-// *** BEGIN WIJZIGING VOOR IMAGE PROXY ***
-if (artist.imageUrl) {
-    const encodedImageUrl = encodeURIComponent(artist.imageUrl);
-    // Parameters:
-    // url: de originele afbeeldingsurl
-    // w: breedte (pixels)
-    // h: hoogte (pixels)
-    // fit: hoe de afbeelding passend gemaakt moet worden. 'cover' behoudt aspect ratio en vult de dimensies, mogelijk croppend.
-    // q: kwaliteit (0-100 voor JPEG/WebP). 75 is een goede balans.
-    // dpr: Device Pixel Ratio. dpr=2 levert scherpere afbeeldingen op HiDPI/Retina schermen.
-    // output: gewenst output formaat. 'webp' wordt geprobeerd, met fallback naar origineel of jpg/png.
-    imgSrc = `https://images.weserv.nl/?url=${encodedImageUrl}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`;
-} else {
-    imgSrc = placeholderImgUrl;
-}
-// *** EINDE WIJZIGING VOOR IMAGE PROXY ***
+const originalImageUrlForFallback = artist.imageUrl || PLACEHOLDER_IMG_URL; // De daadwerkelijke fallback
+// *** EINDE WIJZIGING ***
 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
@@ -991,7 +971,7 @@ dagNaam = dagen[date.getDay()];
 }
 }
 
-const isFav = favorites.includes(artist.name); // Gebruik rawName voor favorieten
+const isFav = favorites.includes(artist.name);
 
 let spotifyControlsHtml = '';
 if (info.spotifyUri) {
@@ -1031,7 +1011,12 @@ card.innerHTML = `
 ${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
 </span>
 </div>
-<img data-src="${imgSrc}" src="${transparentPixel}" alt="Foto van ${artist.name}" class="artist-photo lazyload">
+<img 
+    data-src="${proxiedImageUrlForDataSrc}" 
+    data-original-src="${originalImageUrlForFallback}" 
+    src="${transparentPixel}" 
+    alt="Foto van ${artist.name}" 
+    class="artist-photo lazyload">
 <div class="artist-meta-container">
 <div class="artist-info">
 <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
@@ -1057,16 +1042,43 @@ let imageObserver = new IntersectionObserver((entries, observer) => {
 entries.forEach(entry => {
 if (entry.isIntersecting) {
 const image = entry.target;
-image.src = image.dataset.src;
+const proxiedSrc = image.dataset.src;
+const originalSrc = image.dataset.originalSrc; // Haal de fallback URL op
+
+// *** BEGIN WIJZIGING: onerror handler voor fallback ***
+image.onerror = function() {
+    // Voorkom loops als de fallback om een of andere reden ook een error triggert
+    // en deze onerror handler opnieuw zou worden aangeroepen.
+    // Controleer of we niet al de originele src proberen te laden.
+    if (this.src !== originalSrc) { 
+        console.warn(`Image proxy (${proxiedSrc}) failed to load. Falling back to original source: ${originalSrc}`);
+        this.src = originalSrc;
+    }
+    // Verwijder de onerror handler na de eerste poging tot fallback.
+    // Als de originalSrc OOK faalt, toont de browser zijn eigen 'broken image' icoon.
+    this.onerror = null; 
+};
+// *** EINDE WIJZIGING ***
+
+image.src = proxiedSrc; // Start met het laden van de geproxiede afbeelding
 image.classList.remove('lazyload');
 imageObserver.unobserve(image);
 }
 });
 }, { rootMargin: '200px 0px 200px 0px' });
 lazyImages.forEach(image => imageObserver.observe(image));
-} else {
+} else { // Fallback voor browsers zonder IntersectionObserver
 lazyImages.forEach(image => {
-image.src = image.dataset.src;
+const proxiedSrc = image.dataset.src;
+const originalSrc = image.dataset.originalSrc;
+image.onerror = function() {
+    if (this.src !== originalSrc) {
+        console.warn(`Image proxy (${proxiedSrc}) failed (no IO). Falling back to original source: ${originalSrc}`);
+        this.src = originalSrc;
+    }
+    this.onerror = null;
+};
+image.src = proxiedSrc;
 image.classList.remove('lazyload');
 });
 }
@@ -1082,29 +1094,27 @@ element.innerHTML = originalHTMLMap.get(element);
 }
 }
 
-function applyHighlight(element, originalSearchTerm) { // Ontvangt originele zoekterm
+function applyHighlight(element, originalSearchTerm) {
 if (!element || !originalSearchTerm) return;
 
 if (!originalHTMLMap.has(element)) {
 originalHTMLMap.set(element, element.innerHTML);
 }
-element.innerHTML = originalHTMLMap.get(element); // Reset naar originele HTML
+element.innerHTML = originalHTMLMap.get(element);
 
-const regex = buildFlexibleHighlightRegex(originalSearchTerm); // Gebruik nieuwe regex builder
-if (!regex) return; // Geen regex als zoekterm leeg is
+const regex = buildFlexibleHighlightRegex(originalSearchTerm);
+if (!regex) return;
 
 function highlightNodeRecursive(node) {
 if (node.nodeType === Node.TEXT_NODE) {
 const text = node.nodeValue;
-// Reset regex lastIndex voor elke nieuwe tekst node
 regex.lastIndex = 0;
 if (regex.test(text)) {
-    // Moet opnieuw matchen vanaf het begin voor replacement
     regex.lastIndex = 0;
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
     text.replace(regex, (match, ...args) => {
-        const offset = args[args.length - 2]; // Correcte offset in ECMAScript spec
+        const offset = args[args.length - 2];
         if (offset > lastIndex) {
             fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
         }
@@ -1112,7 +1122,7 @@ if (regex.test(text)) {
         mark.textContent = match;
         fragment.appendChild(mark);
         lastIndex = offset + match.length;
-        return match; // replace vereist een return value
+        return match;
     });
     if (lastIndex < text.length) {
         fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
@@ -1133,12 +1143,7 @@ highlightNodeRecursive(element);
 
 function scrollToArtistListTop() {
 if (!artistListElement || !controlBarGroup) return;
-
-window.scrollTo({
-top: 0,
-behavior: 'auto'
-});
-
+window.scrollTo({ top: 0, behavior: 'auto' });
 if (controlBarGroup) {
 controlBarGroup.classList.remove('hidden');
 }
@@ -1147,21 +1152,20 @@ lastScrollY = 0;
 
 function applyFiltersAndSort(options = {}) {
 hideError();
-const originalSearchTerm = searchFieldElement.value; // Originele zoekterm voor highlighting
-const normalizedSearchTerm = normalizeForSearch(originalSearchTerm); // Genormaliseerde zoekterm voor filtering
+const originalSearchTerm = searchFieldElement.value;
+const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
 let visibleCount = 0;
 
 const cardElements = artistListElement.children;
 
 for (const card of cardElements) {
-// Gebruik de genormaliseerde dataset attributen direct
 const {
-name: normalizedArtistName, // Dit is al normalizeForSearch(artist.name)
+name: normalizedArtistName,
 podium,
 dag,
-genres: normalizedGenres,     // Dit is al normalizeForSearch(info.genres.join(','))
-description: normalizedDescription, // Dit is al normalizeForSearch(strippedDescription)
-rawName // Originele naam voor favorieten
+genres: normalizedGenres,
+description: normalizedDescription,
+rawName
 } = card.dataset;
 
 const artistNameEl = card.querySelector('.artist-name');
@@ -1176,23 +1180,18 @@ clearHighlight(descriptionEl);
 
 const matchesDay = !activeDays.length || activeDays.includes(dag);
 const matchesPodium = !activePodia.length || activePodia.includes(podium);
-
-// Filteren op genormaliseerde waarden
 const matchesSearch = !normalizedSearchTerm ||
 normalizedArtistName.includes(normalizedSearchTerm) ||
 normalizedDescription.includes(normalizedSearchTerm) ||
 normalizedGenres.includes(normalizedSearchTerm) ||
-normalizeForSearch(podium).includes(normalizedSearchTerm); // Podium on-the-fly normaliseren
-
+normalizeForSearch(podium).includes(normalizedSearchTerm);
 const matchesFavs = !showingFavs || favorites.includes(rawName);
 
 if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
 card.style.display = '';
 visibleCount++;
-if (originalSearchTerm) { // Highlight met originele zoekterm
+if (originalSearchTerm) {
 applyHighlight(artistNameEl, originalSearchTerm);
-// Voor genres, podium, beschrijving, check of de *originele* content de *originele* zoekterm bevat (via de flexibele regex)
-// Dit wordt nu afgehandeld door applyHighlight zelf, die de flexibele regex gebruikt.
 if (genresEl) applyHighlight(genresEl, originalSearchTerm);
 if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
 if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
@@ -1211,16 +1210,13 @@ const cardsArray = Array.from(cardElements);
 
 cardsArray.sort((a, b) => {
 if (sortMode === 'alpha') {
-// Sorteer op het genormaliseerde data-name attribuut voor consistente alfabetische volgorde
 return a.dataset.name.localeCompare(b.dataset.name);
-} else { // 'time'
+} else {
 const timeA = parseInt(a.dataset.timestamp, 10);
 const timeB = parseInt(b.dataset.timestamp, 10);
-
 const aIsUnknown = timeA === 0;
 const bIsUnknown = timeB === 0;
-
-if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name); // Sorteer onbekenden alfabetisch
+if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
 if (aIsUnknown) return 1;
 if (bIsUnknown) return -1;
 if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
@@ -1239,8 +1235,6 @@ scrollToArtistListTop();
 }
 }
 
-
-// === FUNCTIES VOOR CYCLISCHE STATUS-ANIMATIE ===
 function calculateNightsToSleep() {
 const now = new Date();
 if (now >= FESTIVAL_START_DATE) return null;
@@ -1261,12 +1255,12 @@ countdownTextElement.textContent = `Nog ${nights} nacht${plural} slapen..`;
 currentStatusIndex++;
 statusSlider.style.transform = `translateY(-${currentStatusIndex * SLIDE_HEIGHT}px)`;
 
-if (currentStatusIndex === 2) { // We zijn bij de kloon aangekomen
+if (currentStatusIndex === 2) {
 setTimeout(() => {
 statusSlider.style.transition = 'none';
 currentStatusIndex = 0;
 statusSlider.style.transform = 'translateY(0px)';
-statusSlider.offsetHeight; // Forceer repaint
+statusSlider.offsetHeight;
 statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
 }, TRANSITION_DURATION);
 }
@@ -1280,7 +1274,6 @@ statusInterval = setInterval(slideStatus, ANIMATION_INTERVAL);
 
 function updateArtistCount(n, overrideText = null){
 clearInterval(statusInterval);
-
 let textToShow;
 if (overrideText) {
 textToShow = overrideText;
@@ -1289,16 +1282,13 @@ const pluralSuffix = n === 1 ? '' : 'en';
 const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
 textToShow = `${n} ${entity} gevonden`;
 }
-
 countTextElement.textContent = textToShow;
 countTextCloneElement.textContent = textToShow;
-
 statusSlider.style.transition = 'none';
 currentStatusIndex = 0;
 statusSlider.style.transform = 'translateY(0px)';
 statusSlider.offsetHeight;
 statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
-
 startStatusAlternation();
 }
 
@@ -1337,7 +1327,6 @@ applyFiltersAndSort({ preserveScroll: true });
 function clearLocalStorageData(){
 if(!confirm('Weet je zeker dat je alle data (behalve favorieten en voorkeuren) wilt resetten? Dit kan nodig zijn na website updates.'))
 return;
-
 for(const key of Object.keys(localStorage)){
 if(key.startsWith(PREFIX + 'artist_info_') || key === ALL_ARTISTS_DATA_CACHE_KEY || key === ALL_ARTISTS_DATA_TIMESTAMP_KEY){
 localStorage.removeItem(key);
@@ -1354,11 +1343,10 @@ const proxies = {
 };
 let results = [];
 alert('CORS proxy test gestart. Dit kan even duren...');
-
 for (const [name, url] of Object.entries(proxies)) {
 const startTime = performance.now();
 try {
-const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) });
 const duration = performance.now() - startTime;
 if (res.ok) {
 results.push(`${name}: OK (${Math.round(duration)}ms)`);
@@ -1382,11 +1370,9 @@ document.body.style.paddingTop = `${headerHeight + 10}px`;
 
 function handleScrollLogic() {
 if (!controlBarGroup) return;
-
 const currentScrollY = window.scrollY;
 const scrollDelta = currentScrollY - lastScrollY;
 const scrollThreshold = 5;
-
 if (currentScrollY < controlBarGroup.offsetHeight) {
 controlBarGroup.classList.remove('hidden');
 }
@@ -1396,17 +1382,15 @@ controlBarGroup.classList.add('hidden');
 else if (scrollDelta < -scrollThreshold) {
 controlBarGroup.classList.remove('hidden');
 }
-
 lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
 ticking = false;
 }
 
 function highlightCurrentDayButton() {
 const now = new Date();
-if (now.getFullYear() === 2025 && now.getMonth() === 6) { // Juli is maand 6 (0-indexed)
+if (now.getFullYear() === 2025 && now.getMonth() === 6) {
 const currentDayOfMonth = now.getDate();
 const targetDayFilter = `${currentDayOfMonth} juli`;
-
 const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
 if (todayButton) {
 todayButton.classList.add('is-today');
@@ -1445,11 +1429,7 @@ applyFiltersAndSort();
 });
 
 searchFieldElement.addEventListener('focus', function() {
-if (this.value.length > 0) {
-searchClickShouldClear = true;
-} else {
-searchClickShouldClear = false;
-}
+searchClickShouldClear = (this.value.length > 0);
 });
 
 searchFieldElement.addEventListener('click', function() {
@@ -1465,25 +1445,15 @@ searchClickShouldClear = false;
 searchFieldElement.addEventListener('input', function(){
 searchClickShouldClear = (this.value.length > 0);
 this.classList.toggle('has-content', this.value.length > 0);
-
-const v = this.value.toLowerCase(); // Gebruik toLowerCase voor commando's
+const v = this.value.toLowerCase();
 if (v === 'reset' || v === 'clear') {
-this.value = '';
-this.classList.remove('has-content');
-searchClickShouldClear = false;
-clearLocalStorageData();
-return;
+this.value = ''; this.classList.remove('has-content'); searchClickShouldClear = false;
+clearLocalStorageData(); return;
 }
-
 if (v === 'proxytest' || v === 'corstest') {
-this.value = '';
-this.classList.remove('has-content');
-searchClickShouldClear = false;
-this.blur();
-runProxyTest();
-return;
+this.value = ''; this.classList.remove('has-content'); searchClickShouldClear = false; this.blur();
+runProxyTest(); return;
 }
-
 applyFiltersAndSort();
 });
 
@@ -1493,37 +1463,28 @@ searchClickShouldClear = false;
 
 searchFieldElement.addEventListener('keydown', function(e) {
 if (e.key === 'Enter' || e.keyCode === 13) {
-this.blur();
-e.preventDefault();
+this.blur(); e.preventDefault();
 }
 });
 
-
 sortAlphaElement.addEventListener('click', function(){
-sortMode = 'alpha';
-setStoredString('sortMode', sortMode);
-updateSortIconsUI();
-applyFiltersAndSort();
+sortMode = 'alpha'; setStoredString('sortMode', sortMode);
+updateSortIconsUI(); applyFiltersAndSort();
 });
 sortTimeElement.addEventListener('click', function(){
-sortMode = 'time';
-setStoredString('sortMode', sortMode);
-updateSortIconsUI();
-applyFiltersAndSort();
+sortMode = 'time'; setStoredString('sortMode', sortMode);
+updateSortIconsUI(); applyFiltersAndSort();
 });
 
 favoriteToggleElement.addEventListener('click', function(){
-showingFavs = !showingFavs;
-setStoredJSON(PREFIX + 'showingFavs', showingFavs);
-updateFavoriteToggleUI();
-applyFiltersAndSort();
+showingFavs = !showingFavs; setStoredJSON(PREFIX + 'showingFavs', showingFavs);
+updateFavoriteToggleUI(); applyFiltersAndSort();
 });
 
 artistListElement.addEventListener('click', e=>{
 const favIcon = e.target.closest('.favorite-icon');
-if(favIcon){
-toggleFavoriteOnCard(favIcon.dataset.name);
-}
+if(favIcon) toggleFavoriteOnCard(favIcon.dataset.name);
+
 const spotifyButton = e.target.closest('.spotify-play-button');
 if (spotifyButton) {
 const spotifyUri = spotifyButton.dataset.spotifyUri;
@@ -1542,27 +1503,18 @@ dockedSpotifyPlayerWrapper.classList.add('visible');
 
 closeDockedPlayerButton.addEventListener('click', () => {
 dockedSpotifyPlayerWrapper.classList.remove('visible');
-setTimeout(() => {
-dockedSpotifyPlayerContainer.innerHTML = '';
-}, 300);
+setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
 });
-
 
 window.addEventListener('scroll', () => {
-if (!ticking) {
-window.requestAnimationFrame(handleScrollLogic);
-ticking = true;
-}
+if (!ticking) { window.requestAnimationFrame(handleScrollLogic); ticking = true; }
 });
-
 window.addEventListener('resize', updateBodyPadding);
-
 }
 
 async function main() {
 initializeEventListeners();
 highlightCurrentDayButton();
-
 updateFilterButtonsUI();
 updateSortIconsUI();
 updateFavoriteToggleUI();
@@ -1591,13 +1543,11 @@ showError('Geen artiesten data gevonden of kunnen laden.');
 updateArtistCount(0);
 }
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
-
 updateBodyPadding();
 handleScrollLogic();
 }
 
 main();
-
 })();
 </script>
 
