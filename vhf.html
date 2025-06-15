@@ -588,9 +588,7 @@ ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 CACHE_MAX_AGE_MS = 60 * 60 * 1000, // 1 uur
 FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00'),
-// *** BEGIN WIJZIGING: Placeholder URL globaal gedefinieerd ***
 PLACEHOLDER_IMG_URL = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
-// *** EINDE WIJZIGING ***
 
 const artistListElement = document.getElementById('artistList'),
 errorMessageElement = document.getElementById('errorMessage'),
@@ -646,20 +644,28 @@ const charMapForRegex = {
 function buildFlexibleHighlightRegex(originalSearchTerm) {
     if (!originalSearchTerm) return null;
     let regexPattern = '';
+
+    function getSingleBaseChar(charInput) {
+      const lowerChar = charInput.toLowerCase();
+      const normalized = lowerChar.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      return normalized.length > 0 ? normalized : lowerChar;
+    }
+
     for (const char of originalSearchTerm) {
-        const charLower = char.toLowerCase();
-        const equivalents = charMapForRegex[charLower];
-        if (equivalents) {
-            regexPattern += '[' + equivalents + ']';
+        const baseLookupChar = getSingleBaseChar(char);
+        let charClass = charMapForRegex[baseLookupChar]; 
+
+        if (charClass) {
+            regexPattern += '[' + charClass + ']';
         } else {
             regexPattern += escapeRegExp(char);
         }
     }
     try {
-        return new RegExp(regexPattern, 'gi');
+        return new RegExp(regexPattern, 'giu');
     } catch (e) {
         console.error("Failed to create regex from pattern:", regexPattern, e);
-        return new RegExp(escapeRegExp(originalSearchTerm), 'gi');
+        return new RegExp(escapeRegExp(originalSearchTerm), 'giu');
     }
 }
 
@@ -952,14 +958,11 @@ if (info.spotifyUri) {
 card.dataset.spotifyUri = info.spotifyUri;
 }
 
-// *** BEGIN WIJZIGING: URLs voor proxy en fallback voorbereiden ***
 const proxiedImageUrlForDataSrc = artist.imageUrl
     ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
-    : PLACEHOLDER_IMG_URL; // Als er geen originele URL is, wordt de 'geproxiede' URL de placeholder.
+    : PLACEHOLDER_IMG_URL; 
 
-const originalImageUrlForFallback = artist.imageUrl || PLACEHOLDER_IMG_URL; // De daadwerkelijke fallback
-// *** EINDE WIJZIGING ***
-
+const originalImageUrlForFallback = artist.imageUrl || PLACEHOLDER_IMG_URL; 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
@@ -1043,31 +1046,24 @@ entries.forEach(entry => {
 if (entry.isIntersecting) {
 const image = entry.target;
 const proxiedSrc = image.dataset.src;
-const originalSrc = image.dataset.originalSrc; // Haal de fallback URL op
+const originalSrc = image.dataset.originalSrc; 
 
-// *** BEGIN WIJZIGING: onerror handler voor fallback ***
 image.onerror = function() {
-    // Voorkom loops als de fallback om een of andere reden ook een error triggert
-    // en deze onerror handler opnieuw zou worden aangeroepen.
-    // Controleer of we niet al de originele src proberen te laden.
     if (this.src !== originalSrc) { 
         console.warn(`Image proxy (${proxiedSrc}) failed to load. Falling back to original source: ${originalSrc}`);
         this.src = originalSrc;
     }
-    // Verwijder de onerror handler na de eerste poging tot fallback.
-    // Als de originalSrc OOK faalt, toont de browser zijn eigen 'broken image' icoon.
     this.onerror = null; 
 };
-// *** EINDE WIJZIGING ***
 
-image.src = proxiedSrc; // Start met het laden van de geproxiede afbeelding
+image.src = proxiedSrc; 
 image.classList.remove('lazyload');
 imageObserver.unobserve(image);
 }
 });
 }, { rootMargin: '200px 0px 200px 0px' });
 lazyImages.forEach(image => imageObserver.observe(image));
-} else { // Fallback voor browsers zonder IntersectionObserver
+} else { 
 lazyImages.forEach(image => {
 const proxiedSrc = image.dataset.src;
 const originalSrc = image.dataset.originalSrc;
@@ -1100,7 +1096,7 @@ if (!element || !originalSearchTerm) return;
 if (!originalHTMLMap.has(element)) {
 originalHTMLMap.set(element, element.innerHTML);
 }
-element.innerHTML = originalHTMLMap.get(element);
+element.innerHTML = originalHTMLMap.get(element); // Reset to original before applying new highlight
 
 const regex = buildFlexibleHighlightRegex(originalSearchTerm);
 if (!regex) return;
@@ -1108,38 +1104,45 @@ if (!regex) return;
 function highlightNodeRecursive(node) {
 if (node.nodeType === Node.TEXT_NODE) {
 const text = node.nodeValue;
-regex.lastIndex = 0;
-if (regex.test(text)) {
-    regex.lastIndex = 0;
+regex.lastIndex = 0; // Reset lastIndex before each test/exec
+if (regex.test(text)) { // Check if there's any match first
+    regex.lastIndex = 0; // Reset for .replace operation or manual loop
     const fragment = document.createDocumentFragment();
     let lastIndex = 0;
-    text.replace(regex, (match, ...args) => {
-        const offset = args[args.length - 2];
-        if (offset > lastIndex) {
-            fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
+    // Loop through all matches using exec
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        const matchedText = match[0];
+        const matchStartIndex = match.index;
+
+        if (matchStartIndex > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchStartIndex)));
         }
         const mark = document.createElement('mark');
-        mark.textContent = match;
+        mark.textContent = matchedText;
         fragment.appendChild(mark);
-        lastIndex = offset + match.length;
-        return match;
-    });
+        lastIndex = regex.lastIndex; // lastIndex is updated by exec
+        if (matchedText.length === 0) { // Avoid infinite loops on zero-length matches
+            regex.lastIndex++; 
+        }
+    }
     if (lastIndex < text.length) {
         fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
     }
-    if (fragment.childNodes.length > 0) {
+    if (fragment.childNodes.length > 0) { // Only replace if something was actually highlighted
         node.parentNode.replaceChild(fragment, node);
     }
 }
 } else if (node.nodeType === Node.ELEMENT_NODE) {
 if (node.tagName.toLowerCase() === 'mark' || node.tagName.toLowerCase() === 'script' || node.tagName.toLowerCase() === 'style') {
-return;
+return; // Do not recurse into existing marks or script/style tags
 }
 Array.from(node.childNodes).forEach(highlightNodeRecursive);
 }
 }
 highlightNodeRecursive(element);
 }
+
 
 function scrollToArtistListTop() {
 if (!artistListElement || !controlBarGroup) return;
@@ -1388,7 +1391,7 @@ ticking = false;
 
 function highlightCurrentDayButton() {
 const now = new Date();
-if (now.getFullYear() === 2025 && now.getMonth() === 6) {
+if (now.getFullYear() === 2025 && now.getMonth() === 6) { // Juli is maand 6 (0-indexed)
 const currentDayOfMonth = now.getDate();
 const targetDayFilter = `${currentDayOfMonth} juli`;
 const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
@@ -1503,7 +1506,7 @@ dockedSpotifyPlayerWrapper.classList.add('visible');
 
 closeDockedPlayerButton.addEventListener('click', () => {
 dockedSpotifyPlayerWrapper.classList.remove('visible');
-setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
+setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300); // Delay to allow animation
 });
 
 window.addEventListener('scroll', () => {
@@ -1543,8 +1546,8 @@ showError('Geen artiesten data gevonden of kunnen laden.');
 updateArtistCount(0);
 }
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
-updateBodyPadding();
-handleScrollLogic();
+updateBodyPadding(); // Initial padding calculation
+handleScrollLogic(); // Initial control bar state
 }
 
 main();
