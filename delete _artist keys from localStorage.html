@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Beheer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 95vh; /* Gebruik bijna volledige viewport hoogte */
+            text-align: center;
+            box-sizing: border-box; /* Zorgt ervoor dat padding en border binnen de element breedte/hoogte vallen */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #1c1e21;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #606770;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #e60023; /* Een duidelijke rode kleur voor verwijderen */
+            color: white;
+            border: none;
+            padding: 12px 24px; /* Iets verfijndere padding */
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            width: 100%; /* Maak knop volledige breedte van container */
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #c3001c; /* Donkerder rood bij hover */
+        }
+        button:active {
+            transform: scale(0.98); /* Lichte krimp bij klikken */
+        }
+        #feedback {
+            margin-top: 25px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .feedback-success {
+            color: #28a745; /* Groen */
+        }
+        .feedback-warning {
+            color: #ffc107; /* Oranje/Geel */
+        }
+        .feedback-error {
+            color: #dc3545; /* Rood */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LocalStorage Key Verwijderaar</h1>
+        <p>Klik op de knop hieronder om alle items uit de localStorage van uw browser te verwijderen die beginnen met de tekst "artist_".</p>
+        <button id="deleteKeysButton">Verwijder "artist_" Keys</button>
+        <p id="feedback"></p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButton = document.getElementById('deleteKeysButton');
+            const feedbackElement = document.getElementById('feedback');
+            const prefixToRemove = 'artist_';
+
+            deleteButton.addEventListener('click', function() {
+                // Reset feedback
+                feedbackElement.textContent = '';
+                feedbackElement.className = '';
+
+                // Controleer of localStorage beschikbaar is
+                if (typeof(Storage) === "undefined" || typeof(localStorage) === "undefined") {
+                    feedbackElement.textContent = "Sorry, localStorage wordt niet ondersteund door uw browser.";
+                    feedbackElement.className = 'feedback-error';
+                    return;
+                }
+
+                let keysRemovedCount = 0;
+                const keysToDelete = [];
+
+                // Verzamel alle keys die voldoen aan het criterium
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    // Zorg ervoor dat key niet null is (kan gebeuren in sommige edge cases of oudere browsers)
+                    if (key && key.startsWith(prefixToRemove)) {
+                        keysToDelete.push(key);
+                    }
+                }
+
+                // Verwijder de geselecteerde keys
+                if (keysToDelete.length > 0) {
+                    keysToDelete.forEach(key => {
+                        localStorage.removeItem(key);
+                        keysRemovedCount++;
+                    });
+                    feedbackElement.textContent = `${keysRemovedCount} key(s) die beginnen met "${prefixToRemove}" zijn succesvol verwijderd.`;
+                    feedbackElement.className = 'feedback-success';
+                } else {
+                    feedbackElement.textContent = `Geen keys gevonden in localStorage die beginnen met "${prefixToRemove}".`;
+                    feedbackElement.className = 'feedback-warning';
+                }
+
+                // Voor debuggen: log de resterende keys in de console
+                // console.log("Resterende localStorage items:");
+                // if (localStorage.length > 0) {
+                //     for (let i = 0; i < localStorage.length; i++) {
+                //         const key = localStorage.key(i);
+                //         console.log(`${key}: ${localStorage.getItem(key)}`);
+                //     }
+                // } else {
+                //     console.log("LocalStorage is nu leeg.");
+                // }
+            });
+        });
+    </script>
+</body>
+</html>
