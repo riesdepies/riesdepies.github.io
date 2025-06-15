@@ -961,7 +961,25 @@ card.dataset.spotifyUri = info.spotifyUri;
 }
 
 const placeholderImgUrl = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
-const imgSrc = artist.imageUrl || placeholderImgUrl;
+let imgSrc; // Gewijzigd van const naar let
+
+// *** BEGIN WIJZIGING VOOR IMAGE PROXY ***
+if (artist.imageUrl) {
+    const encodedImageUrl = encodeURIComponent(artist.imageUrl);
+    // Parameters:
+    // url: de originele afbeeldingsurl
+    // w: breedte (pixels)
+    // h: hoogte (pixels)
+    // fit: hoe de afbeelding passend gemaakt moet worden. 'cover' behoudt aspect ratio en vult de dimensies, mogelijk croppend.
+    // q: kwaliteit (0-100 voor JPEG/WebP). 75 is een goede balans.
+    // dpr: Device Pixel Ratio. dpr=2 levert scherpere afbeeldingen op HiDPI/Retina schermen.
+    // output: gewenst output formaat. 'webp' wordt geprobeerd, met fallback naar origineel of jpg/png.
+    imgSrc = `https://images.weserv.nl/?url=${encodedImageUrl}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`;
+} else {
+    imgSrc = placeholderImgUrl;
+}
+// *** EINDE WIJZIGING VOOR IMAGE PROXY ***
+
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
