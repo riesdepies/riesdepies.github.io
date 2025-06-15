@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 html {
-    overflow-y: scroll;
+overflow-y: scroll;
 }
 *, *:before, *:after {
-    box-sizing: border-box;
+box-sizing: border-box;
 }
 
 body {
@@ -24,25 +24,25 @@ background: #f0f0f0;
 }
 
 .control-bar-group {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: #f0f0f0;
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: transform 0.3s ease-out;
-    will-change: transform;
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+z-index: 1000;
+background: #f0f0f0;
+padding: 10px;
+box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+transition: transform 0.3s ease-out;
+will-change: transform;
 }
 
 .control-bar-group.hidden {
-    transform: translateY(-100%);
+transform: translateY(-100%);
 }
 
 .day-filter-container,
 .filter-container {
-    margin-bottom: 5px;
+margin-bottom: 5px;
 }
 
 .day-filter-container {
@@ -91,13 +91,13 @@ width: 100%;
 #searchField::-webkit-search-cancel-button,
 #searchField::-webkit-search-results-button,
 #searchField::-webkit-search-results-decoration {
-    -webkit-appearance:none;
-    display: none;
+-webkit-appearance:none;
+display: none;
 }
 #searchField::-ms-clear {
-    display: none;
-    width: 0;
-    height: 0;
+display: none;
+width: 0;
+height: 0;
 }
 #searchField:focus {
 outline: none;
@@ -120,28 +120,28 @@ margin-bottom: 0;
 
 /* STYLES VOOR CYCLISCHE STATUS-ANIMATIE */
 #statusContainer {
-    height: 20px;
-    line-height: 20px;
-    overflow: hidden;
-    position: relative;
-    flex-grow: 1;
-    min-width: 0;
-    margin-right: 10px;
+height: 20px;
+line-height: 20px;
+overflow: hidden;
+position: relative;
+flex-grow: 1;
+min-width: 0;
+margin-right: 10px;
 }
 #statusSlider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 #countText, #countdownText, #countTextClone {
-    display: block;
-    font-weight: bold;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    height: 20px; 
+display: block;
+font-weight: bold;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+height: 20px;
 }
 
 .icons-group {
@@ -185,42 +185,42 @@ padding: 15px;
 position: relative;
 }
 .artist-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 10px;
 }
 .artist-card h2 {
 margin: 0;
 font-size: 20px;
 }
 .favorite-icon {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: red;
-    font-size: 22px; /* Grootte aanpassen voor Font Awesome */
-    margin-left: 10px;
-    flex-shrink: 0;
+width: 32px;
+height: 32px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+color: red;
+font-size: 22px; /* Grootte aanpassen voor Font Awesome */
+margin-left: 10px;
+flex-shrink: 0;
 }
 
 .artist-photo {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    background-color: #e0e0e0;
+width: 100%;
+aspect-ratio: 1 / 1;
+object-fit: cover;
+border-radius: 6px;
+margin-bottom: 15px;
+background-color: #e0e0e0;
 }
 
 .artist-meta-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 15px;
 }
 
 .artist-info,
@@ -233,11 +233,11 @@ line-height: 1.4;
 margin: 6px 0;
 }
 .artist-info {
-    margin: 0;
-    flex-grow: 1;
+margin: 0;
+flex-grow: 1;
 }
 .artist-description {
-    margin-top: 15px;
+margin-top: 15px;
 }
 
 .artist-name {
@@ -250,155 +250,155 @@ margin-top: 0;
 }
 
 mark {
-    background-color: yellow;
-    color: black;
-    padding: 0.1em;
-    border-radius: 3px;
+background-color: yellow;
+color: black;
+padding: 0.1em;
+border-radius: 3px;
 }
 
 .youtube-links-container {
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+margin-top: 15px;
+padding-top: 10px;
+border-top: 1px solid #eee;
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 
 .youtube-link-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    text-decoration: none;
-    background-color: #f9f9f9;
-    padding: 8px;
-    border-radius: 6px;
-    transition: background-color 0.2s;
+display: flex;
+align-items: flex-start;
+gap: 10px;
+text-decoration: none;
+background-color: #f9f9f9;
+padding: 8px;
+border-radius: 6px;
+transition: background-color 0.2s;
 }
 .youtube-link-item:hover {
-    background-color: #efefef;
+background-color: #efefef;
 }
 
 .youtube-thumbnail {
-    width: 120px;
-    height: 67px;
-    object-fit: cover;
-    border-radius: 4px;
-    flex-shrink: 0;
+width: 120px;
+height: 67px;
+object-fit: cover;
+border-radius: 4px;
+flex-shrink: 0;
 }
 
 .youtube-title {
-    font-size: 13px;
-    line-height: 1.4;
-    color: #333;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+font-size: 13px;
+line-height: 1.4;
+color: #333;
+margin: 0;
+overflow: hidden;
+text-overflow: ellipsis;
+display: -webkit-box;
+-webkit-line-clamp: 3;
+-webkit-box-orient: vertical;
 }
 
 .spotify-buttons-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
+display: flex;
+align-items: center;
+gap: 6px;
+flex-shrink: 0;
 }
 
 .spotify-open-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    background-color: #1DB954;
-    color: white !important;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.2s;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 34px;
+height: 34px;
+background-color: #1DB954;
+color: white !important;
+border: none;
+border-radius: 50%;
+cursor: pointer;
+text-decoration: none;
+transition: background-color 0.2s;
 }
 .spotify-open-button:hover {
-    background-color: #1ed760;
+background-color: #1ed760;
 }
 .spotify-open-button i {
-    font-size: 16px;
+font-size: 16px;
 }
 
 .spotify-play-button {
-    background-color: #1DB954;
-    color: white !important;
-    border: none;
-    padding: 8px 12px 8px 10px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-    transition: background-color 0.2s;
-    flex-shrink: 0;
+background-color: #1DB954;
+color: white !important;
+border: none;
+padding: 8px 12px 8px 10px;
+border-radius: 50px;
+cursor: pointer;
+font-size: 13px;
+font-weight: bold;
+display: inline-flex;
+align-items: center;
+text-decoration: none;
+transition: background-color 0.2s;
+flex-shrink: 0;
 }
 .spotify-play-button:hover {
-    background-color: #1ed760;
+background-color: #1ed760;
 }
 .spotify-play-button i {
-    margin-right: 8px;
-    font-size: 18px;
+margin-right: 8px;
+font-size: 18px;
 }
 
 .docked-spotify-player-wrapper {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-    background-color: #282828;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
-    transition: transform 0.3s ease-in-out;
-    will-change: transform;
-    transform: translateY(100%) translateZ(0); /* Start met 3D transform */
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+height: 80px;
+z-index: 2000;
+display: flex;
+align-items: center;
+background-color: #282828;
+box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+transition: transform 0.3s ease-in-out;
+will-change: transform;
+transform: translateY(100%) translateZ(0); /* Start met 3D transform */
 }
 
 .docked-spotify-player-wrapper.visible {
-    transform: translateY(0) translateZ(0); /* Behoud 3D transform */
+transform: translateY(0) translateZ(0); /* Behoud 3D transform */
 }
 
 .docked-spotify-player-container {
-    flex-grow: 1;
-    height: 100%;
-    padding: 0;
+flex-grow: 1;
+height: 100%;
+padding: 0;
 }
 
 #docked-spotify-iframe {
-    width: 100%;
-    height: 100%;
-    display: block;
-    border: none;
+width: 100%;
+height: 100%;
+display: block;
+border: none;
 }
 
 #closeDockedPlayerButton {
-    flex-shrink: 0;
-    background: transparent;
-    color: white;
-    border: none;
-    width: 44px;
-    height: 100%;
-    font-size: 20px; /* Aangepast voor FontAwesome */
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 10px;
+flex-shrink: 0;
+background: transparent;
+color: white;
+border: none;
+width: 44px;
+height: 100%;
+font-size: 20px; /* Aangepast voor FontAwesome */
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0 10px;
 }
 #closeDockedPlayerButton:hover {
-    background: rgba(255,255,255,0.1);
+background: rgba(255,255,255,0.1);
 }
 
 
@@ -407,8 +407,8 @@ background: #282c34;
 color: #abb2bf;
 }
 body.dark-mode .control-bar-group {
-    background: #282c34;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+background: #282c34;
+box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 body.dark-mode .day-filter-button,
 body.dark-mode .filter-button,
@@ -430,15 +430,15 @@ background: #61afef;
 color: #282c34;
 }
 body.dark-mode .info-container {
-    background: #3b4048;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+background: #3b4048;
+box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 body.dark-mode .artist-card {
 background: #3b4048;
 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 body.dark-mode .artist-photo {
-    background-color: #4b5059;
+background-color: #4b5059;
 }
 body.dark-mode .artist-name {
 color: #61afef;
@@ -466,60 +466,60 @@ body.dark-mode .artist-card h2 {
 color: inherit;
 }
 body.dark-mode mark {
-    background-color: #61afef;
-    color: #282c34;
+background-color: #61afef;
+color: #282c34;
 }
 body.dark-mode .youtube-links-container {
-    border-top-color: #4b5059;
+border-top-color: #4b5059;
 }
 body.dark-mode .youtube-link-item {
-    background-color: #353a40;
+background-color: #353a40;
 }
 body.dark-mode .youtube-link-item:hover {
-    background-color: #40454c;
+background-color: #40454c;
 }
 body.dark-mode .youtube-thumbnail {
 }
 body.dark-mode .youtube-title {
-    color: #c6cdd5;
+color: #c6cdd5;
 }
 
 body.dark-mode .docked-spotify-player-wrapper {
-    background-color: #181818;
+background-color: #181818;
 }
 body.dark-mode #closeDockedPlayerButton {
-    color: #abb2bf;
+color: #abb2bf;
 }
 body.dark-mode #closeDockedPlayerButton:hover {
-    background: rgba(255,255,255,0.05);
+background: rgba(255,255,255,0.05);
 }
 
 /* === STIJL VOOR ACCENTUEREN HUIDIGE DAG === */
 .is-today::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    left: 15%;
-    width: 70%;
-    height: 3px;
-    border-radius: 2px;
-    transition: background-color 0.2s ease-in-out;
+content: '';
+position: absolute;
+bottom: 4px;
+left: 15%;
+width: 70%;
+height: 3px;
+border-radius: 2px;
+transition: background-color 0.2s ease-in-out;
 }
 /* Standaard staat: blauwe streep */
 body:not(.dark-mode) .is-today:not(.active)::after {
-    background-color: #007bff;
+background-color: #007bff;
 }
 /* Actieve staat: donkergrijze streep */
 body:not(.dark-mode) .is-today.active::after {
-    background-color: #ddd;
+background-color: #ddd;
 }
 /* Dark mode: blauwe streep */
 body.dark-mode .is-today:not(.active)::after {
-    background-color: #61afef;
+background-color: #61afef;
 }
 /* Dark mode, actieve staat: donkergrijze streep */
 body.dark-mode .is-today.active::after {
-    background-color: #282c34;
+background-color: #282c34;
 }
 /* ================================================ */
 
@@ -528,52 +528,52 @@ body.dark-mode .is-today.active::after {
 <body class="dark-mode">
 
 <div id="controlBarGroup" class="control-bar-group">
-    <div class="day-filter-container">
-    <button class="day-filter-button" data-dayfilter="12 juli">Za</button>
-    <button class="day-filter-button" data-dayfilter="13 juli">Zo</button>
-    <button class="day-filter-button" data-dayfilter="14 juli">Ma</button>
-    <button class="day-filter-button" data-dayfilter="15 juli">Di</button>
-    <button class="day-filter-button" data-dayfilter="16 juli">Wo</button>
-    <button class="day-filter-button" data-dayfilter="17 juli">Do</button>
-    <button class="day-filter-button" data-dayfilter="18 juli">Vr</button>
-    </div>
+<div class="day-filter-container">
+<button class="day-filter-button" data-dayfilter="12 juli">Za</button>
+<button class="day-filter-button" data-dayfilter="13 juli">Zo</button>
+<button class="day-filter-button" data-dayfilter="14 juli">Ma</button>
+<button class="day-filter-button" data-dayfilter="15 juli">Di</button>
+<button class="day-filter-button" data-dayfilter="16 juli">Wo</button>
+<button class="day-filter-button" data-dayfilter="17 juli">Do</button>
+<button class="day-filter-button" data-dayfilter="18 juli">Vr</button>
+</div>
 
-    <div class="filter-container">
-    <button class="filter-button" data-podium="Arc">Arc</button>
-    <button class="filter-button" data-podium="Boog">Boog</button>
-    <button class="filter-button" data-podium="Bloem">Bloem</button>
-    <button class="filter-button" data-podium="Club Voerweg">Voerweg</button>
-    <button class="filter-button" data-podium="Tuin">Tuin</button>
-    <button class="filter-button" data-podium="Kapel">Kapel</button>
-    <button class="filter-button" data-podium="Poort">Poort</button>
-    <input type="search" id="searchField" placeholder="Zoek.." autocomplete="off">
-    </div>
+<div class="filter-container">
+<button class="filter-button" data-podium="Arc">Arc</button>
+<button class="filter-button" data-podium="Boog">Boog</button>
+<button class="filter-button" data-podium="Bloem">Bloem</button>
+<button class="filter-button" data-podium="Club Voerweg">Voerweg</button>
+<button class="filter-button" data-podium="Tuin">Tuin</button>
+<button class="filter-button" data-podium="Kapel">Kapel</button>
+<button class="filter-button" data-podium="Poort">Poort</button>
+<input type="search" id="searchField" placeholder="Zoek.." autocomplete="off">
+</div>
 
-    <div class="info-container">
-        <!-- CONTAINER VOOR CYCLISCHE STATUS-ANIMATIE -->
-        <div id="statusContainer">
-            <div id="statusSlider">
-                <span id="countText"></span>
-                <span id="countdownText"></span>
-                <span id="countTextClone"></span>
-            </div>
-        </div>
-        <!-- EINDE AANPASSING -->
-        <span class="icons-group">
-            <i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
-            <i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
-            <i id="favoriteToggle" class="favorite-toggle fa-regular fa-heart" title="Toon favorieten"></i>
-        </span>
-    </div>
+<div class="info-container">
+<!-- CONTAINER VOOR CYCLISCHE STATUS-ANIMATIE -->
+<div id="statusContainer">
+<div id="statusSlider">
+<span id="countText"></span>
+<span id="countdownText"></span>
+<span id="countTextClone"></span>
+</div>
+</div>
+<!-- EINDE AANPASSING -->
+<span class="icons-group">
+<i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
+<i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
+<i id="favoriteToggle" class="favorite-toggle fa-regular fa-heart" title="Toon favorieten"></i>
+</span>
+</div>
 </div>
 
 <div id="errorMessage"></div>
 <div id="artistList"></div>
 
 <div id="dockedSpotifyPlayerWrapper" class="docked-spotify-player-wrapper">
-    <div id="dockedSpotifyPlayerContainer" class="docked-spotify-player-container">
-    </div>
-    <button id="closeDockedPlayerButton" title="Sluit player"><i class="fa-solid fa-xmark"></i></button>
+<div id="dockedSpotifyPlayerContainer" class="docked-spotify-player-container">
+</div>
+<button id="closeDockedPlayerButton" title="Sluit player"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
 <script>
@@ -583,10 +583,10 @@ CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
-ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5',
+ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5', // Kan verhoogd worden indien datastructuur cache wijzigt
 ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
-CACHE_MAX_AGE_MS = 60 * 60 * 1000,
+CACHE_MAX_AGE_MS = 60 * 60 * 1000, // 1 uur
 FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00');
 
 const artistListElement = document.getElementById('artistList'),
@@ -627,6 +627,46 @@ const TRANSITION_DURATION = 600;
 
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
+
+
+// --- NIEUWE FUNCTIES VOOR NORMALISATIE EN REGEX ---
+function normalizeForSearch(str) {
+  if (typeof str !== 'string') return '';
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+const charMapForRegex = {
+  'a': 'aàáâãäåāăąæ', 'c': 'cçćč', 'e': 'eèéêëēĕėęě',
+  'g': 'gğ', 'i': 'iıíìîï', 'o': 'oòóôõöøōŏő', 's': 'sşšś',
+  'u': 'uùúûüůūŭůű', 'n': 'nñ',
+  // Directe mapping voor lowercase diakritische tekens die uniek zijn na toLowerCase()
+  // en niet direct een basis Latijns karakter zijn (zoals 'ı')
+  'ı': 'iıíìîï', 'ü': 'uùúûüůūŭůű', 'ö': 'oòóôõöøōŏő',
+  'ş': 'sşšś', 'ç': 'cçćč', 'ğ': 'gğ'
+  // Voeg meer toe indien nodig
+};
+
+function buildFlexibleHighlightRegex(originalSearchTerm) {
+    if (!originalSearchTerm) return null;
+    let regexPattern = '';
+    for (const char of originalSearchTerm) {
+        const charLower = char.toLowerCase();
+        const equivalents = charMapForRegex[charLower];
+        if (equivalents) {
+            regexPattern += '[' + equivalents + ']';
+        } else {
+            regexPattern += escapeRegExp(char);
+        }
+    }
+    try {
+        return new RegExp(regexPattern, 'gi');
+    } catch (e) {
+        console.error("Failed to create regex from pattern:", regexPattern, e);
+        return new RegExp(escapeRegExp(originalSearchTerm), 'gi'); // Fallback
+    }
+}
+// --- EINDE NIEUWE FUNCTIES ---
+
 
 function getStoredJSON(keySuffix, defaultValue) {
 const item = localStorage.getItem(keySuffix);
@@ -678,205 +718,204 @@ return url.startsWith('http')
 }
 
 async function fetchWithProxyFallback(url) {
-    const proxies = [CORS_PROXY_PRIMARY, CORS_PROXY_FALLBACK];
-    for (const proxy of proxies) {
-        try {
-            const res = await fetch(proxy + url);
-            if (res.ok) {
-                console.log(`Successfully fetched ${url} via ${proxy}`);
-                return res;
-            }
-            console.warn(`Fetch via ${proxy} failed with status ${res.status}`);
-        } catch (err) {
-            console.warn(`Fetch via ${proxy} threw an error:`, err);
-        }
-    }
-    throw new Error(`Failed to fetch ${url} using all available proxies.`);
+const proxies = [CORS_PROXY_PRIMARY, CORS_PROXY_FALLBACK];
+for (const proxy of proxies) {
+try {
+const res = await fetch(proxy + url);
+if (res.ok) {
+console.log(`Successfully fetched ${url} via ${proxy}`);
+return res;
+}
+console.warn(`Fetch via ${proxy} failed with status ${res.status}`);
+} catch (err) {
+console.warn(`Fetch via ${proxy} threw an error:`, err);
+}
+}
+throw new Error(`Failed to fetch ${url} using all available proxies.`);
 }
 
 async function fetchArtistInfo(artistBasicInfo) {
-    const artistCacheKey = PREFIX + 'artist_info_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
-    const stored = localStorage.getItem(artistCacheKey);
-    if (stored) {
-        try {
-            const infoData = JSON.parse(stored);
-            const isNewStructure = infoData.youtubeLinks && typeof infoData.spotifyUri !== 'undefined' ?
-                                   (infoData.youtubeLinks.length > 0 ? typeof infoData.youtubeLinks[0].videoId !== 'undefined' : true) :
-                                   typeof infoData.spotifyId === 'undefined';
-            if (isNewStructure) {
-                return infoData;
-            } else {
-                console.warn(`Cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}) has old structure. Refetching.`);
-                localStorage.removeItem(artistCacheKey);
-            }
-        } catch (e) {
-            console.warn(`Failed to parse cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}). Refetching.`, e);
-            localStorage.removeItem(artistCacheKey);
-        }
-    }
+const artistCacheKey = PREFIX + 'artist_info_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
+const stored = localStorage.getItem(artistCacheKey);
+if (stored) {
+try {
+const infoData = JSON.parse(stored);
+const isNewStructure = infoData.youtubeLinks && typeof infoData.spotifyUri !== 'undefined' ?
+(infoData.youtubeLinks.length > 0 ? typeof infoData.youtubeLinks[0].videoId !== 'undefined' : true) :
+typeof infoData.spotifyId === 'undefined';
+if (isNewStructure) {
+return infoData;
+} else {
+console.warn(`Cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}) has old structure. Refetching.`);
+localStorage.removeItem(artistCacheKey);
+}
+} catch (e) {
+console.warn(`Failed to parse cached artist info for ${artistBasicInfo.name} (key ${artistCacheKey}). Refetching.`, e);
+localStorage.removeItem(artistCacheKey);
+}
+}
 
-    try {
-        const res = await fetchWithProxyFallback(artistBasicInfo.artistUrl);
-        if (!res.ok) return null;
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const tags = Array.from(doc.querySelectorAll('.meta .tag'));
-        const paras = doc.querySelectorAll('.description p');
+try {
+const res = await fetchWithProxyFallback(artistBasicInfo.artistUrl);
+if (!res.ok) return null;
+const html = await res.text();
+const doc = new DOMParser().parseFromString(html, 'text/html');
+const tags = Array.from(doc.querySelectorAll('.meta .tag'));
+const paras = doc.querySelectorAll('.description p');
 
-        const spotifyIframe = doc.querySelector('.spotify iframe');
-        let spotifyUri = null;
-        if (spotifyIframe) {
-            const src = spotifyIframe.getAttribute('src');
-            if (src) {
-                // WIJZIGING: Regex zoekt nu naar artist, album, of track URI's
-                const match = src.match(/(spotify:(?:artist|album|track):[^&?]+)/);
-                if (match && match[1]) {
-                    spotifyUri = match[1];
-                }
-            }
-        }
+const spotifyIframe = doc.querySelector('.spotify iframe');
+let spotifyUri = null;
+if (spotifyIframe) {
+const src = spotifyIframe.getAttribute('src');
+if (src) {
+const match = src.match(/(spotify:(?:artist|album|track):[^&?]+)/);
+if (match && match[1]) {
+spotifyUri = match[1];
+}
+}
+}
 
-        if (artistBasicInfo.name === 'Sinem' && !spotifyUri) {
-            spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
-        }
+if (artistBasicInfo.name === 'Sinem' && !spotifyUri) {
+spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
+}
 
-        const youtubeIframes = doc.querySelectorAll('figure.wp-block-embed.is-provider-youtube iframe');
-        let youtubeLinks = [];
-        if (youtubeIframes.length > 0) {
-            youtubeIframes.forEach(iframe => {
-                const src = iframe.getAttribute('src');
-                const title = iframe.getAttribute('title');
-                if (src && title) {
-                    const videoIdMatch = src.match(/embed\/([^?]+)/);
-                    if (videoIdMatch && videoIdMatch[1]) {
-                        const videoId = videoIdMatch[1];
-                        youtubeLinks.push({
-                            url: `https://www.youtube.com/watch?v=${videoId}`,
-                            title: title,
-                            videoId: videoId
-                        });
-                    }
-                }
-            });
-        }
+const youtubeIframes = doc.querySelectorAll('figure.wp-block-embed.is-provider-youtube iframe');
+let youtubeLinks = [];
+if (youtubeIframes.length > 0) {
+youtubeIframes.forEach(iframe => {
+const src = iframe.getAttribute('src');
+const title = iframe.getAttribute('title');
+if (src && title) {
+const videoIdMatch = src.match(/embed\/([^?]+)/);
+if (videoIdMatch && videoIdMatch[1]) {
+const videoId = videoIdMatch[1];
+youtubeLinks.push({
+url: `https://www.youtube.com/watch?v=${videoId}`,
+title: title,
+videoId: videoId
+});
+}
+}
+});
+}
 
-        const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
-        const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
-        const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
+const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
+const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
+const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
 
-        let duurTekst = '';
-        if (rawTijd.includes('-')) {
-            const [start, end] = rawTijd.split('-').map(s => s.trim());
-            const [su, sm] = start.split(':').map(n => parseInt(n, 10));
-            const [eu, em] = end.split(':').map(n => parseInt(n, 10));
-            if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
-                let minutesStart = su * 60 + sm;
-                let minutesEnd = eu * 60 + em;
-                if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
-                const diff = minutesEnd - minutesStart;
-                if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' min';
-            }
-        }
-        
-        const info = {
-            genres: tags.slice(0, -3).map(t => t.textContent.trim()),
-            podium: capitalize(rawPodium),
-            datum: rawDatum,
-            tijd: rawTijd,
-            duur: duurTekst,
-            description: Array.from(paras).map(p => p.innerHTML.trim()).filter(html => html).join('\n\n') || 'Geen beschrijving beschikbaar',
-            spotifyUri: spotifyUri,
-            youtubeLinks: youtubeLinks
-        };
-        localStorage.setItem(artistCacheKey, JSON.stringify(info));
-        return info;
-    } catch (err) {
-        console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
-        return null;
-    }
+let duurTekst = '';
+if (rawTijd.includes('-')) {
+const [start, end] = rawTijd.split('-').map(s => s.trim());
+const [su, sm] = start.split(':').map(n => parseInt(n, 10));
+const [eu, em] = end.split(':').map(n => parseInt(n, 10));
+if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
+let minutesStart = su * 60 + sm;
+let minutesEnd = eu * 60 + em;
+if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
+const diff = minutesEnd - minutesStart;
+if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' min';
+}
+}
+
+const info = {
+genres: tags.slice(0, -3).map(t => t.textContent.trim()),
+podium: capitalize(rawPodium),
+datum: rawDatum,
+tijd: rawTijd,
+duur: duurTekst,
+description: Array.from(paras).map(p => p.innerHTML.trim()).filter(html => html).join('\n\n') || 'Geen beschrijving beschikbaar',
+spotifyUri: spotifyUri,
+youtubeLinks: youtubeLinks
+};
+localStorage.setItem(artistCacheKey, JSON.stringify(info));
+return info;
+} catch (err) {
+console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
+return null;
+}
 }
 
 async function loadAllArtistsData() {
-    hideError();
+hideError();
 
-    const cachedDataTimestamp = getStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, 0);
-    if (Date.now() - cachedDataTimestamp > CACHE_MAX_AGE_MS) {
-        console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} is older than 1 hour. Invalidating.`);
-        localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
-        localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
-    }
+const cachedDataTimestamp = getStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, 0);
+if (Date.now() - cachedDataTimestamp > CACHE_MAX_AGE_MS) {
+console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} is older than 1 hour. Invalidating.`);
+localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+}
 
-    const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
-    if (cachedData) {
-        try {
-            let parsedAllArtistsData = JSON.parse(cachedData);
-            if (parsedAllArtistsData.length > 0 && typeof parsedAllArtistsData[0].artist.imageUrl === 'undefined') {
-                 console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} has old structure (missing imageUrl). Invalidating.`);
-                 localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
-                 localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
-            } else {
-                allArtistsData = parsedAllArtistsData;
-                console.log(`All artists data loaded from cache (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
-                return;
-            }
-        } catch (e) {
-            console.warn(`Failed to parse ${ALL_ARTISTS_DATA_CACHE_KEY} from cache, fetching fresh.`, e);
-            localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
-            localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
-        }
-    }
-    
-    allArtistsData = [];
-    updateArtistCount(0, 'Artiesten laden...');
-    try {
-        const res = await fetchWithProxyFallback(WEEK_URL);
-        if (!res.ok) {
-            showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
-            return;
-        }
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
+const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
+if (cachedData) {
+try {
+let parsedAllArtistsData = JSON.parse(cachedData);
+if (parsedAllArtistsData.length > 0 && typeof parsedAllArtistsData[0].artist.imageUrl === 'undefined') {
+console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} has old structure (missing imageUrl). Invalidating.`);
+localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+} else {
+allArtistsData = parsedAllArtistsData;
+console.log(`All artists data loaded from cache (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+return;
+}
+} catch (e) {
+console.warn(`Failed to parse ${ALL_ARTISTS_DATA_CACHE_KEY} from cache, fetching fresh.`, e);
+localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+}
+}
 
-        const urlRegex = /url\('([^']+)'\)/;
+allArtistsData = [];
+updateArtistCount(0, 'Artiesten laden...');
+try {
+const res = await fetchWithProxyFallback(WEEK_URL);
+if (!res.ok) {
+showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
+return;
+}
+const html = await res.text();
+const doc = new DOMParser().parseFromString(html, 'text/html');
 
-        const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
-            .map(a => {
-                const name = a.querySelector('.nameplate h2').textContent.trim();
-                const artistUrl = getFullUrl(a.getAttribute('href'));
-                
-                const innerDiv = a.querySelector('.artist-inner');
-                const styleAttr = innerDiv?.getAttribute('style');
-                const styleMatch = styleAttr ? styleAttr.match(urlRegex) : null;
-                const imageUrl = styleMatch && styleMatch[1] ? getFullUrl(styleMatch[1]) : null;
+const urlRegex = /url\('([^']+)'\)/;
 
-                return { name, artistUrl, imageUrl };
-            });
-        
-        const newAllArtistsData = [];
-        let fetchedCount = 0;
-        for (const basicInfo of artistBasicInfos) {
-            const info = await fetchArtistInfo(basicInfo);
-            newAllArtistsData.push({
-                artist: basicInfo,
-                info: info || {
-                    genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend',
-                    duur: '', description: 'Details konden niet geladen worden.', spotifyUri: null,
-                    youtubeLinks: [] 
-                }
-            });
-            fetchedCount++;
-            updateArtistCount(fetchedCount, `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`);
-        }
+const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
+.map(a => {
+const name = a.querySelector('.nameplate h2').textContent.trim();
+const artistUrl = getFullUrl(a.getAttribute('href'));
 
-        allArtistsData = newAllArtistsData;
-        localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
-        setStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, Date.now());
-        console.log(`All artists data fetched and cached (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+const innerDiv = a.querySelector('.artist-inner');
+const styleAttr = innerDiv?.getAttribute('style');
+const styleMatch = styleAttr ? styleAttr.match(urlRegex) : null;
+const imageUrl = styleMatch && styleMatch[1] ? getFullUrl(styleMatch[1]) : null;
 
-    } catch (err) {
-        console.error("Error during fetch of all artists data:",err);
-        showError('Netwerkfout bij ophalen artiestenlijst.');
-    }
+return { name, artistUrl, imageUrl };
+});
+
+const newAllArtistsData = [];
+let fetchedCount = 0;
+for (const basicInfo of artistBasicInfos) {
+const info = await fetchArtistInfo(basicInfo);
+newAllArtistsData.push({
+artist: basicInfo,
+info: info || {
+genres: [], podium: 'Onbekend', datum: 'Onbekend', tijd: 'Onbekend',
+duur: '', description: 'Details konden niet geladen worden.', spotifyUri: null,
+youtubeLinks: []
+}
+});
+fetchedCount++;
+updateArtistCount(fetchedCount, `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`);
+}
+
+allArtistsData = newAllArtistsData;
+localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
+setStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, Date.now());
+console.log(`All artists data fetched and cached (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+
+} catch (err) {
+console.error("Error during fetch of all artists data:",err);
+showError('Netwerkfout bij ophalen artiestenlijst.');
+}
 }
 
 function parseDateTimeForSort(datum, tijd){
@@ -903,18 +942,22 @@ artistListElement.innerHTML = '';
 allArtistsData.forEach(({ artist, info }) => {
 const card = document.createElement('div');
 card.className = 'artist-card';
-card.style.display = 'none';
+card.style.display = 'none'; // Initially hidden, made visible by filter
 
-card.dataset.name = artist.name.toLowerCase();
-card.dataset.podium = info.podium;
+// --- AANGEPASTE DATA-ATTRIBUTEN VOOR GENORMALISEERD ZOEKEN ---
+card.dataset.name = normalizeForSearch(artist.name); // Genormaliseerde naam voor zoeken en sorteren
+card.dataset.rawName = artist.name; // Originele naam voor display en favorieten
+card.dataset.podium = info.podium; // Podium blijft zoals het is, normalisatie gebeurt on-the-fly bij filteren
 card.dataset.dag = info.datum;
 card.dataset.tijdInfo = info.tijd;
 card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
-card.dataset.rawName = artist.name;
-card.dataset.genres = info.genres.join(',').toLowerCase();
-card.dataset.description = info.description.replace(/<[^>]*>/g, ' ').toLowerCase();
+card.dataset.genres = normalizeForSearch(info.genres.join(',')); // Genormaliseerde genres
+// Genormaliseerde beschrijving (HTML tags verwijderd)
+card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
+// --- EINDE AANPASSING DATA-ATTRIBUTEN ---
+
 if (info.spotifyUri) {
-    card.dataset.spotifyUri = info.spotifyUri;
+card.dataset.spotifyUri = info.spotifyUri;
 }
 
 const placeholderImgUrl = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
@@ -924,64 +967,64 @@ const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEA
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
 let dagNaam = '';
 if (dagNum) {
-    const date = new Date(2025, 6, parseInt(dagNum, 10));
-    if (!isNaN(date.getTime())) {
-        dagNaam = dagen[date.getDay()];
-    }
+const date = new Date(2025, 6, parseInt(dagNum, 10));
+if (!isNaN(date.getTime())) {
+dagNaam = dagen[date.getDay()];
+}
 }
 
-const isFav = favorites.includes(artist.name);
+const isFav = favorites.includes(artist.name); // Gebruik rawName voor favorieten
 
 let spotifyControlsHtml = '';
 if (info.spotifyUri) {
-    spotifyControlsHtml = `
-    <div class="spotify-buttons-container">
-        <a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify" target="_blank">
-            <i class="fa-solid fa-up-right-from-square"></i>
-        </a>
-        <button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
-            <i class="fa-brands fa-spotify"></i> Preview
-        </button>
-    </div>`;
+spotifyControlsHtml = `
+<div class="spotify-buttons-container">
+<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify" target="_blank">
+<i class="fa-solid fa-up-right-from-square"></i>
+</a>
+<button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
+<i class="fa-brands fa-spotify"></i> Preview
+</button>
+</div>`;
 }
 
 let youtubeLinksHtml = '';
 if (info.youtubeLinks && info.youtubeLinks.length > 0) {
-    youtubeLinksHtml = '<div class="youtube-links-container">';
-    info.youtubeLinks.forEach(ytLink => {
-        if (ytLink.videoId) {
-            const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
-            const linkUrl = isAndroidDevice ? `vnd.youtube:${ytLink.videoId}` : ytLink.url;
-            const linkTarget = isAndroidDevice ? '' : 'target="_blank"';
-            youtubeLinksHtml += `
-                <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
-                    <img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
-                    <span class="youtube-title">${ytLink.title}</span>
-                </a>`;
-        }
-    });
-    youtubeLinksHtml += '</div>';
+youtubeLinksHtml = '<div class="youtube-links-container">';
+info.youtubeLinks.forEach(ytLink => {
+if (ytLink.videoId) {
+const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
+const linkUrl = isAndroidDevice ? `vnd.youtube:${ytLink.videoId}` : ytLink.url;
+const linkTarget = isAndroidDevice ? '' : 'target="_blank"';
+youtubeLinksHtml += `
+<a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
+<img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
+<span class="youtube-title">${ytLink.title}</span>
+</a>`;
+}
+});
+youtubeLinksHtml += '</div>';
 }
 
 card.innerHTML = `
 <div class="artist-header">
-    <h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
-    <span class="favorite-icon" data-name="${artist.name}">
-        ${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
-    </span>
+<h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
+<span class="favorite-icon" data-name="${artist.name}">
+${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
+</span>
 </div>
 <img data-src="${imgSrc}" src="${transparentPixel}" alt="Foto van ${artist.name}" class="artist-photo lazyload">
 <div class="artist-meta-container">
-    <div class="artist-info">
-        <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
-        <p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
-        <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
-        <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
-    </div>
-    ${spotifyControlsHtml}
+<div class="artist-info">
+<p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
+<p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
+<p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
+<p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+</div>
+${spotifyControlsHtml}
 </div>
 <div class="artist-description highlightable-description">
-    <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
+<p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
 </div>
 ${youtubeLinksHtml}`;
 artistListElement.appendChild(card);
@@ -990,242 +1033,255 @@ artistListElement.appendChild(card);
 
 
 function setupImageLazyLoader() {
-    const lazyImages = document.querySelectorAll('img.lazyload[data-src]');
-    if ('IntersectionObserver' in window) {
-        let imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const image = entry.target;
-                    image.src = image.dataset.src;
-                    image.classList.remove('lazyload');
-                    imageObserver.unobserve(image);
-                }
-            });
-        }, { rootMargin: '200px 0px 200px 0px' });
-        lazyImages.forEach(image => imageObserver.observe(image));
-    } else {
-        lazyImages.forEach(image => {
-            image.src = image.dataset.src;
-            image.classList.remove('lazyload');
-        });
-    }
+const lazyImages = document.querySelectorAll('img.lazyload[data-src]');
+if ('IntersectionObserver' in window) {
+let imageObserver = new IntersectionObserver((entries, observer) => {
+entries.forEach(entry => {
+if (entry.isIntersecting) {
+const image = entry.target;
+image.src = image.dataset.src;
+image.classList.remove('lazyload');
+imageObserver.unobserve(image);
+}
+});
+}, { rootMargin: '200px 0px 200px 0px' });
+lazyImages.forEach(image => imageObserver.observe(image));
+} else {
+lazyImages.forEach(image => {
+image.src = image.dataset.src;
+image.classList.remove('lazyload');
+});
+}
 }
 
 function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function clearHighlight(element) {
-    if (element && originalHTMLMap.has(element)) {
-        element.innerHTML = originalHTMLMap.get(element);
-    }
+if (element && originalHTMLMap.has(element)) {
+element.innerHTML = originalHTMLMap.get(element);
+}
 }
 
-function applyHighlight(element, searchTerm) {
-    if (!element) return;
+function applyHighlight(element, originalSearchTerm) { // Ontvangt originele zoekterm
+if (!element || !originalSearchTerm) return;
 
-    if (!originalHTMLMap.has(element)) {
-        originalHTMLMap.set(element, element.innerHTML);
-    }
-    
-    element.innerHTML = originalHTMLMap.get(element); 
+if (!originalHTMLMap.has(element)) {
+originalHTMLMap.set(element, element.innerHTML);
+}
+element.innerHTML = originalHTMLMap.get(element); // Reset naar originele HTML
 
-    if (!searchTerm) {
-        return;
-    }
-    
-    const escapedSearchTerm = escapeRegExp(searchTerm);
-    const regex = new RegExp(escapedSearchTerm, 'gi');
+const regex = buildFlexibleHighlightRegex(originalSearchTerm); // Gebruik nieuwe regex builder
+if (!regex) return; // Geen regex als zoekterm leeg is
 
-    function highlightNodeRecursive(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.nodeValue;
-            if (regex.test(text)) {
-                const fragment = document.createDocumentFragment();
-                let lastIndex = 0;
-                text.replace(regex, (match, ...args) => {
-                    const offset = args[args.length - 2]; 
-                    if (offset > lastIndex) {
-                        fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
-                    }
-                    const mark = document.createElement('mark');
-                    mark.textContent = match;
-                    fragment.appendChild(mark);
-                    lastIndex = offset + match.length;
-                    return match; 
-                });
-                if (lastIndex < text.length) {
-                    fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
-                }
-                if (fragment.childNodes.length > 0) {
-                    node.parentNode.replaceChild(fragment, node);
-                }
-            }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            if (node.tagName.toLowerCase() === 'mark' || node.tagName.toLowerCase() === 'script' || node.tagName.toLowerCase() === 'style') {
-                return; 
-            }
-            Array.from(node.childNodes).forEach(highlightNodeRecursive);
+function highlightNodeRecursive(node) {
+if (node.nodeType === Node.TEXT_NODE) {
+const text = node.nodeValue;
+// Reset regex lastIndex voor elke nieuwe tekst node
+regex.lastIndex = 0;
+if (regex.test(text)) {
+    // Moet opnieuw matchen vanaf het begin voor replacement
+    regex.lastIndex = 0;
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    text.replace(regex, (match, ...args) => {
+        const offset = args[args.length - 2]; // Correcte offset in ECMAScript spec
+        if (offset > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.substring(lastIndex, offset)));
         }
+        const mark = document.createElement('mark');
+        mark.textContent = match;
+        fragment.appendChild(mark);
+        lastIndex = offset + match.length;
+        return match; // replace vereist een return value
+    });
+    if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
     }
-    highlightNodeRecursive(element);
+    if (fragment.childNodes.length > 0) {
+        node.parentNode.replaceChild(fragment, node);
+    }
+}
+} else if (node.nodeType === Node.ELEMENT_NODE) {
+if (node.tagName.toLowerCase() === 'mark' || node.tagName.toLowerCase() === 'script' || node.tagName.toLowerCase() === 'style') {
+return;
+}
+Array.from(node.childNodes).forEach(highlightNodeRecursive);
+}
+}
+highlightNodeRecursive(element);
 }
 
 function scrollToArtistListTop() {
-    if (!artistListElement || !controlBarGroup) return;
+if (!artistListElement || !controlBarGroup) return;
 
-    window.scrollTo({
-        top: 0,
-        behavior: 'auto'
-    });
+window.scrollTo({
+top: 0,
+behavior: 'auto'
+});
 
-    if (controlBarGroup) {
-        controlBarGroup.classList.remove('hidden');
-    }
-    lastScrollY = 0;
+if (controlBarGroup) {
+controlBarGroup.classList.remove('hidden');
+}
+lastScrollY = 0;
 }
 
 function applyFiltersAndSort(options = {}) {
 hideError();
-const searchTerm = searchFieldElement.value.toLowerCase();
+const originalSearchTerm = searchFieldElement.value; // Originele zoekterm voor highlighting
+const normalizedSearchTerm = normalizeForSearch(originalSearchTerm); // Genormaliseerde zoekterm voor filtering
 let visibleCount = 0;
 
 const cardElements = artistListElement.children;
 
 for (const card of cardElements) {
-    const { name: artistNameLC, podium, dag, genres, description, rawName } = card.dataset;
+// Gebruik de genormaliseerde dataset attributen direct
+const {
+name: normalizedArtistName, // Dit is al normalizeForSearch(artist.name)
+podium,
+dag,
+genres: normalizedGenres,     // Dit is al normalizeForSearch(info.genres.join(','))
+description: normalizedDescription, // Dit is al normalizeForSearch(strippedDescription)
+rawName // Originele naam voor favorieten
+} = card.dataset;
 
-    const artistNameEl = card.querySelector('.artist-name');
-    const genresEl = card.querySelector('.highlightable-genres');
-    const podiumEl = card.querySelector('.highlightable-podium');
-    const descriptionEl = card.querySelector('.highlightable-description');
-    
-    clearHighlight(artistNameEl);
-    clearHighlight(genresEl);
-    clearHighlight(podiumEl);
-    clearHighlight(descriptionEl);
+const artistNameEl = card.querySelector('.artist-name');
+const genresEl = card.querySelector('.highlightable-genres');
+const podiumEl = card.querySelector('.highlightable-podium');
+const descriptionEl = card.querySelector('.highlightable-description');
 
-    const matchesDay = !activeDays.length || activeDays.includes(dag);
-    const matchesPodium = !activePodia.length || activePodia.includes(podium);
-    const matchesSearch = !searchTerm ||
-    artistNameLC.includes(searchTerm) ||
-    description.includes(searchTerm) ||
-    genres.includes(searchTerm) ||
-    podium.toLowerCase().includes(searchTerm);
-    const matchesFavs = !showingFavs || favorites.includes(rawName);
+clearHighlight(artistNameEl);
+clearHighlight(genresEl);
+clearHighlight(podiumEl);
+clearHighlight(descriptionEl);
 
-    if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
-        card.style.display = '';
-        visibleCount++;
-        if (searchTerm) {
-            applyHighlight(artistNameEl, searchTerm);
-            if (genresEl && genresEl.textContent.toLowerCase().includes(searchTerm)) applyHighlight(genresEl, searchTerm);
-            if (podiumEl && podiumEl.textContent.toLowerCase().includes(searchTerm)) applyHighlight(podiumEl, searchTerm);
-            if (descriptionEl && descriptionEl.textContent.toLowerCase().includes(searchTerm)) applyHighlight(descriptionEl, searchTerm);
-        }
-    } else {
-        card.style.display = 'none';
-    }
+const matchesDay = !activeDays.length || activeDays.includes(dag);
+const matchesPodium = !activePodia.length || activePodia.includes(podium);
 
-    const favIcon = card.querySelector('.favorite-icon');
-    if (favIcon) {
-        // Gebruik innerHTML om de i-tag te wisselen
-        favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
-    }
+// Filteren op genormaliseerde waarden
+const matchesSearch = !normalizedSearchTerm ||
+normalizedArtistName.includes(normalizedSearchTerm) ||
+normalizedDescription.includes(normalizedSearchTerm) ||
+normalizedGenres.includes(normalizedSearchTerm) ||
+normalizeForSearch(podium).includes(normalizedSearchTerm); // Podium on-the-fly normaliseren
+
+const matchesFavs = !showingFavs || favorites.includes(rawName);
+
+if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
+card.style.display = '';
+visibleCount++;
+if (originalSearchTerm) { // Highlight met originele zoekterm
+applyHighlight(artistNameEl, originalSearchTerm);
+// Voor genres, podium, beschrijving, check of de *originele* content de *originele* zoekterm bevat (via de flexibele regex)
+// Dit wordt nu afgehandeld door applyHighlight zelf, die de flexibele regex gebruikt.
+if (genresEl) applyHighlight(genresEl, originalSearchTerm);
+if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
+if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
+}
+} else {
+card.style.display = 'none';
+}
+
+const favIcon = card.querySelector('.favorite-icon');
+if (favIcon) {
+favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
+}
 }
 
 const cardsArray = Array.from(cardElements);
 
 cardsArray.sort((a, b) => {
-    if (sortMode === 'alpha') {
-    return a.dataset.name.localeCompare(b.dataset.name);
-    } else { // 'time'
-    const timeA = parseInt(a.dataset.timestamp, 10);
-    const timeB = parseInt(b.dataset.timestamp, 10);
+if (sortMode === 'alpha') {
+// Sorteer op het genormaliseerde data-name attribuut voor consistente alfabetische volgorde
+return a.dataset.name.localeCompare(b.dataset.name);
+} else { // 'time'
+const timeA = parseInt(a.dataset.timestamp, 10);
+const timeB = parseInt(b.dataset.timestamp, 10);
 
-    const aIsUnknown = timeA === 0;
-    const bIsUnknown = timeB === 0;
+const aIsUnknown = timeA === 0;
+const bIsUnknown = timeB === 0;
 
-    if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
-    if (aIsUnknown) return 1;
-    if (bIsUnknown) return -1;
-    if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
-    return timeA - timeB;
-    }
+if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name); // Sorteer onbekenden alfabetisch
+if (aIsUnknown) return 1;
+if (bIsUnknown) return -1;
+if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
+return timeA - timeB;
+}
 });
 
 cardsArray.forEach((card, index) => {
-    card.style.order = index;
+card.style.order = index;
 });
 
 updateArtistCount(visibleCount);
 
 if (!options.preserveScroll) {
-    scrollToArtistListTop();
+scrollToArtistListTop();
 }
 }
 
 
 // === FUNCTIES VOOR CYCLISCHE STATUS-ANIMATIE ===
 function calculateNightsToSleep() {
-    const now = new Date();
-    if (now >= FESTIVAL_START_DATE) return null;
-    const diff = FESTIVAL_START_DATE - now;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+const now = new Date();
+if (now >= FESTIVAL_START_DATE) return null;
+const diff = FESTIVAL_START_DATE - now;
+return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
 function slideStatus() {
-    const nights = calculateNightsToSleep();
-    if (nights === null) {
-        clearInterval(statusInterval);
-        statusSlider.style.transform = 'translateY(0px)';
-        return;
-    }
-    const plural = nights === 1 ? '' : 'jes';
-    countdownTextElement.textContent = `Nog ${nights} nacht${plural} slapen..`;
-    
-    currentStatusIndex++;
-    statusSlider.style.transform = `translateY(-${currentStatusIndex * SLIDE_HEIGHT}px)`;
+const nights = calculateNightsToSleep();
+if (nights === null) {
+clearInterval(statusInterval);
+statusSlider.style.transform = 'translateY(0px)';
+return;
+}
+const plural = nights === 1 ? '' : 'jes';
+countdownTextElement.textContent = `Nog ${nights} nacht${plural} slapen..`;
 
-    if (currentStatusIndex === 2) { // We zijn bij de kloon aangekomen
-        setTimeout(() => {
-            statusSlider.style.transition = 'none';
-            currentStatusIndex = 0;
-            statusSlider.style.transform = 'translateY(0px)';
-            statusSlider.offsetHeight; // Forceer repaint
-            statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
-        }, TRANSITION_DURATION);
-    }
+currentStatusIndex++;
+statusSlider.style.transform = `translateY(-${currentStatusIndex * SLIDE_HEIGHT}px)`;
+
+if (currentStatusIndex === 2) { // We zijn bij de kloon aangekomen
+setTimeout(() => {
+statusSlider.style.transition = 'none';
+currentStatusIndex = 0;
+statusSlider.style.transform = 'translateY(0px)';
+statusSlider.offsetHeight; // Forceer repaint
+statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
+}, TRANSITION_DURATION);
+}
 }
 
 function startStatusAlternation() {
-    if (calculateNightsToSleep() === null) return;
-    clearInterval(statusInterval);
-    statusInterval = setInterval(slideStatus, ANIMATION_INTERVAL);
+if (calculateNightsToSleep() === null) return;
+clearInterval(statusInterval);
+statusInterval = setInterval(slideStatus, ANIMATION_INTERVAL);
 }
 
 function updateArtistCount(n, overrideText = null){
-    clearInterval(statusInterval);
+clearInterval(statusInterval);
 
-    let textToShow;
-    if (overrideText) {
-        textToShow = overrideText;
-    } else {
-        const pluralSuffix = n === 1 ? '' : 'en';
-        const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
-        textToShow = `${n} ${entity} gevonden`;
-    }
+let textToShow;
+if (overrideText) {
+textToShow = overrideText;
+} else {
+const pluralSuffix = n === 1 ? '' : 'en';
+const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
+textToShow = `${n} ${entity} gevonden`;
+}
 
-    countTextElement.textContent = textToShow;
-    countTextCloneElement.textContent = textToShow;
-    
-    statusSlider.style.transition = 'none';
-    currentStatusIndex = 0;
-    statusSlider.style.transform = 'translateY(0px)';
-    statusSlider.offsetHeight; 
-    statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
+countTextElement.textContent = textToShow;
+countTextCloneElement.textContent = textToShow;
 
-    startStatusAlternation();
+statusSlider.style.transition = 'none';
+currentStatusIndex = 0;
+statusSlider.style.transform = 'translateY(0px)';
+statusSlider.offsetHeight;
+statusSlider.style.transition = `transform ${TRANSITION_DURATION}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
+
+startStatusAlternation();
 }
 
 function updateFilterButtonsUI(){
@@ -1240,17 +1296,16 @@ sortTimeElement.classList.toggle('active', sortMode === 'time');
 }
 
 function updateFavoriteToggleUI() {
-    // Wissel de class van Font Awesome iconen
-    favoriteToggleElement.classList.toggle('fa-solid', showingFavs);
-    favoriteToggleElement.classList.toggle('fa-regular', !showingFavs);
-    favoriteToggleElement.classList.toggle('active', showingFavs);
+favoriteToggleElement.classList.toggle('fa-solid', showingFavs);
+favoriteToggleElement.classList.toggle('fa-regular', !showingFavs);
+favoriteToggleElement.classList.toggle('active', showingFavs);
 }
 
 function updateActiveDayTabsUI() {
-    document.querySelectorAll('.day-filter-button').forEach(btn => {
-        const dayFilterForButton = btn.dataset.dayfilter;
-        btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
-    });
+document.querySelectorAll('.day-filter-button').forEach(btn => {
+const dayFilterForButton = btn.dataset.dayfilter;
+btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
+});
 }
 
 function toggleFavoriteOnCard(name){
@@ -1275,211 +1330,211 @@ location.reload();
 }
 
 async function runProxyTest() {
-    const proxies = {
-        'Codetabs (primary)': CORS_PROXY_PRIMARY,
-        'corsproxy.io (fallback)': CORS_PROXY_FALLBACK
-    };
-    let results = [];
-    alert('CORS proxy test gestart. Dit kan even duren...');
+const proxies = {
+'Codetabs (primary)': CORS_PROXY_PRIMARY,
+'corsproxy.io (fallback)': CORS_PROXY_FALLBACK
+};
+let results = [];
+alert('CORS proxy test gestart. Dit kan even duren...');
 
-    for (const [name, url] of Object.entries(proxies)) {
-        const startTime = performance.now();
-        try {
-            const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) }); // 10s timeout
-            const duration = performance.now() - startTime;
-            if (res.ok) {
-                results.push(`${name}: OK (${Math.round(duration)}ms)`);
-            } else {
-                results.push(`${name}: FAIL (Status: ${res.status})`);
-            }
-        } catch (err) {
-            results.push(`${name}: FAIL (Error: ${err.name})`);
-        }
-    }
-    alert('CORS Proxy Test Resultaten:\n\n' + results.join('\n'));
+for (const [name, url] of Object.entries(proxies)) {
+const startTime = performance.now();
+try {
+const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+const duration = performance.now() - startTime;
+if (res.ok) {
+results.push(`${name}: OK (${Math.round(duration)}ms)`);
+} else {
+results.push(`${name}: FAIL (Status: ${res.status})`);
+}
+} catch (err) {
+results.push(`${name}: FAIL (Error: ${err.name})`);
+}
+}
+alert('CORS Proxy Test Resultaten:\n\n' + results.join('\n'));
 }
 
 
 function updateBodyPadding() {
-    if (controlBarGroup) {
-        const headerHeight = controlBarGroup.offsetHeight;
-        document.body.style.paddingTop = `${headerHeight + 10}px`;
-    }
+if (controlBarGroup) {
+const headerHeight = controlBarGroup.offsetHeight;
+document.body.style.paddingTop = `${headerHeight + 10}px`;
+}
 }
 
 function handleScrollLogic() {
-    if (!controlBarGroup) return;
+if (!controlBarGroup) return;
 
-    const currentScrollY = window.scrollY;
-    const scrollDelta = currentScrollY - lastScrollY;
-    const scrollThreshold = 5;
+const currentScrollY = window.scrollY;
+const scrollDelta = currentScrollY - lastScrollY;
+const scrollThreshold = 5;
 
-    if (currentScrollY < controlBarGroup.offsetHeight) {
-        controlBarGroup.classList.remove('hidden');
-    }
-    else if (scrollDelta > scrollThreshold) {
-        controlBarGroup.classList.add('hidden');
-    }
-    else if (scrollDelta < -scrollThreshold) {
-        controlBarGroup.classList.remove('hidden');
-    }
+if (currentScrollY < controlBarGroup.offsetHeight) {
+controlBarGroup.classList.remove('hidden');
+}
+else if (scrollDelta > scrollThreshold) {
+controlBarGroup.classList.add('hidden');
+}
+else if (scrollDelta < -scrollThreshold) {
+controlBarGroup.classList.remove('hidden');
+}
 
-    lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
-    ticking = false;
+lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+ticking = false;
 }
 
 function highlightCurrentDayButton() {
-    const now = new Date();
-    if (now.getFullYear() === 2025 && now.getMonth() === 6) { 
-        const currentDayOfMonth = now.getDate();
-        const targetDayFilter = `${currentDayOfMonth} juli`;
-        
-        const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
-        if (todayButton) {
-            todayButton.classList.add('is-today');
-        }
-    }
+const now = new Date();
+if (now.getFullYear() === 2025 && now.getMonth() === 6) { // Juli is maand 6 (0-indexed)
+const currentDayOfMonth = now.getDate();
+const targetDayFilter = `${currentDayOfMonth} juli`;
+
+const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
+if (todayButton) {
+todayButton.classList.add('is-today');
+}
+}
 }
 
 function initializeEventListeners() {
 dayFilterContainerElement.addEventListener('click', function(e) {
-    const dayButton = e.target.closest('.day-filter-button');
-    if (dayButton) {
-        const dayFilter = dayButton.dataset.dayfilter;
-        const index = activeDays.indexOf(dayFilter);
-        if (index > -1) {
-            activeDays.splice(index, 1);
-        } else {
-            activeDays.push(dayFilter);
-        }
-        setStoredJSON(PREFIX + 'activeDays', activeDays);
-        updateActiveDayTabsUI();
-        applyFiltersAndSort();
-    }
+const dayButton = e.target.closest('.day-filter-button');
+if (dayButton) {
+const dayFilter = dayButton.dataset.dayfilter;
+const index = activeDays.indexOf(dayFilter);
+if (index > -1) {
+activeDays.splice(index, 1);
+} else {
+activeDays.push(dayFilter);
+}
+setStoredJSON(PREFIX + 'activeDays', activeDays);
+updateActiveDayTabsUI();
+applyFiltersAndSort();
+}
 });
 
 filterContainerElement.addEventListener('click', function(e){
-    const btn = e.target.closest('.filter-button');
-    if(btn){
-    const p = btn.dataset.podium;
-    activePodia = activePodia.includes(p)
-    ? activePodia.filter(x=>x!==p)
-    : [...activePodia, p];
-    setStoredJSON(PREFIX + 'activePodia', activePodia);
-    updateFilterButtonsUI();
-    applyFiltersAndSort();
-    }
+const btn = e.target.closest('.filter-button');
+if(btn){
+const p = btn.dataset.podium;
+activePodia = activePodia.includes(p)
+? activePodia.filter(x=>x!==p)
+: [...activePodia, p];
+setStoredJSON(PREFIX + 'activePodia', activePodia);
+updateFilterButtonsUI();
+applyFiltersAndSort();
+}
 });
 
 searchFieldElement.addEventListener('focus', function() {
-    if (this.value.length > 0) {
-        searchClickShouldClear = true;
-    } else {
-        searchClickShouldClear = false;
-    }
+if (this.value.length > 0) {
+searchClickShouldClear = true;
+} else {
+searchClickShouldClear = false;
+}
 });
 
 searchFieldElement.addEventListener('click', function() {
-    if (searchClickShouldClear && this.value.length > 0) {
-        this.value = '';
-        this.classList.remove('has-content');
-        this.blur();
-        applyFiltersAndSort();
-        searchClickShouldClear = false; 
-    }
+if (searchClickShouldClear && this.value.length > 0) {
+this.value = '';
+this.classList.remove('has-content');
+this.blur();
+applyFiltersAndSort();
+searchClickShouldClear = false;
+}
 });
 
 searchFieldElement.addEventListener('input', function(){
-    searchClickShouldClear = (this.value.length > 0);
-    this.classList.toggle('has-content', this.value.length > 0);
-    
-    const v = this.value.toLowerCase();
-    if (v === 'reset' || v === 'clear') {
-        this.value = '';
-        this.classList.remove('has-content');
-        searchClickShouldClear = false;
-        clearLocalStorageData();
-        return; 
-    }
-    
-    if (v === 'proxytest' || v === 'corstest') {
-        this.value = '';
-        this.classList.remove('has-content');
-        searchClickShouldClear = false;
-        this.blur();
-        runProxyTest();
-        return;
-    }
+searchClickShouldClear = (this.value.length > 0);
+this.classList.toggle('has-content', this.value.length > 0);
 
-    applyFiltersAndSort();
+const v = this.value.toLowerCase(); // Gebruik toLowerCase voor commando's
+if (v === 'reset' || v === 'clear') {
+this.value = '';
+this.classList.remove('has-content');
+searchClickShouldClear = false;
+clearLocalStorageData();
+return;
+}
+
+if (v === 'proxytest' || v === 'corstest') {
+this.value = '';
+this.classList.remove('has-content');
+searchClickShouldClear = false;
+this.blur();
+runProxyTest();
+return;
+}
+
+applyFiltersAndSort();
 });
 
 searchFieldElement.addEventListener('blur', function() {
-    searchClickShouldClear = false;
+searchClickShouldClear = false;
 });
 
 searchFieldElement.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' || e.keyCode === 13) {
-        this.blur(); 
-        e.preventDefault(); 
-    }
+if (e.key === 'Enter' || e.keyCode === 13) {
+this.blur();
+e.preventDefault();
+}
 });
 
 
 sortAlphaElement.addEventListener('click', function(){
-    sortMode = 'alpha';
-    setStoredString('sortMode', sortMode);
-    updateSortIconsUI();
-    applyFiltersAndSort();
+sortMode = 'alpha';
+setStoredString('sortMode', sortMode);
+updateSortIconsUI();
+applyFiltersAndSort();
 });
 sortTimeElement.addEventListener('click', function(){
-    sortMode = 'time';
-    setStoredString('sortMode', sortMode);
-    updateSortIconsUI();
-    applyFiltersAndSort();
+sortMode = 'time';
+setStoredString('sortMode', sortMode);
+updateSortIconsUI();
+applyFiltersAndSort();
 });
 
 favoriteToggleElement.addEventListener('click', function(){
-    showingFavs = !showingFavs;
-    setStoredJSON(PREFIX + 'showingFavs', showingFavs);
-    updateFavoriteToggleUI();
-    applyFiltersAndSort();
+showingFavs = !showingFavs;
+setStoredJSON(PREFIX + 'showingFavs', showingFavs);
+updateFavoriteToggleUI();
+applyFiltersAndSort();
 });
 
 artistListElement.addEventListener('click', e=>{
-    const favIcon = e.target.closest('.favorite-icon');
-    if(favIcon){
-      toggleFavoriteOnCard(favIcon.dataset.name);
-    }
-    const spotifyButton = e.target.closest('.spotify-play-button');
-    if (spotifyButton) {
-        const spotifyUri = spotifyButton.dataset.spotifyUri;
-        if (spotifyUri) {
-            dockedSpotifyPlayerContainer.innerHTML = ''; // Leeg de container
-            const iframe = document.createElement('iframe');
-            iframe.id = 'docked-spotify-iframe';
-            iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-            iframe.loading = 'lazy';
-            iframe.src = `https://open.spotify.com/embed/?uri=${encodeURIComponent(spotifyUri)}&utm_source=generator&theme=0&autoplay=1`;
-            dockedSpotifyPlayerContainer.appendChild(iframe);
-            dockedSpotifyPlayerWrapper.classList.add('visible');
-        }
-    }
+const favIcon = e.target.closest('.favorite-icon');
+if(favIcon){
+toggleFavoriteOnCard(favIcon.dataset.name);
+}
+const spotifyButton = e.target.closest('.spotify-play-button');
+if (spotifyButton) {
+const spotifyUri = spotifyButton.dataset.spotifyUri;
+if (spotifyUri) {
+dockedSpotifyPlayerContainer.innerHTML = ''; 
+const iframe = document.createElement('iframe');
+iframe.id = 'docked-spotify-iframe';
+iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+iframe.loading = 'lazy';
+iframe.src = `https://open.spotify.com/embed/?uri=${encodeURIComponent(spotifyUri)}&utm_source=generator&theme=0&autoplay=1`;
+dockedSpotifyPlayerContainer.appendChild(iframe);
+dockedSpotifyPlayerWrapper.classList.add('visible');
+}
+}
 });
 
 closeDockedPlayerButton.addEventListener('click', () => {
-    dockedSpotifyPlayerWrapper.classList.remove('visible');
-    setTimeout(() => {
-        dockedSpotifyPlayerContainer.innerHTML = '';
-    }, 300);
+dockedSpotifyPlayerWrapper.classList.remove('visible');
+setTimeout(() => {
+dockedSpotifyPlayerContainer.innerHTML = '';
+}, 300);
 });
 
 
 window.addEventListener('scroll', () => {
-    if (!ticking) {
-        window.requestAnimationFrame(handleScrollLogic);
-        ticking = true;
-    }
+if (!ticking) {
+window.requestAnimationFrame(handleScrollLogic);
+ticking = true;
+}
 });
 
 window.addEventListener('resize', updateBodyPadding);
@@ -1487,40 +1542,40 @@ window.addEventListener('resize', updateBodyPadding);
 }
 
 async function main() {
-    initializeEventListeners();
-    highlightCurrentDayButton(); 
+initializeEventListeners();
+highlightCurrentDayButton();
 
-    updateFilterButtonsUI();
-    updateSortIconsUI(); 
-    updateFavoriteToggleUI();
-    updateActiveDayTabsUI();
+updateFilterButtonsUI();
+updateSortIconsUI();
+updateFavoriteToggleUI();
+updateActiveDayTabsUI();
 
-    await loadAllArtistsData();
+await loadAllArtistsData();
 
-    if (allArtistsData.length > 0) {
-        const sinemArtistData = allArtistsData.find(d => d.artist.name === 'Sinem');
-        if (sinemArtistData && sinemArtistData.info && !sinemArtistData.info.spotifyUri) {
-            sinemArtistData.info.spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
-            console.log("Patched in-memory data for Sinem with fallback Spotify URI.");
-        }
-    }
+if (allArtistsData.length > 0) {
+const sinemArtistData = allArtistsData.find(d => d.artist.name === 'Sinem');
+if (sinemArtistData && sinemArtistData.info && !sinemArtistData.info.spotifyUri) {
+sinemArtistData.info.spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
+console.log("Patched in-memory data for Sinem with fallback Spotify URI.");
+}
+}
 
-    if (allArtistsData.length > 0) {
-        renderAllArtistCardsOnce();
-        if (typeof setupImageLazyLoader === 'function') {
-            setupImageLazyLoader();
-        }
-        applyFiltersAndSort();
-    } else {
-        if (!errorMessageElement.style.display || errorMessageElement.style.display === 'none') {
-            showError('Geen artiesten data gevonden of kunnen laden.');
-        }
-        updateArtistCount(0);
-    }
-    searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
+if (allArtistsData.length > 0) {
+renderAllArtistCardsOnce();
+if (typeof setupImageLazyLoader === 'function') {
+setupImageLazyLoader();
+}
+applyFiltersAndSort();
+} else {
+if (!errorMessageElement.style.display || errorMessageElement.style.display === 'none') {
+showError('Geen artiesten data gevonden of kunnen laden.');
+}
+updateArtistCount(0);
+}
+searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
 
-    updateBodyPadding();
-    handleScrollLogic();
+updateBodyPadding();
+handleScrollLogic();
 }
 
 main();
