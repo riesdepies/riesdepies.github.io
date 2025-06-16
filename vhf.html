@@ -215,6 +215,9 @@ border-radius: 6px;
 margin-bottom: 15px;
 background-color: #e0e0e0;
 }
+a .artist-photo {
+cursor: pointer;
+}
 
 .artist-meta-container {
 display: flex;
@@ -629,44 +632,44 @@ const originalHTMLMap = new WeakMap();
 
 
 function normalizeForSearch(str) {
-  if (typeof str !== 'string') return '';
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+if (typeof str !== 'string') return '';
+return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
 const charMapForRegex = {
-  'a': 'aàáâãäåāăąæ', 'c': 'cçćč', 'e': 'eèéêëēĕėęě',
-  'g': 'gğ', 'i': 'iıíìîï', 'o': 'oòóôõöøōŏő', 's': 'sşšś',
-  'u': 'uùúûüůūŭůű', 'n': 'nñ',
-  'ı': 'iıíìîï', 'ü': 'uùúûüůūŭůű', 'ö': 'oòóôõöøōŏő',
-  'ş': 'sşšś', 'ç': 'cçćč', 'ğ': 'gğ'
+'a': 'aàáâãäåāăąæ', 'c': 'cçćč', 'e': 'eèéêëēĕėęě',
+'g': 'gğ', 'i': 'iıíìîï', 'o': 'oòóôõöøōŏő', 's': 'sşšś',
+'u': 'uùúûüůūŭůű', 'n': 'nñ',
+'ı': 'iıíìîï', 'ü': 'uùúûüůūŭůű', 'ö': 'oòóôõöøōŏő',
+'ş': 'sşšś', 'ç': 'cçćč', 'ğ': 'gğ'
 };
 
 function buildFlexibleHighlightRegex(originalSearchTerm) {
-    if (!originalSearchTerm) return null;
-    let regexPattern = '';
+if (!originalSearchTerm) return null;
+let regexPattern = '';
 
-    function getSingleBaseChar(charInput) {
-      const lowerChar = charInput.toLowerCase();
-      const normalized = lowerChar.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      return normalized.length > 0 ? normalized : lowerChar;
-    }
+function getSingleBaseChar(charInput) {
+const lowerChar = charInput.toLowerCase();
+const normalized = lowerChar.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+return normalized.length > 0 ? normalized : lowerChar;
+}
 
-    for (const char of originalSearchTerm) {
-        const baseLookupChar = getSingleBaseChar(char);
-        let charClass = charMapForRegex[baseLookupChar]; 
+for (const char of originalSearchTerm) {
+const baseLookupChar = getSingleBaseChar(char);
+let charClass = charMapForRegex[baseLookupChar];
 
-        if (charClass) {
-            regexPattern += '[' + charClass + ']';
-        } else {
-            regexPattern += escapeRegExp(char);
-        }
-    }
-    try {
-        return new RegExp(regexPattern, 'giu');
-    } catch (e) {
-        console.error("Failed to create regex from pattern:", regexPattern, e);
-        return new RegExp(escapeRegExp(originalSearchTerm), 'giu');
-    }
+if (charClass) {
+regexPattern += '[' + charClass + ']';
+} else {
+regexPattern += escapeRegExp(char);
+}
+}
+try {
+return new RegExp(regexPattern, 'giu');
+} catch (e) {
+console.error("Failed to create regex from pattern:", regexPattern, e);
+return new RegExp(escapeRegExp(originalSearchTerm), 'giu');
+}
 }
 
 function getStoredJSON(keySuffix, defaultValue) {
@@ -958,12 +961,29 @@ if (info.spotifyUri) {
 card.dataset.spotifyUri = info.spotifyUri;
 }
 
-const proxiedImageUrlForDataSrc = artist.imageUrl
-    ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
-    : PLACEHOLDER_IMG_URL; 
-
-const originalImageUrlForFallback = artist.imageUrl || PLACEHOLDER_IMG_URL; 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+const proxiedImageUrlForDataSrc = artist.imageUrl
+? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
+: PLACEHOLDER_IMG_URL;
+
+const imageTag = `
+<img
+data-src="${proxiedImageUrlForDataSrc}"
+src="${transparentPixel}"
+alt="Foto van ${artist.name}"
+class="artist-photo lazyload">`;
+
+let imageHtml;
+if (artist.imageUrl) {
+// --- DEFINITIEVE OPLOSSING ---
+// Forceert output naar JPEG, wat essentieel is voor grote PNG-bestanden.
+const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
+// --- EINDE OPLOSSING ---
+imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
+} else {
+imageHtml = imageTag;
+}
 
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
 let dagNaam = '';
@@ -1014,12 +1034,7 @@ card.innerHTML = `
 ${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
 </span>
 </div>
-<img 
-    data-src="${proxiedImageUrlForDataSrc}" 
-    data-original-src="${originalImageUrlForFallback}" 
-    src="${transparentPixel}" 
-    alt="Foto van ${artist.name}" 
-    class="artist-photo lazyload">
+${imageHtml}
 <div class="artist-meta-container">
 <div class="artist-info">
 <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
@@ -1046,33 +1061,33 @@ entries.forEach(entry => {
 if (entry.isIntersecting) {
 const image = entry.target;
 const proxiedSrc = image.dataset.src;
-const originalSrc = image.dataset.originalSrc; 
+const originalSrc = image.dataset.originalSrc;
 
 image.onerror = function() {
-    if (this.src !== originalSrc) { 
-        console.warn(`Image proxy (${proxiedSrc}) failed to load. Falling back to original source: ${originalSrc}`);
-        this.src = originalSrc;
-    }
-    this.onerror = null; 
+if (this.src !== originalSrc) {
+console.warn(`Image proxy (${proxiedSrc}) failed to load. Falling back to original source: ${originalSrc}`);
+this.src = originalSrc;
+}
+this.onerror = null;
 };
 
-image.src = proxiedSrc; 
+image.src = proxiedSrc;
 image.classList.remove('lazyload');
 imageObserver.unobserve(image);
 }
 });
 }, { rootMargin: '200px 0px 200px 0px' });
 lazyImages.forEach(image => imageObserver.observe(image));
-} else { 
+} else {
 lazyImages.forEach(image => {
 const proxiedSrc = image.dataset.src;
 const originalSrc = image.dataset.originalSrc;
 image.onerror = function() {
-    if (this.src !== originalSrc) {
-        console.warn(`Image proxy (${proxiedSrc}) failed (no IO). Falling back to original source: ${originalSrc}`);
-        this.src = originalSrc;
-    }
-    this.onerror = null;
+if (this.src !== originalSrc) {
+console.warn(`Image proxy (${proxiedSrc}) failed (no IO). Falling back to original source: ${originalSrc}`);
+this.src = originalSrc;
+}
+this.onerror = null;
 };
 image.src = proxiedSrc;
 image.classList.remove('lazyload');
@@ -1106,32 +1121,32 @@ if (node.nodeType === Node.TEXT_NODE) {
 const text = node.nodeValue;
 regex.lastIndex = 0; // Reset lastIndex before each test/exec
 if (regex.test(text)) { // Check if there's any match first
-    regex.lastIndex = 0; // Reset for .replace operation or manual loop
-    const fragment = document.createDocumentFragment();
-    let lastIndex = 0;
-    // Loop through all matches using exec
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-        const matchedText = match[0];
-        const matchStartIndex = match.index;
+regex.lastIndex = 0; // Reset for .replace operation or manual loop
+const fragment = document.createDocumentFragment();
+let lastIndex = 0;
+// Loop through all matches using exec
+let match;
+while ((match = regex.exec(text)) !== null) {
+const matchedText = match[0];
+const matchStartIndex = match.index;
 
-        if (matchStartIndex > lastIndex) {
-            fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchStartIndex)));
-        }
-        const mark = document.createElement('mark');
-        mark.textContent = matchedText;
-        fragment.appendChild(mark);
-        lastIndex = regex.lastIndex; // lastIndex is updated by exec
-        if (matchedText.length === 0) { // Avoid infinite loops on zero-length matches
-            regex.lastIndex++; 
-        }
-    }
-    if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
-    }
-    if (fragment.childNodes.length > 0) { // Only replace if something was actually highlighted
-        node.parentNode.replaceChild(fragment, node);
-    }
+if (matchStartIndex > lastIndex) {
+fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchStartIndex)));
+}
+const mark = document.createElement('mark');
+mark.textContent = matchedText;
+fragment.appendChild(mark);
+lastIndex = regex.lastIndex; // lastIndex is updated by exec
+if (matchedText.length === 0) { // Avoid infinite loops on zero-length matches
+regex.lastIndex++;
+}
+}
+if (lastIndex < text.length) {
+fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+}
+if (fragment.childNodes.length > 0) { // Only replace if something was actually highlighted
+node.parentNode.replaceChild(fragment, node);
+}
 }
 } else if (node.nodeType === Node.ELEMENT_NODE) {
 if (node.tagName.toLowerCase() === 'mark' || node.tagName.toLowerCase() === 'script' || node.tagName.toLowerCase() === 'style') {
@@ -1492,7 +1507,7 @@ const spotifyButton = e.target.closest('.spotify-play-button');
 if (spotifyButton) {
 const spotifyUri = spotifyButton.dataset.spotifyUri;
 if (spotifyUri) {
-dockedSpotifyPlayerContainer.innerHTML = ''; 
+dockedSpotifyPlayerContainer.innerHTML = '';
 const iframe = document.createElement('iframe');
 iframe.id = 'docked-spotify-iframe';
 iframe.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
