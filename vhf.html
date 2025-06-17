@@ -222,7 +222,7 @@ cursor: pointer;
 .artist-meta-container {
 display: flex;
 justify-content: space-between;
-align-items: center;
+align-items: flex-start; /* Start-align voor de nieuwe knoppenstructuur */
 gap: 15px;
 }
 
@@ -302,39 +302,48 @@ display: -webkit-box;
 -webkit-box-orient: vertical;
 }
 
-.spotify-buttons-container {
+/* === AANGEPASTE STIJLEN VOOR KNOPPEN === */
+.action-buttons-wrapper {
 display: flex;
-align-items: center;
+flex-direction: row;
+align-items: flex-start;
 gap: 6px;
 flex-shrink: 0;
 }
+.stacked-buttons-column {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+/* ========================================= */
 
 .spotify-open-button {
 display: inline-flex;
 align-items: center;
 justify-content: center;
-width: 34px;
-height: 34px;
-background-color: #1DB954;
+width: 30px; /* AANGEPAST */
+height: 30px; /* AANGEPAST */
+background-color: #54c07b;
 color: white !important;
 border: none;
 border-radius: 50%;
 cursor: pointer;
 text-decoration: none;
 transition: background-color 0.2s;
+flex-shrink: 0; /* Voorkom dat deze knop krimpt */
 }
 .spotify-open-button:hover {
-background-color: #1ed760;
+background-color: #67c989;
 }
 .spotify-open-button i {
-font-size: 16px;
+font-size: 14px; /* AANGEPAST */
 }
 
 .spotify-play-button {
-background-color: #1DB954;
+background-color: #54c07b;
 color: white !important;
 border: none;
-padding: 8px 12px 8px 10px;
+padding: 6px 12px 6px 10px; /* AANGEPAST */
 border-radius: 50px;
 cursor: pointer;
 font-size: 13px;
@@ -344,14 +353,51 @@ align-items: center;
 text-decoration: none;
 transition: background-color 0.2s;
 flex-shrink: 0;
+white-space: nowrap; /* Voorkom dat de tekst breekt */
 }
 .spotify-play-button:hover {
-background-color: #1ed760;
+background-color: #67c989;
 }
 .spotify-play-button i {
 margin-right: 8px;
 font-size: 18px;
 }
+
+/* === GEDEELDE STIJL VOOR NIEUWE KNOPPEN === */
+.search-button {
+color: white !important;
+border: none;
+padding: 6px 12px 6px 10px; /* AANGEPAST voor uitlijning */
+border-radius: 50px;
+cursor: pointer;
+font-size: 13px;
+font-weight: bold;
+display: flex; /* Gebruik flex om icoon en tekst uit te lijnen */
+align-items: center;
+/* justify-content: center; /* Verwijderd voor uitlijning */
+text-decoration: none;
+transition: background-color 0.2s;
+}
+.search-button i {
+margin-right: 8px;
+font-size: 16px; /* Iets kleiner icoon dan de play knop */
+}
+
+.google-search-button {
+background-color: #007bff; /* Standaard modus */
+}
+.google-search-button:hover {
+background-color: #0069d9;
+}
+
+.youtube-search-button {
+background-color: #e06c75;
+}
+.youtube-search-button:hover {
+background-color: #e57e88;
+}
+/* ======================================== */
+
 
 .docked-spotify-player-wrapper {
 position: fixed;
@@ -487,6 +533,14 @@ body.dark-mode .youtube-title {
 color: #c6cdd5;
 }
 
+body.dark-mode .google-search-button {
+    background-color: #61afef;
+}
+
+body.dark-mode .google-search-button:hover {
+    background-color: #82c0ff;
+}
+
 body.dark-mode .docked-spotify-player-wrapper {
 background-color: #181818;
 }
@@ -586,7 +640,8 @@ CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
-ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v5',
+// DE FIX DIE ERVOOR ZORGT DAT IEDEREEN NIEUWE, SCHONE DATA KRIJGT
+ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v6',
 ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 CACHE_MAX_AGE_MS = 60 * 60 * 1000, // 1 uur
@@ -884,7 +939,9 @@ const urlRegex = /url\('([^']+)'\)/;
 
 const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
 .map(a => {
-const name = a.querySelector('.nameplate h2').textContent.trim();
+// DE FUNDAMENTELE FIX: Maak de data schoon bij de bron.
+// Vervangt alle witruimte (inclusief non-breaking spaces) met één enkele normale spatie.
+const name = a.querySelector('.nameplate h2').textContent.replace(/\s+/g, ' ').trim();
 const artistUrl = getFullUrl(a.getAttribute('href'));
 
 const innerDiv = a.querySelector('.artist-inner');
@@ -976,10 +1033,7 @@ class="artist-photo lazyload">`;
 
 let imageHtml;
 if (artist.imageUrl) {
-// --- DEFINITIEVE OPLOSSING ---
-// Forceert output naar JPEG, wat essentieel is voor grote PNG-bestanden.
 const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
-// --- EINDE OPLOSSING ---
 imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
 } else {
 imageHtml = imageTag;
@@ -996,16 +1050,38 @@ dagNaam = dagen[date.getDay()];
 
 const isFav = favorites.includes(artist.name);
 
-let spotifyControlsHtml = '';
+let actionControlsHtml = '';
 if (info.spotifyUri) {
-spotifyControlsHtml = `
-<div class="spotify-buttons-container">
-<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify" target="_blank">
+const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
+
+let youtubeSearchUrl;
+let youtubeLinkAttributes = '';
+
+if (isAndroidDevice) {
+    const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+    youtubeSearchUrl = `vnd.youtube://results?search_query=${youtubeSearchQuery}`;
+} else {
+    const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+    youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearchQuery}`;
+    youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
+}
+
+actionControlsHtml = `
+<div class="action-buttons-wrapper">
+<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify" target="_blank" rel="noopener noreferrer">
 <i class="fa-solid fa-up-right-from-square"></i>
 </a>
+<div class="stacked-buttons-column">
 <button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
 <i class="fa-brands fa-spotify"></i> Preview
 </button>
+<a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
+<i class="fa-brands fa-google"></i> Zoek..
+</a>
+<a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
+<i class="fa-brands fa-youtube"></i> Zoek..
+</a>
+</div>
 </div>`;
 }
 
@@ -1015,8 +1091,16 @@ youtubeLinksHtml = '<div class="youtube-links-container">';
 info.youtubeLinks.forEach(ytLink => {
 if (ytLink.videoId) {
 const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
-const linkUrl = isAndroidDevice ? `vnd.youtube:${ytLink.videoId}` : ytLink.url;
-const linkTarget = isAndroidDevice ? '' : 'target="_blank"';
+let linkUrl;
+let linkTarget = '';
+
+if (isAndroidDevice) {
+    linkUrl = `vnd.youtube:${ytLink.videoId}`;
+} else {
+    linkUrl = ytLink.url;
+    linkTarget = 'target="_blank" rel="noopener noreferrer"';
+}
+
 youtubeLinksHtml += `
 <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
 <img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
@@ -1042,7 +1126,7 @@ ${imageHtml}
 <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
 <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
 </div>
-${spotifyControlsHtml}
+${actionControlsHtml}
 </div>
 <div class="artist-description highlightable-description">
 <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
@@ -1487,16 +1571,19 @@ this.blur(); e.preventDefault();
 
 sortAlphaElement.addEventListener('click', function(){
 sortMode = 'alpha'; setStoredString('sortMode', sortMode);
-updateSortIconsUI(); applyFiltersAndSort();
+updateSortIconsUI();
+applyFiltersAndSort();
 });
 sortTimeElement.addEventListener('click', function(){
 sortMode = 'time'; setStoredString('sortMode', sortMode);
-updateSortIconsUI(); applyFiltersAndSort();
+updateSortIconsUI();
+applyFiltersAndSort();
 });
 
 favoriteToggleElement.addEventListener('click', function(){
 showingFavs = !showingFavs; setStoredJSON(PREFIX + 'showingFavs', showingFavs);
-updateFavoriteToggleUI(); applyFiltersAndSort();
+updateFavoriteToggleUI();
+applyFiltersAndSort();
 });
 
 artistListElement.addEventListener('click', e=>{
