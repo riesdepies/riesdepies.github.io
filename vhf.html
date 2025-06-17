@@ -534,11 +534,11 @@ color: #c6cdd5;
 }
 
 body.dark-mode .google-search-button {
-    background-color: #61afef;
+background-color: #61afef;
 }
 
 body.dark-mode .google-search-button:hover {
-    background-color: #82c0ff;
+background-color: #82c0ff;
 }
 
 body.dark-mode .docked-spotify-player-wrapper {
@@ -998,142 +998,149 @@ return new Date(2025, 6, dagNum, u, m).getTime();
 }
 
 function renderAllArtistCardsOnce() {
-artistListElement.innerHTML = '';
+    artistListElement.innerHTML = '';
 
-allArtistsData.forEach(({ artist, info }) => {
-const card = document.createElement('div');
-card.className = 'artist-card';
-card.style.display = 'none';
+    allArtistsData.forEach(({ artist, info }) => {
+        const card = document.createElement('div');
+        card.className = 'artist-card';
+        card.style.display = 'none';
 
-card.dataset.name = normalizeForSearch(artist.name);
-card.dataset.rawName = artist.name;
-card.dataset.podium = info.podium;
-card.dataset.dag = info.datum;
-card.dataset.tijdInfo = info.tijd;
-card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
-card.dataset.genres = normalizeForSearch(info.genres.join(','));
-card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
+        card.dataset.name = normalizeForSearch(artist.name);
+        card.dataset.rawName = artist.name;
+        card.dataset.podium = info.podium;
+        card.dataset.dag = info.datum;
+        card.dataset.tijdInfo = info.tijd;
+        card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
+        card.dataset.genres = normalizeForSearch(info.genres.join(','));
+        card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
+        
+        // NIEUW: Voeg een doorzoekbaar data-attribuut toe voor YouTube-titels
+        if (info.youtubeLinks && info.youtubeLinks.length > 0) {
+            card.dataset.youtubeTitles = normalizeForSearch(info.youtubeLinks.map(link => link.title).join(' '));
+        } else {
+            card.dataset.youtubeTitles = '';
+        }
 
-if (info.spotifyUri) {
-card.dataset.spotifyUri = info.spotifyUri;
-}
+        if (info.spotifyUri) {
+            card.dataset.spotifyUri = info.spotifyUri;
+        }
 
-const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-const proxiedImageUrlForDataSrc = artist.imageUrl
-? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
-: PLACEHOLDER_IMG_URL;
+        const proxiedImageUrlForDataSrc = artist.imageUrl
+            ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
+            : PLACEHOLDER_IMG_URL;
 
-const imageTag = `
-<img
-data-src="${proxiedImageUrlForDataSrc}"
-src="${transparentPixel}"
-alt="Foto van ${artist.name}"
-class="artist-photo lazyload">`;
+        const imageTag = `
+        <img
+            data-src="${proxiedImageUrlForDataSrc}"
+            src="${transparentPixel}"
+            alt="Foto van ${artist.name}"
+            class="artist-photo lazyload">`;
 
-let imageHtml;
-if (artist.imageUrl) {
-const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
-imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
-} else {
-imageHtml = imageTag;
-}
+        let imageHtml;
+        if (artist.imageUrl) {
+            const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
+            imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
+        } else {
+            imageHtml = imageTag;
+        }
 
-const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
-let dagNaam = '';
-if (dagNum) {
-const date = new Date(2025, 6, parseInt(dagNum, 10));
-if (!isNaN(date.getTime())) {
-dagNaam = dagen[date.getDay()];
-}
-}
+        const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
+        let dagNaam = '';
+        if (dagNum) {
+            const date = new Date(2025, 6, parseInt(dagNum, 10));
+            if (!isNaN(date.getTime())) {
+                dagNaam = dagen[date.getDay()];
+            }
+        }
 
-const isFav = favorites.includes(artist.name);
+        const isFav = favorites.includes(artist.name);
 
-let actionControlsHtml = '';
-if (info.spotifyUri) {
-const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
+        let actionControlsHtml = '';
+        if (info.spotifyUri) {
+            const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
 
-let youtubeSearchUrl;
-let youtubeLinkAttributes = '';
+            let youtubeSearchUrl;
+            let youtubeLinkAttributes = '';
 
-if (isAndroidDevice) {
-    const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
-    youtubeSearchUrl = `vnd.youtube://results?search_query=${youtubeSearchQuery}`;
-} else {
-    const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
-    youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearchQuery}`;
-    youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
-}
+            if (isAndroidDevice) {
+                const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+                youtubeSearchUrl = `vnd.youtube://results?search_query=${youtubeSearchQuery}`;
+            } else {
+                const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+                youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearchQuery}`;
+                youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
+            }
 
-actionControlsHtml = `
-<div class="action-buttons-wrapper">
-<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify">
-<i class="fa-solid fa-up-right-from-square"></i>
-</a>
-<div class="stacked-buttons-column">
-<button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
-<i class="fa-brands fa-spotify"></i> Preview
-</button>
-<a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
-<i class="fa-brands fa-google"></i> Zoek..
-</a>
-<a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
-<i class="fa-brands fa-youtube"></i> Zoek..
-</a>
-</div>
-</div>`;
-}
+            actionControlsHtml = `
+            <div class="action-buttons-wrapper">
+                <a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify">
+                    <i class="fa-solid fa-up-right-from-square"></i>
+                </a>
+                <div class="stacked-buttons-column">
+                    <button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
+                        <i class="fa-brands fa-spotify"></i> Preview
+                    </button>
+                    <a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-brands fa-google"></i> Zoek..
+                    </a>
+                    <a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
+                        <i class="fa-brands fa-youtube"></i> Zoek..
+                    </a>
+                </div>
+            </div>`;
+        }
+        
+        let youtubeLinksHtml = '';
+        if (info.youtubeLinks && info.youtubeLinks.length > 0) {
+            youtubeLinksHtml = '<div class="youtube-links-container">';
+            info.youtubeLinks.forEach(ytLink => {
+                if (ytLink.videoId) {
+                    const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
+                    let linkUrl;
+                    let linkTarget = '';
 
-let youtubeLinksHtml = '';
-if (info.youtubeLinks && info.youtubeLinks.length > 0) {
-youtubeLinksHtml = '<div class="youtube-links-container">';
-info.youtubeLinks.forEach(ytLink => {
-if (ytLink.videoId) {
-const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
-let linkUrl;
-let linkTarget = '';
+                    if (isAndroidDevice) {
+                        linkUrl = `vnd.youtube:${ytLink.videoId}`;
+                    } else {
+                        linkUrl = ytLink.url;
+                        linkTarget = 'target="_blank" rel="noopener noreferrer"';
+                    }
 
-if (isAndroidDevice) {
-    linkUrl = `vnd.youtube:${ytLink.videoId}`;
-} else {
-    linkUrl = ytLink.url;
-    linkTarget = 'target="_blank" rel="noopener noreferrer"';
-}
+                    youtubeLinksHtml += `
+                    <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
+                        <img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
+                        <span class="youtube-title">${ytLink.title}</span>
+                    </a>`;
+                }
+            });
+            youtubeLinksHtml += '</div>';
+        }
 
-youtubeLinksHtml += `
-<a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
-<img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
-<span class="youtube-title">${ytLink.title}</span>
-</a>`;
-}
-});
-youtubeLinksHtml += '</div>';
-}
-
-card.innerHTML = `
-<div class="artist-header">
-<h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
-<span class="favorite-icon" data-name="${artist.name}">
-${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
-</span>
-</div>
-${imageHtml}
-<div class="artist-meta-container">
-<div class="artist-info">
-<p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
-<p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
-<p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
-<p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
-</div>
-${actionControlsHtml}
-</div>
-<div class="artist-description highlightable-description">
-<p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
-</div>
-${youtubeLinksHtml}`;
-artistListElement.appendChild(card);
-});
+        card.innerHTML = `
+        <div class="artist-header">
+            <h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
+            <span class="favorite-icon" data-name="${artist.name}">
+                ${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
+            </span>
+        </div>
+        ${imageHtml}
+        <div class="artist-meta-container">
+            <div class="artist-info">
+                <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
+                <p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
+                <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
+                <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
+            </div>
+            ${actionControlsHtml}
+        </div>
+        <div class="artist-description highlightable-description">
+            <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
+        </div>
+        ${youtubeLinksHtml}`;
+        artistListElement.appendChild(card);
+    });
 }
 
 
@@ -1253,88 +1260,99 @@ lastScrollY = 0;
 }
 
 function applyFiltersAndSort(options = {}) {
-hideError();
-const originalSearchTerm = searchFieldElement.value;
-const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
-let visibleCount = 0;
+    hideError();
+    const originalSearchTerm = searchFieldElement.value;
+    const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
+    let visibleCount = 0;
 
-const cardElements = artistListElement.children;
+    const cardElements = artistListElement.children;
 
-for (const card of cardElements) {
-const {
-name: normalizedArtistName,
-podium,
-dag,
-genres: normalizedGenres,
-description: normalizedDescription,
-rawName
-} = card.dataset;
+    for (const card of cardElements) {
+        const {
+            name: normalizedArtistName,
+            podium,
+            dag,
+            genres: normalizedGenres,
+            description: normalizedDescription,
+            youtubeTitles: normalizedYoutubeTitles, // NIEUW
+            rawName
+        } = card.dataset;
 
-const artistNameEl = card.querySelector('.artist-name');
-const genresEl = card.querySelector('.highlightable-genres');
-const podiumEl = card.querySelector('.highlightable-podium');
-const descriptionEl = card.querySelector('.highlightable-description');
+        const artistNameEl = card.querySelector('.artist-name');
+        const genresEl = card.querySelector('.highlightable-genres');
+        const podiumEl = card.querySelector('.highlightable-podium');
+        const descriptionEl = card.querySelector('.highlightable-description');
+        const youtubeTitleEls = card.querySelectorAll('.youtube-title'); // NIEUW
 
-clearHighlight(artistNameEl);
-clearHighlight(genresEl);
-clearHighlight(podiumEl);
-clearHighlight(descriptionEl);
+        // Maak highlighting schoon
+        clearHighlight(artistNameEl);
+        clearHighlight(genresEl);
+        clearHighlight(podiumEl);
+        clearHighlight(descriptionEl);
+        youtubeTitleEls.forEach(el => clearHighlight(el)); // NIEUW
 
-const matchesDay = !activeDays.length || activeDays.includes(dag);
-const matchesPodium = !activePodia.length || activePodia.includes(podium);
-const matchesSearch = !normalizedSearchTerm ||
-normalizedArtistName.includes(normalizedSearchTerm) ||
-normalizedDescription.includes(normalizedSearchTerm) ||
-normalizedGenres.includes(normalizedSearchTerm) ||
-normalizeForSearch(podium).includes(normalizedSearchTerm);
-const matchesFavs = !showingFavs || favorites.includes(rawName);
+        const matchesDay = !activeDays.length || activeDays.includes(dag);
+        const matchesPodium = !activePodia.length || activePodia.includes(podium);
+        
+        // BIJGEWERKT: Zoek ook in YouTube-titels
+        const matchesSearch = !normalizedSearchTerm ||
+            normalizedArtistName.includes(normalizedSearchTerm) ||
+            normalizedDescription.includes(normalizedSearchTerm) ||
+            normalizedGenres.includes(normalizedSearchTerm) ||
+            normalizeForSearch(podium).includes(normalizedSearchTerm) ||
+            (normalizedYoutubeTitles && normalizedYoutubeTitles.includes(normalizedSearchTerm));
+            
+        const matchesFavs = !showingFavs || favorites.includes(rawName);
 
-if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
-card.style.display = '';
-visibleCount++;
-if (originalSearchTerm) {
-applyHighlight(artistNameEl, originalSearchTerm);
-if (genresEl) applyHighlight(genresEl, originalSearchTerm);
-if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
-if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
-}
-} else {
-card.style.display = 'none';
-}
+        if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
+            card.style.display = '';
+            visibleCount++;
+            if (originalSearchTerm) {
+                applyHighlight(artistNameEl, originalSearchTerm);
+                if (genresEl) applyHighlight(genresEl, originalSearchTerm);
+                if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
+                if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
+                
+                // NIEUW: Pas highlighting toe op YouTube-titels
+                youtubeTitleEls.forEach(el => applyHighlight(el, originalSearchTerm));
+            }
+        } else {
+            card.style.display = 'none';
+        }
 
-const favIcon = card.querySelector('.favorite-icon');
-if (favIcon) {
-favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
-}
-}
+        const favIcon = card.querySelector('.favorite-icon');
+        if (favIcon) {
+            favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
+        }
+    }
 
-const cardsArray = Array.from(cardElements);
+    const cardsArray = Array.from(cardElements);
 
-cardsArray.sort((a, b) => {
-if (sortMode === 'alpha') {
-return a.dataset.name.localeCompare(b.dataset.name);
-} else {
-const timeA = parseInt(a.dataset.timestamp, 10);
-const timeB = parseInt(b.dataset.timestamp, 10);
-const aIsUnknown = timeA === 0;
-const bIsUnknown = timeB === 0;
-if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
-if (aIsUnknown) return 1;
-if (bIsUnknown) return -1;
-if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
-return timeA - timeB;
-}
-});
+    cardsArray.sort((a, b) => {
+        if (sortMode === 'alpha') {
+            return a.dataset.name.localeCompare(b.dataset.name);
+        } else {
+            const timeA = parseInt(a.dataset.timestamp, 10);
+            const timeB = parseInt(b.dataset.timestamp, 10);
+            const aIsUnknown = timeA === 0;
+            const bIsUnknown = timeB === 0;
+            if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
+            if (aIsUnknown) return 1;
+            if (bIsUnknown) return -1;
+            if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
+            return timeA - timeB;
+        }
+    });
 
-cardsArray.forEach((card, index) => {
-card.style.order = index;
-});
+    cardsArray.forEach((card, index) => {
+        card.style.order = index;
+    });
 
-updateArtistCount(visibleCount);
+    updateArtistCount(visibleCount);
 
-if (!options.preserveScroll) {
-scrollToArtistListTop();
-}
+    if (!options.preserveScroll) {
+        scrollToArtistListTop();
+    }
 }
 
 function calculateNightsToSleep() {
