@@ -66,27 +66,120 @@ transition: all 0.2s ease-in-out;
 background: #007bff;
 color: #fff;
 }
+
 .filter-container {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
+display: flex;
 gap: 5px;
+align-items: center;
 }
-.filter-button, #searchField {
-padding: 10px;
+
+.filter-button {
+padding: 10px 12px;
 font-size: 14px;
 text-align: center;
 background: #fff;
 border: 1px solid #ddd;
 border-radius: 20px;
 cursor: pointer;
+white-space: nowrap;
+flex-shrink: 0; /* Zorgt dat knoppen niet krimpen */
 }
+
 .filter-button.active {
 background: #007bff;
 color: #fff;
 }
+
 #searchField {
+padding: 10px 12px 10px 35px; /* Links padding voor icoon */
+font-size: 14px;
+background: #fff;
+border: 1px solid #ddd;
+border-radius: 20px;
 width: 100%;
 }
+
+.search-wrapper {
+position: relative;
+flex-grow: 1;
+min-width: 0;
+}
+.search-input-icon {
+position: absolute;
+left: 12px;
+top: 50%;
+transform: translateY(-50%);
+color: #888;
+pointer-events: none;
+transition: color 0.2s ease;
+}
+#searchField:focus + .search-input-icon {
+color: #007bff;
+}
+#searchField.has-content + .search-input-icon {
+color: #fff;
+}
+
+
+/* === CSS VOOR PODIA DROPDOWN (AANGEPAST) === */
+.podia-master-container {
+position: relative;
+}
+
+#podiaToggleBtn {
+position: relative;
+z-index: 10;
+display: flex;
+align-items: center;
+justify-content: center; /* Zorgt voor centreren van label en indicator */
+gap: 8px;
+}
+#podiaToggleBtn.menu-open .podia-indicator i {
+transform: rotate(180deg);
+}
+
+.podia-indicator {
+display: inline-flex; /* Aangepast voor betere uitlijning */
+align-items: center;
+justify-content: center;
+font-weight: bold;
+font-size: 0.9em;
+min-width: 1em; /* Zorgt voor ruimte zelfs als leeg */
+text-align: center;
+}
+.podia-indicator i {
+transition: transform 0.2s ease;
+}
+
+.podia-buttons-container {
+position: absolute;
+top: 100%;
+left: 0;
+margin-top: 5px;
+background: transparent;
+border: none;
+padding: 0;
+box-shadow: none;
+z-index: 9;
+display: flex;
+flex-direction: column;
+gap: 5px;
+opacity: 0;
+transform: translateY(-10px);
+transition: opacity 0.2s ease, transform 0.2s ease;
+pointer-events: none;
+}
+.podia-buttons-container.visible {
+opacity: 1;
+transform: translateY(0);
+pointer-events: auto;
+}
+.podia-buttons-container .filter-button {
+box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+/* ================================== */
+
+
 #searchField::-webkit-search-decoration,
 #searchField::-webkit-search-cancel-button,
 #searchField::-webkit-search-results-button,
@@ -118,7 +211,6 @@ height: 40px;
 margin-bottom: 0;
 }
 
-/* STYLES VOOR CYCLISCHE STATUS-ANIMATIE */
 #statusContainer {
 height: 20px;
 line-height: 20px;
@@ -147,7 +239,7 @@ height: 20px;
 .icons-group {
 margin-left: auto;
 display: flex;
-gap: 15px; /* Iets meer ruimte voor Font Awesome iconen */
+gap: 15px;
 align-items: center;
 }
 
@@ -155,7 +247,7 @@ align-items: center;
 cursor: pointer;
 color: #555;
 user-select: none;
-font-size: 20px; /* Grootte aanpassen voor Font Awesome */
+font-size: 20px;
 }
 .sort-icon.active {
 color: #007bff;
@@ -193,6 +285,8 @@ margin-bottom: 10px;
 .artist-card h2 {
 margin: 0;
 font-size: 20px;
+display: inline;
+vertical-align: middle;
 }
 .favorite-icon {
 width: 32px;
@@ -202,7 +296,7 @@ align-items: center;
 justify-content: center;
 cursor: pointer;
 color: red;
-font-size: 22px; /* Grootte aanpassen voor Font Awesome */
+font-size: 22px;
 margin-left: 10px;
 flex-shrink: 0;
 }
@@ -222,7 +316,7 @@ cursor: pointer;
 .artist-meta-container {
 display: flex;
 justify-content: space-between;
-align-items: flex-start; /* Start-align voor de nieuwe knoppenstructuur */
+align-items: flex-start;
 gap: 15px;
 }
 
@@ -251,6 +345,33 @@ text-decoration: none;
 .artist-info p:first-child {
 margin-top: 0;
 }
+
+/* --- STYLING VOOR NU BEZIG INDICATOR --- */
+.now-playing-indicator {
+ display: none; /* Standaard verborgen */
+ margin-left: 8px;
+ vertical-align: middle;
+}
+.vu-meter-icon {
+ width: 18px;
+ height: 18px;
+ fill: currentColor; /* Erft kleur van de h2 */
+ transform: translateY(-2px); /* Iets hoger gezet voor betere uitlijning */
+}
+@keyframes vu-pulse {
+ 0%, 100% { transform: scaleY(0.2); }
+ 25% { transform: scaleY(1); }
+ 50% { transform: scaleY(0.4); }
+ 75% { transform: scaleY(0.8); }
+}
+.vu-meter-icon .bar {
+ transform-origin: bottom;
+ animation: vu-pulse 1.2s ease-in-out infinite;
+}
+.vu-meter-icon .bar:nth-child(2) { animation-delay: -0.3s; }
+.vu-meter-icon .bar:nth-child(3) { animation-delay: -0.6s; }
+.vu-meter-icon .bar:nth-child(4) { animation-delay: -0.9s; }
+/* ------------------------------------------- */
 
 mark {
 background-color: yellow;
@@ -302,7 +423,6 @@ display: -webkit-box;
 -webkit-box-orient: vertical;
 }
 
-/* === AANGEPASTE STIJLEN VOOR KNOPPEN === */
 .action-buttons-wrapper {
 display: flex;
 flex-direction: row;
@@ -315,14 +435,13 @@ display: flex;
 flex-direction: column;
 gap: 6px;
 }
-/* ========================================= */
 
 .spotify-open-button {
 display: inline-flex;
 align-items: center;
 justify-content: center;
-width: 30px; /* AANGEPAST */
-height: 30px; /* AANGEPAST */
+width: 30px;
+height: 30px;
 background-color: #54c07b;
 color: white !important;
 border: none;
@@ -330,20 +449,20 @@ border-radius: 50%;
 cursor: pointer;
 text-decoration: none;
 transition: background-color 0.2s;
-flex-shrink: 0; /* Voorkom dat deze knop krimpt */
+flex-shrink: 0;
 }
 .spotify-open-button:hover {
 background-color: #67c989;
 }
 .spotify-open-button i {
-font-size: 14px; /* AANGEPAST */
+font-size: 14px;
 }
 
 .spotify-play-button {
 background-color: #54c07b;
 color: white !important;
 border: none;
-padding: 6px 12px 6px 10px; /* AANGEPAST */
+padding: 6px 12px 6px 10px;
 border-radius: 50px;
 cursor: pointer;
 font-size: 13px;
@@ -353,7 +472,7 @@ align-items: center;
 text-decoration: none;
 transition: background-color 0.2s;
 flex-shrink: 0;
-white-space: nowrap; /* Voorkom dat de tekst breekt */
+white-space: nowrap;
 }
 .spotify-play-button:hover {
 background-color: #67c989;
@@ -363,28 +482,26 @@ margin-right: 8px;
 font-size: 18px;
 }
 
-/* === GEDEELDE STIJL VOOR NIEUWE KNOPPEN === */
 .search-button {
 color: white !important;
 border: none;
-padding: 6px 12px 6px 10px; /* AANGEPAST voor uitlijning */
+padding: 6px 12px 6px 10px;
 border-radius: 50px;
 cursor: pointer;
 font-size: 13px;
 font-weight: bold;
-display: flex; /* Gebruik flex om icoon en tekst uit te lijnen */
+display: flex;
 align-items: center;
-/* justify-content: center; /* Verwijderd voor uitlijning */
 text-decoration: none;
 transition: background-color 0.2s;
 }
 .search-button i {
 margin-right: 8px;
-font-size: 16px; /* Iets kleiner icoon dan de play knop */
+font-size: 16px;
 }
 
 .google-search-button {
-background-color: #007bff; /* Standaard modus */
+background-color: #007bff;
 }
 .google-search-button:hover {
 background-color: #0069d9;
@@ -396,7 +513,6 @@ background-color: #e06c75;
 .youtube-search-button:hover {
 background-color: #e57e88;
 }
-/* ======================================== */
 
 
 .docked-spotify-player-wrapper {
@@ -412,11 +528,11 @@ background-color: #282828;
 box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
 transition: transform 0.3s ease-in-out;
 will-change: transform;
-transform: translateY(100%) translateZ(0); /* Start met 3D transform */
+transform: translateY(100%) translateZ(0);
 }
 
 .docked-spotify-player-wrapper.visible {
-transform: translateY(0) translateZ(0); /* Behoud 3D transform */
+transform: translateY(0) translateZ(0);
 }
 
 .docked-spotify-player-container {
@@ -439,7 +555,7 @@ color: white;
 border: none;
 width: 44px;
 height: 100%;
-font-size: 20px; /* Aangepast voor FontAwesome */
+font-size: 20px;
 cursor: pointer;
 display: flex;
 align-items: center;
@@ -466,6 +582,19 @@ background: #4b5059;
 color: #c6cdd5;
 border-color: #5b6069;
 }
+body.dark-mode #searchField {
+padding-left: 35px;
+}
+body.dark-mode .search-input-icon {
+color: #98a0ad;
+}
+body.dark-mode #searchField:focus + .search-input-icon {
+color: #61afef;
+}
+body.dark-mode #searchField.has-content + .search-input-icon {
+color: #282c34;
+}
+
 body.dark-mode .day-filter-button.active,
 body.dark-mode .filter-button.active {
 background: #61afef;
@@ -550,8 +679,14 @@ color: #abb2bf;
 body.dark-mode #closeDockedPlayerButton:hover {
 background: rgba(255,255,255,0.05);
 }
+body.dark-mode .podia-buttons-container {
+background: transparent;
+border-color: transparent;
+}
+body.dark-mode .podia-buttons-container .filter-button {
+box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
 
-/* === STIJL VOOR ACCENTUEREN HUIDIGE DAG === */
 .is-today::after {
 content: '';
 position: absolute;
@@ -562,24 +697,18 @@ height: 3px;
 border-radius: 2px;
 transition: background-color 0.2s ease-in-out;
 }
-/* Standaard staat: blauwe streep */
 body:not(.dark-mode) .is-today:not(.active)::after {
 background-color: #007bff;
 }
-/* Actieve staat: donkergrijze streep */
 body:not(.dark-mode) .is-today.active::after {
 background-color: #ddd;
 }
-/* Dark mode: blauwe streep */
 body.dark-mode .is-today:not(.active)::after {
 background-color: #61afef;
 }
-/* Dark mode, actieve staat: donkergrijze streep */
 body.dark-mode .is-today.active::after {
 background-color: #282c34;
 }
-/* ================================================ */
-
 </style>
 </head>
 <body class="dark-mode">
@@ -596,18 +725,28 @@ background-color: #282c34;
 </div>
 
 <div class="filter-container">
+<div class="podia-master-container">
+<button id="podiaToggleBtn" class="filter-button">
+<span>Podia</span>
+<span id="podiaIndicator" class="podia-indicator"></span>
+</button>
+<div id="podiaButtonsContainer" class="podia-buttons-container">
 <button class="filter-button" data-podium="Arc">Arc</button>
 <button class="filter-button" data-podium="Boog">Boog</button>
-<button class="filter-button" data-podium="Bloem">Bloem</button>
 <button class="filter-button" data-podium="Club Voerweg">Voerweg</button>
 <button class="filter-button" data-podium="Tuin">Tuin</button>
-<button class="filter-button" data-podium="Kapel">Kapel</button>
 <button class="filter-button" data-podium="Poort">Poort</button>
+</div>
+</div>
+<button id="nowNextBtn" class="filter-button">Nu & Straks</button>
+<div class="search-wrapper">
 <input type="search" id="searchField" placeholder="Zoek.." autocomplete="off">
+<i class="fa-solid fa-magnifying-glass search-input-icon"></i>
+</div>
 </div>
 
+
 <div class="info-container">
-<!-- CONTAINER VOOR CYCLISCHE STATUS-ANIMATIE -->
 <div id="statusContainer">
 <div id="statusSlider">
 <span id="countText"></span>
@@ -615,7 +754,6 @@ background-color: #282c34;
 <span id="countTextClone"></span>
 </div>
 </div>
-<!-- EINDE AANPASSING -->
 <span class="icons-group">
 <i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
 <i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
@@ -640,11 +778,10 @@ CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
 BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
-// DE FIX DIE ERVOOR ZORGT DAT IEDEREEN NIEUWE, SCHONE DATA KRIJGT
 ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v6',
 ALL_ARTISTS_DATA_CACHE_KEY = PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
 ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX,
-CACHE_MAX_AGE_MS = 60 * 60 * 1000, // 1 uur
+CACHE_MAX_AGE_MS = 60 * 60 * 1000,
 FESTIVAL_START_DATE = new Date('2025-07-12T00:00:00'),
 PLACEHOLDER_IMG_URL = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
 
@@ -665,7 +802,11 @@ statusContainer = document.getElementById('statusContainer'),
 statusSlider = document.getElementById('statusSlider'),
 countTextElement = document.getElementById('countText'),
 countdownTextElement = document.getElementById('countdownText'),
-countTextCloneElement = document.getElementById('countTextClone');
+countTextCloneElement = document.getElementById('countTextClone'),
+podiaToggleBtn = document.getElementById('podiaToggleBtn'),
+podiaIndicator = document.getElementById('podiaIndicator'),
+podiaButtonsContainer = document.getElementById('podiaButtonsContainer'),
+nowNextBtn = document.getElementById('nowNextBtn');
 
 
 const isAndroidDevice = /android/i.test(navigator.userAgent);
@@ -677,6 +818,7 @@ let allArtistsData = [],
 searchClickShouldClear = false;
 
 let statusInterval = null;
+let liveStatusInterval = null; // Interval voor live updates
 let currentStatusIndex = 0;
 const SLIDE_HEIGHT = 20;
 const ANIMATION_INTERVAL = 5000;
@@ -756,11 +898,14 @@ let sortMode = getStoredString('sortMode', 'time'),
 activePodia = getStoredJSON(PREFIX + 'activePodia', []),
 favorites = getStoredJSON(PREFIX + 'favorites', []),
 showingFavs = getStoredJSON(PREFIX + 'showingFavs', false),
+showingNowNext = false,
 activeDays = getStoredJSON(PREFIX + 'activeDays', []);
 
 function capitalize(s){
 if(!s) return s;
-return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+return s.split(' ').map(word => 
+word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+).join(' ');
 }
 
 function showError(msg){
@@ -939,8 +1084,6 @@ const urlRegex = /url\('([^']+)'\)/;
 
 const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
 .map(a => {
-// DE FUNDAMENTELE FIX: Maak de data schoon bij de bron.
-// Vervangt alle witruimte (inclusief non-breaking spaces) met één enkele normale spatie.
 const name = a.querySelector('.nameplate h2').textContent.replace(/\s+/g, ' ').trim();
 const artistUrl = getFullUrl(a.getAttribute('href'));
 
@@ -979,168 +1122,216 @@ showError('Netwerkfout bij ophalen artiestenlijst.');
 }
 }
 
-function parseDateTimeForSort(datum, tijd){
-if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend' || !tijd.includes(':')) return 0;
+function parseDateTimeForSort(datum, tijd) {
+if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend' || !tijd.includes(':')) {
+return { start: 0, end: 0 };
+}
 
 const datumParts = datum.split(' ');
-if (datumParts.length < 2) return 0;
+if (datumParts.length < 2) return { start: 0, end: 0 };
 const dagNum = parseInt(datumParts[0], 10);
 
-const startTimeStr = tijd.split('-')[0].trim();
-const tijdParts = startTimeStr.split(':');
-if (tijdParts.length < 2) return 0;
+const tijdDelen = tijd.split('-').map(s => s.trim());
+const startTimeStr = tijdDelen[0];
+const endTimeStr = tijdDelen.length > 1 ? tijdDelen[1] : null;
 
-const u = parseInt(tijdParts[0], 10);
-const m = parseInt(tijdParts[1], 10);
+const startTijdParts = startTimeStr.split(':');
+if (startTijdParts.length < 2) return { start: 0, end: 0 };
 
-if (isNaN(dagNum) || isNaN(u) || isNaN(m)) return 0;
-return new Date(2025, 6, dagNum, u, m).getTime();
+const startUur = parseInt(startTijdParts[0], 10);
+const startMin = parseInt(startTijdParts[1], 10);
+
+if (isNaN(dagNum) || isNaN(startUur) || isNaN(startMin)) {
+return { start: 0, end: 0 };
+}
+
+const startDate = new Date(2025, 6, dagNum, startUur, startMin);
+const startTimestamp = startDate.getTime();
+
+if (!endTimeStr) {
+return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
+}
+
+const endTijdParts = endTimeStr.split(':');
+if (endTijdParts.length < 2) {
+return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
+}
+
+const eindUur = parseInt(endTijdParts[0], 10);
+const eindMin = parseInt(endTijdParts[1], 10);
+
+if (isNaN(eindUur) || isNaN(eindMin)) {
+return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
+}
+
+let endDate = new Date(2025, 6, dagNum, eindUur, eindMin);
+
+if (endDate <= startDate) {
+endDate.setDate(endDate.getDate() + 1);
+}
+
+return { start: startTimestamp, end: endDate.getTime() };
 }
 
 function renderAllArtistCardsOnce() {
-    artistListElement.innerHTML = '';
+artistListElement.innerHTML = '';
 
-    allArtistsData.forEach(({ artist, info }) => {
-        const card = document.createElement('div');
-        card.className = 'artist-card';
-        card.style.display = 'none';
+allArtistsData.forEach(({ artist, info }) => {
+const card = document.createElement('div');
+card.className = 'artist-card';
+card.style.display = 'none';
 
-        card.dataset.name = normalizeForSearch(artist.name);
-        card.dataset.rawName = artist.name;
-        card.dataset.podium = info.podium;
-        card.dataset.dag = info.datum;
-        card.dataset.tijdInfo = info.tijd;
-        card.dataset.timestamp = parseDateTimeForSort(info.datum, info.tijd);
-        card.dataset.genres = normalizeForSearch(info.genres.join(','));
-        card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
-        
-        // NIEUW: Voeg een doorzoekbaar data-attribuut toe voor YouTube-titels
-        if (info.youtubeLinks && info.youtubeLinks.length > 0) {
-            card.dataset.youtubeTitles = normalizeForSearch(info.youtubeLinks.map(link => link.title).join(' '));
-        } else {
-            card.dataset.youtubeTitles = '';
-        }
+const timestamps = parseDateTimeForSort(info.datum, info.tijd);
 
-        if (info.spotifyUri) {
-            card.dataset.spotifyUri = info.spotifyUri;
-        }
+card.dataset.name = normalizeForSearch(artist.name);
+card.dataset.rawName = artist.name;
+card.dataset.podium = info.podium;
+card.dataset.dag = info.datum;
+card.dataset.tijdInfo = info.tijd;
+card.dataset.timestamp = timestamps.start;
+card.dataset.timestampStart = timestamps.start;
+card.dataset.timestampEnd = timestamps.end;
+card.dataset.genres = normalizeForSearch(info.genres.join(','));
+card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
 
-        const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+if (info.youtubeLinks && info.youtubeLinks.length > 0) {
+card.dataset.youtubeTitles = normalizeForSearch(info.youtubeLinks.map(link => link.title).join(' '));
+} else {
+card.dataset.youtubeTitles = '';
+}
 
-        const proxiedImageUrlForDataSrc = artist.imageUrl
-            ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
-            : PLACEHOLDER_IMG_URL;
+if (info.spotifyUri) {
+card.dataset.spotifyUri = info.spotifyUri;
+}
 
-        const imageTag = `
-        <img
-            data-src="${proxiedImageUrlForDataSrc}"
-            src="${transparentPixel}"
-            alt="Foto van ${artist.name}"
-            class="artist-photo lazyload">`;
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
-        let imageHtml;
-        if (artist.imageUrl) {
-            const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
-            imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
-        } else {
-            imageHtml = imageTag;
-        }
+const proxiedImageUrlForDataSrc = artist.imageUrl
+? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
+: PLACEHOLDER_IMG_URL;
 
-        const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
-        let dagNaam = '';
-        if (dagNum) {
-            const date = new Date(2025, 6, parseInt(dagNum, 10));
-            if (!isNaN(date.getTime())) {
-                dagNaam = dagen[date.getDay()];
-            }
-        }
+const imageTag = `
+<img
+data-src="${proxiedImageUrlForDataSrc}"
+src="${transparentPixel}"
+alt="Foto van ${artist.name}"
+class="artist-photo lazyload">`;
 
-        const isFav = favorites.includes(artist.name);
+let imageHtml;
+if (artist.imageUrl) {
+const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
+imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge kwaliteit">${imageTag}</a>`;
+} else {
+imageHtml = imageTag;
+}
 
-        let actionControlsHtml = '';
-        if (info.spotifyUri) {
-            const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
+const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
+let dagNaam = '';
+if (dagNum) {
+const date = new Date(2025, 6, parseInt(dagNum, 10));
+if (!isNaN(date.getTime())) {
+dagNaam = dagen[date.getDay()];
+}
+}
 
-            let youtubeSearchUrl;
-            let youtubeLinkAttributes = '';
+const isFav = favorites.includes(artist.name);
 
-            if (isAndroidDevice) {
-                const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
-                youtubeSearchUrl = `vnd.youtube://results?search_query=${youtubeSearchQuery}`;
-            } else {
-                const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
-                youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearchQuery}`;
-                youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
-            }
+let actionControlsHtml = '';
+if (info.spotifyUri) {
+const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
 
-            actionControlsHtml = `
-            <div class="action-buttons-wrapper">
-                <a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify">
-                    <i class="fa-solid fa-up-right-from-square"></i>
-                </a>
-                <div class="stacked-buttons-column">
-                    <button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
-                        <i class="fa-brands fa-spotify"></i> Preview
-                    </button>
-                    <a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
-                        <i class="fa-brands fa-google"></i> Zoek..
-                    </a>
-                    <a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
-                        <i class="fa-brands fa-youtube"></i> Zoek..
-                    </a>
-                </div>
-            </div>`;
-        }
-        
-        let youtubeLinksHtml = '';
-        if (info.youtubeLinks && info.youtubeLinks.length > 0) {
-            youtubeLinksHtml = '<div class="youtube-links-container">';
-            info.youtubeLinks.forEach(ytLink => {
-                if (ytLink.videoId) {
-                    const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
-                    let linkUrl;
-                    let linkTarget = '';
+let youtubeSearchUrl;
+let youtubeLinkAttributes = '';
 
-                    if (isAndroidDevice) {
-                        linkUrl = `vnd.youtube:${ytLink.videoId}`;
-                    } else {
-                        linkUrl = ytLink.url;
-                        linkTarget = 'target="_blank" rel="noopener noreferrer"';
-                    }
+if (isAndroidDevice) {
+const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+youtubeSearchUrl = `vnd.youtube://results?search_query=${youtubeSearchQuery}`;
+} else {
+const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
+youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearchQuery}`;
+youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
+}
 
-                    youtubeLinksHtml += `
-                    <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
-                        <img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
-                        <span class="youtube-title">${ytLink.title}</span>
-                    </a>`;
-                }
-            });
-            youtubeLinksHtml += '</div>';
-        }
+actionControlsHtml = `
+<div class="action-buttons-wrapper">
+<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify">
+<i class="fa-solid fa-up-right-from-square"></i>
+</a>
+<div class="stacked-buttons-column">
+<button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
+<i class="fa-brands fa-spotify"></i> Preview
+</button>
+<a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
+<i class="fa-brands fa-google"></i> Zoek..
+</a>
+<a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
+<i class="fa-brands fa-youtube"></i> Zoek..
+</a>
+</div>
+</div>`;
+}
 
-        card.innerHTML = `
-        <div class="artist-header">
-            <h2><a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a></h2>
-            <span class="favorite-icon" data-name="${artist.name}">
-                ${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
-            </span>
-        </div>
-        ${imageHtml}
-        <div class="artist-meta-container">
-            <div class="artist-info">
-                <p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
-                <p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
-                <p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
-                <p><strong>Tijd:</strong> ${info.tijd}${info.duur ? ' (' + info.duur + ')' : ''}</p>
-            </div>
-            ${actionControlsHtml}
-        </div>
-        <div class="artist-description highlightable-description">
-            <p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
-        </div>
-        ${youtubeLinksHtml}`;
-        artistListElement.appendChild(card);
-    });
+let youtubeLinksHtml = '';
+if (info.youtubeLinks && info.youtubeLinks.length > 0) {
+youtubeLinksHtml = '<div class="youtube-links-container">';
+info.youtubeLinks.forEach(ytLink => {
+if (ytLink.videoId) {
+const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg`;
+let linkUrl;
+let linkTarget = '';
+
+if (isAndroidDevice) {
+linkUrl = `vnd.youtube:${ytLink.videoId}`;
+} else {
+linkUrl = ytLink.url;
+linkTarget = 'target="_blank" rel="noopener noreferrer"';
+}
+
+youtubeLinksHtml += `
+<a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
+<img data-src="${thumbnailUrl}" src="${transparentPixel}" alt="Thumbnail: ${ytLink.title}" class="youtube-thumbnail lazyload">
+<span class="youtube-title">${ytLink.title}</span>
+</a>`;
+}
+});
+youtubeLinksHtml += '</div>';
+}
+
+const durationText = info.duur ? ` (${info.duur})` : '';
+
+card.innerHTML = `
+<div class="artist-header">
+<h2>
+<a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a>
+<span class="now-playing-indicator">
+    <svg class="vu-meter-icon" viewBox="0 0 30 30">
+        <rect class="bar" x="3" y="10" width="4.5" height="20" />
+        <rect class="bar" x="9.5" y="10" width="4.5" height="20" />
+        <rect class="bar" x="16" y="10" width="4.5" height="20" />
+        <rect class="bar" x="22.5" y="10" width="4.5" height="20" />
+    </svg>
+</span>
+</h2>
+<span class="favorite-icon" data-name="${artist.name}">
+${isFav ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>'}
+</span>
+</div>
+${imageHtml}
+<div class="artist-meta-container">
+<div class="artist-info">
+<p class="highlightable-genres"><strong>Genre:</strong> ${info.genres.join(', ') || 'Geen genres'}</p>
+<p class="highlightable-podium"><strong>Podium:</strong> ${info.podium}</p>
+<p><strong>Datum:</strong> ${dagNaam ? capitalize(dagNaam) + ' ' : ''}${info.datum}</p>
+<p class="time-info" data-duration-text="${durationText}"><strong>Tijd:</strong> ${info.tijd}${durationText}</p>
+</div>
+${actionControlsHtml}
+</div>
+<div class="artist-description highlightable-description">
+<p>${info.description.replace(/\n\n/g, '</p><p>')}</p>
+</div>
+${youtubeLinksHtml}`;
+artistListElement.appendChild(card);
+});
 }
 
 
@@ -1202,7 +1393,7 @@ if (!element || !originalSearchTerm) return;
 if (!originalHTMLMap.has(element)) {
 originalHTMLMap.set(element, element.innerHTML);
 }
-element.innerHTML = originalHTMLMap.get(element); // Reset to original before applying new highlight
+element.innerHTML = originalHTMLMap.get(element);
 
 const regex = buildFlexibleHighlightRegex(originalSearchTerm);
 if (!regex) return;
@@ -1210,12 +1401,11 @@ if (!regex) return;
 function highlightNodeRecursive(node) {
 if (node.nodeType === Node.TEXT_NODE) {
 const text = node.nodeValue;
-regex.lastIndex = 0; // Reset lastIndex before each test/exec
-if (regex.test(text)) { // Check if there's any match first
-regex.lastIndex = 0; // Reset for .replace operation or manual loop
+regex.lastIndex = 0;
+if (regex.test(text)) {
+regex.lastIndex = 0;
 const fragment = document.createDocumentFragment();
 let lastIndex = 0;
-// Loop through all matches using exec
 let match;
 while ((match = regex.exec(text)) !== null) {
 const matchedText = match[0];
@@ -1227,21 +1417,21 @@ fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchStar
 const mark = document.createElement('mark');
 mark.textContent = matchedText;
 fragment.appendChild(mark);
-lastIndex = regex.lastIndex; // lastIndex is updated by exec
-if (matchedText.length === 0) { // Avoid infinite loops on zero-length matches
+lastIndex = regex.lastIndex;
+if (matchedText.length === 0) {
 regex.lastIndex++;
 }
 }
 if (lastIndex < text.length) {
 fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
 }
-if (fragment.childNodes.length > 0) { // Only replace if something was actually highlighted
+if (fragment.childNodes.length > 0) {
 node.parentNode.replaceChild(fragment, node);
 }
 }
 } else if (node.nodeType === Node.ELEMENT_NODE) {
 if (node.tagName.toLowerCase() === 'mark' || node.tagName.toLowerCase() === 'script' || node.tagName.toLowerCase() === 'style') {
-return; // Do not recurse into existing marks or script/style tags
+return;
 }
 Array.from(node.childNodes).forEach(highlightNodeRecursive);
 }
@@ -1260,99 +1450,105 @@ lastScrollY = 0;
 }
 
 function applyFiltersAndSort(options = {}) {
-    hideError();
-    const originalSearchTerm = searchFieldElement.value;
-    const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
-    let visibleCount = 0;
+hideError();
+const originalSearchTerm = searchFieldElement.value;
+const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
+let visibleCount = 0;
 
-    const cardElements = artistListElement.children;
+const cardElements = artistListElement.children;
+const now = new Date().getTime();
+const oneHourFromNow = now + (60 * 60 * 1000);
 
-    for (const card of cardElements) {
-        const {
-            name: normalizedArtistName,
-            podium,
-            dag,
-            genres: normalizedGenres,
-            description: normalizedDescription,
-            youtubeTitles: normalizedYoutubeTitles, // NIEUW
-            rawName
-        } = card.dataset;
+for (const card of cardElements) {
+const {
+name: normalizedArtistName,
+podium,
+dag,
+genres: normalizedGenres,
+description: normalizedDescription,
+youtubeTitles: normalizedYoutubeTitles,
+rawName,
+timestampStart,
+timestampEnd
+} = card.dataset;
 
-        const artistNameEl = card.querySelector('.artist-name');
-        const genresEl = card.querySelector('.highlightable-genres');
-        const podiumEl = card.querySelector('.highlightable-podium');
-        const descriptionEl = card.querySelector('.highlightable-description');
-        const youtubeTitleEls = card.querySelectorAll('.youtube-title'); // NIEUW
+const artistNameEl = card.querySelector('.artist-name');
+const genresEl = card.querySelector('.highlightable-genres');
+const podiumEl = card.querySelector('.highlightable-podium');
+const descriptionEl = card.querySelector('.highlightable-description');
+const youtubeTitleEls = card.querySelectorAll('.youtube-title');
 
-        // Maak highlighting schoon
-        clearHighlight(artistNameEl);
-        clearHighlight(genresEl);
-        clearHighlight(podiumEl);
-        clearHighlight(descriptionEl);
-        youtubeTitleEls.forEach(el => clearHighlight(el)); // NIEUW
+clearHighlight(artistNameEl);
+clearHighlight(genresEl);
+clearHighlight(podiumEl);
+clearHighlight(descriptionEl);
+youtubeTitleEls.forEach(el => clearHighlight(el));
 
-        const matchesDay = !activeDays.length || activeDays.includes(dag);
-        const matchesPodium = !activePodia.length || activePodia.includes(podium);
-        
-        // BIJGEWERKT: Zoek ook in YouTube-titels
-        const matchesSearch = !normalizedSearchTerm ||
-            normalizedArtistName.includes(normalizedSearchTerm) ||
-            normalizedDescription.includes(normalizedSearchTerm) ||
-            normalizedGenres.includes(normalizedSearchTerm) ||
-            normalizeForSearch(podium).includes(normalizedSearchTerm) ||
-            (normalizedYoutubeTitles && normalizedYoutubeTitles.includes(normalizedSearchTerm));
-            
-        const matchesFavs = !showingFavs || favorites.includes(rawName);
+const matchesDay = !activeDays.length || activeDays.includes(dag);
+const matchesPodium = !activePodia.length || activePodia.includes(podium);
 
-        if (matchesDay && matchesPodium && matchesSearch && matchesFavs) {
-            card.style.display = '';
-            visibleCount++;
-            if (originalSearchTerm) {
-                applyHighlight(artistNameEl, originalSearchTerm);
-                if (genresEl) applyHighlight(genresEl, originalSearchTerm);
-                if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
-                if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
-                
-                // NIEUW: Pas highlighting toe op YouTube-titels
-                youtubeTitleEls.forEach(el => applyHighlight(el, originalSearchTerm));
-            }
-        } else {
-            card.style.display = 'none';
-        }
+const matchesSearch = !normalizedSearchTerm ||
+normalizedArtistName.includes(normalizedSearchTerm) ||
+normalizedDescription.includes(normalizedSearchTerm) ||
+normalizedGenres.includes(normalizedSearchTerm) ||
+normalizeForSearch(podium).includes(normalizedSearchTerm) ||
+(normalizedYoutubeTitles && normalizedYoutubeTitles.includes(normalizedSearchTerm));
 
-        const favIcon = card.querySelector('.favorite-icon');
-        if (favIcon) {
-            favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
-        }
-    }
+const matchesFavs = !showingFavs || favorites.includes(rawName);
 
-    const cardsArray = Array.from(cardElements);
+const start = parseInt(timestampStart, 10);
+const end = parseInt(timestampEnd, 10);
+const isNow = start > 0 && start <= now && end > now;
+const isNext = start > 0 && start > now && start <= oneHourFromNow;
+const matchesNowNext = !showingNowNext || isNow || isNext;
 
-    cardsArray.sort((a, b) => {
-        if (sortMode === 'alpha') {
-            return a.dataset.name.localeCompare(b.dataset.name);
-        } else {
-            const timeA = parseInt(a.dataset.timestamp, 10);
-            const timeB = parseInt(b.dataset.timestamp, 10);
-            const aIsUnknown = timeA === 0;
-            const bIsUnknown = timeB === 0;
-            if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
-            if (aIsUnknown) return 1;
-            if (bIsUnknown) return -1;
-            if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
-            return timeA - timeB;
-        }
-    });
+if (matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext) {
+card.style.display = '';
+visibleCount++;
+if (originalSearchTerm) {
+applyHighlight(artistNameEl, originalSearchTerm);
+if (genresEl) applyHighlight(genresEl, originalSearchTerm);
+if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
+if (descriptionEl) applyHighlight(descriptionEl, originalSearchTerm);
+youtubeTitleEls.forEach(el => applyHighlight(el, originalSearchTerm));
+}
+} else {
+card.style.display = 'none';
+}
 
-    cardsArray.forEach((card, index) => {
-        card.style.order = index;
-    });
+const favIcon = card.querySelector('.favorite-icon');
+if (favIcon) {
+favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
+}
+}
 
-    updateArtistCount(visibleCount);
+const cardsArray = Array.from(cardElements);
 
-    if (!options.preserveScroll) {
-        scrollToArtistListTop();
-    }
+cardsArray.sort((a, b) => {
+if (sortMode === 'alpha') {
+return a.dataset.name.localeCompare(b.dataset.name);
+} else {
+const timeA = parseInt(a.dataset.timestamp, 10);
+const timeB = parseInt(b.dataset.timestamp, 10);
+const aIsUnknown = timeA === 0;
+const bIsUnknown = timeB === 0;
+if (aIsUnknown && bIsUnknown) return a.dataset.name.localeCompare(b.dataset.name);
+if (aIsUnknown) return 1;
+if (bIsUnknown) return -1;
+if (timeA === timeB) return a.dataset.name.localeCompare(b.dataset.name);
+return timeA - timeB;
+}
+});
+
+cardsArray.forEach((card, index) => {
+card.style.order = index;
+});
+
+updateArtistCount(visibleCount);
+
+if (!options.preserveScroll) {
+scrollToArtistListTop();
+}
 }
 
 function calculateNightsToSleep() {
@@ -1413,10 +1609,23 @@ startStatusAlternation();
 }
 
 function updateFilterButtonsUI(){
-document.querySelectorAll('.filter-button').forEach(btn=>{
+document.querySelectorAll('#podiaButtonsContainer .filter-button').forEach(btn=>{
 btn.classList.toggle('active', activePodia.includes(btn.dataset.podium));
 });
 }
+
+function updatePodiaToggleUI() {
+const activeCount = activePodia.length;
+
+if (activeCount > 0) {
+podiaIndicator.textContent = activeCount;
+podiaToggleBtn.classList.add('active');
+} else {
+podiaIndicator.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+podiaToggleBtn.classList.remove('active');
+}
+}
+
 
 function updateSortIconsUI(){
 sortAlphaElement.classList.toggle('active', sortMode === 'alpha');
@@ -1435,6 +1644,30 @@ const dayFilterForButton = btn.dataset.dayfilter;
 btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
 });
 }
+
+function updateLiveStatusOnCards() {
+    const now = new Date().getTime();
+    const cards = document.querySelectorAll('.artist-card');
+
+    cards.forEach(card => {
+        const start = parseInt(card.dataset.timestampStart, 10);
+        const end = parseInt(card.dataset.timestampEnd, 10);
+        const indicator = card.querySelector('.now-playing-indicator');
+        const timeInfoEl = card.querySelector('.time-info');
+
+        if (!indicator || !timeInfoEl || !start || !end) return;
+
+        if (start <= now && end > now) {
+            const remainingMinutes = Math.ceil((end - now) / 60000);
+            timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo} (nog ${remainingMinutes} min)`;
+            indicator.style.display = 'inline-block';
+        } else {
+            timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo}${timeInfoEl.dataset.durationText}`;
+            indicator.style.display = 'none';
+        }
+    });
+}
+
 
 function toggleFavoriteOnCard(name){
 const idx = favorites.indexOf(name);
@@ -1488,6 +1721,16 @@ document.body.style.paddingTop = `${headerHeight + 10}px`;
 }
 }
 
+function syncPodiaButtonWidths() {
+requestAnimationFrame(() => {
+const toggleWidth = podiaToggleBtn.offsetWidth;
+const podiaButtons = podiaButtonsContainer.querySelectorAll('.filter-button');
+podiaButtons.forEach(btn => {
+btn.style.width = `${toggleWidth}px`;
+});
+});
+}
+
 function handleScrollLogic() {
 if (!controlBarGroup) return;
 const currentScrollY = window.scrollY;
@@ -1498,6 +1741,8 @@ controlBarGroup.classList.remove('hidden');
 }
 else if (scrollDelta > scrollThreshold) {
 controlBarGroup.classList.add('hidden');
+podiaButtonsContainer.classList.remove('visible');
+podiaToggleBtn.classList.remove('menu-open');
 }
 else if (scrollDelta < -scrollThreshold) {
 controlBarGroup.classList.remove('hidden');
@@ -1508,7 +1753,7 @@ ticking = false;
 
 function highlightCurrentDayButton() {
 const now = new Date();
-if (now.getFullYear() === 2025 && now.getMonth() === 6) { // Juli is maand 6 (0-indexed)
+if (now.getFullYear() === 2025 && now.getMonth() === 6) {
 const currentDayOfMonth = now.getDate();
 const targetDayFilter = `${currentDayOfMonth} juli`;
 const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${targetDayFilter}"]`);
@@ -1517,6 +1762,45 @@ todayButton.classList.add('is-today');
 }
 }
 }
+
+function runCacheMigration() {
+    const MIGRATION_KEY = 'vf_cache_migration_fix_voerweg_v1';
+    if (localStorage.getItem(MIGRATION_KEY)) {
+        return;
+    }
+
+    console.log('Cache migratie voor "Club Voerweg" wordt uitgevoerd...');
+    let migrationNeeded = false;
+    
+    const cachedDataString = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
+    if (cachedDataString) {
+        try {
+            const cachedData = JSON.parse(cachedDataString);
+            cachedData.forEach(item => {
+                if (item && item.info && item.info.podium === 'Club voerweg') {
+                    migrationNeeded = true;
+                    const artistName = item.artist.name;
+                    const artistCacheKey = PREFIX + 'artist_info_' + artistName.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
+                    localStorage.removeItem(artistCacheKey);
+                    console.log(`Individuele cache voor ${artistName} verwijderd.`);
+                }
+            });
+        } catch(e) {
+            console.error("Fout bij parsen van hoofdcache tijdens migratie, cache wordt volledig gewist.", e);
+            migrationNeeded = true;
+        }
+    }
+
+    if (migrationNeeded) {
+        localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+        localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+        console.log('Hoofdcache en timestamp verwijderd. Data wordt opnieuw opgehaald.');
+    }
+
+    localStorage.setItem(MIGRATION_KEY, 'true');
+    console.log('Cache migratie voltooid.');
+}
+
 
 function initializeEventListeners() {
 dayFilterContainerElement.addEventListener('click', function(e) {
@@ -1535,7 +1819,13 @@ applyFiltersAndSort();
 }
 });
 
-filterContainerElement.addEventListener('click', function(e){
+podiaToggleBtn.addEventListener('click', (e) => {
+e.stopPropagation();
+podiaButtonsContainer.classList.toggle('visible');
+podiaToggleBtn.classList.toggle('menu-open');
+});
+
+podiaButtonsContainer.addEventListener('click', function(e){
 const btn = e.target.closest('.filter-button');
 if(btn){
 const p = btn.dataset.podium;
@@ -1544,9 +1834,26 @@ activePodia = activePodia.includes(p)
 : [...activePodia, p];
 setStoredJSON(PREFIX + 'activePodia', activePodia);
 updateFilterButtonsUI();
+updatePodiaToggleUI();
 applyFiltersAndSort();
 }
 });
+
+if (nowNextBtn) {
+nowNextBtn.addEventListener('click', function() {
+showingNowNext = !showingNowNext;
+this.classList.toggle('active', showingNowNext);
+applyFiltersAndSort();
+});
+}
+
+window.addEventListener('click', (e) => {
+if (!podiaToggleBtn.contains(e.target) && !podiaButtonsContainer.contains(e.target)) {
+podiaButtonsContainer.classList.remove('visible');
+podiaToggleBtn.classList.remove('menu-open');
+}
+});
+
 
 searchFieldElement.addEventListener('focus', function() {
 searchClickShouldClear = (this.value.length > 0);
@@ -1626,19 +1933,25 @@ dockedSpotifyPlayerWrapper.classList.add('visible');
 
 closeDockedPlayerButton.addEventListener('click', () => {
 dockedSpotifyPlayerWrapper.classList.remove('visible');
-setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300); // Delay to allow animation
+setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
 });
 
 window.addEventListener('scroll', () => {
 if (!ticking) { window.requestAnimationFrame(handleScrollLogic); ticking = true; }
 });
-window.addEventListener('resize', updateBodyPadding);
+window.addEventListener('resize', () => {
+updateBodyPadding();
+syncPodiaButtonWidths();
+});
 }
 
 async function main() {
+runCacheMigration();
+
 initializeEventListeners();
 highlightCurrentDayButton();
 updateFilterButtonsUI();
+updatePodiaToggleUI();
 updateSortIconsUI();
 updateFavoriteToggleUI();
 updateActiveDayTabsUI();
@@ -1659,6 +1972,9 @@ if (typeof setupImageLazyLoader === 'function') {
 setupImageLazyLoader();
 }
 applyFiltersAndSort();
+updateLiveStatusOnCards();
+clearInterval(liveStatusInterval);
+liveStatusInterval = setInterval(updateLiveStatusOnCards, 60000);
 } else {
 if (!errorMessageElement.style.display || errorMessageElement.style.display === 'none') {
 showError('Geen artiesten data gevonden of kunnen laden.');
@@ -1666,8 +1982,9 @@ showError('Geen artiesten data gevonden of kunnen laden.');
 updateArtistCount(0);
 }
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
-updateBodyPadding(); // Initial padding calculation
-handleScrollLogic(); // Initial control bar state
+updateBodyPadding();
+syncPodiaButtonWidths();
+handleScrollLogic();
 }
 
 main();
