@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MP3 Trimmer</title>
     <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -34,6 +34,13 @@
             margin-top: 0;
             margin-bottom: 20px;
             font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        h1 .material-icons {
+             font-size: 1.8rem;
         }
         #file-input {
             display: none;
@@ -48,6 +55,10 @@
             cursor: pointer;
             font-weight: bold;
             transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .file-label:hover {
             background-color: #166fe5;
@@ -79,8 +90,9 @@
             margin-bottom: 15px;
             align-items: center;
         }
-        .seek-controls button i {
-            font-size: 1.2rem;
+        .seek-controls button .material-icons {
+            font-size: 2rem;
+            margin: -4px 0; /* Vertical alignment fix for these specific icons */
         }
         .time-display {
             display: flex;
@@ -134,6 +146,9 @@
             justify-content: center;
             gap: 8px;
         }
+        button .material-icons {
+            font-size: 1.2rem;
+        }
         button:hover:not(:disabled) {
             background-color: #e9ebee;
         }
@@ -148,12 +163,12 @@
         .btn-play-pause {
             background-color: #1877f2;
             color: white;
-            padding: 14px;
+            padding: 10px; /* Adjusted padding */
             transform: scale(1.1);
             border: none;
         }
-        .btn-play-pause i {
-            font-size: 1.5rem;
+        .btn-play-pause .material-icons {
+            font-size: 2.2rem; /* Adjusted size */
             margin: 0;
         }
         .btn-play-pause:hover:not(:disabled) {
@@ -179,10 +194,10 @@
 <body>
 
     <div class="container">
-        <h1><i class="fa-solid fa-scissors"></i> MP3 Trimmer</h1>
+        <h1><i class="material-icons">content_cut</i> MP3 Trimmer</h1>
 
         <input type="file" id="file-input" accept="audio/mpeg">
-        <label for="file-input" class="file-label" id="file-label"><i class="fa-solid fa-file-audio"></i> Select MP3 File</label>
+        <label for="file-input" class="file-label" id="file-label"><i class="material-icons">audio_file</i> Select MP3 File</label>
         <p id="file-name" style="text-align: center; color: #606770; margin-top: 10px;"></p>
 
         <div id="loader"></div>
@@ -191,11 +206,11 @@
             <audio id="audio-player" controls></audio>
             
             <div class="seek-controls">
-                <button onclick="seekRelative(-10)" disabled aria-label="Rewind 10 seconds"><i class="fa-solid fa-backward-fast"></i></button>
-                <button onclick="seekRelative(-1)" disabled aria-label="Rewind 1 second"><i class="fa-solid fa-backward-step"></i></button>
-                <button id="play-pause-btn" class="btn-play-pause" onclick="togglePlayPause()" disabled aria-label="Play/Pause"><i id="play-pause-icon" class="fa-solid fa-play"></i></button>
-                <button onclick="seekRelative(1)" disabled aria-label="Forward 1 second"><i class="fa-solid fa-forward-step"></i></button>
-                <button onclick="seekRelative(10)" disabled aria-label="Forward 10 seconds"><i class="fa-solid fa-forward-fast"></i></button>
+                <button onclick="seekRelative(-10)" disabled aria-label="Rewind 10 seconds"><i class="material-icons">keyboard_double_arrow_left</i></button>
+                <button onclick="seekRelative(-1)" disabled aria-label="Rewind 1 second"><i class="material-icons">keyboard_arrow_left</i></button>
+                <button id="play-pause-btn" class="btn-play-pause" onclick="togglePlayPause()" disabled aria-label="Play/Pause"><i id="play-pause-icon" class="material-icons">play_arrow</i></button>
+                <button onclick="seekRelative(1)" disabled aria-label="Forward 1 second"><i class="material-icons">keyboard_arrow_right</i></button>
+                <button onclick="seekRelative(10)" disabled aria-label="Forward 10 seconds"><i class="material-icons">keyboard_double_arrow_right</i></button>
             </div>
 
             <div class="time-display">
@@ -204,10 +219,10 @@
             </div>
 
             <div class="button-grid">
-                <button onclick="setStartTime()" disabled><i class="fa-solid fa-square-caret-left"></i> Set Start</button>
-                <button onclick="setEndTime()" disabled><i class="fa-solid fa-square-caret-right"></i> Set End</button>
-                <button onclick="playSelection()" disabled><i class="fa-solid fa-play"></i> Play Sel.</button>
-                <button onclick="stopPlayback()" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+                <button onclick="setStartTime()" disabled><i class="material-icons">first_page</i> Set Start</button>
+                <button onclick="setEndTime()" disabled><i class="material-icons">last_page</i> Set End</button>
+                <button onclick="playSelection()" disabled><i class="material-icons">play_arrow</i> Play Sel.</button>
+                <button onclick="stopPlayback()" disabled><i class="material-icons">stop</i> Stop</button>
             </div>
 
             <div class="dual-column-grid">
@@ -219,7 +234,7 @@
                         <button onclick="adjustTime('start', -0.1)" disabled>-0.1s</button>
                         <button onclick="adjustTime('start', 0.1)" disabled>+0.1s</button>
                     </div>
-                    <button onclick="previewStart()" disabled class="button-grid-child" style="width: 100%;"><i class="fa-solid fa-ear-listen"></i> Preview Start</button>
+                    <button onclick="previewStart()" disabled class="button-grid-child" style="width: 100%;"><i class="material-icons">hearing</i> Preview Start</button>
                 </div>
                  <div class="button-group">
                     <p>Fine-tune End</p>
@@ -229,11 +244,11 @@
                         <button onclick="adjustTime('end', -0.1)" disabled>-0.1s</button>
                         <button onclick="adjustTime('end', 0.1)" disabled>+0.1s</button>
                     </div>
-                    <button onclick="previewEnd()" disabled class="button-grid-child" style="width: 100%;"><i class="fa-solid fa-ear-listen"></i> Preview End</button>
+                    <button onclick="previewEnd()" disabled class="button-grid-child" style="width: 100%;"><i class="material-icons">hearing</i> Preview End</button>
                 </div>
             </div>
             
-            <button class="btn-success" onclick="trimAndDownload()" disabled><i class="fa-solid fa-download"></i> Trim & Download MP3</button>
+            <button class="btn-success" onclick="trimAndDownload()" disabled><i class="material-icons">download</i> Trim & Download MP3</button>
         </div>
     </div>
 
@@ -264,13 +279,11 @@
         fileInput.addEventListener('change', handleFileSelect);
 
         audioPlayer.addEventListener('play', () => {
-            playPauseIcon.classList.remove('fa-play');
-            playPauseIcon.classList.add('fa-pause');
+            playPauseIcon.textContent = 'pause';
         });
 
         audioPlayer.addEventListener('pause', () => {
-            playPauseIcon.classList.remove('fa-pause');
-            playPauseIcon.classList.add('fa-play');
+            playPauseIcon.textContent = 'play_arrow';
             clearPlaybackTimer(); 
         });
         
@@ -384,7 +397,6 @@
 
         function stopPlayback() {
             audioPlayer.pause();
-            // The 'pause' event listener will automatically call clearPlaybackTimer()
         }
 
         function adjustTime(marker, amount) {
