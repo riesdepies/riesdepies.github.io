@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MP3 Trimmer</title>
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        #file-input {
+            display: none;
+        }
+        .file-label {
+            display: block;
+            background-color: #1877f2;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .file-label:hover {
+            background-color: #166fe5;
+        }
+        #loader {
+            display: none;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #1877f2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        audio {
+            width: 100%;
+        }
+        .seek-controls {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .seek-controls button i {
+            font-size: 1.2rem;
+        }
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 1rem;
+        }
+        .time-display span {
+            background-color: #e7f3ff;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .dual-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .button-group p {
+            margin: 0 0 8px 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #606770;
+            text-align: center;
+        }
+        .fine-tune-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccd0d5;
+            background-color: #f5f6f7;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s, transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover:not(:disabled) {
+            background-color: #e9ebee;
+        }
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f5f6f7;
+        }
+        .btn-play-pause {
+            background-color: #1877f2;
+            color: white;
+            padding: 14px;
+            transform: scale(1.1);
+            border: none;
+        }
+        .btn-play-pause i {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        .btn-play-pause:hover:not(:disabled) {
+            background-color: #166fe5;
+        }
+        .btn-play-pause:disabled {
+            background-color: #1877f2;
+        }
+        .btn-success {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #42b72a;
+            color: white;
+            border: none;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 12px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><i class="fa-solid fa-scissors"></i> MP3 Trimmer</h1>
+
+        <input type="file" id="file-input" accept="audio/mpeg">
+        <label for="file-input" class="file-label" id="file-label"><i class="fa-solid fa-file-audio"></i> Select MP3 File</label>
+        <p id="file-name" style="text-align: center; color: #606770; margin-top: 10px;"></p>
+
+        <div id="loader"></div>
+
+        <div id="controls">
+            <audio id="audio-player" controls></audio>
+            
+            <div class="seek-controls">
+                <button onclick="seekRelative(-10)" disabled aria-label="Rewind 10 seconds"><i class="fa-solid fa-backward-fast"></i></button>
+                <button onclick="seekRelative(-1)" disabled aria-label="Rewind 1 second"><i class="fa-solid fa-backward-step"></i></button>
+                <button id="play-pause-btn" class="btn-play-pause" onclick="togglePlayPause()" disabled aria-label="Play/Pause"><i id="play-pause-icon" class="fa-solid fa-play"></i></button>
+                <button onclick="seekRelative(1)" disabled aria-label="Forward 1 second"><i class="fa-solid fa-forward-step"></i></button>
+                <button onclick="seekRelative(10)" disabled aria-label="Forward 10 seconds"><i class="fa-solid fa-forward-fast"></i></button>
+            </div>
+
+            <div class="time-display">
+                <div id="start-time-display">Start: 00:00.000</div>
+                <div id="end-time-display">End: 00:00.000</div>
+            </div>
+
+            <div class="button-grid">
+                <button onclick="setStartTime()" disabled><i class="fa-solid fa-square-caret-left"></i> Set Start</button>
+                <button onclick="setEndTime()" disabled><i class="fa-solid fa-square-caret-right"></i> Set End</button>
+                <button onclick="playSelection()" disabled><i class="fa-solid fa-play"></i> Play Sel.</button>
+                <button onclick="stopPlayback()" disabled><i class="fa-solid fa-stop"></i> Stop</button>
+            </div>
+
+            <div class="dual-column-grid">
+                <div class="button-group">
+                    <p>Fine-tune Start</p>
+                    <div class="fine-tune-grid">
+                        <button onclick="adjustTime('start', -1)" disabled>-1s</button>
+                        <button onclick="adjustTime('start', 1)" disabled>+1s</button>
+                        <button onclick="adjustTime('start', -0.1)" disabled>-0.1s</button>
+                        <button onclick="adjustTime('start', 0.1)" disabled>+0.1s</button>
+                    </div>
+                    <button onclick="previewStart()" disabled class="button-grid-child" style="width: 100%;"><i class="fa-solid fa-ear-listen"></i> Preview Start</button>
+                </div>
+                 <div class="button-group">
+                    <p>Fine-tune End</p>
+                    <div class="fine-tune-grid">
+                        <button onclick="adjustTime('end', -1)" disabled>-1s</button>
+                        <button onclick="adjustTime('end', 1)" disabled>+1s</button>
+                        <button onclick="adjustTime('end', -0.1)" disabled>-0.1s</button>
+                        <button onclick="adjustTime('end', 0.1)" disabled>+0.1s</button>
+                    </div>
+                    <button onclick="previewEnd()" disabled class="button-grid-child" style="width: 100%;"><i class="fa-solid fa-ear-listen"></i> Preview End</button>
+                </div>
+            </div>
+            
+            <button class="btn-success" onclick="trimAndDownload()" disabled><i class="fa-solid fa-download"></i> Trim & Download MP3</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const fileInput = document.getElementById('file-input');
+        const fileLabel = document.getElementById('file-label');
+        const fileNameDisplay = document.getElementById('file-name');
+        const loader = document.getElementById('loader');
+        const controlsDiv = document.getElementById('controls');
+        const audioPlayer = document.getElementById('audio-player');
+        const startTimeDisplay = document.getElementById('start-time-display');
+        const endTimeDisplay = document.getElementById('end-time-display');
+        const allButtons = document.querySelectorAll('#controls button');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+
+        // --- State Variables ---
+        let audioContext;
+        let originalBuffer;
+        let originalFileName = '';
+        let startTime = 0;
+        let endTime = 0;
+        let isPlayingSelection = false;
+        let previewTimer = null;
+        
+        // --- Initialization ---
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        
+        fileInput.addEventListener('change', handleFileSelect);
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            if (isPlayingSelection && audioPlayer.currentTime >= endTime) {
+                stopPlayback();
+            }
+        });
+        
+        audioPlayer.addEventListener('play', () => {
+            playPauseIcon.classList.remove('fa-play');
+            playPauseIcon.classList.add('fa-pause');
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            playPauseIcon.classList.remove('fa-pause');
+            playPauseIcon.classList.add('fa-play');
+        });
+
+        // --- Core Functions ---
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (audioPlayer.src) {
+                URL.revokeObjectURL(audioPlayer.src);
+            }
+            
+            audioPlayer.src = URL.createObjectURL(file);
+            audioPlayer.load();
+
+            originalFileName = file.name.replace(/\.mp3$/i, '');
+            fileNameDisplay.textContent = file.name;
+            showLoader(true);
+            allButtons.forEach(btn => btn.disabled = true);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const arrayBuffer = e.target.result;
+                
+                if (!audioContext) {
+                    audioContext = new AudioContext();
+                }
+
+                audioContext.decodeAudioData(arrayBuffer, (buffer) => {
+                    originalBuffer = buffer;
+                    startTime = 0;
+                    endTime = buffer.duration;
+                    
+                    updateDisplay();
+                    showLoader(false);
+                    allButtons.forEach(btn => btn.disabled = false);
+                }, (error) => {
+                    alert('Error decoding audio file: ' + error.message);
+                    showLoader(false);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function togglePlayPause() {
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            } else {
+                audioPlayer.pause();
+            }
+            isPlayingSelection = false;
+        }
+
+        function seekRelative(seconds) {
+            const newTime = audioPlayer.currentTime + seconds;
+            audioPlayer.currentTime = Math.max(0, Math.min(newTime, originalBuffer.duration));
+        }
+
+        function setStartTime() {
+            startTime = audioPlayer.currentTime;
+            if (startTime >= endTime) {
+                startTime = endTime - 0.1; 
+            }
+            updateDisplay();
+        }
+
+        function setEndTime() {
+            endTime = audioPlayer.currentTime;
+            if (endTime <= startTime) {
+                endTime = startTime + 0.1;
+            }
+            updateDisplay();
+        }
+
+        function playSelection() {
+            stopPlayback(); 
+            isPlayingSelection = true;
+            audioPlayer.currentTime = startTime;
+            audioPlayer.play();
+        }
+        
+        function previewStart() {
+            stopPlayback();
+            audioPlayer.currentTime = startTime;
+            audioPlayer.play();
+            previewTimer = setTimeout(stopPlayback, 2000); 
+        }
+
+        function previewEnd() {
+            stopPlayback();
+            const previewPoint = Math.max(0, endTime - 2);
+            audioPlayer.currentTime = previewPoint;
+            audioPlayer.play();
+            previewTimer = setTimeout(stopPlayback, 2000);
+        }
+
+        function stopPlayback() {
+            audioPlayer.pause();
+            isPlayingSelection = false;
+            if (previewTimer) {
+                clearTimeout(previewTimer);
+                previewTimer = null;
+            }
+        }
+
+        function adjustTime(marker, amount) {
+            if (marker === 'start') {
+                startTime = Math.max(0, startTime + amount);
+                startTime = Math.min(startTime, endTime - 0.01); 
+            } else if (marker === 'end') {
+                endTime = Math.min(originalBuffer.duration, endTime + amount);
+                endTime = Math.max(endTime, startTime + 0.01);
+            }
+            updateDisplay();
+        }
+        
+        async function trimAndDownload() {
+            if (!originalBuffer) {
+                alert('Please load an MP3 file first.');
+                return;
+            }
+            if (startTime >= endTime) {
+                alert('Start time must be before end time.');
+                return;
+            }
+
+            showLoader(true);
+            
+            const startOffset = Math.floor(startTime * originalBuffer.sampleRate);
+            const endOffset = Math.floor(endTime * originalBuffer.sampleRate);
+            const frameCount = endOffset - startOffset;
+
+            if (frameCount <= 0) {
+                alert("Invalid trim selection. The duration is zero or negative.");
+                showLoader(false);
+                return;
+            }
+
+            const offlineCtx = new OfflineAudioContext(originalBuffer.numberOfChannels, frameCount, originalBuffer.sampleRate);
+            const bufferSource = offlineCtx.createBufferSource();
+            bufferSource.buffer = originalBuffer;
+            bufferSource.connect(offlineCtx.destination);
+            bufferSource.start(0, startTime, endTime - startTime);
+            
+            const renderedBuffer = await offlineCtx.startRendering();
+            const mp3Data = encodeToMp3(renderedBuffer);
+
+            const blob = new Blob(mp3Data, { type: 'audio/mp3' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${originalFileName}_trimmed.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+
+            showLoader(false);
+        }
+
+        function encodeToMp3(audioBuffer) {
+            const channels = audioBuffer.numberOfChannels;
+            const sampleRate = audioBuffer.sampleRate;
+            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
+            const samples = [];
+            const sampleBlockSize = 1152;
+
+            if (channels === 2) {
+                const left = audioBuffer.getChannelData(0);
+                const right = audioBuffer.getChannelData(1);
+                samples.push(new Int16Array(left.length));
+                samples.push(new Int16Array(right.length));
+                for (let i = 0; i < left.length; i++) {
+                    samples[0][i] = left[i] * 32767.5;
+                    samples[1][i] = right[i] * 32767.5;
+                }
+            } else {
+                const mono = audioBuffer.getChannelData(0);
+                samples.push(new Int16Array(mono.length));
+                for (let i = 0; i < mono.length; i++) {
+                    samples[0][i] = mono[i] * 32767.5;
+                }
+            }
+            
+            let mp3Data = [];
+            for (let i = 0; i < samples[0].length; i += sampleBlockSize) {
+                const leftChunk = samples[0].subarray(i, i + sampleBlockSize);
+                let rightChunk = (channels === 2) ? samples[1].subarray(i, i + sampleBlockSize) : null;
+                const mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+                if (mp3buf.length > 0) mp3Data.push(mp3buf);
+            }
+            const mp3buf = mp3encoder.flush();
+            if (mp3buf.length > 0) mp3Data.push(mp3buf);
+            return mp3Data;
+        }
+
+        // --- UI Helper Functions ---
+        function showLoader(show) {
+            loader.style.display = show ? 'block' : 'none';
+            fileInput.disabled = show;
+            if (show) {
+                controlsDiv.style.opacity = '0.5';
+                allButtons.forEach(btn => btn.disabled = true);
+            } else {
+                controlsDiv.style.opacity = '1';
+            }
+        }
+
+        function updateDisplay() {
+            startTimeDisplay.textContent = `Start: ${formatTime(startTime)}`;
+            endTimeDisplay.textContent = `End: ${formatTime(endTime)}`;
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
+            return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+        }
+    </script>
+
+</body>
+</html>
