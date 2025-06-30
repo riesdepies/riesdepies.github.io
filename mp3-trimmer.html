@@ -322,12 +322,12 @@
         }
         
         function togglePlayPause() {
+            stopPlayback(); // Stop any selection playback
             if (audioPlayer.paused) {
                 audioPlayer.play();
             } else {
                 audioPlayer.pause();
             }
-            isPlayingSelection = false;
         }
 
         function seekRelative(seconds) {
@@ -359,18 +359,19 @@
         }
         
         function previewStart() {
-            stopPlayback();
-            audioPlayer.currentTime = startTime;
-            audioPlayer.play();
+            playSelection(); // Use the same accurate playback logic
+            // But also add a timer to stop it after 2s if the selection is longer
             previewTimer = setTimeout(stopPlayback, 2000); 
         }
 
         function previewEnd() {
             stopPlayback();
-            const previewPoint = Math.max(0, endTime - 2);
+            // Start playing 2 seconds before the end, but not before the start marker.
+            const previewPoint = Math.max(startTime, endTime - 2);
             audioPlayer.currentTime = previewPoint;
+            // Use the accurate selection playback which will stop exactly at endTime
+            isPlayingSelection = true;
             audioPlayer.play();
-            previewTimer = setTimeout(stopPlayback, 2000);
         }
 
         function stopPlayback() {
