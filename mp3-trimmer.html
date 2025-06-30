@@ -256,20 +256,13 @@
         let originalFileName = '';
         let startTime = 0;
         let endTime = 0;
-        let isPlayingSelection = false;
-        let previewTimer = null;
+        let playbackTimer = null;
         
         // --- Initialization ---
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         
         fileInput.addEventListener('change', handleFileSelect);
 
-        audioPlayer.addEventListener('timeupdate', () => {
-            if (isPlayingSelection && audioPlayer.currentTime >= endTime) {
-                stopPlayback();
-            }
-        });
-        
         audioPlayer.addEventListener('play', () => {
             playPauseIcon.classList.remove('fa-play');
             playPauseIcon.classList.add('fa-pause');
@@ -278,6 +271,11 @@
         audioPlayer.addEventListener('pause', () => {
             playPauseIcon.classList.remove('fa-pause');
             playPauseIcon.classList.add('fa-play');
+            clearPlaybackTimer(); 
+        });
+        
+        audioPlayer.addEventListener('ended', () => {
+            clearPlaybackTimer();
         });
 
         // --- Core Functions ---
@@ -322,7 +320,7 @@
         }
         
         function togglePlayPause() {
-            stopPlayback(); // Stop any selection playback
+            clearPlaybackTimer();
             if (audioPlayer.paused) {
                 audioPlayer.play();
             } else {
@@ -331,6 +329,7 @@
         }
 
         function seekRelative(seconds) {
+            clearPlaybackTimer();
             const newTime = audioPlayer.currentTime + seconds;
             audioPlayer.currentTime = Math.max(0, Math.min(newTime, originalBuffer.duration));
         }
@@ -338,7 +337,7 @@
         function setStartTime() {
             startTime = audioPlayer.currentTime;
             if (startTime >= endTime) {
-                startTime = endTime - 0.1; 
+                startTime = endTime - 0.01; 
             }
             updateDisplay();
         }
@@ -346,44 +345,50 @@
         function setEndTime() {
             endTime = audioPlayer.currentTime;
             if (endTime <= startTime) {
-                endTime = startTime + 0.1;
+                endTime = startTime + 0.01;
             }
             updateDisplay();
         }
 
         function playSelection() {
-            stopPlayback(); 
-            isPlayingSelection = true;
+            clearPlaybackTimer();
+            const duration = (endTime - startTime) * 1000;
+            if (duration <= 0) return;
+
             audioPlayer.currentTime = startTime;
             audioPlayer.play();
+            playbackTimer = setTimeout(() => audioPlayer.pause(), duration);
         }
         
         function previewStart() {
-            playSelection(); // Use the same accurate playback logic
-            // But also add a timer to stop it after 2s if the selection is longer
-            previewTimer = setTimeout(stopPlayback, 2000); 
+            clearPlaybackTimer();
+            audioPlayer.currentTime = startTime;
+            audioPlayer.play();
+            playbackTimer = setTimeout(() => audioPlayer.pause(), 2000); 
         }
 
         function previewEnd() {
-            stopPlayback();
-            // Start playing 2 seconds before the end, but not before the start marker.
-            const previewPoint = Math.max(startTime, endTime - 2);
+            clearPlaybackTimer();
+            const previewPoint = Math.max(0, endTime - 2);
             audioPlayer.currentTime = previewPoint;
-            // Use the accurate selection playback which will stop exactly at endTime
-            isPlayingSelection = true;
             audioPlayer.play();
+            playbackTimer = setTimeout(() => audioPlayer.pause(), 2000);
+        }
+
+        function clearPlaybackTimer() {
+            if (playbackTimer) {
+                clearTimeout(playbackTimer);
+                playbackTimer = null;
+            }
         }
 
         function stopPlayback() {
             audioPlayer.pause();
-            isPlayingSelection = false;
-            if (previewTimer) {
-                clearTimeout(previewTimer);
-                previewTimer = null;
-            }
+            // The 'pause' event listener will automatically call clearPlaybackTimer()
         }
 
         function adjustTime(marker, amount) {
+            stopPlayback();
             if (marker === 'start') {
                 startTime = Math.max(0, startTime + amount);
                 startTime = Math.min(startTime, endTime - 0.01); 
