@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MP3 Trimmer</title>
+    <title>ries' MP3 Trimmer</title>
     <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -15,14 +15,14 @@
             padding: 15px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Changed to align container to the top */
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 600px;
             background-color: #ffffff;
             border-radius: 12px;
             padding: 20px;
@@ -81,7 +81,54 @@
             margin-top: 20px;
         }
         audio {
+            display: none;
+        }
+        #custom-player {
+            margin-bottom: 15px;
+        }
+        #progress-bar {
             width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+        #progress-filled {
+            width: 0%;
+            height: 100%;
+            background-color: #1877f2;
+            border-radius: 5px;
+            position: absolute;
+            z-index: 1;
+        }
+        #selection-highlight {
+            position: absolute;
+            height: 100%;
+            background-color: rgba(24, 119, 242, 0.3);
+            z-index: 2;
+            display: none;
+            pointer-events: none;
+        }
+        .marker {
+            position: absolute;
+            width: 3px;
+            height: 14px;
+            top: -2px;
+            background-color: white;
+            box-shadow: 0 0 3px rgba(0,0,0,0.5);
+            border-radius: 2px;
+            z-index: 3;
+            display: none;
+            pointer-events: none;
+        }
+        .time-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #606770;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
         }
         .seek-controls {
             display: grid;
@@ -92,7 +139,7 @@
         }
         .seek-controls button .material-icons {
             font-size: 2rem;
-            margin: -4px 0; /* Vertical alignment fix for these specific icons */
+            margin: -4px 0;
         }
         .time-display {
             display: flex;
@@ -163,12 +210,12 @@
         .btn-play-pause {
             background-color: #1877f2;
             color: white;
-            padding: 10px; /* Adjusted padding */
+            padding: 10px;
             transform: scale(1.1);
             border: none;
         }
         .btn-play-pause .material-icons {
-            font-size: 2.2rem; /* Adjusted size */
+            font-size: 2.2rem;
             margin: 0;
         }
         .btn-play-pause:hover:not(:disabled) {
@@ -177,8 +224,55 @@
         .btn-play-pause:disabled {
             background-color: #1877f2;
         }
+        .btn-primary-action {
+            width: 100%;
+            background-color: #1877f2;
+            color: white;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        .btn-primary-action:hover:not(:disabled) {
+            background-color: #166fe5;
+        }
+        .btn-primary-action:disabled {
+            background-color: #1877f2;
+        }
+        .quality-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f5f6f7;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .quality-selector label {
+            font-weight: 500;
+            color: #606770;
+        }
+        .quality-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            background-color: white;
+            font-size: 0.9rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 16px 12px;
+            padding-right: 2.5rem;
+        }
         .btn-success {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
             box-sizing: border-box;
             background-color: #42b72a;
@@ -189,12 +283,16 @@
             padding: 12px;
             font-size: 1rem;
         }
+        .btn-success:disabled {
+            background-color: #42b72a;
+            opacity: 0.65;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1><i class="material-icons">content_cut</i> MP3 Trimmer</h1>
+        <h1><i class="material-icons">content_cut</i> ries' MP3 Trimmer</h1>
 
         <input type="file" id="file-input" accept="audio/mpeg">
         <label for="file-input" class="file-label" id="file-label"><i class="material-icons">audio_file</i> Select MP3 File</label>
@@ -203,7 +301,19 @@
         <div id="loader"></div>
 
         <div id="controls">
-            <audio id="audio-player" controls></audio>
+            <div id="custom-player">
+                <div id="progress-bar">
+                    <div id="progress-filled"></div>
+                    <div id="selection-highlight"></div>
+                    <div id="start-marker" class="marker"></div>
+                    <div id="end-marker" class="marker"></div>
+                </div>
+                <div class="time-container">
+                    <span id="current-time">00:00</span>
+                    <span id="total-time">00:00</span>
+                </div>
+            </div>
+            <audio id="audio-player"></audio>
             
             <div class="seek-controls">
                 <button onclick="seekRelative(-10)" disabled aria-label="Rewind 10 seconds"><i class="material-icons">keyboard_double_arrow_left</i></button>
@@ -220,10 +330,13 @@
 
             <div class="button-grid">
                 <button onclick="setStartTime()" disabled><i class="material-icons">first_page</i> Set Start</button>
-                <button onclick="setEndTime()" disabled><i class="material-icons">last_page</i> Set End</button>
-                <button onclick="playSelection()" disabled><i class="material-icons">play_arrow</i> Play Sel.</button>
-                <button onclick="stopPlayback()" disabled><i class="material-icons">stop</i> Stop</button>
+                <button onclick="setEndTime()" disabled>Set End <i class="material-icons">last_page</i></button>
             </div>
+
+            <button id="play-selection-btn" class="btn-primary-action" onclick="playSelection()" disabled>
+                <i id="play-selection-icon" class="material-icons">play_arrow</i>
+                <span id="play-selection-text">Play Selection</span>
+            </button>
 
             <div class="dual-column-grid">
                 <div class="button-group">
@@ -248,7 +361,19 @@
                 </div>
             </div>
             
-            <button class="btn-success" onclick="trimAndDownload()" disabled><i class="material-icons">download</i> Trim & Download MP3</button>
+            <div class="quality-selector">
+                <label for="bitrate-select">MP3 Quality:</label>
+                <select id="bitrate-select">
+                    <option value="96">96 kbps (Good)</option>
+                    <option value="128" selected>128 kbps (Standard)</option>
+                    <option value="192">192 kbps (High)</option>
+                    <option value="320">320 kbps (Best)</option>
+                </select>
+            </div>
+            
+            <button class="btn-success" onclick="trimAndDownload()" disabled>
+                <i class="material-icons">download</i> Trim &amp; Download MP3
+            </button>
         </div>
     </div>
 
@@ -264,6 +389,17 @@
         const endTimeDisplay = document.getElementById('end-time-display');
         const allButtons = document.querySelectorAll('#controls button');
         const playPauseIcon = document.getElementById('play-pause-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFilled = document.getElementById('progress-filled');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const playSelectionBtn = document.getElementById('play-selection-btn');
+        const playSelectionIcon = document.getElementById('play-selection-icon');
+        const playSelectionText = document.getElementById('play-selection-text');
+        const startMarker = document.getElementById('start-marker');
+        const endMarker = document.getElementById('end-marker');
+        const selectionHighlight = document.getElementById('selection-highlight');
+        const bitrateSelect = document.getElementById('bitrate-select');
 
         // --- State Variables ---
         let audioContext;
@@ -272,55 +408,62 @@
         let startTime = 0;
         let endTime = 0;
         let playbackTimer = null;
+        let isScrubbing = false;
         
         // --- Initialization ---
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
         
         fileInput.addEventListener('change', handleFileSelect);
 
-        audioPlayer.addEventListener('play', () => {
-            playPauseIcon.textContent = 'pause';
+        audioPlayer.addEventListener('play', () => { playPauseIcon.textContent = 'pause'; });
+        audioPlayer.addEventListener('pause', () => { playPauseIcon.textContent = 'play_arrow'; clearPlaybackTimer(); });
+        audioPlayer.addEventListener('ended', () => { clearPlaybackTimer(); });
+        audioPlayer.addEventListener('loadedmetadata', () => { totalTimeEl.textContent = formatSimpleTime(audioPlayer.duration); });
+        audioPlayer.addEventListener('timeupdate', () => {
+            currentTimeEl.textContent = formatSimpleTime(audioPlayer.currentTime);
+            if (!isScrubbing && audioPlayer.duration) {
+                 const progressPercent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                 progressFilled.style.width = `${progressPercent}%`;
+            }
         });
 
-        audioPlayer.addEventListener('pause', () => {
-            playPauseIcon.textContent = 'play_arrow';
-            clearPlaybackTimer(); 
-        });
-        
-        audioPlayer.addEventListener('ended', () => {
+        function seekHandler(e) {
+            if (!audioPlayer.duration) return;
+            e.preventDefault();
             clearPlaybackTimer();
-        });
+            const rect = progressBar.getBoundingClientRect();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const position = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            audioPlayer.currentTime = position * audioPlayer.duration;
+            progressFilled.style.width = `${position * 100}%`;
+        }
+        
+        progressBar.addEventListener('mousedown', (e) => { isScrubbing = true; seekHandler(e); });
+        document.addEventListener('mousemove', (e) => { if(isScrubbing) seekHandler(e); });
+        document.addEventListener('mouseup', () => { isScrubbing = false; });
+        progressBar.addEventListener('touchstart', (e) => { isScrubbing = true; seekHandler(e); }, { passive: false });
+        document.addEventListener('touchmove', (e) => { if(isScrubbing) seekHandler(e); }, { passive: false });
+        document.addEventListener('touchend', () => { isScrubbing = false; });
 
         // --- Core Functions ---
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            if (audioPlayer.src) {
-                URL.revokeObjectURL(audioPlayer.src);
-            }
-            
+            if (audioPlayer.src) { URL.revokeObjectURL(audioPlayer.src); }
             audioPlayer.src = URL.createObjectURL(file);
             audioPlayer.load();
-
             originalFileName = file.name.replace(/\.mp3$/i, '');
             fileNameDisplay.textContent = file.name;
             showLoader(true);
             allButtons.forEach(btn => btn.disabled = true);
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 const arrayBuffer = e.target.result;
-                
-                if (!audioContext) {
-                    audioContext = new AudioContext();
-                }
-
+                if (!audioContext) { audioContext = new AudioContext(); }
                 audioContext.decodeAudioData(arrayBuffer, (buffer) => {
                     originalBuffer = buffer;
                     startTime = 0;
                     endTime = buffer.duration;
-                    
                     updateDisplay();
                     showLoader(false);
                     allButtons.forEach(btn => btn.disabled = false);
@@ -334,40 +477,34 @@
         
         function togglePlayPause() {
             clearPlaybackTimer();
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-            } else {
-                audioPlayer.pause();
-            }
+            if (audioPlayer.paused) { audioPlayer.play(); } else { audioPlayer.pause(); }
         }
 
         function seekRelative(seconds) {
             clearPlaybackTimer();
-            const newTime = audioPlayer.currentTime + seconds;
-            audioPlayer.currentTime = Math.max(0, Math.min(newTime, originalBuffer.duration));
+            audioPlayer.currentTime = Math.max(0, Math.min(audioPlayer.currentTime + seconds, audioPlayer.duration));
         }
 
         function setStartTime() {
             startTime = audioPlayer.currentTime;
-            if (startTime >= endTime) {
-                startTime = endTime - 0.01; 
-            }
+            if (startTime >= endTime) { startTime = endTime - 0.01; }
             updateDisplay();
         }
 
         function setEndTime() {
             endTime = audioPlayer.currentTime;
-            if (endTime <= startTime) {
-                endTime = startTime + 0.01;
-            }
+            if (endTime <= startTime) { endTime = startTime + 0.01; }
             updateDisplay();
         }
 
         function playSelection() {
-            clearPlaybackTimer();
+            if (playbackTimer) {
+                stopPlayback();
+                return;
+            }
             const duration = (endTime - startTime) * 1000;
             if (duration <= 0) return;
-
+            updatePlaySelectionButton(true);
             audioPlayer.currentTime = startTime;
             audioPlayer.play();
             playbackTimer = setTimeout(() => audioPlayer.pause(), duration);
@@ -392,6 +529,7 @@
             if (playbackTimer) {
                 clearTimeout(playbackTimer);
                 playbackTimer = null;
+                updatePlaySelectionButton(false);
             }
         }
 
@@ -412,38 +550,24 @@
         }
         
         async function trimAndDownload() {
-            if (!originalBuffer) {
-                alert('Please load an MP3 file first.');
-                return;
-            }
-            if (startTime >= endTime) {
-                alert('Start time must be before end time.');
-                return;
-            }
-
+            if (!originalBuffer) { alert('Please load an MP3 file first.'); return; }
+            if (startTime >= endTime) { alert('Start time must be before end time.'); return; }
             showLoader(true);
+            
+            const selectedBitrate = parseInt(bitrateSelect.value, 10);
             
             const startOffset = Math.floor(startTime * originalBuffer.sampleRate);
             const endOffset = Math.floor(endTime * originalBuffer.sampleRate);
             const frameCount = endOffset - startOffset;
-
-            if (frameCount <= 0) {
-                alert("Invalid trim selection. The duration is zero or negative.");
-                showLoader(false);
-                return;
-            }
-
+            if (frameCount <= 0) { alert("Invalid trim selection."); showLoader(false); return; }
             const offlineCtx = new OfflineAudioContext(originalBuffer.numberOfChannels, frameCount, originalBuffer.sampleRate);
             const bufferSource = offlineCtx.createBufferSource();
             bufferSource.buffer = originalBuffer;
             bufferSource.connect(offlineCtx.destination);
             bufferSource.start(0, startTime, endTime - startTime);
-            
             const renderedBuffer = await offlineCtx.startRendering();
-            const mp3Data = encodeToMp3(renderedBuffer);
-
+            const mp3Data = encodeToMp3(renderedBuffer, selectedBitrate);
             const blob = new Blob(mp3Data, { type: 'audio/mp3' });
-            
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = `${originalFileName}_trimmed.mp3`;
@@ -451,17 +575,15 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(link.href);
-
             showLoader(false);
         }
 
-        function encodeToMp3(audioBuffer) {
+        function encodeToMp3(audioBuffer, kbps) {
             const channels = audioBuffer.numberOfChannels;
             const sampleRate = audioBuffer.sampleRate;
-            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, 128);
+            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
             const samples = [];
             const sampleBlockSize = 1152;
-
             if (channels === 2) {
                 const left = audioBuffer.getChannelData(0);
                 const right = audioBuffer.getChannelData(1);
@@ -478,7 +600,6 @@
                     samples[0][i] = mono[i] * 32767.5;
                 }
             }
-            
             let mp3Data = [];
             for (let i = 0; i < samples[0].length; i += sampleBlockSize) {
                 const leftChunk = samples[0].subarray(i, i + sampleBlockSize);
@@ -502,10 +623,37 @@
                 controlsDiv.style.opacity = '1';
             }
         }
+        
+        function updateSelectionVisuals() {
+            if (!originalBuffer || originalBuffer.duration === 0) return;
+            startMarker.style.display = 'block';
+            endMarker.style.display = 'block';
+            selectionHighlight.style.display = 'block';
+            
+            const startPercent = (startTime / originalBuffer.duration) * 100;
+            const endPercent = (endTime / originalBuffer.duration) * 100;
+            
+            startMarker.style.left = `${startPercent}%`;
+            endMarker.style.left = `${endPercent}%`;
+
+            selectionHighlight.style.left = `${startPercent}%`;
+            selectionHighlight.style.width = `${endPercent - startPercent}%`;
+        }
+
+        function updatePlaySelectionButton(isPlaying) {
+            if (isPlaying) {
+                playSelectionIcon.textContent = 'pause';
+                playSelectionText.textContent = 'Pause Selection';
+            } else {
+                playSelectionIcon.textContent = 'play_arrow';
+                playSelectionText.textContent = 'Play Selection';
+            }
+        }
 
         function updateDisplay() {
             startTimeDisplay.textContent = `Start: ${formatTime(startTime)}`;
             endTimeDisplay.textContent = `End: ${formatTime(endTime)}`;
+            updateSelectionVisuals();
         }
 
         function formatTime(seconds) {
@@ -513,6 +661,13 @@
             const sec = Math.floor(seconds % 60);
             const ms = Math.floor((seconds - Math.floor(seconds)) * 1000);
             return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+        }
+        
+        function formatSimpleTime(seconds) {
+             if (isNaN(seconds)) return '00:00';
+             const min = Math.floor(seconds / 60);
+             const sec = Math.floor(seconds % 60);
+             return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
         }
     </script>
 
