@@ -301,6 +301,7 @@
                 if (speechSynthesis.speaking) {
                     userCancelledSpeech = true;
                     speechSynthesis.cancel();
+                    // The onend event from the utterance will handle the reset
                     return;
                 }
                 
@@ -333,7 +334,7 @@
 
                 conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
 
-                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`;
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
                 const requestBody = { contents: conversationHistory, systemInstruction: { parts: [{ text: systemPrompt }] } };
 
@@ -367,40 +368,72 @@
                     conversationHistory.pop();
                 }
             }
-
+            
+            /**
+            * NEW speak function to handle long texts by chunking them into sentences.
+            */
             function speak(text) {
                 userCancelledSpeech = false;
-                const utterance = new SpeechSynthesisUtterance(text);
-                const allVoices = speechSynthesis.getVoices();
                 
-                utterance.voice = allVoices.find(v => v.lang.startsWith('nl')) || allVoices[0];
-                utterance.lang = utterance.voice ? utterance.voice.lang : 'nl-NL';
-                
-                utterance.onend = () => {
-                    if (userCancelledSpeech) {
-                        statusText.textContent = 'Spraak afgebroken.';
-                    } else {
-                        statusText.textContent = 'Tik op de microfoon om te antwoorden';
-                    }
-                    resetMic();
-                };
+                // Regex to split text into sentences. It handles ., !, ?, and newlines.
+                const chunks = text.match(/[^.!?\n]+[.!?\n]*|[^.!?\n]+$/g) || [];
 
-                utterance.onerror = (event) => {
-                    if (userCancelledSpeech) {
-                        utterance.onend();
-                        return;
-                    }
-                    console.error('SpeechSynthesis Utterance Error:', event.error);
-                    statusText.textContent = 'Fout bij het uitspreken van de tekst.';
+                if (chunks.length === 0) {
                     resetMic();
-                };
+                    statusText.textContent = 'Niets te zeggen.';
+                    return;
+                }
                 
+                let chunkIndex = 0;
+                
+                // Set initial state
                 statusText.textContent = 'Aan het spreken...';
                 micButton.classList.remove('busy');
                 micButton.classList.add('is-stoppable');
                 micIcon.textContent = 'stop';
-                speechSynthesis.speak(utterance);
+                
+                const speakNextChunk = () => {
+                    // Stop if user cancelled or all chunks are spoken
+                    if (userCancelledSpeech || chunkIndex >= chunks.length) {
+                        if (userCancelledSpeech) {
+                            statusText.textContent = 'Spraak afgebroken.';
+                        } else {
+                            statusText.textContent = 'Tik op de microfoon om te antwoorden';
+                        }
+                        resetMic();
+                        return;
+                    }
+
+                    const chunk = chunks[chunkIndex];
+                    const utterance = new SpeechSynthesisUtterance(chunk.trim());
+                    const allVoices = speechSynthesis.getVoices();
+                    
+                    utterance.voice = allVoices.find(v => v.lang.startsWith('nl')) || allVoices.find(v => v.lang.startsWith('en')) || allVoices[0];
+                    utterance.lang = utterance.voice ? utterance.voice.lang : 'nl-NL';
+                    
+                    utterance.onend = () => {
+                        // Move to the next chunk when this one is done
+                        chunkIndex++;
+                        speakNextChunk();
+                    };
+
+                    utterance.onerror = (event) => {
+                        if (userCancelledSpeech) { 
+                             utterance.onend(); // Treat it as finished to clean up
+                             return;
+                        }
+                        console.error('SpeechSynthesis Utterance Error:', event.error);
+                        statusText.textContent = 'Fout bij het uitspreken van de tekst.';
+                        resetMic(); // Stop on error
+                    };
+                    
+                    speechSynthesis.speak(utterance);
+                };
+                
+                // Start speaking the first chunk
+                speakNextChunk();
             }
+
 
             // --- Settings & LocalStorage ---
             function loadSettings() {
