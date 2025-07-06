@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Gemini Voice Chat</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Basic Reset and Styling */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-color: #212529;
+            --icon-color: #ffffff;
+            --mic-active-color: #e63946; /* A slightly different red for listening */
+            --danger-color: #dc3545;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        /* Main View */
+        #main-view {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        #settings-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            color: var(--secondary-color);
+        }
+        #settings-button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
+        #settings-button .material-icons {
+            font-size: 28px;
+        }
+
+        #mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+        #mic-button:active {
+            transform: scale(0.95);
+        }
+        #mic-button.listening {
+            background-color: var(--mic-active-color);
+        }
+        #mic-button .material-icons {
+            font-size: 60px;
+            color: var(--icon-color);
+        }
+        /* Style for when the app is "thinking" */
+        #mic-button.busy {
+            background-color: var(--secondary-color);
+        }
+        /* Style for when the TTS is speaking (explicity a STOP button) */
+        #mic-button.is-stoppable {
+            background-color: var(--danger-color);
+        }
+
+        #status-text {
+            margin-top: 30px;
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            height: 40px; /* Prevent layout shift */
+            text-align: center;
+        }
+        
+        /* Settings View (Modal) */
+        #settings-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        #settings-panel {
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        #settings-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+        #close-settings-button {
+             background: none; border: none; cursor: pointer; color: var(--secondary-color);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="password"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .action-button {
+             width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #save-settings-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        #clear-history-button {
+            background-color: var(--danger-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Chat Interface -->
+    <div id="main-view">
+        <button id="settings-button" title="Instellingen">
+            <i class="material-icons">settings</i>
+        </button>
+        <button id="mic-button">
+            <i id="mic-icon" class="material-icons">mic</i>
+        </button>
+        <p id="status-text">Tik op de microfoon om te beginnen</p>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-view" style="display: none;">
+        <div id="settings-panel">
+            <div id="settings-header">
+                <h2>Instellingen</h2>
+                <button id="close-settings-button"><i class="material-icons">close</i></button>
+            </div>
+
+            <div class="form-group">
+                <label for="api-key-input">Google AI API Key</label>
+                <input type="password" id="api-key-input" placeholder="Plak hier uw API sleutel">
+            </div>
+
+            <div class="form-group">
+                <label for="system-prompt-input">Systeemprompt</label>
+                <textarea id="system-prompt-input" placeholder="Bijv: Je bent een behulpzame assistent."></textarea>
+            </div>
+
+            <button id="save-settings-button" class="action-button">Opslaan</button>
+            <button id="clear-history-button" class="action-button">Wis Gespreksgeschiedenis</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const micButton = document.getElementById('mic-button');
+            const micIcon = document.getElementById('mic-icon');
+            const statusText = document.getElementById('status-text');
+            const settingsButton = document.getElementById('settings-button');
+            const closeSettingsButton = document.getElementById('close-settings-button');
+            const saveSettingsButton = document.getElementById('save-settings-button');
+            const clearHistoryButton = document.getElementById('clear-history-button');
+            const settingsView = document.getElementById('settings-view');
+            
+            // Settings Inputs
+            const apiKeyInput = document.getElementById('api-key-input');
+            const systemPromptInput = document.getElementById('system-prompt-input');
+
+            // Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const speechSynthesis = window.speechSynthesis;
+            let recognition;
+            
+            // State
+            let isListening = false;
+            let userCancelledSpeech = false;
+            let apiKey = '';
+            let systemPrompt = '';
+            let conversationHistory = [];
+            
+            // App-specific LocalStorage keys
+            const API_KEY_STORAGE_KEY = 'geminiVoiceChat_apiKey_v3';
+            const SYSTEM_PROMPT_STORAGE_KEY = 'geminiVoiceChat_systemPrompt_v3';
+
+            // --- Initialisation ---
+            if (!SpeechRecognition || !speechSynthesis) {
+                statusText.textContent = "Sorry, je browser ondersteunt de Web Speech API niet.";
+                micButton.classList.add('busy');
+                return;
+            }
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'nl-NL';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            loadSettings();
+
+            // --- Event Listeners ---
+            micButton.addEventListener('click', toggleListen);
+            settingsButton.addEventListener('click', () => settingsView.style.display = 'flex');
+            closeSettingsButton.addEventListener('click', () => settingsView.style.display = 'none');
+            saveSettingsButton.addEventListener('click', saveSettings);
+            clearHistoryButton.addEventListener('click', () => {
+                if (confirm('Weet u zeker dat u de gespreksgeschiedenis wilt wissen?')) {
+                    conversationHistory = [];
+                    statusText.textContent = 'Geschiedenis gewist. Begin een nieuw gesprek.';
+                    alert('Gespreksgeschiedenis gewist.');
+                }
+            });
+
+            // Speech Recognition Events
+            recognition.onstart = () => {
+                isListening = true;
+                micButton.classList.add('listening');
+                micIcon.textContent = 'mic_off';
+                statusText.textContent = 'Aan het luisteren...';
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                statusText.textContent = `Je zei: "${transcript}"`;
+                callGeminiAPI(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                statusText.textContent = 'Fout bij spraakherkenning: ' + event.error;
+                resetMic();
+            };
+
+            recognition.onend = () => {
+                resetMic();
+            };
+            
+            // --- Core Functions ---
+            function toggleListen() {
+                if (speechSynthesis.speaking) {
+                    userCancelledSpeech = true;
+                    speechSynthesis.cancel();
+                    return;
+                }
+                
+                if (micButton.classList.contains('busy')) {
+                    return; // Do nothing if thinking
+                }
+                
+                if (!apiKey) {
+                    alert('Stel eerst je API-sleutel in via de instellingen.');
+                    settingsView.style.display = 'flex';
+                    return;
+                }
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            }
+            
+            function resetMic() {
+                 isListening = false;
+                 micButton.classList.remove('listening', 'busy', 'is-stoppable');
+                 micIcon.textContent = 'mic';
+            }
+
+            async function callGeminiAPI(prompt) {
+                statusText.textContent = 'Aan het denken...';
+                micButton.classList.add('busy');
+                micIcon.textContent = 'hourglass_top';
+
+                conversationHistory.push({ role: 'user', parts: [{ text: prompt }] });
+
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite-preview-06-17:generateContent?key=${apiKey}`;
+                
+                const requestBody = { contents: conversationHistory, systemInstruction: { parts: [{ text: systemPrompt }] } };
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (!data.candidates || !data.candidates[0].content) {
+                        throw new Error("Geen geldig antwoord van de API ontvangen.");
+                    }
+
+                    const textResponse = data.candidates[0].content.parts[0].text;
+                    conversationHistory.push({ role: 'model', parts: [{ text: textResponse }] });
+                    
+                    speak(textResponse);
+
+                } catch (error) {
+                    console.error('Error calling Gemini API:', error);
+                    statusText.textContent = `Fout: ${error.message}`;
+                    speak(`Er is een fout opgetreden: ${error.message}`);
+                    conversationHistory.pop();
+                }
+            }
+
+            function speak(text) {
+                userCancelledSpeech = false;
+                const utterance = new SpeechSynthesisUtterance(text);
+                const allVoices = speechSynthesis.getVoices();
+                
+                utterance.voice = allVoices.find(v => v.lang.startsWith('nl')) || allVoices[0];
+                utterance.lang = utterance.voice ? utterance.voice.lang : 'nl-NL';
+                
+                utterance.onend = () => {
+                    if (userCancelledSpeech) {
+                        statusText.textContent = 'Spraak afgebroken.';
+                    } else {
+                        statusText.textContent = 'Tik op de microfoon om te antwoorden';
+                    }
+                    resetMic();
+                };
+
+                utterance.onerror = (event) => {
+                    if (userCancelledSpeech) {
+                        utterance.onend();
+                        return;
+                    }
+                    console.error('SpeechSynthesis Utterance Error:', event.error);
+                    statusText.textContent = 'Fout bij het uitspreken van de tekst.';
+                    resetMic();
+                };
+                
+                statusText.textContent = 'Aan het spreken...';
+                micButton.classList.remove('busy');
+                micButton.classList.add('is-stoppable');
+                micIcon.textContent = 'stop';
+                speechSynthesis.speak(utterance);
+            }
+
+            // --- Settings & LocalStorage ---
+            function loadSettings() {
+                // ** MIGRATION LOGIC ADDED HERE **
+                const OLD_API_KEY_STORAGE_KEY = 'geminiVoiceChat_apiKey_v2';
+                const OLD_SYSTEM_PROMPT_STORAGE_KEY = 'geminiVoiceChat_systemPrompt_v2';
+                const defaultPrompt = 'Belangrijk: Je bent een AI-assistent. Je antwoorden worden direct omgezet naar spraak via een Text-To-Speech engine. Gebruik daarom absoluut geen Markdown-opmaak, zoals asterisken voor lijsten of vetgedrukte tekst. Schrijf je antwoorden in volledige, vloeiende zinnen die natuurlijk klinken als ze worden uitgesproken. Houd je antwoorden beknopt.';
+
+                // Try loading new keys, then fall back to old keys
+                apiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || localStorage.getItem(OLD_API_KEY_STORAGE_KEY) || '';
+                systemPrompt = localStorage.getItem(SYSTEM_PROMPT_STORAGE_KEY) || localStorage.getItem(OLD_SYSTEM_PROMPT_STORAGE_KEY) || defaultPrompt;
+                
+                // If we found any value, ensure it's saved under the new key name for the future
+                localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+                localStorage.setItem(SYSTEM_PROMPT_STORAGE_KEY, systemPrompt);
+                
+                // Clean up old keys if they exist
+                localStorage.removeItem(OLD_API_KEY_STORAGE_KEY);
+                localStorage.removeItem(OLD_SYSTEM_PROMPT_STORAGE_KEY);
+
+                // Update the input fields with the loaded values
+                apiKeyInput.value = apiKey;
+                systemPromptInput.value = systemPrompt;
+            }
+
+            function saveSettings() {
+                const oldSystemPrompt = systemPrompt;
+                apiKey = apiKeyInput.value.trim();
+                systemPrompt = systemPromptInput.value.trim();
+
+                localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+                localStorage.setItem(SYSTEM_PROMPT_STORAGE_KEY, systemPrompt);
+                
+                if (oldSystemPrompt !== systemPrompt) {
+                    conversationHistory = [];
+                    statusText.textContent = 'Systeemprompt gewijzigd, geschiedenis gewist.';
+                } else {
+                    statusText.textContent = 'Instellingen bijgewerkt.';
+                }
+
+                alert('Instellingen opgeslagen.');
+                settingsView.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+</html>
