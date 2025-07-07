@@ -22,6 +22,9 @@ padding-right: 10px;
 padding-bottom: 10px;
 background: #f0f0f0;
 }
+body.modal-open {
+overflow: hidden;
+}
 
 .control-bar-group {
 position: fixed;
@@ -88,6 +91,17 @@ flex-shrink: 0; /* Zorgt dat knoppen niet krimpen */
 .filter-button.active {
 background: #007bff;
 color: #fff;
+}
+
+#favoriteToggleBtn {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+}
+#favoriteToggleBtn i {
+color: red;
+font-size: 16px;
+transition: color 0.2s ease-in-out;
 }
 
 #searchField {
@@ -243,7 +257,7 @@ gap: 15px;
 align-items: center;
 }
 
-.sort-icon, .favorite-toggle {
+.sort-icon, #settingsBtn {
 cursor: pointer;
 color: #555;
 user-select: none;
@@ -251,9 +265,6 @@ font-size: 20px;
 }
 .sort-icon.active {
 color: #007bff;
-}
-.favorite-toggle {
-color: red;
 }
 #errorMessage {
 display: none;
@@ -348,25 +359,25 @@ margin-top: 0;
 
 /* --- STYLING VOOR NU BEZIG INDICATOR --- */
 .now-playing-indicator {
- display: none; /* Standaard verborgen */
- margin-left: 8px;
- vertical-align: middle;
+display: none; /* Standaard verborgen */
+margin-left: 8px;
+vertical-align: middle;
 }
 .vu-meter-icon {
- width: 18px;
- height: 18px;
- fill: currentColor; /* Erft kleur van de h2 */
- transform: translateY(-2px); /* Iets hoger gezet voor betere uitlijning */
+width: 18px;
+height: 18px;
+fill: currentColor; /* Erft kleur van de h2 */
+transform: translateY(-2px); /* Iets hoger gezet voor betere uitlijning */
 }
 @keyframes vu-pulse {
- 0%, 100% { transform: scaleY(0.2); }
- 25% { transform: scaleY(1); }
- 50% { transform: scaleY(0.4); }
- 75% { transform: scaleY(0.8); }
+0%, 100% { transform: scaleY(0.2); }
+25% { transform: scaleY(1); }
+50% { transform: scaleY(0.4); }
+75% { transform: scaleY(0.8); }
 }
 .vu-meter-icon .bar {
- transform-origin: bottom;
- animation: vu-pulse 1.2s ease-in-out infinite;
+transform-origin: bottom;
+animation: vu-pulse 1.2s ease-in-out infinite;
 }
 .vu-meter-icon .bar:nth-child(2) { animation-delay: -0.3s; }
 .vu-meter-icon .bar:nth-child(3) { animation-delay: -0.6s; }
@@ -566,6 +577,112 @@ padding: 0 10px;
 background: rgba(255,255,255,0.1);
 }
 
+/* Settings Modal */
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.6);
+z-index: 2999;
+}
+.modal-overlay.visible {
+display: block;
+}
+.modal-container {
+display: none;
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+background: #fff;
+padding: 25px;
+border-radius: 8px;
+box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+z-index: 3000;
+width: 90%;
+max-width: 400px;
+}
+.modal-container.visible {
+display: block;
+}
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid #eee;
+padding-bottom: 15px;
+margin-bottom: 15px;
+}
+.modal-header h2 {
+margin: 0;
+font-size: 1.2em;
+}
+.close-modal-btn {
+background: none;
+border: none;
+font-size: 24px;
+cursor: pointer;
+color: #888;
+padding: 0;
+line-height: 1;
+}
+.setting-group {
+margin-bottom: 20px;
+}
+.setting-group fieldset {
+border: 1px solid #ccc;
+border-radius: 4px;
+padding: 10px 15px;
+}
+.setting-group legend {
+padding: 0 5px;
+font-weight: bold;
+}
+.setting-group label {
+display: block;
+margin: 8px 0;
+cursor: pointer;
+}
+.setting-group input[type="radio"] {
+margin-right: 8px;
+}
+#openPlaylistBtn {
+display: flex;
+width: 100%;
+padding: 12px;
+background-color: #54c07b;
+color: white !important;
+border: none;
+border-radius: 5px;
+font-size: 1em;
+cursor: pointer;
+text-decoration: none;
+justify-content: center;
+align-items: center;
+gap: 10px;
+margin-top: 20px;
+}
+#openPlaylistBtn:hover {
+background-color: #67c989;
+}
+.utility-button {
+width: 100%;
+padding: 10px;
+background: #f0f0f0;
+color: #333;
+border: 1px solid #ccc;
+border-radius: 5px;
+cursor: pointer;
+font-size: 0.9em;
+font-family: Arial, sans-serif;
+}
+.utility-button:hover {
+background: #e0e0e0;
+}
+
 
 body.dark-mode {
 background: #282c34;
@@ -600,6 +717,9 @@ body.dark-mode .filter-button.active {
 background: #61afef;
 color: #282c34;
 }
+body.dark-mode #favoriteToggleBtn i {
+color: #e06c75;
+}
 body.dark-mode #searchField::placeholder {
 color: #98a0ad;
 }
@@ -621,13 +741,13 @@ background-color: #4b5059;
 body.dark-mode .artist-name {
 color: #61afef;
 }
-body.dark-mode .sort-icon, body.dark-mode .favorite-toggle {
+body.dark-mode .sort-icon, body.dark-mode #settingsBtn {
 color: #abb2bf;
 }
 body.dark-mode .sort-icon.active {
 color: #61afef;
 }
-body.dark-mode .favorite-toggle, body.dark-mode .favorite-icon {
+body.dark-mode .favorite-icon {
 color: #e06c75;
 }
 body.dark-mode #errorMessage {
@@ -687,6 +807,28 @@ body.dark-mode .podia-buttons-container .filter-button {
 box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
+body.dark-mode .modal-container {
+background: #3b4048;
+color: #abb2bf;
+}
+body.dark-mode .modal-header {
+border-bottom-color: #4b5059;
+}
+body.dark-mode .close-modal-btn {
+color: #98a0ad;
+}
+body.dark-mode .setting-group fieldset {
+border-color: #5b6069;
+}
+body.dark-mode .utility-button {
+background: #4b5059;
+color: #c6cdd5;
+border-color: #5b6069;
+}
+body.dark-mode .utility-button:hover {
+background: #5b6069;
+}
+
 .is-today::after {
 content: '';
 position: absolute;
@@ -740,6 +882,9 @@ background-color: #282c34;
 </div>
 </div>
 <button id="nowNextBtn" class="filter-button">Nu & Straks</button>
+<button id="favoriteToggleBtn" class="filter-button" title="Toon favorieten">
+<i class="fa-regular fa-heart"></i><span>Leuk</span>
+</button>
 <div class="search-wrapper">
 <input type="search" id="searchField" placeholder="Zoek.." autocomplete="off">
 <i class="fa-solid fa-magnifying-glass search-input-icon"></i>
@@ -758,7 +903,7 @@ background-color: #282c34;
 <span class="icons-group">
 <i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
 <i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
-<i id="favoriteToggle" class="favorite-toggle fa-regular fa-heart" title="Toon favorieten"></i>
+<i id="settingsBtn" class="fa-solid fa-cog" title="Instellingen"></i>
 </span>
 </div>
 </div>
@@ -770,6 +915,37 @@ background-color: #282c34;
 <div id="dockedSpotifyPlayerContainer" class="docked-spotify-player-container">
 </div>
 <button id="closeDockedPlayerButton" title="Sluit player"><i class="fa-solid fa-xmark"></i></button>
+</div>
+
+<div id="settingsModalOverlay" class="modal-overlay"></div>
+<div id="settingsModal" class="modal-container">
+<div class="modal-header">
+<h2>Instellingen</h2>
+<button id="closeModalBtn" class="close-modal-btn">&times;</button>
+</div>
+<div class="modal-content">
+<div class="setting-group">
+<fieldset>
+<legend>Dagknoppen</legend>
+<label><input type="radio" name="dayFilterMode" value="tabs" checked> Als tabbladen (1 dag tegelijk)</label>
+<label><input type="radio" name="dayFilterMode" value="filter"> Als filters (meer dagen mogelijk)</label>
+</fieldset>
+</div>
+<div class="setting-group">
+<fieldset>
+<legend>Nu & Straks filter</legend>
+<label><input type="radio" name="nowNextMode" value="1hr" checked> Nu + binnen 1 uur</label>
+<label><input type="radio" name="nowNextMode" value="2hr"> Nu + binnen 2 uur</label>
+<label><input type="radio" name="nowNextMode" value="day"> Nu + rest van de dag</label>
+</fieldset>
+</div>
+<div class="setting-group">
+<button id="clearCacheBtn" class="utility-button">Artiestendetails resetten</button>
+</div>
+<a href="spotify:playlist:3ako4RWocyBsF3uk0A29K1" id="openPlaylistBtn">
+<i class="fa-brands fa-spotify"></i> Officiële Playlist
+</a>
+</div>
 </div>
 
 <script>
@@ -791,7 +967,7 @@ errorMessageElement = document.getElementById('errorMessage'),
 searchFieldElement = document.getElementById('searchField'),
 sortAlphaElement = document.getElementById('sortAlpha'),
 sortTimeElement = document.getElementById('sortTime'),
-favoriteToggleElement = document.getElementById('favoriteToggle'),
+favoriteToggleBtn = document.getElementById('favoriteToggleBtn'),
 dayFilterContainerElement = document.querySelector('.day-filter-container'),
 filterContainerElement = document.querySelector('.filter-container'),
 controlBarGroup = document.getElementById('controlBarGroup'),
@@ -807,7 +983,12 @@ countTextCloneElement = document.getElementById('countTextClone'),
 podiaToggleBtn = document.getElementById('podiaToggleBtn'),
 podiaIndicator = document.getElementById('podiaIndicator'),
 podiaButtonsContainer = document.getElementById('podiaButtonsContainer'),
-nowNextBtn = document.getElementById('nowNextBtn');
+nowNextBtn = document.getElementById('nowNextBtn'),
+settingsBtn = document.getElementById('settingsBtn'),
+settingsModal = document.getElementById('settingsModal'),
+settingsModalOverlay = document.getElementById('settingsModalOverlay'),
+closeModalBtn = document.getElementById('closeModalBtn'),
+clearCacheBtn = document.getElementById('clearCacheBtn');
 
 
 const isAndroidDevice = /android/i.test(navigator.userAgent);
@@ -900,11 +1081,13 @@ activePodia = getStoredJSON(PREFIX + 'activePodia', []),
 favorites = getStoredJSON(PREFIX + 'favorites', []),
 showingFavs = getStoredJSON(PREFIX + 'showingFavs', false),
 showingNowNext = false,
-activeDays = getStoredJSON(PREFIX + 'activeDays', []);
+activeDays = getStoredJSON(PREFIX + 'activeDays', []),
+dayFilterMode = getStoredString('dayFilterMode', 'tabs'),
+nowNextMode = getStoredString('nowNextMode', '1hr');
 
 function capitalize(s){
 if(!s) return s;
-return s.split(' ').map(word => 
+return s.split(' ').map(word =>
 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 ).join(' ');
 }
@@ -1305,12 +1488,12 @@ card.innerHTML = `
 <h2>
 <a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a>
 <span class="now-playing-indicator">
-    <svg class="vu-meter-icon" viewBox="0 0 30 30">
-        <rect class="bar" x="3" y="10" width="4.5" height="20" />
-        <rect class="bar" x="9.5" y="10" width="4.5" height="20" />
-        <rect class="bar" x="16" y="10" width="4.5" height="20" />
-        <rect class="bar" x="22.5" y="10" width="4.5" height="20" />
-    </svg>
+<svg class="vu-meter-icon" viewBox="0 0 30 30">
+<rect class="bar" x="3" y="10" width="4.5" height="20" />
+<rect class="bar" x="9.5" y="10" width="4.5" height="20" />
+<rect class="bar" x="16" y="10" width="4.5" height="20" />
+<rect class="bar" x="22.5" y="10" width="4.5" height="20" />
+</svg>
 </span>
 </h2>
 <span class="favorite-icon" data-name="${artist.name}">
@@ -1458,7 +1641,6 @@ let visibleCount = 0;
 
 const cardElements = artistListElement.children;
 const now = new Date().getTime();
-const oneHourFromNow = now + (60 * 60 * 1000);
 
 for (const card of cardElements) {
 const {
@@ -1500,7 +1682,29 @@ const matchesFavs = !showingFavs || favorites.includes(rawName);
 const start = parseInt(timestampStart, 10);
 const end = parseInt(timestampEnd, 10);
 const isNow = start > 0 && start <= now && end > now;
-const isNext = start > 0 && start > now && start <= oneHourFromNow;
+
+let isNext = false;
+if (start > 0) {
+switch(nowNextMode) {
+case '1hr':
+const oneHourFromNow = now + 3600000;
+isNext = start > now && start <= oneHourFromNow;
+break;
+case '2hr':
+const twoHoursFromNow = now + 7200000;
+isNext = start > now && start <= twoHoursFromNow;
+break;
+case 'day':
+const today = new Date();
+if (today.getHours() < 3) {
+today.setDate(today.getDate() - 1);
+}
+today.setHours(3, 0, 0, 0);
+const endOfArtDay = today.getTime() + 86400000; // 3am next day
+isNext = start > now && start < endOfArtDay;
+break;
+}
+}
 const matchesNowNext = !showingNowNext || isNow || isNext;
 
 if (matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext) {
@@ -1634,9 +1838,12 @@ sortTimeElement.classList.toggle('active', sortMode === 'time');
 }
 
 function updateFavoriteToggleUI() {
-favoriteToggleElement.classList.toggle('fa-solid', showingFavs);
-favoriteToggleElement.classList.toggle('fa-regular', !showingFavs);
-favoriteToggleElement.classList.toggle('active', showingFavs);
+const icon = favoriteToggleBtn.querySelector('i');
+favoriteToggleBtn.classList.toggle('active', showingFavs);
+if (icon) {
+icon.classList.toggle('fa-solid', showingFavs);
+icon.classList.toggle('fa-regular', !showingFavs);
+}
 }
 
 function updateActiveDayTabsUI() {
@@ -1647,26 +1854,26 @@ btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
 }
 
 function updateLiveStatusOnCards() {
-    const now = new Date().getTime();
-    const cards = document.querySelectorAll('.artist-card');
+const now = new Date().getTime();
+const cards = document.querySelectorAll('.artist-card');
 
-    cards.forEach(card => {
-        const start = parseInt(card.dataset.timestampStart, 10);
-        const end = parseInt(card.dataset.timestampEnd, 10);
-        const indicator = card.querySelector('.now-playing-indicator');
-        const timeInfoEl = card.querySelector('.time-info');
+cards.forEach(card => {
+const start = parseInt(card.dataset.timestampStart, 10);
+const end = parseInt(card.dataset.timestampEnd, 10);
+const indicator = card.querySelector('.now-playing-indicator');
+const timeInfoEl = card.querySelector('.time-info');
 
-        if (!indicator || !timeInfoEl || !start || !end) return;
+if (!indicator || !timeInfoEl || !start || !end) return;
 
-        if (start <= now && end > now) {
-            const remainingMinutes = Math.ceil((end - now) / 60000);
-            timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo} (nog ${remainingMinutes} min)`;
-            indicator.style.display = 'inline-block';
-        } else {
-            timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo}${timeInfoEl.dataset.durationText}`;
-            indicator.style.display = 'none';
-        }
-    });
+if (start <= now && end > now) {
+const remainingMinutes = Math.ceil((end - now) / 60000);
+timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo} (nog ${remainingMinutes} min)`;
+indicator.style.display = 'inline-block';
+} else {
+timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo}${timeInfoEl.dataset.durationText}`;
+indicator.style.display = 'none';
+}
+});
 }
 
 
@@ -1765,41 +1972,41 @@ todayButton.classList.add('is-today');
 }
 
 function runCacheMigration() {
-    const MIGRATION_KEY = 'vf_cache_migration_fix_voerweg_v1';
-    if (localStorage.getItem(MIGRATION_KEY)) {
-        return;
-    }
+const MIGRATION_KEY = 'vf_cache_migration_fix_voerweg_v1';
+if (localStorage.getItem(MIGRATION_KEY)) {
+return;
+}
 
-    console.log('Cache migratie voor "Club Voerweg" wordt uitgevoerd...');
-    let migrationNeeded = false;
-    
-    const cachedDataString = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
-    if (cachedDataString) {
-        try {
-            const cachedData = JSON.parse(cachedDataString);
-            cachedData.forEach(item => {
-                if (item && item.info && item.info.podium === 'Club voerweg') {
-                    migrationNeeded = true;
-                    const artistName = item.artist.name;
-                    const artistCacheKey = PREFIX + 'artist_info_' + artistName.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
-                    localStorage.removeItem(artistCacheKey);
-                    console.log(`Individuele cache voor ${artistName} verwijderd.`);
-                }
-            });
-        } catch(e) {
-            console.error("Fout bij parsen van hoofdcache tijdens migratie, cache wordt volledig gewist.", e);
-            migrationNeeded = true;
-        }
-    }
+console.log('Cache migratie voor "Club Voerweg" wordt uitgevoerd...');
+let migrationNeeded = false;
 
-    if (migrationNeeded) {
-        localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
-        localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
-        console.log('Hoofdcache en timestamp verwijderd. Data wordt opnieuw opgehaald.');
-    }
+const cachedDataString = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
+if (cachedDataString) {
+try {
+const cachedData = JSON.parse(cachedDataString);
+cachedData.forEach(item => {
+if (item && item.info && item.info.podium === 'Club voerweg') {
+migrationNeeded = true;
+const artistName = item.artist.name;
+const artistCacheKey = PREFIX + 'artist_info_' + artistName.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
+localStorage.removeItem(artistCacheKey);
+console.log(`Individuele cache voor ${artistName} verwijderd.`);
+}
+});
+} catch(e) {
+console.error("Fout bij parsen van hoofdcache tijdens migratie, cache wordt volledig gewist.", e);
+migrationNeeded = true;
+}
+}
 
-    localStorage.setItem(MIGRATION_KEY, 'true');
-    console.log('Cache migratie voltooid.');
+if (migrationNeeded) {
+localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
+localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
+console.log('Hoofdcache en timestamp verwijderd. Data wordt opnieuw opgehaald.');
+}
+
+localStorage.setItem(MIGRATION_KEY, 'true');
+console.log('Cache migratie voltooid.');
 }
 
 
@@ -1808,11 +2015,20 @@ dayFilterContainerElement.addEventListener('click', function(e) {
 const dayButton = e.target.closest('.day-filter-button');
 if (dayButton) {
 const dayFilter = dayButton.dataset.dayfilter;
-const index = activeDays.indexOf(dayFilter);
-if (index > -1) {
-activeDays.splice(index, 1);
+const isAlreadyActive = activeDays.includes(dayFilter);
+
+if (dayFilterMode === 'tabs') {
+if (isAlreadyActive) {
+activeDays = []; // Deselect if the same tab is clicked again
+} else {
+activeDays = [dayFilter]; // Set as the only active day
+}
+} else { // 'filter' mode
+if (isAlreadyActive) {
+activeDays = activeDays.filter(d => d !== dayFilter);
 } else {
 activeDays.push(dayFilter);
+}
 }
 setStoredJSON(PREFIX + 'activeDays', activeDays);
 updateActiveDayTabsUI();
@@ -1853,6 +2069,9 @@ if (!podiaToggleBtn.contains(e.target) && !podiaButtonsContainer.contains(e.targ
 podiaButtonsContainer.classList.remove('visible');
 podiaToggleBtn.classList.remove('menu-open');
 }
+if (settingsModal.classList.contains('visible') && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
+closeSettingsModal();
+}
 });
 
 
@@ -1874,10 +2093,6 @@ searchFieldElement.addEventListener('input', function(){
 searchClickShouldClear = (this.value.length > 0);
 this.classList.toggle('has-content', this.value.length > 0);
 const v = this.value.toLowerCase();
-if (v === 'reset' || v === 'clear') {
-this.value = ''; this.classList.remove('has-content'); searchClickShouldClear = false;
-clearLocalStorageData(); return;
-}
 if (v === 'proxytest' || v === 'corstest') {
 this.value = ''; this.classList.remove('has-content'); searchClickShouldClear = false; this.blur();
 runProxyTest(); return;
@@ -1906,7 +2121,7 @@ updateSortIconsUI();
 applyFiltersAndSort();
 });
 
-favoriteToggleElement.addEventListener('click', function(){
+favoriteToggleBtn.addEventListener('click', function(){
 showingFavs = !showingFavs; setStoredJSON(PREFIX + 'showingFavs', showingFavs);
 updateFavoriteToggleUI();
 applyFiltersAndSort();
@@ -1937,6 +2152,35 @@ dockedSpotifyPlayerWrapper.classList.remove('visible');
 setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
 });
 
+// Settings Modal Listeners
+settingsBtn.addEventListener('click', openSettingsModal);
+closeModalBtn.addEventListener('click', closeSettingsModal);
+settingsModalOverlay.addEventListener('click', closeSettingsModal);
+clearCacheBtn.addEventListener('click', clearLocalStorageData);
+
+document.querySelectorAll('input[name="dayFilterMode"]').forEach(radio => {
+radio.addEventListener('change', function() {
+dayFilterMode = this.value;
+setStoredString('dayFilterMode', dayFilterMode);
+if (dayFilterMode === 'tabs' && activeDays.length > 1) {
+activeDays = [activeDays[0]]; // Keep only the first active day
+setStoredJSON(PREFIX + 'activeDays', activeDays);
+updateActiveDayTabsUI();
+}
+applyFiltersAndSort();
+});
+});
+document.querySelectorAll('input[name="nowNextMode"]').forEach(radio => {
+radio.addEventListener('change', function() {
+nowNextMode = this.value;
+setStoredString('nowNextMode', nowNextMode);
+if (showingNowNext) {
+applyFiltersAndSort();
+}
+});
+});
+
+
 window.addEventListener('scroll', () => {
 if (!ticking) { window.requestAnimationFrame(handleScrollLogic); ticking = true; }
 });
@@ -1946,9 +2190,29 @@ syncPodiaButtonWidths();
 });
 }
 
+function openSettingsModal() {
+document.body.classList.add('modal-open');
+settingsModal.classList.add('visible');
+settingsModalOverlay.classList.add('visible');
+}
+function closeSettingsModal() {
+document.body.classList.remove('modal-open');
+settingsModal.classList.remove('visible');
+settingsModalOverlay.classList.remove('visible');
+}
+function loadSettings() {
+document.querySelector(`input[name="dayFilterMode"][value="${dayFilterMode}"]`).checked = true;
+document.querySelector(`input[name="nowNextMode"][value="${nowNextMode}"]`).checked = true;
+
+if (dayFilterMode === 'tabs' && activeDays.length > 1) {
+activeDays = [activeDays[0]];
+setStoredJSON(PREFIX + 'activeDays', activeDays);
+}
+}
+
 async function main() {
 runCacheMigration();
-
+loadSettings();
 initializeEventListeners();
 highlightCurrentDayButton();
 updateFilterButtonsUI();
