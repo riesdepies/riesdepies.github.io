@@ -1,4 +1,4 @@
-<html lang="en"><head>
+<html lang="en"><head><title>Code Execution</title></head><body>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat Interface</title>
@@ -182,6 +182,7 @@ cursor: not-allowed;
 display: flex;
 border-bottom: 1px solid #37383c;
 position: relative;
+align-items: center;
 }
 .tab {
 padding: 10px 15px;
@@ -190,6 +191,30 @@ border-bottom: 2px solid transparent;
 }
 .tab.active {
 border-bottom: 2px solid #3578e5;
+}
+#swap-model-button {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+#swap-model-button:hover:not(:disabled) {
+    color: #fff;
+    background-color: #3a3b3f;
+}
+#swap-model-button:disabled {
+    color: #6c6c6c;
+    cursor: not-allowed;
+}
+#swap-model-button svg {
+    width: 20px;
+    height: 20px;
 }
 #clear-chat-button-container {
 position: absolute;
@@ -318,6 +343,26 @@ display: none !important;
 .api-key-container {
 display: none;
 }
+#toast-notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #3578e5;
+    color: white;
+    padding: 12px 22px;
+    border-radius: 8px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s, bottom 0.3s;
+    font-size: 0.9em;
+}
+#toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+    bottom: 50px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -327,14 +372,15 @@ display: none;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
+
+
 <div id="app-container">
 <div id="chat-container">
 <div class="tabs">
 <div class="tab active" onclick="showTab('chat')">Chat</div>
 <div class="tab" onclick="showTab('settings')">Settings</div>
 <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
+<button id="swap-model-button"></button>
 <div id="clear-chat-button-container">
 <button id="clear-chat-button" title="Clear Chat">
 <!-- SVG will be injected by JavaScript -->
@@ -355,7 +401,7 @@ display: none;
 </div>
 <div id="settings-container">
 <label for="api-provider">API Provider:</label>
-<select id="api-provider" onchange="updateModelOptions(); saveSettings(); updateApiKeyVisibility();">
+<select id="api-provider" onchange="updateModelOptions(); saveSettings();">
 <option value="openai">OpenAI</option>
 <option value="gemini">Google</option>
 <option value="deepseek">DeepSeek</option>
@@ -403,6 +449,7 @@ display: none;
 </div>
 </div>
 </div>
+<div id="toast-notification"></div>
 <script>
 let apiKeys = {
 gemini: [],
@@ -433,19 +480,26 @@ const CHAT_CONVERSATION_KEY = 'chatInterfaceConversation';
 const CHAT_CLEARED_STATE_KEY = 'chatInterfaceClearedState';
 let chatClearedState = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
 
+// Model Swap Variables
+let currentModel = null;
+let previousModel = null;
+const CURRENT_MODEL_KEY = 'chatInterfaceCurrentModel';
+const PREVIOUS_MODEL_KEY = 'chatInterfacePreviousModel';
+
 const ICONS = {
 trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
 restore: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"></path></svg>`,
 send: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>`,
-save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`
+save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`,
+swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`
 };
 
 document.addEventListener("DOMContentLoaded", function () {
+initializeModelSwap();
 loadSettings();
 initializeClearChatButton();
 handlePageLoadConversation();
 
-updateModelOptions();
 const consoleCopyButton = document.querySelector('.console-copy-code');
 consoleCopyButton.addEventListener('click', () => {
 copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
@@ -686,6 +740,7 @@ document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvid
 selectedModel = document.getElementById('model-select').value;
 toggleCustomModelField();
 updateApiKeyVisibility();
+updateCurrentModelFromUI(true); // Initialize current model on load
 });
 
 customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
@@ -751,24 +806,30 @@ document.getElementById('chat-output').style.display = 'none';
 document.getElementById('chat-input').style.display = 'none';
 document.getElementById('console-container').style.display = 'none';
 const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
+const swapModelButton = document.getElementById('swap-model-button');
 
 if (tabName === 'chat') {
 document.getElementById('chat-output').style.display = 'block';
 document.getElementById('chat-input').style.display = 'flex';
 document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
-clearChatButtonContainer.style.display = 'block'; // Or its original display style if not 'block'
+clearChatButtonContainer.style.display = 'block';
+swapModelButton.style.visibility = 'visible';
 } else if (tabName === 'settings') {
 document.getElementById('settings-container').style.display = 'block';
 document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
 clearChatButtonContainer.style.display = 'none';
+swapModelButton.style.visibility = 'visible';
 } else if (tabName === 'console') {
 document.getElementById('console-container').style.display = 'block';
 document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
 clearChatButtonContainer.style.display = 'none';
+swapModelButton.style.visibility = 'hidden';
 }
 }
 
 function saveSettings() {
+updateCurrentModelFromUI(false); // Update models before saving other settings
+
 apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
 apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
 apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
@@ -1349,4 +1410,87 @@ const targetContainer = document.getElementById(`${provider}-api-key-container`)
 if (targetContainer) targetContainer.style.display = 'block';
 }
 function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']; return emojiNumbers[num - 1] || `[${num}]`;}
+
+// --- Model Swap Functions ---
+
+function initializeModelSwap() {
+    document.getElementById('swap-model-button').innerHTML = ICONS.swap;
+    document.getElementById('swap-model-button').onclick = swapModels;
+    previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
+    updateSwapButtonState();
+}
+
+function updateCurrentModelFromUI(isInitialLoad = false) {
+    const provider = document.getElementById('api-provider').value;
+    let model = document.getElementById('model-select').value;
+    if (model === 'custom') {
+        model = document.getElementById('custom-model-input').value;
+    }
+    const newModel = { provider, model };
+
+    if (!isInitialLoad && JSON.stringify(newModel) !== JSON.stringify(currentModel)) {
+        if (currentModel) {
+            previousModel = currentModel;
+            localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
+        }
+    }
+    
+    currentModel = newModel;
+    localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
+    updateSwapButtonState();
+}
+
+function updateSwapButtonState() {
+    const swapButton = document.getElementById('swap-model-button');
+    if (previousModel && previousModel.model) {
+        swapButton.style.display = 'flex';
+        swapButton.disabled = false;
+        swapButton.title = `Swap to ${previousModel.model} (${previousModel.provider})`;
+    } else {
+        swapButton.style.display = 'none';
+        swapButton.disabled = true;
+        swapButton.title = 'No previous model to swap with';
+    }
+}
+
+async function swapModels() {
+    if (!previousModel) return;
+
+    [currentModel, previousModel] = [previousModel, currentModel];
+
+    localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
+    localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
+    
+    const apiProviderSelect = document.getElementById('api-provider');
+    const modelSelect = document.getElementById('model-select');
+    
+    apiProviderSelect.value = currentModel.provider;
+    await updateModelOptions();
+
+    if (Array.from(modelSelect.options).some(opt => opt.value === currentModel.model)) {
+        modelSelect.value = currentModel.model;
+    } else {
+        modelSelect.value = 'custom';
+        document.getElementById('custom-model-input').value = currentModel.model;
+    }
+
+    toggleCustomModelField();
+    updateApiKeyVisibility();
+    updateSwapButtonState();
+    
+    // Explicitly save settings to update localStorage for things like lastUsedModels
+    saveSettings();
+
+    showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
+}
+
+function showToast(message) {
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
 </script></body></html>
