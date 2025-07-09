@@ -43,13 +43,6 @@ will-change: transform;
 transform: translateY(-100%);
 }
 
-/* NIEUW: styling voor het uitschakelen van controls in shared-modus */
-.control-bar-group.controls-disabled .day-filter-container,
-.control-bar-group.controls-disabled .filter-container {
-opacity: 0.5;
-pointer-events: none;
-}
-
 .day-filter-container,
 .filter-container {
 margin-bottom: 5px;
@@ -257,7 +250,7 @@ text-overflow: ellipsis;
 height: 20px;
 }
 
-/* NIEUW: Gedeelde weergave-info */
+/* Gedeelde weergave-info */
 #sharedViewInfo {
 flex-grow: 1;
 font-weight: bold;
@@ -1718,10 +1711,10 @@ clearHighlight(podiumEl);
 clearHighlight(descriptionEl);
 youtubeTitleEls.forEach(el => clearHighlight(el));
 
-let isVisible = true;
-if (isSharedView) {
-isVisible = sharedFavorites.includes(rawName);
-} else {
+// Eerst controleren of de artiest in de gedeelde lijst zit (als we in die modus zijn)
+const matchesShared = !isSharedView || sharedFavorites.includes(rawName);
+
+// Daarna de overige filters toepassen
 const matchesDay = !activeDays.length || activeDays.includes(dag);
 const matchesPodium = !activePodia.length || activePodia.includes(podium);
 
@@ -1755,20 +1748,20 @@ if (today.getHours() < 3) {
 today.setDate(today.getDate() - 1);
 }
 today.setHours(3, 0, 0, 0);
-const endOfArtDay = today.getTime() + 86400000; // 3am next day
+const endOfArtDay = today.getTime() + 86400000;
 isNext = start > now && start < endOfArtDay;
 break;
 }
 }
 const matchesNowNext = !showingNowNext || isNow || isNext;
-isVisible = matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
-}
 
+// Alle voorwaarden moeten waar zijn
+const isVisible = matchesShared && matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
 
 if (isVisible) {
 card.style.display = '';
 visibleCount++;
-if (originalSearchTerm && !isSharedView) {
+if (originalSearchTerm) {
 applyHighlight(artistNameEl, originalSearchTerm);
 if (genresEl) applyHighlight(genresEl, originalSearchTerm);
 if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
@@ -1883,6 +1876,7 @@ function updateFilterButtonsUI(){
 document.querySelectorAll('#podiaButtonsContainer .filter-button').forEach(btn=>{
 btn.classList.toggle('active', activePodia.includes(btn.dataset.podium));
 });
+updatePodiaToggleUI();
 }
 
 function updatePodiaToggleUI() {
@@ -1948,6 +1942,8 @@ const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
 else favorites.push(name);
 setStoredJSON(PREFIX + 'favorites', favorites);
+
+// De filterlogica moet altijd opnieuw worden toegepast om de UI (zoals de "Leuk" knop of de telling) correct te houden.
 applyFiltersAndSort({ preserveScroll: true });
 }
 
@@ -2098,11 +2094,23 @@ isSharedView = false;
 function setupSharedView() {
 if (!isSharedView) return;
 
+// Vervang normale statusbalk door 'gedeelde weergave'-balk
 statusContainer.style.display = 'none';
 sharedViewInfoElement.style.display = 'flex';
-controlBarGroup.classList.add('controls-disabled');
 iconsGroupElement.style.display = 'none';
-// De "Leuk" filterknop in de control bar wordt al onbruikbaar gemaakt door de .controls-disabled class.
+
+// Reset alle filters in het geheugen (niet in localStorage)
+activeDays = [];
+activePodia = [];
+showingFavs = false;
+showingNowNext = false;
+if (searchFieldElement) {
+searchFieldElement.value = '';
+searchFieldElement.classList.remove('has-content');
+}
+
+// Update de UI om de geresette staat te tonen
+updateAllFilterUIs();
 }
 
 function exitSharedView() {
@@ -2145,6 +2153,14 @@ alert('Kon de link niet automatisch kopiëren. Kopieer de link handmatig.');
 }
 }
 
+function updateAllFilterUIs() {
+updateActiveDayTabsUI();
+updateFilterButtonsUI();
+updateFavoriteToggleUI();
+if (nowNextBtn) nowNextBtn.classList.toggle('active', showingNowNext);
+updateSortIconsUI();
+}
+
 
 function initializeEventListeners() {
 dayFilterContainerElement.addEventListener('click', function(e) {
@@ -2166,7 +2182,7 @@ activeDays = activeDays.filter(d => d !== dayFilter);
 activeDays.push(dayFilter);
 }
 }
-setStoredJSON(PREFIX + 'activeDays', activeDays);
+if(!isSharedView) setStoredJSON(PREFIX + 'activeDays', activeDays);
 updateActiveDayTabsUI();
 applyFiltersAndSort();
 }
@@ -2185,9 +2201,8 @@ const p = btn.dataset.podium;
 activePodia = activePodia.includes(p)
 ? activePodia.filter(x=>x!==p)
 : [...activePodia, p];
-setStoredJSON(PREFIX + 'activePodia', activePodia);
+if(!isSharedView) setStoredJSON(PREFIX + 'activePodia', activePodia);
 updateFilterButtonsUI();
-updatePodiaToggleUI();
 applyFiltersAndSort();
 }
 });
@@ -2258,7 +2273,8 @@ applyFiltersAndSort();
 });
 
 favoriteToggleBtn.addEventListener('click', function(){
-showingFavs = !showingFavs; setStoredJSON(PREFIX + 'showingFavs', showingFavs);
+showingFavs = !showingFavs;
+if(!isSharedView) setStoredJSON(PREFIX + 'showingFavs', showingFavs);
 updateFavoriteToggleUI();
 applyFiltersAndSort();
 });
@@ -2303,7 +2319,7 @@ dayFilterMode = this.value;
 setStoredString('dayFilterMode', dayFilterMode);
 if (dayFilterMode === 'tabs' && activeDays.length > 1) {
 activeDays = [activeDays[0]]; // Keep only the first active day
-setStoredJSON(PREFIX + 'activeDays', activeDays);
+if(!isSharedView) setStoredJSON(PREFIX + 'activeDays', activeDays);
 updateActiveDayTabsUI();
 }
 applyFiltersAndSort();
@@ -2345,25 +2361,20 @@ document.querySelector(`input[name="nowNextMode"][value="${nowNextMode}"]`).chec
 
 if (dayFilterMode === 'tabs' && activeDays.length > 1) {
 activeDays = [activeDays[0]];
-setStoredJSON(PREFIX + 'activeDays', activeDays);
+if(!isSharedView) setStoredJSON(PREFIX + 'activeDays', activeDays);
 }
 }
 
 async function main() {
 checkForSharedFavorites();
 runCacheMigration();
-loadSettings();
-initializeEventListeners();
 
 if (isSharedView) {
 setupSharedView();
 } else {
+loadSettings();
 highlightCurrentDayButton();
-updateFilterButtonsUI();
-updatePodiaToggleUI();
-updateSortIconsUI();
-updateFavoriteToggleUI();
-updateActiveDayTabsUI();
+updateAllFilterUIs();
 }
 
 await loadAllArtistsData();
@@ -2394,6 +2405,7 @@ updateArtistCount(0);
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
 updateBodyPadding();
 syncPodiaButtonWidths();
+initializeEventListeners(); // Verplaatst naar na UI-updates om race conditions te voorkomen.
 handleScrollLogic();
 }
 
