@@ -43,6 +43,13 @@ will-change: transform;
 transform: translateY(-100%);
 }
 
+/* NIEUW: styling voor het uitschakelen van controls in shared-modus */
+.control-bar-group.controls-disabled .day-filter-container,
+.control-bar-group.controls-disabled .filter-container {
+opacity: 0.5;
+pointer-events: none;
+}
+
 .day-filter-container,
 .filter-container {
 margin-bottom: 5px;
@@ -250,6 +257,34 @@ text-overflow: ellipsis;
 height: 20px;
 }
 
+/* NIEUW: Gedeelde weergave-info */
+#sharedViewInfo {
+flex-grow: 1;
+font-weight: bold;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+margin-right: 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+#exitSharedViewBtn {
+background: #007bff;
+color: white;
+border: none;
+border-radius: 15px;
+padding: 4px 12px;
+font-size: 12px;
+cursor: pointer;
+margin-left: 10px;
+flex-shrink: 0;
+}
+body.dark-mode #exitSharedViewBtn {
+background: #61afef;
+color: #282c34;
+}
+
 .icons-group {
 margin-left: auto;
 display: flex;
@@ -441,6 +476,7 @@ align-items: flex-start;
 gap: 6px;
 flex-shrink: 0;
 }
+
 .stacked-buttons-column {
 display: flex;
 flex-direction: column;
@@ -678,9 +714,13 @@ border-radius: 5px;
 cursor: pointer;
 font-size: 0.9em;
 font-family: Arial, sans-serif;
+margin-bottom: 10px; /* Ruimte tussen knoppen */
 }
 .utility-button:hover {
 background: #e0e0e0;
+}
+.utility-button i {
+margin-right: 8px;
 }
 
 
@@ -893,6 +933,7 @@ background-color: #282c34;
 
 
 <div class="info-container">
+<!-- Container voor normale status -->
 <div id="statusContainer">
 <div id="statusSlider">
 <span id="countText"></span>
@@ -900,6 +941,12 @@ background-color: #282c34;
 <span id="countTextClone"></span>
 </div>
 </div>
+<!-- Container voor gedeelde weergave-info (initieel verborgen) -->
+<div id="sharedViewInfo" style="display: none;">
+<span>Gedeelde favorieten</span>
+<button id="exitSharedViewBtn">Sluit</button>
+</div>
+
 <span class="icons-group">
 <i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
 <i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
@@ -940,7 +987,8 @@ background-color: #282c34;
 </fieldset>
 </div>
 <div class="setting-group">
-<button id="clearCacheBtn" class="utility-button">Artiestendetails resetten</button>
+<button id="shareFavoritesBtn" class="utility-button"><i class="fa-solid fa-share-nodes"></i> Deel favorieten</button>
+<button id="clearCacheBtn" class="utility-button"><i class="fa-solid fa-eraser"></i> Artiestendetails resetten</button>
 </div>
 <a href="spotify:playlist:3ako4RWocyBsF3uk0A29K1" id="openPlaylistBtn">
 <i class="fa-brands fa-spotify"></i> Officiële Playlist
@@ -980,6 +1028,8 @@ statusSlider = document.getElementById('statusSlider'),
 countTextElement = document.getElementById('countText'),
 countdownTextElement = document.getElementById('countdownText'),
 countTextCloneElement = document.getElementById('countTextClone'),
+sharedViewInfoElement = document.getElementById('sharedViewInfo'),
+exitSharedViewBtn = document.getElementById('exitSharedViewBtn'),
 podiaToggleBtn = document.getElementById('podiaToggleBtn'),
 podiaIndicator = document.getElementById('podiaIndicator'),
 podiaButtonsContainer = document.getElementById('podiaButtonsContainer'),
@@ -988,19 +1038,21 @@ settingsBtn = document.getElementById('settingsBtn'),
 settingsModal = document.getElementById('settingsModal'),
 settingsModalOverlay = document.getElementById('settingsModalOverlay'),
 closeModalBtn = document.getElementById('closeModalBtn'),
-clearCacheBtn = document.getElementById('clearCacheBtn');
-
+clearCacheBtn = document.getElementById('clearCacheBtn'),
+shareFavoritesBtn = document.getElementById('shareFavoritesBtn');
 
 const isAndroidDevice = /android/i.test(navigator.userAgent);
 
 let lastScrollY = window.scrollY;
 let ticking = false;
+let isSharedView = false;
+let sharedFavorites = [];
 
 let allArtistsData = [],
 searchClickShouldClear = false;
 
 let statusInterval = null;
-let liveStatusInterval = null; // Interval voor live updates
+let liveStatusInterval = null;
 let currentStatusIndex = 0;
 const SLIDE_HEIGHT = 20;
 const ANIMATION_INTERVAL = 5000;
@@ -1667,6 +1719,10 @@ clearHighlight(podiumEl);
 clearHighlight(descriptionEl);
 youtubeTitleEls.forEach(el => clearHighlight(el));
 
+let isVisible = true;
+if (isSharedView) {
+isVisible = sharedFavorites.includes(rawName);
+} else {
 const matchesDay = !activeDays.length || activeDays.includes(dag);
 const matchesPodium = !activePodia.length || activePodia.includes(podium);
 
@@ -1706,11 +1762,14 @@ break;
 }
 }
 const matchesNowNext = !showingNowNext || isNow || isNext;
+isVisible = matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
+}
 
-if (matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext) {
+
+if (isVisible) {
 card.style.display = '';
 visibleCount++;
-if (originalSearchTerm) {
+if (originalSearchTerm && !isSharedView) {
 applyHighlight(artistNameEl, originalSearchTerm);
 if (genresEl) applyHighlight(genresEl, originalSearchTerm);
 if (podiumEl) applyHighlight(podiumEl, originalSearchTerm);
@@ -1794,6 +1853,14 @@ statusInterval = setInterval(slideStatus, ANIMATION_INTERVAL);
 }
 
 function updateArtistCount(n, overrideText = null){
+if (isSharedView) {
+const pluralSuffix = n === 1 ? '' : 'en';
+const textToShow = `${n} gedeelde favoriet${pluralSuffix}`;
+const spanElement = sharedViewInfoElement.querySelector('span');
+if(spanElement) spanElement.textContent = textToShow;
+return;
+}
+
 clearInterval(statusInterval);
 let textToShow;
 if (overrideText) {
@@ -1878,6 +1945,7 @@ indicator.style.display = 'none';
 
 
 function toggleFavoriteOnCard(name){
+if (isSharedView) return; // Prevent changing favorites in shared view
 const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
 else favorites.push(name);
@@ -2007,6 +2075,77 @@ console.log('Hoofdcache en timestamp verwijderd. Data wordt opnieuw opgehaald.')
 
 localStorage.setItem(MIGRATION_KEY, 'true');
 console.log('Cache migratie voltooid.');
+}
+
+function checkForSharedFavorites() {
+const urlParams = new URLSearchParams(window.location.search);
+const favsParam = urlParams.get('favs');
+
+if (favsParam) {
+try {
+const decodedJson = atob(favsParam);
+const favsArray = JSON.parse(decodedJson);
+if (Array.isArray(favsArray) && favsArray.every(item => typeof item === 'string')) {
+isSharedView = true;
+sharedFavorites = favsArray;
+console.log('Shared favorites view activated with:', sharedFavorites);
+}
+} catch (e) {
+console.error('Failed to decode or parse shared favorites:', e);
+isSharedView = false;
+}
+}
+}
+
+function setupSharedView() {
+if (!isSharedView) return;
+
+statusContainer.style.display = 'none';
+sharedViewInfoElement.style.display = 'flex';
+controlBarGroup.classList.add('controls-disabled');
+iconsGroupElement.style.display = 'none';
+const favIcon = favoriteToggleBtn.querySelector('.favorite-icon');
+if(favIcon) favIcon.style.pointerEvents = 'none';
+}
+
+function exitSharedView() {
+const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+window.history.pushState({path: newUrl}, '', newUrl);
+location.reload();
+}
+
+async function handleShareFavorites() {
+if (favorites.length === 0) {
+alert('Je hebt nog geen favorieten om te delen. Markeer eerst wat artiesten als favoriet.');
+return;
+}
+
+const jsonString = JSON.stringify(favorites);
+const base64String = btoa(jsonString);
+const shareUrl = `${window.location.origin}${window.location.pathname}?favs=${base64String}`;
+
+const shareData = {
+title: 'Mijn Valkhof Festival Favorieten',
+text: 'Check mijn favoriete artiesten voor Valkhof Festival 2025!',
+url: shareUrl,
+};
+
+if (navigator.share) {
+try {
+await navigator.share(shareData);
+console.log('Favorieten succesvol gedeeld.');
+} catch (err) {
+console.error('Fout bij delen:', err);
+}
+} else {
+try {
+await navigator.clipboard.writeText(shareUrl);
+alert('Deel-link gekopieerd naar klembord!');
+} catch (err) {
+console.error('Kon link niet naar klembord kopiëren:', err);
+alert('Kon de link niet automatisch kopiëren. Kopieer de link handmatig.');
+}
+}
 }
 
 
@@ -2157,6 +2296,9 @@ settingsBtn.addEventListener('click', openSettingsModal);
 closeModalBtn.addEventListener('click', closeSettingsModal);
 settingsModalOverlay.addEventListener('click', closeSettingsModal);
 clearCacheBtn.addEventListener('click', clearLocalStorageData);
+shareFavoritesBtn.addEventListener('click', handleShareFavorites);
+exitSharedViewBtn.addEventListener('click', exitSharedView);
+
 
 document.querySelectorAll('input[name="dayFilterMode"]').forEach(radio => {
 radio.addEventListener('change', function() {
@@ -2211,15 +2353,21 @@ setStoredJSON(PREFIX + 'activeDays', activeDays);
 }
 
 async function main() {
+checkForSharedFavorites();
 runCacheMigration();
 loadSettings();
 initializeEventListeners();
+
+if (isSharedView) {
+setupSharedView();
+} else {
 highlightCurrentDayButton();
 updateFilterButtonsUI();
 updatePodiaToggleUI();
 updateSortIconsUI();
 updateFavoriteToggleUI();
 updateActiveDayTabsUI();
+}
 
 await loadAllArtistsData();
 
