@@ -476,7 +476,6 @@ align-items: flex-start;
 gap: 6px;
 flex-shrink: 0;
 }
-
 .stacked-buttons-column {
 display: flex;
 flex-direction: column;
@@ -1945,7 +1944,6 @@ indicator.style.display = 'none';
 
 
 function toggleFavoriteOnCard(name){
-if (isSharedView) return; // Prevent changing favorites in shared view
 const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
 else favorites.push(name);
@@ -2104,8 +2102,7 @@ statusContainer.style.display = 'none';
 sharedViewInfoElement.style.display = 'flex';
 controlBarGroup.classList.add('controls-disabled');
 iconsGroupElement.style.display = 'none';
-const favIcon = favoriteToggleBtn.querySelector('.favorite-icon');
-if(favIcon) favIcon.style.pointerEvents = 'none';
+// De "Leuk" filterknop in de control bar wordt al onbruikbaar gemaakt door de .controls-disabled class.
 }
 
 function exitSharedView() {
