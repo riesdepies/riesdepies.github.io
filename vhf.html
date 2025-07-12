@@ -1686,6 +1686,10 @@ let visibleCount = 0;
 const cardElements = artistListElement.children;
 const now = new Date().getTime();
 
+// Vind de 'vandaag' knop en haal de datum-string op
+const todayButton = document.querySelector('.day-filter-button.is-today');
+const todayDateFilterString = todayButton ? todayButton.dataset.dayfilter : null;
+
 for (const card of cardElements) {
 const {
 name: normalizedArtistName,
@@ -1753,7 +1757,15 @@ isNext = start > now && start < endOfArtDay;
 break;
 }
 }
-const matchesNowNext = !showingNowNext || isNow || isNext;
+
+// === AANGEPASTE LOGICA ===
+// Normale check voor 'Nu' of 'Straks' voor artiesten met een bekende tijd.
+const isNowOrNextRegular = isNow || isNext;
+// Check voor artiesten met een onbekende tijd (`start === 0`) die wel op de huidige dag (`is-today`) spelen.
+const isUnknownTimeAndIsToday = (start === 0) && todayDateFilterString && (dag === todayDateFilterString);
+// De uiteindelijke match is waar als 'Nu & Straks' filter uit staat, OF als de artiest nu/straks speelt, OF als de tijd onbekend is maar het wel vandaag is.
+const matchesNowNext = !showingNowNext || isNowOrNextRegular || isUnknownTimeAndIsToday;
+// === EINDE AANGEPASTE LOGICA ===
 
 // Alle voorwaarden moeten waar zijn
 const isVisible = matchesShared && matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
