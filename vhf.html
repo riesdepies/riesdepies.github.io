@@ -2228,16 +2228,25 @@ applyFiltersAndSort();
 });
 }
 
+// === NIEUWE CODE: AANGEPASTE GLOBAL CLICK HANDLER ===
 window.addEventListener('click', (e) => {
-if (!podiaToggleBtn.contains(e.target) && !podiaButtonsContainer.contains(e.target)) {
-podiaButtonsContainer.classList.remove('visible');
-podiaToggleBtn.classList.remove('menu-open');
-}
-if (settingsModal.classList.contains('visible') && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
-closeSettingsModal();
-}
-});
+    // --- Podium Menu Logic ---
+    const isPodiaMenuVisible = podiaButtonsContainer.classList.contains('visible');
+    if (isPodiaMenuVisible && !podiaToggleBtn.contains(e.target) && !podiaButtonsContainer.contains(e.target)) {
+        podiaButtonsContainer.classList.remove('visible');
+        podiaToggleBtn.classList.remove('menu-open');
+        // Consumeer de klik om te voorkomen dat deze onderliggende elementen beïnvloedt
+        e.stopPropagation();
+        e.preventDefault();
+        return; // Verlaat de functie, de klik is afgehandeld.
+    }
 
+    // --- Settings Modal Logic (onveranderd) ---
+    if (settingsModal.classList.contains('visible') && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
+        closeSettingsModal();
+    }
+});
+// === EINDE NIEUWE CODE ===
 
 searchFieldElement.addEventListener('focus', function() {
 searchClickShouldClear = (this.value.length > 0);
@@ -2356,6 +2365,19 @@ window.addEventListener('resize', () => {
 updateBodyPadding();
 syncPodiaButtonWidths();
 });
+
+// === NIEUWE CODE: BIJWERKEN BIJ TAB-FOCUS ===
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        // Werk altijd de 'nu bezig' status bij
+        updateLiveStatusOnCards();
+        // Als 'Nu & Straks' actief is, pas de filters opnieuw toe
+        if (showingNowNext) {
+            applyFiltersAndSort({ preserveScroll: true });
+        }
+    }
+});
+// === EINDE NIEUWE CODE ===
 }
 
 function openSettingsModal() {
