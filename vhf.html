@@ -1124,7 +1124,7 @@ let sortMode = getStoredString('sortMode', 'time'),
 activePodia = getStoredJSON(PREFIX + 'activePodia', []),
 favorites = getStoredJSON(PREFIX + 'favorites', []),
 showingFavs = getStoredJSON(PREFIX + 'showingFavs', false),
-showingNowNext = false,
+showingNowNext = getStoredJSON(PREFIX + 'showingNowNext', false),
 activeDays = getStoredJSON(PREFIX + 'activeDays', []),
 dayFilterMode = getStoredString('dayFilterMode', 'tabs'),
 nowNextMode = getStoredString('nowNextMode', '1hr');
@@ -2222,6 +2222,7 @@ applyFiltersAndSort();
 if (nowNextBtn) {
 nowNextBtn.addEventListener('click', function() {
 showingNowNext = !showingNowNext;
+if (!isSharedView) setStoredJSON(PREFIX + 'showingNowNext', showingNowNext);
 this.classList.toggle('active', showingNowNext);
 applyFiltersAndSort();
 });
