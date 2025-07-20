@@ -138,6 +138,9 @@ opacity: 1;
 margin-bottom: 30px;
 opacity: 0;
 animation: fadeIn 0.8s 0.4s forwards;
+display: flex;
+flex-direction: column;
+align-items: center;
 }
 
 .score {
@@ -153,9 +156,42 @@ transition: color 0.4s ease-out, transform 0.3s ease-out, opacity 0.3s ease-out;
 color: var(--valid-key-color);
 }
 
+.score-label-container {
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
 .score-label {
 font-size: 0.9em;
 color: var(--text-muted-color);
+}
+
+#clearKeysButton {
+background: none;
+border: none;
+color: var(--text-muted-color);
+cursor: pointer;
+padding: 0 0 0 8px;
+margin: 0;
+vertical-align: middle;
+display: inline-flex;
+align-items: center;
+opacity: 0.6;
+transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+#clearKeysButton:hover {
+opacity: 1;
+color: var(--text-color);
+}
+
+#clearKeysButton .material-icons {
+font-size: 18px;
+}
+
+#clearKeysButton.hidden {
+display: none;
 }
 
 .view button.action-button {
@@ -292,20 +328,47 @@ box-shadow: 0 0 1px var(--valid-key-color);
 transform: translateX(24px);
 }
 
+.system-prompt-container {
+width: 100%;
+margin-bottom: 15px;
+opacity: 0;
+animation: fadeIn 0.8s 0.6s forwards;
+flex-shrink: 0;
+}
+
+#systemPromptInput {
+width: 100%;
+background-color: var(--bg-color);
+color: var(--text-color);
+border: 1px solid var(--accent-color);
+border-radius: 8px;
+padding: 10px 12px;
+font-size: 0.9em;
+resize: none;
+font-family: inherit;
+line-height: 1.4;
+min-height: 38px;
+max-height: 100px;
+overflow-y: hidden;
+}
+
+#systemPromptInput:focus {
+outline: none;
+border-color: var(--valid-key-color);
+box-shadow: 0 0 0 2px rgba(72, 187, 120, 0.3);
+}
 
 .chat-messages {
 flex-grow: 1;
 overflow-y: auto;
 min-height: 100px;
 margin-bottom: 15px;
-/* padding-left: 10px; */ /* REMOVED */
-/* padding-right: 10px; */ /* REMOVED */
 display: flex;
 flex-direction: column;
 gap: 10px;
 width: 100%;
 opacity: 0;
-animation: fadeIn 0.8s 0.6s forwards;
+animation: fadeIn 0.8s 0.8s forwards;
 min-width: 0;
 }
 
@@ -489,7 +552,7 @@ gap: 10px;
 align-items: flex-end;
 width: 100%;
 opacity: 0;
-animation: fadeIn 0.8s 0.8s forwards;
+animation: fadeIn 0.8s 1.0s forwards;
 flex-shrink: 0;
 }
 
@@ -553,9 +616,15 @@ cursor: not-allowed;
 <h1 id="pageTitle">Gemini Key Finder</h1>
 
 <div class="score-container">
-<div id="validKeysCount" class="score">0</div>
-<div class="score-label">Valid Keys Found</div>
+    <div id="validKeysCount" class="score">0</div>
+    <div class="score-label-container">
+        <div class="score-label">Valid Keys Found</div>
+        <button id="clearKeysButton" class="hidden" title="Clear stored keys">
+            <span class="material-icons">delete_sweep</span>
+        </button>
+    </div>
 </div>
+
 
 <div id="statusIndicator" class="status-indicator">Ready to start</div>
 
@@ -578,6 +647,10 @@ cursor: not-allowed;
 <span class="switch-label" id="modelLabelSmarter">Smarter</span>
 </div>
 
+<div class="system-prompt-container">
+<textarea id="systemPromptInput" placeholder="Enter system prompt (optional)..." rows="1" aria-label="System prompt input"></textarea>
+</div>
+
 <div class="chat-messages" id="chatMessages">
 <!-- Chat messages will appear here -->
 </div>
@@ -597,6 +670,7 @@ const MODEL_SMARTER = 'gemini-2.5-flash-preview-05-20';
 
 const VALID_GEMINI_KEYS_STORAGE_KEY = 'validGeminiApiKeys';
 const CHAT_MODEL_PREFERENCE_KEY = 'geminiChatModelPreference';
+const SYSTEM_PROMPT_STORAGE_KEY = 'geminiSystemPrompt';
 
 let foundKeys = new Set();
 let validKeysForCopy = [];
@@ -623,6 +697,7 @@ const statusIndicatorEl = document.getElementById('statusIndicator');
 const validKeysCountEl = document.getElementById('validKeysCount');
 const startButtonEl = document.getElementById('startButton');
 const copyButtonEl = document.getElementById('copyButton');
+let clearKeysButtonEl; // Declare clear button element
 
 const chatMessagesEl = document.getElementById('chatMessages');
 const chatInputEl = document.getElementById('chatInput');
@@ -630,6 +705,7 @@ const chatSendButtonEl = document.getElementById('chatSendButton');
 const modelToggleEl = document.getElementById('modelToggle');
 const modelLabelFasterEl = document.getElementById('modelLabelFaster');
 const modelLabelSmarterEl = document.getElementById('modelLabelSmarter');
+let systemPromptInputEl;
 
 let currentChatApiKey = null;
 let conversationHistory = [];
@@ -681,7 +757,7 @@ conversationHistory = [];
 chatMessagesEl.innerHTML = '';
 addChatMessage("Hi there! How can I assist you?", "model");
 chatInputEl.value = '';
-adjustTextareaHeight();
+adjustTextareaHeight(chatInputEl);
 chatContainerEl.dataset.initialized = "true";
 }
 }
@@ -722,6 +798,7 @@ validKeysCountEl.classList.add('has-keys');
 }
 copyButtonEl.classList.remove('hidden');
 if (switchToChatBtnEl) switchToChatBtnEl.disabled = false;
+if (clearKeysButtonEl) clearKeysButtonEl.classList.remove('hidden');
 
 if (!currentChatApiKey) {
 currentChatApiKey = validKeysForCopy[0];
@@ -738,6 +815,8 @@ validKeysCountEl.classList.remove('has-keys');
 }
 copyButtonEl.classList.add('hidden');
 if (switchToChatBtnEl) switchToChatBtnEl.disabled = true;
+if (clearKeysButtonEl) clearKeysButtonEl.classList.add('hidden');
+
 currentChatApiKey = null;
 if (currentView === 'chat') {
 switchView('finder');
@@ -959,19 +1038,34 @@ console.error('Failed to copy keys: ', err);
 });
 }
 
-function adjustTextareaHeight() {
-if (!chatInputEl) return;
-chatInputEl.style.height = 'auto';
-let newHeight = chatInputEl.scrollHeight;
-const maxHeight = parseInt(window.getComputedStyle(chatInputEl).maxHeight, 10) || 120;
-
-if (newHeight > maxHeight) {
-newHeight = maxHeight;
-chatInputEl.style.overflowY = 'auto';
-} else {
-chatInputEl.style.overflowY = 'hidden';
+function clearStoredKeys() {
+    if (!confirm('Are you sure you want to clear all stored API keys? This action cannot be undone.')) {
+        return;
+    }
+    localStorage.removeItem(VALID_GEMINI_KEYS_STORAGE_KEY);
+    validKeysForCopy = [];
+    validKeysCountValue = 0;
+    currentChatApiKey = null;
+    updateValidKeysCountDisplay();
+    updateStatus("All stored keys have been cleared.");
+    if (currentView === 'chat') {
+        switchView('finder');
+    }
 }
-chatInputEl.style.height = `${newHeight}px`;
+
+function adjustTextareaHeight(textareaEl) {
+if (!textareaEl) return;
+textareaEl.style.height = 'auto';
+let newHeight = textareaEl.scrollHeight;
+const maxHeight = parseInt(window.getComputedStyle(textareaEl).maxHeight, 10);
+
+if (maxHeight && newHeight > maxHeight) {
+newHeight = maxHeight;
+textareaEl.style.overflowY = 'auto';
+} else {
+textareaEl.style.overflowY = 'hidden';
+}
+textareaEl.style.height = `${newHeight}px`;
 }
 
 function addChatMessage(text, senderType) {
@@ -1027,7 +1121,7 @@ chatProcessing = true;
 chatInputEl.value = '';
 chatInputEl.disabled = true;
 chatSendButtonEl.disabled = true;
-adjustTextareaHeight();
+adjustTextareaHeight(chatInputEl);
 
 addChatMessage(userInput, "user");
 conversationHistory.push({ role: "user", parts: [{ text: userInput }] });
@@ -1037,11 +1131,20 @@ let modelMessageEl = null;
 let accumulatedResponse = "";
 
 try {
+const systemPrompt = systemPromptInputEl.value.trim();
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${currentChatModel}:streamGenerateContent?key=${currentChatApiKey}`;
+
 const requestBody = { contents: conversationHistory };
 
+// FIX: Correct typo from system_instruction to systemInstruction.
+if (systemPrompt) {
+requestBody.systemInstruction = {
+parts: [{ text: systemPrompt }]
+};
+}
+
 const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 60000); // Longer timeout for streaming
+const timeoutId = setTimeout(() => controller.abort(), 60000); 
 
 const response = await fetch(GEMINI_API_URL, {
 method: 'POST',
@@ -1081,16 +1184,18 @@ currentChatApiKey = null;
 addChatMessage("No more valid API keys available. Please run the scraper again.", "error");
 }
 }
-// No return here, finally block will handle UI state
+
 } else {
-// Start streaming
-modelMessageEl = addChatMessage("", "model"); // Create empty model message element
+
+modelMessageEl = addChatMessage("", "model");
 chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
 
 const reader = response.body.getReader();
 const decoder = new TextDecoder();
 let streamBuffer = '';
+let jsonStarted = false;
 
+// FIX: Implement robust stream processing to prevent message cut-offs.
 async function processStreamChunks() {
 while (true) {
 const { value, done } = await reader.read();
@@ -1102,88 +1207,53 @@ conversationHistory.push({ role: "model", parts: [{ text: accumulatedResponse.tr
 return;
 }
 
-streamBuffer += decoder.decode(value, { stream: true });
-
-let lastProcessedIdx = 0;
-while (true) {
-const objStartIndex = streamBuffer.indexOf('{', lastProcessedIdx);
-if (objStartIndex === -1) break;
-
-let braceDepth = 0;
-let objEndIndex = -1;
-for (let i = objStartIndex; i < streamBuffer.length; i++) {
-if (streamBuffer[i] === '{') braceDepth++;
-else if (streamBuffer[i] === '}') braceDepth--;
-
-if (braceDepth === 0 && streamBuffer[i] === '}') {
-objEndIndex = i;
-break;
+const chunk = decoder.decode(value);
+for (const char of chunk) {
+streamBuffer += char;
+if (char === '{' && !jsonStarted) {
+jsonStarted = true;
+streamBuffer = '{';
 }
-}
-
-if (objEndIndex !== -1) {
-const jsonStr = streamBuffer.substring(objStartIndex, objEndIndex + 1);
+if (char === '}' && jsonStarted) {
 try {
-const parsedChunk = JSON.parse(jsonStr);
-const itemsToProcess = Array.isArray(parsedChunk) ? parsedChunk : [parsedChunk];
-
-itemsToProcess.forEach(item => {
-if (item.candidates && item.candidates[0]?.content?.parts[0]?.text) {
-const textContent = item.candidates[0].content.parts[0].text;
+const parsedChunk = JSON.parse(streamBuffer);
+if (parsedChunk.candidates && parsedChunk.candidates[0]?.content?.parts[0]?.text) {
+const textContent = parsedChunk.candidates[0].content.parts[0].text;
 accumulatedResponse += textContent;
 if (modelMessageEl && typeof marked !== 'undefined') {
 modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
 }
 chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-} else if (item.promptFeedback && item.promptFeedback.blockReason) {
-const blockMessage = `\n\n*Response blocked: ${item.promptFeedback.blockReason}.*`;
-console.warn("Gemini response blocked:", item.promptFeedback.blockReason);
+} else if (parsedChunk.promptFeedback && parsedChunk.promptFeedback.blockReason) {
+const blockMessage = `\n\n*Response blocked: ${parsedChunk.promptFeedback.blockReason}.*`;
+console.warn("Gemini response blocked:", parsedChunk.promptFeedback.blockReason);
 accumulatedResponse += blockMessage;
 if (modelMessageEl && typeof marked !== 'undefined') {
 modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
 }
-// Stream usually ends after a block reason from Gemini
-} else if (item.error) {
-console.error("Error object in Google Stream:", item.error);
-const streamErrorMessage = `Stream error: ${item.error.message}`;
-accumulatedResponse += `\n\n*${streamErrorMessage}*`;
-if (modelMessageEl && typeof marked !== 'undefined') {
-modelMessageEl.innerHTML = marked.parse(accumulatedResponse.trim(), { breaks: true, gfm: true });
 }
-throw new Error(streamErrorMessage); // Propagate to stop stream processing
-}
-});
-lastProcessedIdx = objEndIndex + 1;
+streamBuffer = '';
+jsonStarted = false;
 } catch (e) {
-console.warn("JSON parsing error in stream chunk, waiting for more data. Error:", e, "Chunk:", jsonStr);
-// Incomplete JSON, break inner loop and wait for more data in outer loop
-// Advance search past this potentially corrupt start to avoid infinite loop on malformed static JSON
-lastProcessedIdx = objStartIndex + 1;
-break;
-}
-} else {
-// No complete JSON object found in buffer, wait for more data
-break;
+// Malformed/incomplete JSON, do nothing and wait for more characters
 }
 }
-streamBuffer = streamBuffer.substring(lastProcessedIdx);
+}
 }
 }
 await processStreamChunks();
 }
 
 } catch (error) {
-// This catches errors from fetch itself, AbortError, or errors thrown from processStreamChunks
+
 if (thinkingMessageEl && thinkingMessageEl.parentNode) thinkingMessageEl.remove();
 
-// If modelMessageEl exists but no response was accumulated, it means an error occurred early.
-// If there's some accumulatedResponse, the error might have happened mid-stream.
 if (modelMessageEl && !accumulatedResponse) {
-modelMessageEl.remove(); // Remove empty model message if error occurred before any content
+modelMessageEl.remove(); 
 }
 
 let errorMsg = (error.name === 'AbortError') ? 'Request timed out.' : error.message;
-// Avoid adding a generic error message if a specific one was already displayed by stream processing
+
 if (!accumulatedResponse.toLowerCase().includes("error:")) {
 addChatMessage(`Network or other error: ${errorMsg}`, "error");
 }
@@ -1193,12 +1263,11 @@ chatProcessing = false;
 if (currentChatApiKey) {
 chatInputEl.disabled = false;
 chatSendButtonEl.disabled = false;
-// Verwijderde regel: if (chatInputEl) chatInputEl.focus();
 } else {
 chatInputEl.disabled = true;
 chatSendButtonEl.disabled = true;
 }
-adjustTextareaHeight();
+adjustTextareaHeight(chatInputEl);
 }
 }
 
@@ -1206,6 +1275,8 @@ adjustTextareaHeight();
 document.addEventListener('DOMContentLoaded', () => {
 switchToChatBtnEl = document.getElementById('switchToChatBtn');
 switchToFinderBtnEl = document.getElementById('switchToFinderBtn');
+systemPromptInputEl = document.getElementById('systemPromptInput');
+clearKeysButtonEl = document.getElementById('clearKeysButton');
 
 loadKeysFromLocalStorage();
 updateValidKeysCountDisplay();
@@ -1219,6 +1290,11 @@ modelToggleEl.checked = false;
 currentChatModel = MODEL_FASTER;
 }
 updateModelToggleVisuals();
+
+const savedSystemPrompt = localStorage.getItem(SYSTEM_PROMPT_STORAGE_KEY);
+if (savedSystemPrompt) {
+systemPromptInputEl.value = savedSystemPrompt;
+}
 
 if (validKeysForCopy.length > 0) {
 currentChatApiKey = validKeysForCopy[0];
@@ -1235,14 +1311,22 @@ updateStatus('Ready to start', true);
 
 
 chatSendButtonEl.addEventListener('click', handleChatSubmit);
+clearKeysButtonEl.addEventListener('click', clearStoredKeys);
 chatInputEl.addEventListener('keypress', (event) => {
 if (event.key === 'Enter' && !event.shiftKey) {
 event.preventDefault();
 handleChatSubmit();
 }
 });
-chatInputEl.addEventListener('input', adjustTextareaHeight);
-adjustTextareaHeight();
+
+chatInputEl.addEventListener('input', () => adjustTextareaHeight(chatInputEl));
+systemPromptInputEl.addEventListener('input', () => {
+localStorage.setItem(SYSTEM_PROMPT_STORAGE_KEY, systemPromptInputEl.value);
+adjustTextareaHeight(systemPromptInputEl);
+});
+
+adjustTextareaHeight(chatInputEl);
+adjustTextareaHeight(systemPromptInputEl);
 
 modelToggleEl.addEventListener('change', () => {
 if (modelToggleEl.checked) {
