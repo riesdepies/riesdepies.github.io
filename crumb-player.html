@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crumb (1994) - Stream Player</title>
+
+<!-- Video.js CSS -->
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+
+<style>
+/* INLINE CSS */
+:root {
+    --primary-color: #1877f2;
+    --background-color: #f0f2f5;
+    --container-bg: #ffffff;
+    --text-color: #1c1e21;
+    --spinner-color: #ddd;
+    --spinner-active-color: var(--primary-color);
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+.app-container {
+    width: 100%;
+    max-width: 900px;
+    background-color: var(--container-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box;
+}
+h1 {
+    font-size: 24px;
+    text-align: center;
+    border-bottom: 1px solid #dddfe2;
+    padding-bottom: 15px;
+    margin: 0 0 20px 0;
+}
+.loading-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+}
+.spinner {
+    border: 6px solid var(--spinner-color);
+    border-top: 6px solid var(--spinner-active-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+#status-message {
+    font-size: 16px;
+    color: #606770;
+    text-align: center;
+}
+.video-js {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="loading-screen">
+        <h1>Crumb (1994)</h1>
+        <div class="spinner"></div>
+        <p id="status-message">Een moment geduld, de stream en ondertiteling worden voorbereid...</p>
+    </div>
+    
+    <div id="player-screen" style="display: none;">
+         <video id="movie-player" class="video-js vjs-default-skin vjs-big-play-centered vjs-fluid" controls preload="auto"></video>
+    </div>
+</div>
+
+<!-- Externe bibliotheken -->
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<script src="https://unpkg.com/@videojs/http-streaming@3.9.0/dist/videojs-http-streaming.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+
+<script>
+// INLINE JAVASCRIPT
+(function() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const playerScreen = document.getElementById('player-screen');
+    const statusMessage = document.getElementById('status-message');
+
+    // --- ROBUUSTE CORS PROXY FETCHER ---
+    async function fetchViaCorsProxy(targetUrl, options = {}) {
+        // ... (deze functie blijft ongewijzigd) ...
+        const proxies = [
+            { name: 'All Origins', template: 'https://api.allorigins.win/raw?url=', needsEncoding: true },
+            { name: 'CORSProxy.io', template: 'https://api.corsproxy.io/?', needsEncoding: false },
+            { name: 'Codetabs', template: 'https://api.codetabs.com/v1/proxy?quest=', needsEncoding: true },
+            { name: 'corsmirror.com', template: 'https://corsmirror.com/v1?url=', needsEncoding: true }
+        ];
+        const constructProxyUrl = (proxy, url) => {
+            const urlPart = proxy.needsEncoding ? encodeURIComponent(url) : url;
+            return proxy.template + urlPart;
+        };
+        const fetchPromises = proxies.map(proxy => {
+            const proxyUrl = constructProxyUrl(proxy, targetUrl);
+            return new Promise((resolve, reject) => {
+                fetch(proxyUrl, options)
+                    .then(response => {
+                        if (response.ok) {
+                            response.proxyName = proxy.name; resolve(response);
+                        } else {
+                            reject(new Error(`Proxy '${proxy.name}' faalde: ${response.status}`));
+                        }
+                    })
+                    .catch(error => reject(new Error(`Proxy '${proxy.name}' gaf netwerkfout`)));
+            });
+        });
+        try {
+            return await Promise.any(fetchPromises);
+        } catch (error) {
+            const allErrors = error.errors.map(e => e.message).join('; ');
+            throw new Error(`Alle CORS proxies faalden. Fouten: ${allErrors}`);
+        }
+    }
+
+    // --- HULPFUNCTIES ---
+    function updateStatus(message) {
+        statusMessage.textContent = message;
+    }
+
+    function srtToVtt(srtText) {
+        let vttText = "WEBVTT\n\n";
+        vttText += srtText
+            .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2')
+            .replace(/^\d+\s*$/gm, '');
+        return vttText.trim();
+    }
+    
+    // GECORRIGEERDE & ROBUUSTE IFRAME EXTRACTOR
+    function extractIframeUrl(htmlCode, baseUrl) {
+        const patterns = [
+            /<iframe[^>]+src\s*=\s*["']([^"']+)["']/,       // Standaard src attribuut
+            /src:\s*["']([^"']+)["']/,                       // JS: { src: '...' }
+            /\.src\s*=\s*["']([^"']+)["']/                    // JS: element.src = '...'
+        ];
+        for (const pattern of patterns) {
+            const match = htmlCode.match(pattern);
+            if (match && match[1]) {
+                try {
+                    // Zorg ervoor dat het een volledige URL wordt
+                    return new URL(match[1], baseUrl).href;
+                } catch (e) { continue; }
+            }
+        }
+        return null;
+    }
+
+    function extractM3u8Url(htmlContent) {
+        const regex = /(https?:\/\/[^\s'"]+?\.m3u8[^\s'"]*)/;
+        const match = htmlContent.match(regex);
+        return match ? match[1] : null;
+    }
+
+    // --- DATA OPHALEN FUNCTIES ---
+
+    async function getM3u8Url() {
+        const initialTarget = 'https://vidsrc.net/embed/movie/tt0109508';
+        updateStatus('Stap 1/3: Verbinding maken...');
+        const response1 = await fetchViaCorsProxy(initialTarget);
+        const html1 = await response1.text();
+
+        updateStatus('Stap 2/3: Stream-locatie opzoeken...');
+        const iframeUrl1 = extractIframeUrl(html1, initialTarget);
+        if (!iframeUrl1) throw new Error('Kon beveiligde link (1) niet vinden.');
+        const response2 = await fetchViaCorsProxy(iframeUrl1, { headers: { 'Referer': initialTarget } });
+        const html2 = await response2.text();
+
+        const iframeUrl2 = extractIframeUrl(html2, iframeUrl1);
+        if (!iframeUrl2) throw new Error('Kon beveiligde link (2) niet vinden.');
+        const response3 = await fetchViaCorsProxy(iframeUrl2, { headers: { 'Referer': iframeUrl1 } });
+        const html3 = await response3.text();
+        
+        const m3u8Url = extractM3u8Url(html3);
+        if (!m3u8Url) throw new Error('Kon de M3U8 stream URL niet vinden.');
+        return m3u8Url;
+    }
+
+    async function getSubtitles() {
+        const subtitleGzUrl = 'https://dl.opensubtitles.org/en/download/src-api/vrf-19b10c53/filead/1961508660.gz';
+        const response = await fetchViaCorsProxy(subtitleGzUrl);
+        const compressedData = await response.arrayBuffer();
+        const uncompressedData = pako.ungzip(compressedData);
+        const srtContent = new TextDecoder("utf-8").decode(uncompressedData);
+        return srtToVtt(srtContent);
+    }
+    
+    // --- PLAYER INITIALISATIE ---
+
+    function initializePlayer(m3u8Url, vttContent) {
+        updateStatus('Stream en ondertiteling gevonden! Speler wordt gestart...');
+
+        const player = videojs('movie-player', {
+            autoplay: true,
+            controls: true,
+            fluid: true,
+            poster: 'https://image.tmdb.org/t/p/w780/1mlfORlfu2PtZnlEB3gMKqJy7Qp.jpg'
+        });
+
+        // Laad de M3U8 stream
+        player.src({
+            src: m3u8Url,
+            type: 'application/x-mpegURL'
+        });
+
+        // Creëer een object URL voor de VTT ondertiteling
+        const vttBlob = new Blob([vttContent], { type: 'text/vtt' });
+        const vttUrl = URL.createObjectURL(vttBlob);
+
+        // Voeg de ondertiteling toe aan de speler
+        const track = player.addRemoteTextTrack({
+            kind: 'subtitles',
+            src: vttUrl,
+            srclang: 'nl',
+            label: 'Nederlands'
+        }, false);
+        
+        // Zorg ervoor dat de ondertiteling standaard AAN staat
+        track.addEventListener('load', () => {
+             player.textTracks()[0].mode = 'showing';
+        });
+
+        loadingScreen.style.display = 'none';
+        playerScreen.style.display = 'block';
+    }
+
+    // --- HOOFDLOGICA ---
+    async function main() {
+        try {
+            // Start beide processen parallel en wacht tot ze allebei klaar zijn.
+            const [m3u8Url, vttContent] = await Promise.all([
+                getM3u8Url(),
+                getSubtitles()
+            ]);
+            
+            initializePlayer(m3u8Url, vttContent);
+
+        } catch (error) {
+            updateStatus(`Fout: ${error.message}. Probeer de pagina te vernieuwen.`);
+            document.querySelector('.spinner').style.display = 'none';
+            console.error(error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', main);
+
+})();
+</script>
+</body>
+</html>
