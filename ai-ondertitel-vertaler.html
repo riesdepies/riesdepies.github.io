@@ -140,17 +140,17 @@ textarea { width: 100%; height: 200px; margin-top: 10px; background-color: var(-
 #comparisonNav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; }
 
 #comparisonNav button {
-    /* Inherit from base button style but with specific overrides */
-    background-color: var(--accent-color);
-    color: var(--button-text-color);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.15s ease-out;
-    width: 50%;
-    padding: 10px;
-    font-size: 1em;
+/* Inherit from base button style but with specific overrides */
+background-color: var(--accent-color);
+color: var(--button-text-color);
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-weight: 600;
+transition: background-color 0.2s ease, transform 0.15s ease-out;
+width: 50%;
+padding: 10px;
+font-size: 1em;
 }
 
 .sub-text-box { border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; background-color: var(--bg-color); min-height: 50px; white-space: pre-wrap; font-size: 0.95em; line-height: 1.5; }
@@ -184,20 +184,20 @@ footer { margin-top: auto; padding-top: 20px; text-align: center; font-size: 0.8
 </div>
 
 <div class="action-button-wrapper">
-    <button id="translateBtn">Vertaal!</button>
-    <div id="progressContainer">
-        <div id="progressFill"></div>
-        <span id="progressText"></span>
-    </div>
+<button id="translateBtn">Vertaal!</button>
+<div id="progressContainer">
+<div id="progressFill"></div>
+<span id="progressText"></span>
+</div>
 </div>
 
 
 <div id="status" class="status"></div>
-<div id="resultContainer" style="display: none;"><label for="resultText" style="display: block; text-align: center; padding-top: 10px;">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
+<div id="resultContainer" style="display: none;"><label for="resultText" style="text-align: center; display: block; padding-top: 20px;">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
 <div id="comparisonContainer" style="display: none;"><h2>Controleer Vertaling</h2><div id="subCounter"></div><div id="comparisonNav"><button id="prevSubBtn">&laquo; Vorige</button><button id="nextSubBtn">Volgende &raquo;</button></div><div><label for="originalSubText">Origineel:</label><div id="originalSubText" class="sub-text-box"></div></div><div><label for="translatedSubText">Vertaald:</label><div id="translatedSubText" class="sub-text-box"></div></div></div>
 </div>
 
-<footer><p>&copy; 2025. riesdepies + gemini-2.5-pro</p></footer>
+<footer><p>© 2025. riesdepies + gemini-2.5-pro</p></footer>
 
 <script>
 // INLINE JAVASCRIPT
@@ -219,9 +219,9 @@ resultContainer: document.getElementById('resultContainer'),
 resultTextarea: document.getElementById('resultText'),
 downloadLink: document.getElementById('downloadLink'),
 progress: {
-    container: document.getElementById('progressContainer'),
-    fill: document.getElementById('progressFill'),
-    text: document.getElementById('progressText')
+container: document.getElementById('progressContainer'),
+fill: document.getElementById('progressFill'),
+text: document.getElementById('progressText')
 },
 comparison: {
 container: document.getElementById('comparisonContainer'),
@@ -293,34 +293,34 @@ const isGoogle = engine === 'google';
 
 try {
 if (isGoogle) {
-    apiKey = ui.googleApiKey.value.trim();
-    if (apiKey) { usedCustomKey = true; } 
-    else {
-        const manager = keyManager.google;
-        apiKey = manager.get();
-        if (!apiKey) {
-            updateProgress(0, 'Zoeken naar Google sleutel...', true);
-            apiKey = await findGoogleApiKey({ onStatusUpdate: (msg) => updateProgress(0, msg, true) });
-            if (apiKey) { manager.set(apiKey); }
-            else { throw new Error('Kon geen werkende Google API-sleutel vinden.'); }
-        }
-    }
+apiKey = ui.googleApiKey.value.trim();
+if (apiKey) { usedCustomKey = true; }
+else {
+const manager = keyManager.google;
+apiKey = manager.get();
+if (!apiKey) {
+updateProgress(0, 'Zoeken naar Google sleutel...', true);
+apiKey = await findGoogleApiKey({ onStatusUpdate: (msg) => updateProgress(0, msg, true) });
+if (apiKey) { manager.set(apiKey); }
+else { throw new Error('Kon geen werkende Google API-sleutel vinden.'); }
+}
+}
 } else if (isGemini) {
-    apiKey = ui.geminiApiKey.value.trim();
-    if (engine === 'gemini-2.5-pro' && !apiKey) {
-        throw new Error('Voor Gemini 2.5 Pro is een eigen API-sleutel vereist in veld 5.');
-    }
-    if (apiKey) { usedCustomKey = true; } 
-    else { // Dit is voor Flash modellen
-        const manager = keyManager.gemini;
-        apiKey = manager.get();
-        if (!apiKey) {
-            updateProgress(0, 'Zoeken naar Gemini sleutel...', true);
-            apiKey = await findGeminiApiKey({ modelToTest: engine, onStatusUpdate: (msg) => updateProgress(0, msg, true) });
-            if (apiKey) { manager.set(apiKey); }
-            else { throw new Error(`Kon geen werkende Gemini API-sleutel vinden voor ${engine}.`); }
-        }
-    }
+apiKey = ui.geminiApiKey.value.trim();
+if (engine === 'gemini-2.5-pro' && !apiKey) {
+throw new Error('Voor Gemini 2.5 Pro is een eigen API-sleutel vereist in veld 5.');
+}
+if (apiKey) { usedCustomKey = true; }
+else { // Dit is voor Flash modellen
+const manager = keyManager.gemini;
+apiKey = manager.get();
+if (!apiKey) {
+updateProgress(0, 'Zoeken naar Gemini sleutel...', true);
+apiKey = await findGeminiApiKey({ modelToTest: engine, onStatusUpdate: (msg) => updateProgress(0, msg, true) });
+if (apiKey) { manager.set(apiKey); }
+else { throw new Error(`Kon geen werkende Gemini API-sleutel vinden voor ${engine}.`); }
+}
+}
 }
 
 if (!apiKey) throw new Error("API sleutel kon niet worden verkregen.");
@@ -339,36 +339,36 @@ console.error(error);
 });
 
 function updateProgress(percentage, message = null, withSpinner = false) {
-    const p = Math.min(100, Math.max(0, percentage));
-    ui.progress.fill.style.width = `${p}%`;
-    let spinnerHtml = withSpinner ? '<div class="loader"></div>' : '';
-    if (message) {
-        ui.progress.text.innerHTML = `${spinnerHtml}<span>${message}</span>`;
-    } else {
-        ui.progress.text.innerHTML = `<span>${Math.round(p)}% vertaald</span>`;
-    }
+const p = Math.min(100, Math.max(0, percentage));
+ui.progress.fill.style.width = `${p}%`;
+let spinnerHtml = withSpinner ? '<div class="loader"></div>' : '';
+if (message) {
+ui.progress.text.innerHTML = `${spinnerHtml}<span>${message}</span>`;
+} else {
+ui.progress.text.innerHTML = `<span>${Math.round(p)}% vertaald</span>`;
+}
 }
 
 function setUiState(state, message = '') {
-    if (state === 'busy') {
-        ui.translateBtn.style.opacity = '0';
-        ui.translateBtn.disabled = true;
-        ui.progress.container.style.display = 'block';
-        updateProgress(0); // Show "0% vertaald" immediately
-        ui.status.style.display = 'none';
-        ui.resultContainer.style.display = 'none';
-        ui.comparison.container.style.display = 'none';
-    } else if (state === 'idle') {
-        ui.translateBtn.style.opacity = '1';
-        ui.translateBtn.disabled = false;
-        ui.progress.container.style.display = 'none';
-    } else if (state === 'error') {
-        ui.translateBtn.style.opacity = '1';
-        ui.translateBtn.disabled = false;
-        ui.progress.container.style.display = 'none';
-        ui.status.textContent = message;
-        ui.status.style.display = 'block';
-    }
+if (state === 'busy') {
+ui.translateBtn.style.opacity = '0';
+ui.translateBtn.disabled = true;
+ui.progress.container.style.display = 'block';
+updateProgress(0); // Show "0% vertaald" immediately
+ui.status.style.display = 'none';
+ui.resultContainer.style.display = 'none';
+ui.comparison.container.style.display = 'none';
+} else if (state === 'idle') {
+ui.translateBtn.style.opacity = '1';
+ui.translateBtn.disabled = false;
+ui.progress.container.style.display = 'none';
+} else if (state === 'error') {
+ui.translateBtn.style.opacity = '1';
+ui.translateBtn.disabled = false;
+ui.progress.container.style.display = 'none';
+ui.status.textContent = message;
+ui.status.style.display = 'block';
+}
 }
 
 async function processTranslation(apiKey, engine, usedCustomKey) {
@@ -433,105 +433,105 @@ return all;
 }
 
 async function translateWithGemini(originalTexts, targetLanguage, apiKey, model, progressCallback) {
-    const engineName = ui.engine.options[ui.engine.selectedIndex].text;
-    progressCallback(0, `${engineName} denkt na...`, true);
+const engineName = ui.engine.options[ui.engine.selectedIndex].text;
+progressCallback(0, `${engineName} denkt na...`, true);
 
-    const allTranslatedParts = [];
-    let remainingTexts = [...originalTexts];
-    const sep = "|||SUB|||";
+const allTranslatedParts = [];
+let remainingTexts = [...originalTexts];
+const sep = "|||SUB|||";
 
-    while (remainingTexts.length > 0) {
-        const combined = remainingTexts.join(sep);
-        const prompt = `Translate to ${targetLanguage}. IMPORTANT: Input blocks are separated by "${sep}". Your output MUST have the exact same number of blocks separated by "${sep}". Preserve all line breaks within each block. No Markdown. No extra text.\n\nTEXT:\n${combined}`;
-        
-        try {
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
+while (remainingTexts.length > 0) {
+const combined = remainingTexts.join(sep);
+const prompt = `Translate to ${targetLanguage}. IMPORTANT: Input blocks are separated by "${sep}". Your output MUST have the exact same number of blocks separated by "${sep}". Preserve all line breaks within each block. No Markdown. No extra text.\n\nTEXT:\n${combined}`;
 
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({error: {message: `HTTP ${res.status}`}}));
-                const e = new Error(`Gemini API fout: ${errData.error?.message || res.status}`);
-                if (res.status >= 400) e.isApiKeyError = true;
-                throw e;
-            }
+try {
+const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+});
 
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            let accumulatedResponse = "", streamBuffer = "", jsonStarted = false;
-            let finalFinishReason = 'FINISH_REASON_UNSPECIFIED';
+if (!res.ok) {
+const errData = await res.json().catch(() => ({error: {message: `HTTP ${res.status}`}}));
+const e = new Error(`Gemini API fout: ${errData.error?.message || res.status}`);
+if (res.status >= 400) e.isApiKeyError = true;
+throw e;
+}
 
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
+const reader = res.body.getReader();
+const decoder = new TextDecoder();
+let accumulatedResponse = "", streamBuffer = "", jsonStarted = false;
+let finalFinishReason = 'FINISH_REASON_UNSPECIFIED';
 
-                const chunk = decoder.decode(value, { stream: true });
-                for (const char of chunk) {
-                    streamBuffer += char;
-                    if (char === '{' && !jsonStarted) { jsonStarted = true; streamBuffer = '{'; }
-                    if (char === '}' && jsonStarted) {
-                        try {
-                            const parsed = JSON.parse(streamBuffer);
-                            if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
-                                const textContent = parsed.candidates[0].content.parts[0].text;
-                                accumulatedResponse += textContent;
+while (true) {
+const { value, done } = await reader.read();
+if (done) break;
 
-                                const separatorCount = (accumulatedResponse.match(/\|\|\|SUB\|\|\|/g) || []).length;
-                                const overallProgress = ((allTranslatedParts.length + separatorCount) / originalTexts.length) * 100;
-                                progressCallback(overallProgress);
-                            }
-                            if(parsed.candidates?.[0]?.finishReason) {
-                                finalFinishReason = parsed.candidates[0].finishReason;
-                            }
-                            streamBuffer = ''; jsonStarted = false;
-                        } catch (e) { /* Incomplete JSON, continue buffering */ }
-                    }
-                }
-            }
+const chunk = decoder.decode(value, { stream: true });
+for (const char of chunk) {
+streamBuffer += char;
+if (char === '{' && !jsonStarted) { jsonStarted = true; streamBuffer = '{'; }
+if (char === '}' && jsonStarted) {
+try {
+const parsed = JSON.parse(streamBuffer);
+if (parsed.candidates?.[0]?.content?.parts?.[0]?.text) {
+const textContent = parsed.candidates[0].content.parts[0].text;
+accumulatedResponse += textContent;
 
-            const newlyTranslatedParts = accumulatedResponse.split(sep).map(p => p.trim());
-            
-            if (finalFinishReason === 'MAX_TOKENS' && newlyTranslatedParts.length > 0) {
-                // Remove last, potentially incomplete part
-                newlyTranslatedParts.pop();
-                allTranslatedParts.push(...newlyTranslatedParts);
-                remainingTexts = originalTexts.slice(allTranslatedParts.length);
-                progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
-            } else if (finalFinishReason === 'STOP') {
-                allTranslatedParts.push(...newlyTranslatedParts);
-                remainingTexts = []; // Done
-            } else {
-                if(finalFinishReason !== 'FINISH_REASON_UNSPECIFIED') {
-                   throw new Error(`Vertaling gestopt door API: ${finalFinishReason}`);
-                }
-                // It might happen that the stream ends without a final candidate block containing the finishReason.
-                // In this case, we assume it's incomplete if not all parts are there.
-                if (newlyTranslatedParts.length < remainingTexts.length && newlyTranslatedParts.length > 0) {
-                    newlyTranslatedParts.pop();
-                    allTranslatedParts.push(...newlyTranslatedParts);
-                    remainingTexts = originalTexts.slice(allTranslatedParts.length);
-                    progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
-                } else {
-                     allTranslatedParts.push(...newlyTranslatedParts);
-                     remainingTexts = []; // Assume it's done.
-                }
-            }
+const separatorCount = (accumulatedResponse.match(/\|\|\|SUB\|\|\|/g) || []).length;
+const overallProgress = ((allTranslatedParts.length + separatorCount) / originalTexts.length) * 100;
+progressCallback(overallProgress);
+}
+if(parsed.candidates?.[0]?.finishReason) {
+finalFinishReason = parsed.candidates[0].finishReason;
+}
+streamBuffer = ''; jsonStarted = false;
+} catch (e) { /* Incomplete JSON, continue buffering */ }
+}
+}
+}
 
-        } catch (error) {
-            if (error.isApiKeyError) throw error;
-            throw new Error(`Netwerkfout of API fout tijdens vertalen: ${error.message}`);
-        }
-    }
+const newlyTranslatedParts = accumulatedResponse.split(sep).map(p => p.trim());
 
-    if (allTranslatedParts.length !== originalTexts.length) {
-        console.warn(`Eindresultaat-mismatch! Verwacht: ${originalTexts.length}, Gekregen: ${allTranslatedParts.length}. Proberen op te vullen.`);
-        while (allTranslatedParts.length < originalTexts.length) allTranslatedParts.push("");
-        while (allTranslatedParts.length > originalTexts.length) allTranslatedParts.pop();
-    }
+if (finalFinishReason === 'MAX_TOKENS' && newlyTranslatedParts.length > 0) {
+// Remove last, potentially incomplete part
+newlyTranslatedParts.pop();
+allTranslatedParts.push(...newlyTranslatedParts);
+remainingTexts = originalTexts.slice(allTranslatedParts.length);
+progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
+} else if (finalFinishReason === 'STOP') {
+allTranslatedParts.push(...newlyTranslatedParts);
+remainingTexts = []; // Done
+} else {
+if(finalFinishReason !== 'FINISH_REASON_UNSPECIFIED') {
+throw new Error(`Vertaling gestopt door API: ${finalFinishReason}`);
+}
+// It might happen that the stream ends without a final candidate block containing the finishReason.
+// In this case, we assume it's incomplete if not all parts are there.
+if (newlyTranslatedParts.length < remainingTexts.length && newlyTranslatedParts.length > 0) {
+newlyTranslatedParts.pop();
+allTranslatedParts.push(...newlyTranslatedParts);
+remainingTexts = originalTexts.slice(allTranslatedParts.length);
+progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
+} else {
+allTranslatedParts.push(...newlyTranslatedParts);
+remainingTexts = []; // Assume it's done.
+}
+}
 
-    return allTranslatedParts;
+} catch (error) {
+if (error.isApiKeyError) throw error;
+throw new Error(`Netwerkfout of API fout tijdens vertalen: ${error.message}`);
+}
+}
+
+if (allTranslatedParts.length !== originalTexts.length) {
+console.warn(`Eindresultaat-mismatch! Verwacht: ${originalTexts.length}, Gekregen: ${allTranslatedParts.length}. Proberen op te vullen.`);
+while (allTranslatedParts.length < originalTexts.length) allTranslatedParts.push("");
+while (allTranslatedParts.length > originalTexts.length) allTranslatedParts.pop();
+}
+
+return allTranslatedParts;
 }
 
 
