@@ -193,11 +193,11 @@ footer { margin-top: auto; padding-top: 20px; text-align: center; font-size: 0.8
 
 
 <div id="status" class="status"></div>
-<div id="resultContainer" style="display: none;"><label for="resultText">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
+<div id="resultContainer" style="display: none;"><label for="resultText" style="display: block; text-align: center; padding-top: 10px;">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
 <div id="comparisonContainer" style="display: none;"><h2>Controleer Vertaling</h2><div id="subCounter"></div><div id="comparisonNav"><button id="prevSubBtn">&laquo; Vorige</button><button id="nextSubBtn">Volgende &raquo;</button></div><div><label for="originalSubText">Origineel:</label><div id="originalSubText" class="sub-text-box"></div></div><div><label for="translatedSubText">Vertaald:</label><div id="translatedSubText" class="sub-text-box"></div></div></div>
 </div>
 
-<footer><p>&copy; <span id="currentYear"></span>. Gebruik deze tool verantwoordelijk.</p></footer>
+<footer><p>&copy; 2025. riesdepies + gemini-2.5-pro</p></footer>
 
 <script>
 // INLINE JAVASCRIPT
@@ -540,7 +540,6 @@ function initComparisonView(original, translated) { comparisonState.original = o
 function updateComparisonView() { const i = comparisonState.currentIndex; ui.comparison.originalText.textContent = comparisonState.original[i] || ''; ui.comparison.translatedText.textContent = comparisonState.translated[i] || ''; ui.comparison.counter.textContent = `Ondertitel ${i + 1} / ${comparisonState.original.length}`; ui.comparison.prevBtn.disabled = (i === 0); ui.comparison.nextBtn.disabled = (i >= comparisonState.original.length - 1); }
 ui.comparison.prevBtn.addEventListener('click', () => { if (comparisonState.currentIndex > 0) { comparisonState.currentIndex--; updateComparisonView(); } });
 ui.comparison.nextBtn.addEventListener('click', () => { if (comparisonState.currentIndex < comparisonState.original.length - 1) { comparisonState.currentIndex++; updateComparisonView(); } });
-document.getElementById('currentYear').textContent = new Date().getFullYear();
 
 // --- Key Scrapers ---
 async function scraperTemplate(options, baseUrl, testFn) {
