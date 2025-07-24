@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Ondertitel Vertaler</title>
+<style>
+/* INLINE CSS */
+:root {
+--bg-color: #1a202c;
+--container-bg-color: #2d3748;
+--text-color: #cbd5e0;
+--accent-color: #4299e1;
+--accent-hover-color: #2b6cb0;
+--button-text-color: #ffffff;
+--success-color: #48bb78;
+--error-color: #e53e3e;
+--shadow-color-dark: rgba(0, 0, 0, 0.3);
+--input-bg-color: #1e2532;
+--border-color: #4a5568;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: var(--bg-color);
+color: var(--text-color);
+display: flex;
+flex-direction: column;
+align-items: center;
+min-height: 100vh;
+padding: 20px;
+}
+
+.container {
+background-color: var(--container-bg-color);
+border-radius: 12px;
+padding: 25px;
+width: 100%;
+max-width: 600px;
+box-shadow: 0px 6px 20px var(--shadow-color-dark);
+transition: max-width 0.3s ease-in-out;
+}
+
+h1 { font-size: 1.8em; font-weight: 600; text-align: center; margin-bottom: 25px; color: var(--text-color); }
+.form-group { margin-bottom: 25px; }
+label { display: block; margin-bottom: 10px; font-weight: 500; color: var(--text-color); opacity: 0.9; }
+
+input[type="file"], input[type="password"], select {
+width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);
+background-color: var(--input-bg-color); color: var(--text-color); box-sizing: border-box; font-size: 16px;
+}
+
+input[type="file"] { padding: 9px; }
+
+select {
+appearance: none;
+background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23cbd5e0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.4-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+background-repeat: no-repeat; background-position: right 15px top 50%; background-size: .65em auto;
+}
+
+button {
+background-color: var(--accent-color); color: var(--button-text-color); padding: 12px 20px; border: none;
+border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: 600; width: 100%;
+transition: background-color 0.2s ease, transform 0.15s ease-out; display: block;
+}
+
+button:hover:not(:disabled) { background-color: var(--accent-hover-color); transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(0px); }
+button:disabled { background-color: #3a4454; color: #718096; cursor: not-allowed; }
+
+.warning {
+background-color: rgba(45, 55, 72, 0.7); border-left: 4px solid var(--error-color); color: var(--text-color);
+padding: 15px; border-radius: 6px; margin-bottom: 30px; font-size: 0.9em;
+position: relative; padding-right: 40px;
+}
+.status { margin-top: 20px; padding: 10px; background-color: var(--input-bg-color); border-radius: 6px; text-align: center; display: none; white-space: pre-wrap; word-wrap: break-word; font-style: italic; }
+textarea { width: 100%; height: 200px; margin-top: 10px; background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; font-size: 0.85em; resize: vertical; transition: height 0.3s ease-in-out; }
+.download-link { display: none; margin-top: 15px; padding: 12px; background-color: var(--success-color); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1.1em; transition: background-color 0.2s ease, transform 0.15s ease-out; }
+.download-link:hover { background-color: #38a169; }
+
+#comparisonContainer { margin-top: 30px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--input-bg-color); }
+#comparisonContainer h2 { font-size: 1.3em; font-weight: 500; margin-bottom: 15px; color: var(--accent-color); text-align: center; }
+#subCounter { text-align: center; font-weight: 500; color: var(--text-color); opacity: 0.8; margin-bottom: 15px; font-size: 0.9em; }
+#comparisonNav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; }
+#comparisonNav button { width: 50%; padding: 10px; font-size: 1em; }
+.sub-text-box { border: 1px solid var(--border-color); border-radius: 6px; padding: 15px; background-color: var(--bg-color); min-height: 50px; white-space: pre-wrap; font-size: 0.95em; line-height: 1.5; }
+.sub-text-box:first-of-type { margin-bottom: 15px; }
+
+@media (min-width: 768px) { .container { max-width: 800px; } textarea { height: 400px; } }
+footer { margin-top: auto; padding-top: 20px; text-align: center; font-size: 0.8em; color: var(--text-color); opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>AI Ondertitel Vertaler</h1>
+<div id="disclaimerWarning" class="warning">
+<strong>Disclaimer:</strong> Deze tool zoekt online naar publiek beschikbare API-sleutels. Als je daar problemen mee hebt, voer dan je eigen API-sleutel(s) in.
+<span id="closeDisclaimerBtn" style="position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 1.5em; line-height: 1; color: var(--text-color); opacity: 0.7;" title="Sluiten">&times;</span>
+</div>
+
+<div class="form-group"><label for="subFile">1. Kies ondertitelbestand</label><input type="file" id="subFile" accept=".srt,.vtt,.ssa,.ass"></div>
+<div class="form-group"><label for="targetLang">2. Kies doeltaal</label><select id="targetLang"><option value="nl">Nederlands</option><option value="en">Engels</option><option value="de">Duits</option><option value="fr">Frans</option><option value="es">Spaans</option><option value="it">Italiaans</option></select></div>
+<div class="form-group"><label for="outputFormat">3. Kies uitvoerformaat</label><select id="outputFormat"><option value="srt">SRT</option><option value="vtt">VTT</option><option value="ssa">SSA/ASS</option></select></div>
+<div class="form-group"><label for="engineSelect">4. Kies vertaal engine</label><select id="engineSelect"><option value="google">Google Translate</option><option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
+
+<div class="form-group" id="googleApiKeyGroup">
+<label for="googleApiKey">5. Eigen Google Translate API-sleutel</label>
+<input type="password" id="googleApiKey" placeholder="Optioneel, heeft voorrang op scraper">
+</div>
+<div class="form-group" id="geminiApiKeyGroup">
+<label for="geminiApiKey" id="geminiApiKeyLabel">5. Eigen Gemini API-sleutel</label>
+<input type="password" id="geminiApiKey" placeholder="Optioneel voor Flash, vereist voor Pro">
+</div>
+
+<button id="translateBtn">Vertaal!</button>
+
+<div id="status" class="status"></div>
+<div id="resultContainer" style="display: none;"><label for="resultText">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
+<div id="comparisonContainer" style="display: none;"><h2>Vergelijk Ondertitels</h2><div id="subCounter"></div><div id="comparisonNav"><button id="prevSubBtn">&laquo; Vorige</button><button id="nextSubBtn">Volgende &raquo;</button></div><div><label for="originalSubText">Origineel:</label><div id="originalSubText" class="sub-text-box"></div></div><div><label for="translatedSubText">Vertaald:</label><div id="translatedSubText" class="sub-text-box"></div></div></div>
+</div>
+
+<footer><p>&copy; <span id="currentYear"></span>. Gebruik deze tool verantwoordelijk.</p></footer>
+
+<script>
+// INLINE JAVASCRIPT
+document.addEventListener('DOMContentLoaded', () => {
+// --- UI Elementen & State ---
+const ui = {
+subFile: document.getElementById('subFile'),
+targetLang: document.getElementById('targetLang'),
+outputFormat: document.getElementById('outputFormat'),
+engine: document.getElementById('engineSelect'),
+googleApiKey: document.getElementById('googleApiKey'),
+geminiApiKey: document.getElementById('geminiApiKey'),
+googleApiKeyGroup: document.getElementById('googleApiKeyGroup'),
+geminiApiKeyGroup: document.getElementById('geminiApiKeyGroup'),
+geminiApiKeyLabel: document.getElementById('geminiApiKeyLabel'),
+translateBtn: document.getElementById('translateBtn'),
+status: document.getElementById('status'),
+resultContainer: document.getElementById('resultContainer'),
+resultTextarea: document.getElementById('resultText'),
+downloadLink: document.getElementById('downloadLink'),
+comparison: {
+container: document.getElementById('comparisonContainer'),
+prevBtn: document.getElementById('prevSubBtn'),
+nextBtn: document.getElementById('nextSubBtn'),
+counter: document.getElementById('subCounter'),
+originalText: document.getElementById('originalSubText'),
+translatedText: document.getElementById('translatedSubText')
+}
+};
+const keyManager = {
+google: { key: 'googleTranslateApiKey', get: () => localStorage.getItem('googleTranslateApiKey'), set: (k) => localStorage.setItem('googleTranslateApiKey', k), clear: () => localStorage.removeItem('googleTranslateApiKey') },
+gemini: { key: 'geminiApiKey', get: () => localStorage.getItem('geminiApiKey'), set: (k) => localStorage.setItem('geminiApiKey', k), clear: () => localStorage.removeItem('geminiApiKey') }
+};
+const comparisonState = { original: [], translated: [], currentIndex: 0 };
+
+// --- Disclaimer Logic ---
+const disclaimerWarning = document.getElementById('disclaimerWarning');
+const closeDisclaimerBtn = document.getElementById('closeDisclaimerBtn');
+if (localStorage.getItem('disclaimerClosed') === 'true') {
+disclaimerWarning.style.display = 'none';
+}
+closeDisclaimerBtn.addEventListener('click', () => {
+disclaimerWarning.style.display = 'none';
+localStorage.setItem('disclaimerClosed', 'true');
+});
+
+// --- SUBTITLE CONVERTER (onveranderd) ---
+const subtitleConverter = {
+timeToMs: (time) => { const r = /(\d+):(\d{2}):(\d{2})[.,](\d+)/.exec(time); if (!r) return 0; let ms = parseInt(r[4], 10); if (r[4].length === 2) ms *= 10; return parseInt(r[1],10)*3600000 + parseInt(r[2],10)*60000 + parseInt(r[3],10)*1000 + ms; },
+msToTime: (ms, f) => { const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000).toString().padStart(2,'0'), s=Math.floor((ms%60000)/1000).toString().padStart(2,'0'), mss=ms%1000; if(f==='srt') return `${h.toString().padStart(2,'0')}:${m}:${s},${mss.toString().padStart(3,'0')}`; if(f==='vtt') return `${h.toString().padStart(2,'0')}:${m}:${s}.${mss.toString().padStart(3,'0')}`; if(f==='ssa') return `${h}:${m}:${s}.${(mss/10).toFixed(0).toString().padStart(2,'0')}`; return ''},
+parse: (c, f) => { if (f==='srt') return subtitleConverter._parseSrt(c); if(f==='vtt') return subtitleConverter._parseVtt(c); if(f==='ssa'||f==='ass') return subtitleConverter._parseSsa(c); return []; },
+_parseSrt: (d) => { const c=[]; const p=/(\d+)\r?\n(\d{1,2}:\d{2}:\d{2},\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2},\d{3})\r?\n([\s\S]*?)(?=\r?\n\r?\n|$)/g; let m; while((m=p.exec(d))!==null) c.push({start:subtitleConverter.timeToMs(m[2]),end:subtitleConverter.timeToMs(m[3]),text:m[4].replace(/(\r?\n)+/g,'\n').trim()}); return c;},
+_parseVtt: (d) => { const c=[], b=d.replace('WEBVTT','').trim().split(/\r?\n\r?\n/), p=/(?:(\d{1,2}:))?(\d{2}:\d{2}\.\d{3})\s*-->\s*(?:(\d{1,2}:))?(\d{2}:\d{2}\.\d{3})/; for(const bl of b){if(bl.includes('NOTE')||!bl.includes('-->'))continue; const l=bl.split(/\r?\n/), t=l.find(li=>p.test(li)); if(!t)continue; const m=t.match(p), tl=l.slice(l.indexOf(t)+1); c.push({start:subtitleConverter.timeToMs((m[1]||'00:')+m[2]),end:subtitleConverter.timeToMs((m[3]||m[1]||'00:')+m[4]),text:tl.join('\n').replace(/(\r?\n)+/g,'\n').trim()})} return c;},
+_parseSsa: (d) => { const c=[], es=d.split('[Events]')[1]; if(!es) return[]; const l=es.trim().split(/\r?\n/), fl=l.find(li=>li.startsWith('Format:')); if(!fl)return[]; const fp=fl.split(':')[1].trim().split(/,\s*/), si=fp.indexOf('Start'), ei=fp.indexOf('End'), ti=fp.indexOf('Text'); if(si===-1||ei===-1||ti===-1)return[]; for(const li of l){if(li.startsWith('Dialogue:')){const p=li.split(','),t=p.slice(ti).join(',').replace(/{\\[^}]*}/g,'');c.push({start:subtitleConverter.timeToMs(p[si]),end:subtitleConverter.timeToMs(p[ei]),text:t.replace(/\\N/g,'\n').replace(/(\r?\n)+/g,'\n').trim()})}} return c;},
+build: (c, f) => { if(f==='srt')return subtitleConverter._buildSrt(c); if(f==='vtt')return subtitleConverter._buildVtt(c); if(f==='ssa'||f==='ass')return subtitleConverter._buildSsa(c); return ''; },
+_buildSrt: (c) => c.map((i,x)=>`${x+1}\n${subtitleConverter.msToTime(i.start,'srt')} --> ${subtitleConverter.msToTime(i.end,'srt')}\n${i.text}`).join('\n\n'),
+_buildVtt: (c) => 'WEBVTT\n\n'+c.map(i=>`${subtitleConverter.msToTime(i.start,'vtt')} --> ${subtitleConverter.msToTime(i.end,'vtt')}\n${i.text}`).join('\n\n'),
+_buildSsa: (c) => `[Script Info]\nTitle: Vertaalde ondertitels\nScriptType: v4.00+\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,48,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,2,2,10,10,10,1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n`+c.map(i=>`Dialogue: 0,${subtitleConverter.msToTime(i.start,'ssa')},${subtitleConverter.msToTime(i.end,'ssa')},Default,,0,0,0,,${i.text.replace(/\r?\n/g,'\\N')}`).join('\n')
+};
+
+// --- UI Logic ---
+function updateApiKeyFields() {
+const engine = ui.engine.value;
+const isGemini = engine.startsWith('gemini');
+const isPro = engine === 'gemini-2.5-pro';
+
+ui.googleApiKeyGroup.style.display = isGemini ? 'none' : 'block';
+ui.geminiApiKeyGroup.style.display = isGemini ? 'block' : 'none';
+
+if (isPro) {
+ui.geminiApiKeyLabel.innerHTML = '5. Eigen Gemini API-sleutel <strong style="color:var(--error-color)">(Vereist)</strong>';
+} else {
+ui.geminiApiKeyLabel.textContent = '5. Eigen Gemini API-sleutel';
+}
+}
+ui.engine.addEventListener('change', updateApiKeyFields);
+updateApiKeyFields(); // Initial call
+
+// --- Hoofdlogica ---
+ui.translateBtn.addEventListener('click', async () => {
+const file = ui.subFile.files[0]; if (!file) { alert("Selecteer alstublieft een bestand."); return; }
+setUiState('busy', 'Initialiseren...');
+let usedCustomKey = false;
+let apiKey;
+const engine = ui.engine.value;
+const isGemini = engine.startsWith('gemini');
+const isGoogle = engine === 'google';
+
+try {
+if (isGoogle) {
+apiKey = ui.googleApiKey.value.trim();
+if (apiKey) {
+usedCustomKey = true;
+setUiState('busy', 'Eigen Google API-sleutel wordt gebruikt...');
+} else {
+const manager = keyManager.google;
+apiKey = manager.get();
+if (!apiKey) {
+setUiState('busy', 'Geen opgeslagen Google sleutel. Starten met zoeken...');
+apiKey = await findGoogleApiKey({ onStatusUpdate: (msg) => setUiState('busy', msg) });
+if (apiKey) { manager.set(apiKey); setUiState('busy', 'Geldige API-sleutel gevonden en opgeslagen!'); }
+else { throw new Error('Kon geen werkende Google API-sleutel vinden.'); }
+} else {
+setUiState('busy', 'Opgeslagen Google API-sleutel wordt gebruikt...');
+}
+}
+} else if (isGemini) {
+apiKey = ui.geminiApiKey.value.trim();
+if (engine === 'gemini-2.5-pro' && !apiKey) {
+throw new Error('Voor Gemini 2.5 Pro is een eigen API-sleutel vereist in veld 5.');
+}
+
+if (apiKey) {
+usedCustomKey = true;
+setUiState('busy', 'Eigen Gemini API-sleutel wordt gebruikt...');
+} else { // Dit is voor Flash modellen
+const manager = keyManager.gemini;
+apiKey = manager.get();
+if (!apiKey) {
+setUiState('busy', 'Geen opgeslagen Gemini sleutel. Starten met zoeken...');
+apiKey = await findGeminiApiKey({ modelToTest: engine, onStatusUpdate: (msg) => setUiState('busy', msg) });
+if (apiKey) { manager.set(apiKey); setUiState('busy', 'Geldige API-sleutel gevonden en opgeslagen!'); }
+else { throw new Error(`Kon geen werkende Gemini API-sleutel vinden voor ${engine}.`); }
+} else {
+setUiState('busy', 'Opgeslagen Gemini API-sleutel wordt gebruikt...');
+}
+}
+}
+
+if (!apiKey) throw new Error("API sleutel kon niet worden verkregen.");
+await processTranslation(apiKey, engine, usedCustomKey);
+
+} catch (error) {
+if (error.isApiKeyError && !usedCustomKey) {
+const keyType = isGoogle ? 'google' : 'gemini';
+keyManager[keyType].clear();
+setUiState('error', `Fout: Opgeslagen ${keyType} API-sleutel is ongeldig en is verwijderd. Klik opnieuw om te zoeken of voer een geldige sleutel in.`);
+} else {
+setUiState('error', `Fout: ${error.message}`);
+}
+console.error(error);
+} finally {
+if (!ui.status.textContent.includes('Fout')) setUiState('idle');
+}
+});
+
+function setUiState(state, message = '') {
+if (state === 'busy') {
+ui.translateBtn.disabled = true;
+ui.translateBtn.textContent = 'Bezig...';
+ui.status.style.display = 'block';
+ui.status.textContent = message;
+ui.resultContainer.style.display = 'none';
+ui.comparison.container.style.display = 'none';
+} else if (state === 'idle') {
+ui.translateBtn.disabled = false;
+ui.translateBtn.textContent = 'Vertaal!';
+} else if (state === 'error') {
+ui.translateBtn.disabled = false;
+ui.translateBtn.textContent = 'Vertaal!';
+}
+}
+
+async function processTranslation(apiKey, engine, usedCustomKey) {
+const file = ui.subFile.files[0];
+let fileExtension = file.name.split('.').pop().toLowerCase();
+if(fileExtension === 'ass') fileExtension = 'ssa';
+
+const fileContent = await readFileAsText(file);
+setUiState('busy', `Bestand (.${fileExtension}) wordt geparsed...`);
+const captions = subtitleConverter.parse(fileContent, fileExtension);
+if (captions.length === 0) throw new Error("Geen ondertitels gevonden. Controleer het formaat.");
+
+const originalTexts = captions.map(c => c.text);
+let translatedTexts;
+if (engine === 'google') {
+translatedTexts = await translateWithGoogle(originalTexts, ui.targetLang.value, apiKey, (msg) => setUiState('busy', msg));
+} else {
+translatedTexts = await translateWithGemini(originalTexts, ui.targetLang.value, apiKey, engine, (msg) => setUiState('busy', msg));
+}
+
+// Als een custom key is gebruikt en de vertaling is gelukt, sla deze dan op.
+if (usedCustomKey) {
+const isGemini = engine.startsWith('gemini');
+const manager = isGemini ? keyManager.gemini : keyManager.google;
+manager.set(apiKey);
+}
+
+setUiState('busy', 'Nieuw ondertitelbestand wordt samengesteld...');
+const newCaptions = captions.map((caption, index) => ({...caption, text: translatedTexts[index] }));
+const newSubContent = subtitleConverter.build(newCaptions, ui.outputFormat.value);
+
+ui.resultTextarea.value = newSubContent;
+ui.resultContainer.style.display = 'block';
+ui.status.textContent = 'Vertaling voltooid!';
+
+const blob = new Blob([newSubContent], { type: 'application/octet-stream' });
+ui.downloadLink.href = URL.createObjectURL(blob);
+const originalFileName = file.name.substring(0, file.name.lastIndexOf('.'));
+ui.downloadLink.download = `${originalFileName}.${ui.targetLang.value}.${ui.outputFormat.value}`;
+ui.downloadLink.style.display = 'block';
+initComparisonView(originalTexts, translatedTexts);
+}
+
+function readFileAsText(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = event => resolve(event.target.result); reader.onerror = error => reject(error); reader.readAsText(file, 'UTF-8'); }); }
+
+// --- Translation Engines ---
+async function translateWithGoogle(texts, targetLang, apiKey, statusCallback) {
+const BATCH_SIZE = 100, all = [];
+for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+statusCallback(`Bezig met vertalen (Google)... (batch ${Math.ceil((i+1)/BATCH_SIZE)} van ${Math.ceil(texts.length / BATCH_SIZE)})`);
+try {
+const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: texts.slice(i, i+BATCH_SIZE), target: targetLang, format: 'text' })});
+if (!res.ok) { const errData = await res.json(), e = new Error(`Google API fout: ${errData.error?.message || res.status}`); if (res.status >= 400) e.isApiKeyError = true; throw e; }
+const data = await res.json(); all.push(...data.data.translations.map(t => t.translatedText));
+} catch (error) { if (error.isApiKeyError) throw error; throw new Error(`Netwerkfout Google: ${error.message}`); }
+} return all;
+}
+
+async function translateWithGemini(texts, targetLanguage, apiKey, model, statusCallback) {
+statusCallback(`Tekst wordt vertaald naar ${targetLanguage} met ${model}...`);
+const sep = "|||SUB|||", combined = texts.join(sep);
+const prompt = `Translate to ${targetLanguage}. IMPORTANT: Input blocks are separated by "${sep}". Your output MUST have the exact same number of blocks separated by "${sep}". Preserve all line breaks within each block. No Markdown. No extra text.\n\nTEXT:\n${combined}`;
+try {
+const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { "responseMimeType": "text/plain" } }) });
+if (!res.ok) { const errData = await res.json(), e = new Error(`Gemini API fout: ${errData.error?.message || res.status}`); if (res.status >= 400) e.isApiKeyError = true; throw e; }
+const data = await res.json();
+const translatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+if (!translatedText) throw new Error("Leeg antwoord van Gemini API.");
+const parts = translatedText.split(sep);
+if (parts.length !== texts.length) { console.warn(`Mismatch count! In: ${texts.length}, Out: ${parts.length}. Recovering.`); while(parts.length < texts.length) parts.push(""); while(parts.length > texts.length) parts.pop(); }
+return parts;
+} catch (error) { if (error.isApiKeyError) throw error; throw new Error(`Netwerkfout Gemini: ${error.message}`); }
+}
+
+// --- Comparison View Logic ---
+function initComparisonView(original, translated) { comparisonState.original = original; comparisonState.translated = translated; comparisonState.currentIndex = 0; if (original.length > 0) { ui.comparison.container.style.display = 'block'; updateComparisonView(); } }
+function updateComparisonView() { const i = comparisonState.currentIndex; ui.comparison.originalText.textContent = comparisonState.original[i] || ''; ui.comparison.translatedText.textContent = comparisonState.translated[i] || ''; ui.comparison.counter.textContent = `Ondertitel ${i + 1} / ${comparisonState.original.length}`; ui.comparison.prevBtn.disabled = (i === 0); ui.comparison.nextBtn.disabled = (i >= comparisonState.original.length - 1); }
+ui.comparison.prevBtn.addEventListener('click', () => { if (comparisonState.currentIndex > 0) { comparisonState.currentIndex--; updateComparisonView(); } });
+ui.comparison.nextBtn.addEventListener('click', () => { if (comparisonState.currentIndex < comparisonState.original.length - 1) { comparisonState.currentIndex++; updateComparisonView(); } });
+document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+// --- Key Scrapers ---
+async function scraperTemplate(options, baseUrl, testFn) {
+    const { maxPages = 10, onStatusUpdate = (msg) => console.log(msg), proxyTimeout = 15000, apiKeyTestTimeout = 10000, maxConcurrentKeyTests = 5 } = options;
+    const API_KEY_REGEX = /AIzaSy[A-Za-z0-9_-]{33}/g;
+    const PROXIES = [
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+        (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+    ];
+    let foundKeys = new Set(), selectedProxy = null;
+
+    async function fetchWithProxy(url, pBuilder, t) {
+        const pUrl = pBuilder(url), c = new AbortController(), tId = setTimeout(() => c.abort(), t);
+        try {
+            const r = await fetch(pUrl, { signal: c.signal });
+            clearTimeout(tId);
+            if (!r.ok) throw new Error(`Proxy failed: ${r.status}`);
+            return await r.text();
+        } catch (e) {
+            clearTimeout(tId);
+            throw e;
+        }
+    }
+
+    onStatusUpdate("Zoeken naar snelste CORS-proxy (parallelle test)...");
+    try {
+        const testPromises = PROXIES.map(proxy =>
+            fetchWithProxy('https://grep.app/search?q=test', proxy, proxyTimeout)
+            .then(() => proxy) // Bij succes, geef de proxy-functie door.
+        );
+        selectedProxy = await Promise.any(testPromises);
+        onStatusUpdate("Werkende proxy gevonden. Starten met zoeken...");
+    } catch (e) {
+        // Promise.any() faalt alleen als ALLE proxies falen.
+        console.error("Alle proxy-tests zijn mislukt:", e);
+        throw new Error("Geen werkende CORS-proxy gevonden.");
+    }
+    
+    for (let p = 1; p <= maxPages; p++) {
+        onStatusUpdate(`Pagina ${p}/${maxPages}: Zoeken...`);
+        let html;
+        try {
+            html = await fetchWithProxy(`${baseUrl}&page=${p}`, selectedProxy, proxyTimeout);
+        } catch (e) {
+            onStatusUpdate(`Pagina ${p}: Ophalen mislukt.`);
+            break;
+        }
+        const matches = html.matchAll(API_KEY_REGEX), newKeys = [];
+        for (const match of matches) {
+            if (!foundKeys.has(match[0])) {
+                foundKeys.add(match[0]);
+                newKeys.push(match[0]);
+            }
+        }
+        if (newKeys.length === 0) {
+            onStatusUpdate(`Pagina ${p}: Geen nieuwe keys.`);
+            continue;
+        }
+        onStatusUpdate(`Pagina ${p}: ${newKeys.length} nieuwe keys gevonden. Valideren...`);
+        for (let i = 0; i < newKeys.length; i += maxConcurrentKeyTests) {
+            const batch = newKeys.slice(i, i + maxConcurrentKeyTests);
+            const results = await Promise.all(batch.map(key => testFn(key, options).then(isValid => ({ key, isValid }))));
+            for (const res of results) {
+                if (res.isValid) {
+                    onStatusUpdate(`Geldige API-sleutel gevonden!`);
+                    return res.key;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+function findGoogleApiKey(options) {
+    const baseUrl = 'https://grep.app/search?regexp=true&q=%28transl.*AIzaSy%5BA-Za-z0-9_-%5D%7B33%7D%7CAIzaSy%5BA-Za-z0-9_-%5D%7B33%7D.*transl%29';
+    const testFn = async (apiKey) => {
+        const c = new AbortController(), tId = setTimeout(() => c.abort(), options.apiKeyTestTimeout || 10000);
+        try {
+            const r = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ q: ['test'], target: 'nl' }),
+                signal: c.signal
+            });
+            clearTimeout(tId);
+            const data = await r.json();
+            return r.ok && data && data.data && data.data.translations;
+        } catch (e) {
+            clearTimeout(tId);
+            return false;
+        }
+    };
+    return scraperTemplate(options, baseUrl, testFn);
+}
+
+function findGeminiApiKey(options) {
+const baseUrl = 'https://grep.app/search?regexp=true&q=%28gemini.*AIzaSy%5BA-Za-z0-9_-%5D%7B33%7D%7CAIzaSy%5BA-Za-z0-9_-%5D%7B33%7D.*gemini%29';
+const testFn = async (apiKey, opts) => {
+const c = new AbortController(), tId = setTimeout(() => c.abort(), opts.apiKeyTestTimeout || 10000);
+try {
+const apiModelForTest = 'gemini-2.0-flash';
+const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModelForTest}:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents:[{parts:[{text:"test"}]}]}), signal: c.signal });
+clearTimeout(tId);
+return r.ok;
+} catch (e) {
+clearTimeout(tId);
+return false;
+}
+};
+return scraperTemplate(options, baseUrl, testFn);
+}
+});
+</script>
+
+</body>
+</html>
