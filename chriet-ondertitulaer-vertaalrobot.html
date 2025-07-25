@@ -134,8 +134,44 @@ textarea { width: 100%; height: 200px; margin-top: 10px; background-color: var(-
 .download-link { display: none; margin-top: 15px; padding: 12px; background-color: var(--success-color); color: white; text-align: center; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1.1em; transition: background-color 0.2s ease, transform 0.15s ease-out; }
 .download-link:hover { background-color: #38a169; }
 
-#comparisonContainer { margin-top: 30px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; background-color: var(--input-bg-color); }
-#comparisonContainer h2 { font-size: 1.3em; font-weight: 500; margin-bottom: 15px; color: var(--accent-color); text-align: center; }
+#outputFormatGroup {
+  display: none;
+  margin-top: 25px;
+}
+
+#comparisonContainer { 
+  display: none;
+  margin-top: 25px; 
+  padding: 0; 
+  border: 1px solid var(--border-color); 
+  border-radius: 12px; 
+  background-color: var(--input-bg-color); 
+}
+#comparisonHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 15px 20px;
+}
+#comparisonHeader h2 { font-size: 1.3em; font-weight: 500; color: var(--accent-color); margin: 0; }
+#toggleIcon {
+  font-size: 1.5em;
+  line-height: 1;
+  transition: transform 0.3s ease;
+  transform-origin: center;
+}
+#comparisonContainer.is-expanded #toggleIcon {
+  transform: rotate(180deg);
+}
+#comparisonContent {
+  display: none;
+  padding: 0 20px 20px 20px;
+}
+#comparisonContainer.is-expanded #comparisonContent {
+  display: block;
+}
+
 #subCounter { text-align: center; font-weight: 500; color: var(--text-color); opacity: 0.8; margin-bottom: 15px; font-size: 0.9em; }
 #comparisonNav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; }
 
@@ -171,15 +207,14 @@ footer { margin-top: auto; padding-top: 20px; text-align: center; font-size: 0.8
 
 <div class="form-group"><label for="subFile">1. Kies ondertitelbestand</label><input type="file" id="subFile" accept=".srt,.vtt,.ssa,.ass"></div>
 <div class="form-group"><label for="targetLang">2. Kies doeltaal</label><select id="targetLang"><option value="nl">Nederlands</option><option value="en">Engels</option><option value="de">Duits</option><option value="fr">Frans</option><option value="es">Spaans</option><option value="it">Italiaans</option></select></div>
-<div class="form-group"><label for="outputFormat">3. Kies uitvoerformaat</label><select id="outputFormat"><option value="srt">SRT</option><option value="vtt">VTT</option><option value="ssa">SSA/ASS</option></select></div>
-<div class="form-group"><label for="engineSelect">4. Kies vertaal engine</label><select id="engineSelect"><option value="google">Google Translate</option><option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
+<div class="form-group"><label for="engineSelect">3. Kies vertaal engine</label><select id="engineSelect"><option value="google">Google Translate</option><option value="gemini-2.0-flash">Gemini 2.0 Flash</option><option value="gemini-2.5-flash">Gemini 2.5 Flash</option><option value="gemini-2.5-pro">Gemini 2.5 Pro</option></select></div>
 
 <div class="form-group" id="googleApiKeyGroup">
-<label for="googleApiKey">5. Eigen Google Translate API-sleutel</label>
+<label for="googleApiKey">4. Eigen Google Translate API-sleutel</label>
 <input type="password" id="googleApiKey" placeholder="Optioneel, heeft voorrang op scraper">
 </div>
 <div class="form-group" id="geminiApiKeyGroup">
-<label for="geminiApiKey" id="geminiApiKeyLabel">5. Eigen Gemini API-sleutel</label>
+<label for="geminiApiKey" id="geminiApiKeyLabel">4. Eigen Gemini API-sleutel</label>
 <input type="password" id="geminiApiKey" placeholder="Optioneel voor Flash, vereist voor Pro">
 </div>
 
@@ -193,8 +228,43 @@ footer { margin-top: auto; padding-top: 20px; text-align: center; font-size: 0.8
 
 
 <div id="status" class="status"></div>
-<div id="resultContainer" style="display: none;"><label for="resultText" style="text-align: center; display: block; padding-top: 20px;">Resultaat:</label><textarea id="resultText" readonly></textarea><a href="#" id="downloadLink" class="download-link">Download Bestand</a></div>
-<div id="comparisonContainer" style="display: none;"><h2>Controleer Vertaling</h2><div id="subCounter"></div><div id="comparisonNav"><button id="prevSubBtn">&laquo; Vorige</button><button id="nextSubBtn">Volgende &raquo;</button></div><div><label for="originalSubText">Origineel:</label><div id="originalSubText" class="sub-text-box"></div></div><div><label for="translatedSubText">Vertaald:</label><div id="translatedSubText" class="sub-text-box"></div></div></div>
+<div id="resultContainer" style="display: none;">
+    <label for="resultText" style="text-align: center; display: block; padding-top: 20px;">Resultaat:</label>
+    <textarea id="resultText" readonly></textarea>
+    
+    <div id="comparisonContainer">
+        <div id="comparisonHeader">
+            <h2>Controleer Vertaling</h2>
+            <span id="toggleIcon">▾</span>
+        </div>
+        <div id="comparisonContent">
+            <div id="subCounter"></div>
+            <div id="comparisonNav">
+                <button id="prevSubBtn">&laquo; Vorige</button>
+                <button id="nextSubBtn">Volgende &raquo;</button>
+            </div>
+            <div>
+                <label for="originalSubText">Origineel:</label>
+                <div id="originalSubText" class="sub-text-box"></div>
+            </div>
+            <div>
+                <label for="translatedSubText">Vertaald:</label>
+                <div id="translatedSubText" class="sub-text-box"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="outputFormatGroup">
+        <label for="outputFormat">Download als:</label>
+        <select id="outputFormat">
+            <option value="srt">SRT</option>
+            <option value="vtt">VTT</option>
+            <option value="ssa">SSA/ASS</option>
+        </select>
+    </div>
+    
+    <a href="#" id="downloadLink" class="download-link">Download Bestand</a>
+</div>
 </div>
 
 <footer><p>© 2025. riesdepies + gemini-2.5-pro</p></footer>
@@ -207,6 +277,7 @@ const ui = {
 subFile: document.getElementById('subFile'),
 targetLang: document.getElementById('targetLang'),
 outputFormat: document.getElementById('outputFormat'),
+outputFormatGroup: document.getElementById('outputFormatGroup'),
 engine: document.getElementById('engineSelect'),
 googleApiKey: document.getElementById('googleApiKey'),
 geminiApiKey: document.getElementById('geminiApiKey'),
@@ -225,6 +296,8 @@ text: document.getElementById('progressText')
 },
 comparison: {
 container: document.getElementById('comparisonContainer'),
+header: document.getElementById('comparisonHeader'),
+content: document.getElementById('comparisonContent'),
 prevBtn: document.getElementById('prevSubBtn'),
 nextBtn: document.getElementById('nextSubBtn'),
 counter: document.getElementById('subCounter'),
@@ -232,11 +305,22 @@ originalText: document.getElementById('originalSubText'),
 translatedText: document.getElementById('translatedSubText')
 }
 };
+
+const createKeyManager = (keyName) => ({
+get: () => localStorage.getItem(keyName),
+set: (k) => k ? localStorage.setItem(keyName, k) : localStorage.removeItem(keyName),
+clear: () => localStorage.removeItem(keyName)
+});
+
 const keyManager = {
-google: { key: 'googleTranslateApiKey', get: () => localStorage.getItem('googleTranslateApiKey'), set: (k) => localStorage.setItem('googleTranslateApiKey', k), clear: () => localStorage.removeItem('googleTranslateApiKey') },
-gemini: { key: 'geminiApiKey', get: () => localStorage.getItem('geminiApiKey'), set: (k) => localStorage.setItem('geminiApiKey', k), clear: () => localStorage.removeItem('geminiApiKey') }
+customGoogle: createKeyManager('customGoogleApiKey'),
+scrapedGoogle: createKeyManager('scrapedGoogleApiKey'),
+customGemini: createKeyManager('customGeminiApiKey'),
+scrapedGemini: createKeyManager('scrapedGeminiApiKey'),
 };
+
 const comparisonState = { original: [], translated: [], currentIndex: 0 };
+let lastTranslatedCaptions = [];
 
 // --- Disclaimer Logic ---
 const disclaimerWarning = document.getElementById('disclaimerWarning');
@@ -273,64 +357,97 @@ ui.googleApiKeyGroup.style.display = isGemini ? 'none' : 'block';
 ui.geminiApiKeyGroup.style.display = isGemini ? 'block' : 'none';
 
 if (isPro) {
-ui.geminiApiKeyLabel.innerHTML = '5. Eigen Gemini API-sleutel <strong style="color:var(--error-color)">(Vereist)</strong>';
+ui.geminiApiKeyLabel.innerHTML = '4. Eigen Gemini API-sleutel <strong style="color:var(--error-color)">(Vereist)</strong>';
 } else {
-ui.geminiApiKeyLabel.textContent = '5. Eigen Gemini API-sleutel';
+ui.geminiApiKeyLabel.textContent = '4. Eigen Gemini API-sleutel';
 }
 }
+
+function loadCustomKeys() {
+ui.googleApiKey.value = keyManager.customGoogle.get() || '';
+ui.geminiApiKey.value = keyManager.customGemini.get() || '';
+}
+
+function updateDownloadLink() {
+if (lastTranslatedCaptions.length === 0) return;
+
+const format = ui.outputFormat.value;
+const newSubContent = subtitleConverter.build(lastTranslatedCaptions, format);
+
+if (ui.downloadLink.href) {
+URL.revokeObjectURL(ui.downloadLink.href);
+}
+const blob = new Blob([newSubContent], { type: 'application/octet-stream' });
+ui.downloadLink.href = URL.createObjectURL(blob);
+
+const originalFileName = ui.subFile.files[0].name.substring(0, ui.subFile.files[0].name.lastIndexOf('.'));
+ui.downloadLink.download = `${originalFileName}.${ui.targetLang.value}.${format}`;
+}
+
+ui.googleApiKey.addEventListener('blur', (e) => keyManager.customGoogle.set(e.target.value.trim()));
+ui.geminiApiKey.addEventListener('blur', (e) => keyManager.customGemini.set(e.target.value.trim()));
 ui.engine.addEventListener('change', updateApiKeyFields);
-updateApiKeyFields(); // Initial call
+ui.outputFormat.addEventListener('change', updateDownloadLink);
+ui.comparison.header.addEventListener('click', () => {
+    ui.comparison.container.classList.toggle('is-expanded');
+});
+
+updateApiKeyFields();
+loadCustomKeys();
 
 // --- Hoofdlogica ---
 ui.translateBtn.addEventListener('click', async () => {
 const file = ui.subFile.files[0]; if (!file) { alert("Selecteer alstublieft een bestand."); return; }
 setUiState('busy');
-let usedCustomKey = false;
-let apiKey;
+
 const engine = ui.engine.value;
 const isGemini = engine.startsWith('gemini');
-const isGoogle = engine === 'google';
+const engineName = isGemini ? 'Gemini' : 'Google';
+const customManager = isGemini ? keyManager.customGemini : keyManager.customGoogle;
+const scrapedManager = isGemini ? keyManager.scrapedGemini : keyManager.scrapedGoogle;
+const inputField = isGemini ? ui.geminiApiKey : ui.googleApiKey;
+
+let apiKey = null;
+let keySource = null; // 'custom', 'scraped', or 'newly_scraped'
 
 try {
-if (isGoogle) {
-apiKey = ui.googleApiKey.value.trim();
-if (apiKey) { usedCustomKey = true; }
+apiKey = inputField.value.trim();
+if (apiKey) { keySource = 'custom'; }
 else {
-const manager = keyManager.google;
-apiKey = manager.get();
-if (!apiKey) {
-updateProgress(0, 'Zoeken naar Google sleutel...', true);
-apiKey = await findGoogleApiKey({ onStatusUpdate: (msg) => updateProgress(0, msg, true) });
-if (apiKey) { manager.set(apiKey); }
-else { throw new Error('Kon geen werkende Google API-sleutel vinden.'); }
-}
-}
-} else if (isGemini) {
-apiKey = ui.geminiApiKey.value.trim();
-if (engine === 'gemini-2.5-pro' && !apiKey) {
-throw new Error('Voor Gemini 2.5 Pro is een eigen API-sleutel vereist in veld 5.');
-}
-if (apiKey) { usedCustomKey = true; }
-else { // Dit is voor Flash modellen
-const manager = keyManager.gemini;
-apiKey = manager.get();
-if (!apiKey) {
-updateProgress(0, 'Zoeken naar Gemini sleutel...', true);
-apiKey = await findGeminiApiKey({ modelToTest: engine, onStatusUpdate: (msg) => updateProgress(0, msg, true) });
-if (apiKey) { manager.set(apiKey); }
-else { throw new Error(`Kon geen werkende Gemini API-sleutel vinden voor ${engine}.`); }
+apiKey = scrapedManager.get();
+if (apiKey) { keySource = 'scraped'; }
+else {
+if (engine === 'gemini-2.5-pro') throw new Error('Voor Gemini 2.5 Pro is een eigen API-sleutel vereist.');
+updateProgress(0, `Zoeken naar ${engineName} sleutel...`, true);
+const findKeyFn = isGemini ? findGeminiApiKey : findGoogleApiKey;
+apiKey = await findKeyFn({ onStatusUpdate: (msg) => updateProgress(0, msg, true) });
+if (apiKey) {
+keySource = 'newly_scraped';
+scrapedManager.set(apiKey);
+} else {
+throw new Error(`Kon geen werkende ${engineName} API-sleutel vinden.`);
 }
 }
 }
 
-if (!apiKey) throw new Error("API sleutel kon niet worden verkregen.");
-await processTranslation(apiKey, engine, usedCustomKey);
+if (!apiKey) throw new Error("API-sleutel kon niet worden verkregen.");
+await processTranslation(apiKey, engine);
 
 } catch (error) {
-if (error.isApiKeyError && !usedCustomKey) {
-const keyType = isGoogle ? 'google' : 'gemini';
-keyManager[keyType].clear();
-setUiState('error', `Fout: Opgeslagen ${keyType} API-sleutel is ongeldig en is verwijderd. Klik opnieuw om te zoeken of voer een geldige sleutel in.`);
+if (error.isApiKeyError) {
+if (keySource === 'custom') {
+const doDelete = confirm(`De ingevoerde ${engineName} API-sleutel lijkt ongeldig of heeft onvoldoende rechten. Wilt u deze verwijderen?`);
+if (doDelete) {
+customManager.clear();
+inputField.value = '';
+setUiState('error', `Opgeslagen ${engineName} sleutel verwijderd.`);
+} else {
+setUiState('error', `Fout met custom ${engineName} sleutel: ${error.message}`);
+}
+} else {
+scrapedManager.clear();
+setUiState('error', `De automatisch gevonden ${engineName}-sleutel is ongeldig en is verwijderd. Klik opnieuw op 'Vertaal!' om een nieuwe te zoeken.`);
+}
 } else {
 setUiState('error', `Fout: ${error.message}`);
 }
@@ -354,10 +471,12 @@ if (state === 'busy') {
 ui.translateBtn.style.opacity = '0';
 ui.translateBtn.disabled = true;
 ui.progress.container.style.display = 'block';
-updateProgress(0); // Show "0% vertaald" immediately
+updateProgress(0);
 ui.status.style.display = 'none';
 ui.resultContainer.style.display = 'none';
 ui.comparison.container.style.display = 'none';
+ui.outputFormatGroup.style.display = 'none';
+ui.downloadLink.style.display = 'none';
 } else if (state === 'idle') {
 ui.translateBtn.style.opacity = '1';
 ui.translateBtn.disabled = false;
@@ -371,7 +490,7 @@ ui.status.style.display = 'block';
 }
 }
 
-async function processTranslation(apiKey, engine, usedCustomKey) {
+async function processTranslation(apiKey, engine) {
 const file = ui.subFile.files[0];
 let fileExtension = file.name.split('.').pop().toLowerCase();
 if(fileExtension === 'ass') fileExtension = 'ssa';
@@ -388,26 +507,20 @@ translatedTexts = await translateWithGoogle(originalTexts, ui.targetLang.value, 
 translatedTexts = await translateWithGemini(originalTexts, ui.targetLang.value, apiKey, engine, (p, m, s) => updateProgress(p, m, s));
 }
 
-if (usedCustomKey) {
-const isGemini = engine.startsWith('gemini');
-const manager = isGemini ? keyManager.gemini : keyManager.google;
-manager.set(apiKey);
-}
-
 updateProgress(100, 'Bestand samenstellen...');
-const newCaptions = captions.map((caption, index) => ({...caption, text: translatedTexts[index] }));
-const newSubContent = subtitleConverter.build(newCaptions, ui.outputFormat.value);
+lastTranslatedCaptions = captions.map((caption, index) => ({...caption, text: translatedTexts[index] }));
 
-ui.resultTextarea.value = newSubContent;
+const initialFormat = ui.outputFormat.value;
+ui.resultTextarea.value = subtitleConverter.build(lastTranslatedCaptions, initialFormat);
+
 ui.resultContainer.style.display = 'block';
 ui.status.textContent = 'Vertaling voltooid!';
 ui.status.style.display = 'block';
 
-const blob = new Blob([newSubContent], { type: 'application/octet-stream' });
-ui.downloadLink.href = URL.createObjectURL(blob);
-const originalFileName = file.name.substring(0, file.name.lastIndexOf('.'));
-ui.downloadLink.download = `${originalFileName}.${ui.targetLang.value}.${ui.outputFormat.value}`;
+ui.outputFormatGroup.style.display = 'block';
 ui.downloadLink.style.display = 'block';
+updateDownloadLink();
+
 initComparisonView(originalTexts, translatedTexts);
 setUiState('idle');
 }
@@ -424,7 +537,7 @@ const progress = (currentBatchNum - 1) / totalBatches * 100;
 progressCallback(progress);
 try {
 const res = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: texts.slice(i, i+BATCH_SIZE), target: targetLang, format: 'text' })});
-if (!res.ok) { const errData = await res.json(), e = new Error(`Google API fout: ${errData.error?.message || res.status}`); if (res.status >= 400) e.isApiKeyError = true; throw e; }
+if (!res.ok) { const errData = await res.json().catch(()=>({})); const e = new Error(`Google API fout: ${errData.error?.message || res.status}`); e.isApiKeyError = true; throw e; }
 const data = await res.json(); all.push(...data.data.translations.map(t => t.translatedText));
 } catch (error) { if (error.isApiKeyError) throw error; throw new Error(`Netwerkfout Google: ${error.message}`); }
 }
@@ -454,7 +567,7 @@ body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
 if (!res.ok) {
 const errData = await res.json().catch(() => ({error: {message: `HTTP ${res.status}`}}));
 const e = new Error(`Gemini API fout: ${errData.error?.message || res.status}`);
-if (res.status >= 400) e.isApiKeyError = true;
+e.isApiKeyError = true;
 throw e;
 }
 
@@ -494,20 +607,19 @@ streamBuffer = ''; jsonStarted = false;
 const newlyTranslatedParts = accumulatedResponse.split(sep).map(p => p.trim());
 
 if (finalFinishReason === 'MAX_TOKENS' && newlyTranslatedParts.length > 0) {
-// Remove last, potentially incomplete part
 newlyTranslatedParts.pop();
 allTranslatedParts.push(...newlyTranslatedParts);
 remainingTexts = originalTexts.slice(allTranslatedParts.length);
 progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
 } else if (finalFinishReason === 'STOP') {
 allTranslatedParts.push(...newlyTranslatedParts);
-remainingTexts = []; // Done
+remainingTexts = [];
+} else if (finalFinishReason === 'SAFETY') {
+throw new Error("Vertaling gestopt door API vanwege veiligheidsinstellingen.");
 } else {
 if(finalFinishReason !== 'FINISH_REASON_UNSPECIFIED') {
 throw new Error(`Vertaling gestopt door API: ${finalFinishReason}`);
 }
-// It might happen that the stream ends without a final candidate block containing the finishReason.
-// In this case, we assume it's incomplete if not all parts are there.
 if (newlyTranslatedParts.length < remainingTexts.length && newlyTranslatedParts.length > 0) {
 newlyTranslatedParts.pop();
 allTranslatedParts.push(...newlyTranslatedParts);
@@ -515,7 +627,7 @@ remainingTexts = originalTexts.slice(allTranslatedParts.length);
 progressCallback(allTranslatedParts.length / originalTexts.length * 100, "Vervolg wordt gestart...", true);
 } else {
 allTranslatedParts.push(...newlyTranslatedParts);
-remainingTexts = []; // Assume it's done.
+remainingTexts = [];
 }
 }
 
@@ -536,7 +648,16 @@ return allTranslatedParts;
 
 
 // --- Comparison View Logic ---
-function initComparisonView(original, translated) { comparisonState.original = original; comparisonState.translated = translated; comparisonState.currentIndex = 0; if (original.length > 0) { ui.comparison.container.style.display = 'block'; updateComparisonView(); } }
+function initComparisonView(original, translated) { 
+  comparisonState.original = original; 
+  comparisonState.translated = translated; 
+  comparisonState.currentIndex = 0; 
+  if (original.length > 0) { 
+    ui.comparison.container.style.display = 'block';
+    ui.comparison.container.classList.remove('is-expanded'); // Start collapsed
+    updateComparisonView(); 
+  } 
+}
 function updateComparisonView() { const i = comparisonState.currentIndex; ui.comparison.originalText.textContent = comparisonState.original[i] || ''; ui.comparison.translatedText.textContent = comparisonState.translated[i] || ''; ui.comparison.counter.textContent = `Ondertitel ${i + 1} / ${comparisonState.original.length}`; ui.comparison.prevBtn.disabled = (i === 0); ui.comparison.nextBtn.disabled = (i >= comparisonState.original.length - 1); }
 ui.comparison.prevBtn.addEventListener('click', () => { if (comparisonState.currentIndex > 0) { comparisonState.currentIndex--; updateComparisonView(); } });
 ui.comparison.nextBtn.addEventListener('click', () => { if (comparisonState.currentIndex < comparisonState.original.length - 1) { comparisonState.currentIndex++; updateComparisonView(); } });
@@ -640,9 +761,13 @@ const baseUrl = 'https://grep.app/search?regexp=true&q=%28gemini.*AIzaSy%5BA-Za-
 const testFn = async (apiKey, opts) => {
 const c = new AbortController(), tId = setTimeout(() => c.abort(), opts.apiKeyTestTimeout || 10000);
 try {
-const apiModelForTest = 'gemini-2.0-flash';
+const apiModelForTest = 'gemini-1.0-pro'; // Gebruik een bekend, stabiel model voor de test
 const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModelForTest}:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents:[{parts:[{text:"test"}]}]}), signal: c.signal });
 clearTimeout(tId);
+if (r.status === 400) {
+const errorBody = await r.json().catch(()=>({}));
+if (errorBody?.error?.message.includes('permission denied for model')) return true;
+}
 return r.ok;
 } catch (e) {
 clearTimeout(tId);
