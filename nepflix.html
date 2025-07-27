@@ -246,7 +246,6 @@
             }
         }
         
-        // AANGEPAST: Functie-inhoud hersteld
         function displayMovieDetails(movie) {
             originalDescription = movie.description_full; 
             isTranslated = false; 
@@ -277,7 +276,6 @@
             translateButton.addEventListener('click', handleTranslateClick);
         }
 
-        // AANGEPAST: Functie-inhoud hersteld
         function createMovieCard(movie) {
             const movieCard = document.createElement('div');
             movieCard.className = 'movie-card';
@@ -305,25 +303,63 @@
             } catch (error) { suggestionsSection.innerHTML = ''; }
         }
         
-        // AANGEPAST: Functie-inhoud hersteld
         function makeAbsoluteUrl(url, base) {
             if (!url) return null;
             try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
         }
-        
-        // AANGEPAST: Functie-inhoud hersteld
+
         async function handlePlayClick(event) {
             event.preventDefault();
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             const link = event.currentTarget;
             const playIconContainer = link.querySelector('.play-icon');
             if (!playIconContainer) return;
             const originalIconHTML = playIconContainer.innerHTML;
             playIconContainer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
             link.style.pointerEvents = 'none';
-            const controller = new AbortController();
-            const signal = controller.signal;
             const imdbId = link.dataset.imdbId;
             const vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}`;
+
+            if (isIOS) {
+                const newTab = window.open('', '_blank');
+                if (!newTab) {
+                    playIconContainer.innerHTML = '<i class="fa-solid fa-ban"></i>';
+                    setTimeout(() => { playIconContainer.innerHTML = originalIconHTML; link.style.pointerEvents = 'auto'; }, 2500);
+                    return; 
+                }
+                newTab.document.body.innerHTML = '<h1 style="font-family: sans-serif; text-align: center; margin-top: 50px;">Videobron zoeken...</h1>';
+                try {
+                    const winningUrl = await findVideoUrl(vidsrcUrl);
+                    newTab.location.href = winningUrl;
+                    playIconContainer.innerHTML = originalIconHTML;
+                    link.style.pointerEvents = 'auto';
+                } catch (error) {
+                    if (newTab) newTab.close();
+                    playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
+                    setTimeout(() => {
+                        playIconContainer.innerHTML = originalIconHTML;
+                        link.style.pointerEvents = 'auto';
+                    }, 2500);
+                }
+            } else {
+                try {
+                    const winningUrl = await findVideoUrl(vidsrcUrl);
+                    window.open(winningUrl, '_blank');
+                    playIconContainer.innerHTML = originalIconHTML;
+                    link.style.pointerEvents = 'auto';
+                } catch (error) {
+                    playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
+                    setTimeout(() => {
+                        playIconContainer.innerHTML = originalIconHTML;
+                        link.style.pointerEvents = 'auto';
+                    }, 2500);
+                }
+            }
+        }
+
+        async function findVideoUrl(vidsrcUrl) {
+            const controller = new AbortController();
+            const signal = controller.signal;
             let definitiveFailure = false;
             const promises = PROXIES.map(async (proxyBuilder) => {
                 const proxyUrl = proxyBuilder(vidsrcUrl);
@@ -353,17 +389,11 @@
             try {
                 const winningUrl = await Promise.any(promises);
                 controller.abort();
-                playIconContainer.innerHTML = originalIconHTML;
-                link.style.pointerEvents = 'auto';
-                window.open(winningUrl, '_blank');
+                return winningUrl;
             } catch (error) {
                 const message = definitiveFailure ? "Video niet beschikbaar" : "Kon bron niet vinden";
                 console.error(message, error);
-                playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
-                setTimeout(() => {
-                    playIconContainer.innerHTML = originalIconHTML;
-                    link.style.pointerEvents = 'auto';
-                }, 2500);
+                throw new Error(message);
             }
         }
         
@@ -396,9 +426,11 @@
                     console.error('Translate error:', error.message);
                     removeApiKeyFromStorage();
                     buttonTextElement.innerText = 'Fout';
+                    console.log('De opgeslagen API-sleutel is ongeldig en wordt verwijderd. Er wordt een nieuwe gezocht.');
                     setTimeout(() => { buttonElement.style.display = 'none'; }, 2000);
                     scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => {
                         setApiKeyInStorage(key);
+                        console.log('Nieuwe API-sleutel gevonden. Probeer opnieuw te vertalen.');
                         buttonElement.style.display = 'inline-flex';
                         buttonTextElement.innerText = 'Vertaal';
                     }});
