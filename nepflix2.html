@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nepflix</title>
+<style>
+:root {
+--primary-color: #E50914;
+--dark-color: #141414;
+--light-color: #f5f5f1;
+--text-gray: #808080;
+}
+
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+
+body {
+font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+-webkit-font-smoothing: antialiased;
+background: #000;
+color: var(--light-color);
+}
+
+/* Loading Overlay */
+#loading-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: #000;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+transition: opacity 0.5s ease;
+}
+
+#loading-overlay .logo svg {
+height: 80px;
+width: auto;
+margin-bottom: 20px;
+}
+
+#status-container {
+width: 80%;
+max-width: 600px;
+max-height: 200px;
+overflow-y: auto;
+border: 1px solid var(--text-gray);
+padding: 10px;
+font-size: 0.8em;
+color: var(--text-gray);
+background-color: var(--dark-color);
+border-radius: 4px;
+}
+
+#status-container::-webkit-scrollbar {
+width: 8px;
+}
+#status-container::-webkit-scrollbar-track {
+background: var(--dark-color);
+}
+#status-container::-webkit-scrollbar-thumb {
+background: #888;
+border-radius: 4px;
+}
+#status-container::-webkit-scrollbar-thumb:hover {
+background: #555;
+}
+
+#status-messages p {
+margin-bottom: 5px;
+}
+
+/* Main Content (hidden by default) */
+#main-content {
+display: none;
+}
+
+/* Header */
+.header {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+padding: 20px 50px;
+z-index: 100;
+display: flex;
+justify-content: space-between;
+align-items: center;
+transition: background-color 0.4s;
+}
+
+.header.scrolled {
+background-color: var(--dark-color);
+}
+
+.header .logo svg {
+height: 35px;
+width: auto;
+transition: opacity 0.3s ease;
+}
+
+/* Search */
+.search-icon {
+  cursor: pointer;
+  fill: white;
+  width: 24px;
+  height: 24px;
+}
+.search-container {
+  display: none;
+  align-items: center;
+  width: 100%;
+}
+.search-container.active {
+  display: flex;
+}
+.search-input {
+  width: 100%;
+  background: var(--dark-color);
+  border: 1px solid var(--text-gray);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.search-close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+/* Hero Banner */
+.hero {
+position: relative;
+height: 100vh;
+background-size: cover;
+background-position: center top;
+color: white;
+display: flex;
+align-items: center;
+}
+
+.hero::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 20%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%);
+}
+
+.hero-content {
+position: relative;
+z-index: 2;
+margin-left: 50px;
+max-width: 50%;
+}
+
+.hero-title {
+font-size: 3.5rem;
+font-weight: bold;
+margin-bottom: 0.5rem;
+}
+
+.hero-description {
+font-size: 1.2rem;
+line-height: 1.5;
+margin-bottom: 1.5rem;
+}
+
+/* Buttons */
+.hero-button, .modal-play-button {
+background-color: white;
+color: black;
+border: none;
+padding: 0.75rem 2rem;
+border-radius: 4px;
+font-size: 1.1rem;
+font-weight: bold;
+cursor: pointer;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+transition: background-color 0.2s, opacity 0.2s;
+}
+
+.hero-button:hover, .modal-play-button:not([disabled]):hover {
+background-color: #ddd;
+}
+
+button:disabled, select:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+}
+
+/* Movie Rows & Search Results */
+#search-results-container {
+  padding: 100px 50px 20px 50px;
+  display: none; /* Hidden by default */
+}
+.search-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 15px;
+}
+.no-results {
+  color: var(--text-gray);
+}
+.movie-section {
+padding: 20px 0 20px 50px;
+}
+
+.movie-section-title {
+font-size: 1.4rem;
+font-weight: bold;
+margin-bottom: 15px;
+}
+
+.poster-row {
+display: flex;
+overflow-y: hidden;
+overflow-x: scroll;
+padding-bottom: 15px; /* for scrollbar */
+}
+
+.poster-row::-webkit-scrollbar {
+height: 8px;
+background: transparent;
+}
+
+.poster-row::-webkit-scrollbar-thumb {
+background: rgba(255, 255, 255, 0.2);
+border-radius: 4px;
+}
+
+.poster {
+object-fit: cover;
+width: 160px;
+max-height: 240px;
+margin-right: 10px;
+border-radius: 4px;
+transition: transform 0.2s ease-in-out;
+cursor: pointer;
+}
+
+.poster.large {
+width: 180px;
+max-height: 270px;
+}
+
+.poster:hover {
+transform: scale(1.08);
+}
+
+/* Modal styling */
+.modal {
+display: none;
+position: fixed;
+z-index: 1001;
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0,0,0,0.8);
+-webkit-animation-name: fadeIn;
+animation-name: fadeIn;
+-webkit-animation-duration: 0.4s;
+animation-duration: 0.4s
+}
+
+.modal-content {
+background-color: var(--dark-color);
+margin: 5% auto;
+border-radius: 8px;
+width: 90%;
+max-width: 800px;
+position: relative;
+overflow: hidden;
+box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+-webkit-animation-name: slideIn;
+-webkit-animation-duration: 0.4s;
+animation-name: slideIn;
+animation-duration: 0.4s
+}
+
+@-webkit-keyframes slideIn { from {top:-300px; opacity:0} to {top:0; opacity:1} }
+@keyframes slideIn { from {top:-300px; opacity:0} to {top:0; opacity:1} }
+@-webkit-keyframes fadeIn { from {opacity:0} to {opacity:1} }
+@keyframes fadeIn { from {opacity:0} to {opacity:1} }
+
+.modal-close-button {
+color: white;
+position: absolute;
+background-color: var(--dark-color);
+border-radius: 50%;
+width: 36px;
+height: 36px;
+line-height: 36px;
+text-align: center;
+top: 15px;
+right: 15px;
+font-size: 28px;
+font-weight: bold;
+cursor: pointer;
+z-index: 10;
+}
+.modal-close-button:hover, .modal-close-button:focus {
+color: #ccc;
+text-decoration: none;
+}
+
+.modal-backdrop {
+height: 450px;
+background-size: cover;
+background-position: center top;
+position: relative;
+}
+
+.modal-backdrop::after {
+content: '';
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: linear-gradient(to top, var(--dark-color) 10%, transparent 50%);
+}
+
+.modal-details {
+padding: 20px;
+margin-top: -80px;
+position: relative;
+z-index: 5;
+}
+
+.modal-title {
+font-size: 2.5rem;
+margin-bottom: 1rem;
+}
+
+.modal-info {
+display: flex;
+align-items: center;
+gap: 1rem;
+margin-bottom: 1rem;
+color: var(--text-gray);
+}
+
+.modal-rating {
+color: #46d369;
+font-weight: bold;
+}
+
+.modal-description {
+font-size: 1rem;
+line-height: 1.5;
+margin-bottom: 1rem;
+}
+
+.selector-group {
+display: none;
+margin-top: 1.5rem;
+margin-bottom: 1rem;
+gap: 1rem;
+align-items: center;
+}
+
+.selector-group select {
+flex: 1; /* This makes them equal width */
+background-color: #333;
+color: white;
+border: 1px solid #555;
+border-radius: 4px;
+padding: 8px;
+font-size: 1rem;
+}
+
+.play-action-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.play-error {
+    color: var(--text-gray);
+    font-size: 0.9em;
+    display: none; /* Hidden by default */
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+.header {
+padding: 15px 20px;
+}
+.header .logo svg {
+height: 25px;
+}
+.hero-content {
+margin-left: 20px;
+max-width: 80%;
+}
+.hero-title {
+font-size: 2.5rem;
+}
+.hero-description {
+font-size: 1rem;
+display: -webkit-box;
+-webkit-line-clamp: 4;
+-webkit-box-orient: vertical;
+overflow: hidden;
+}
+.movie-section, #search-results-container {
+padding: 100px 20px 20px 20px;
+}
+.movie-section-title {
+font-size: 1.2rem;
+}
+.modal-content {
+margin: 10% auto;
+width: 95%;
+}
+.modal-backdrop {
+height: 250px;
+}
+.modal-title {
+font-size: 1.8rem;
+}
+.search-results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+<div class="logo">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" height="auto" viewBox="0 0 968.7748 289.7129">
+<g fill="#E50914">
+<path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/>
+</g>
+</svg>
+</div>
+<div id="status-container">
+<div id="status-messages"></div>
+</div>
+</div>
+
+<div id="main-content">
+<header class="header" id="header">
+<a href="#" class="logo">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" height="auto" viewBox="0 0 968.7748 289.7129">
+<g fill="#E50914">
+<path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/>
+</g>
+</svg>
+</a>
+<div class="search-container" id="search-container">
+    <form id="search-form" style="width:100%;">
+        <input type="search" id="search-input" class="search-input" placeholder="Titles, genres..." autocomplete="off">
+    </form>
+    <button class="search-close-button" id="search-close-button">&times;</button>
+</div>
+<svg class="search-icon" id="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+</header>
+
+<div id="main-view">
+    <div class="hero" id="hero-banner">
+        <div class="hero-content">
+            <h1 class="hero-title" id="hero-title"></h1>
+            <p class="hero-description" id="hero-description"></p>
+            <button class="hero-button" id="hero-play-button">
+                <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentcolor; vertical-align: middle;"><path d="M6 4l15 8-15 8z"></path></svg>
+                <span style="vertical-align: middle; margin-left: 8px;">Play</span>
+            </button>
+        </div>
+    </div>
+    <main id="movie-container">
+        <!-- Movie rows will be inserted here by JavaScript -->
+    </main>
+</div>
+<div id="search-results-container">
+    <div class="search-results-grid" id="search-results-grid"></div>
+</div>
+</div>
+
+<!-- The Modal -->
+<div id="details-modal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close-button">&times;</span>
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-details">
+            <h2 class="modal-title" id="modal-title"></h2>
+            <div class="modal-info">
+                <span class="modal-rating" id="modal-rating"></span>
+                <span id="modal-release-date"></span>
+            </div>
+            <p class="modal-description" id="modal-description"></p>
+            
+            <div class="selector-group" id="selector-group">
+                <select id="modal-season-select" disabled></select>
+                <select id="modal-episode-select" disabled></select>
+            </div>
+
+            <div class="play-action-container">
+                <button class="modal-play-button" id="modal-play-button">
+                    <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentcolor; vertical-align: middle;"><path d="M6 4l15 8-15 8z"></path></svg>
+                    <span style="vertical-align: middle; margin-left: 8px;">Play</span>
+                </button>
+                <span id="play-error-message" class="play-error"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
+const VIDSRC_BASE_URL = 'https://vidsrc.net';
+const LOCAL_STORAGE_KEY = 'nepflix_tmdb_api_key';
+let TMDB_API_KEY = null;
+let heroItem = null;
+let currentModalItem = null;
+
+const PROXIES = [
+    (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+    (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    (url) => `https://cors.eu.org/${url.replace(/^https?:\/\//, '')}`,
+    (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+];
+
+const MOVIE_CATEGORIES = [
+{ title: 'Nepflix Originals', endpoint: '/discover/tv?with_networks=213', large: true },
+{ title: 'Trending Now', endpoint: '/trending/all/week', large: false },
+{ title: 'Top Rated Movies', endpoint: '/movie/top_rated', large: false },
+{ title: 'Action Movies', endpoint: '/discover/movie?with_genres=28', large: false },
+{ title: 'Comedy Movies', endpoint: '/discover/movie?with_genres=35', large: false },
+{ title: 'Horror Movies', endpoint: '/discover/movie?with_genres=27', large: false },
+{ title: 'Romance', endpoint: '/discover/movie?with_genres=10749', large: false },
+{ title: 'Documentaries', endpoint: '/discover/movie?with_genres=99', large: false },
+];
+
+// DOM Elements
+const loadingOverlay = document.getElementById('loading-overlay');
+const statusMessagesContainer = document.getElementById('status-messages');
+const mainContent = document.getElementById('main-content');
+const header = document.getElementById('header');
+const modal = document.getElementById('details-modal');
+const modalCloseButton = document.querySelector('.modal-close-button');
+const heroPlayButton = document.getElementById('hero-play-button');
+const modalPlayButton = document.getElementById('modal-play-button');
+const selectorGroup = document.getElementById('selector-group');
+const seasonSelect = document.getElementById('modal-season-select');
+const episodeSelect = document.getElementById('modal-episode-select');
+const playErrorMessage = document.getElementById('play-error-message');
+const searchIcon = document.getElementById('search-icon');
+const searchContainer = document.getElementById('search-container');
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const searchCloseButton = document.getElementById('search-close-button');
+const mainView = document.getElementById('main-view');
+const searchResultsContainer = document.getElementById('search-results-container');
+const searchResultsGrid = document.getElementById('search-results-grid');
+const headerLogo = document.querySelector('.header .logo');
+
+
+/**
+* The provided scraper function.
+*/
+async function scrapeTmdbKeys(options = {}) {
+const {
+maxPages = 20,
+onStatusUpdate = (message) => console.log(message),
+onValidKeyFound = (apiKey, totalValidKeys) => {},
+proxyTimeout = 15000,
+apiKeyTestTimeout = 20000,
+maxConcurrentKeyTests = 5
+} = options;
+
+const BASE_URL = 'https://grep.app/search?regexp=true&q=%28tmdb.*%5Ba-f0-9%5D%7B32%7D%7C%5Ba-f0-9%5D%7B32%7D.*tmdb%29';
+const API_KEY_REGEX = /[a-f0-9]{32}/g;
+
+
+let foundPotentialKeys = new Set();
+let validApiKeys = [];
+let currentPage = 1;
+let selectedProxyDetails = null;
+
+async function determineFastestProxy(baseUrlForTest, proxyList, statusUpdateFn, timeout) {
+statusUpdateFn("Determining the fastest proxy...");
+const proxyPromises = proxyList.map(async (proxyBuilderFunc) => {
+const proxyUrl = proxyBuilderFunc(baseUrlForTest);
+const proxyNameMatch = proxyUrl.match(/https:\/\/([a-zA-Z0-9.-]+)/);
+const proxyName = proxyNameMatch ? proxyNameMatch[1] : 'Unknown Proxy';
+const startTime = Date.now();
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), timeout);
+statusUpdateFn(`Testing proxy: ${proxyName}...`);
+const response = await fetch(proxyUrl, { signal: controller.signal });
+clearTimeout(timeoutId);
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
+await response.text();
+const duration = Date.now() - startTime;
+statusUpdateFn(`OK: ${proxyName} responded in ${duration}ms.`);
+return { proxyBuilder: proxyBuilderFunc, proxyName, duration, success: true };
+} catch (error) {
+statusUpdateFn(`FAIL: ${proxyName} (${error.name === 'AbortError' ? 'timeout' : error.message}).`);
+return { duration: Infinity, success: false };
+}
+});
+
+const results = await Promise.all(proxyPromises);
+const fastestProxy = results.filter(r => r.success).sort((a, b) => a.duration - b.duration)[0];
+
+if (fastestProxy) {
+statusUpdateFn(`Fastest proxy selected: ${fastestProxy.proxyName}.`);
+return { proxyBuilder: fastestProxy.proxyBuilder, proxyName: fastestProxy.proxyName };
+} else {
+throw new Error("No working proxy found.");
+}
+}
+
+async function fetchWithSelectedProxy(url, pageNum, proxyDetails, statusUpdateFn, timeout) {
+const { proxyBuilder, proxyName } = proxyDetails;
+const proxyUrl = proxyBuilder(url);
+statusUpdateFn(`Page ${pageNum}: Fetching via ${proxyName}...`);
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), timeout);
+const response = await fetch(proxyUrl, { signal: controller.signal });
+clearTimeout(timeoutId);
+if (!response.ok) throw new Error(`HTTP ${response.status}`);
+return await response.text();
+} catch (error) {
+throw new Error(`Proxy fetch failed: ${error.message}`);
+}
+}
+
+async function testApiKeyValidity(apiKey, statusFn) {
+const shortKey = `${apiKey.substring(0, 8)}...`;
+statusFn(`Testing key: ${shortKey}`);
+const tmdbApiUrl = `https://api.themoviedb.org/3/configuration?api_key=${apiKey}`;
+try {
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), apiKeyTestTimeout);
+const response = await fetch(tmdbApiUrl, { method: 'GET', signal: controller.signal });
+clearTimeout(timeoutId);
+return response.ok;
+} catch (error) {
+return false;
+}
+}
+
+async function processPage(pageNum, proxyDetails) {
+onStatusUpdate(`Fetching page ${pageNum}...`);
+const urlToFetch = `${BASE_URL}&page=${pageNum}`;
+try {
+const html = await fetchWithSelectedProxy(urlToFetch, pageNum, proxyDetails, onStatusUpdate, proxyTimeout);
+const keysOnPage = [...new Set(html.match(API_KEY_REGEX) || [])];
+const newKeys = keysOnPage.filter(key => !foundPotentialKeys.has(key));
+
+if (newKeys.length > 0) {
+onStatusUpdate(`Page ${pageNum}: Found ${newKeys.length} new potential keys. Testing...`);
+newKeys.forEach(key => foundPotentialKeys.add(key));
+
+for (let i = 0; i < newKeys.length; i += maxConcurrentKeyTests) {
+if (validApiKeys.length > 0) break; 
+const batch = newKeys.slice(i, i + maxConcurrentKeyTests);
+const testPromises = batch.map(key =>
+testApiKeyValidity(key, onStatusUpdate).then(isValid => ({ key, isValid }))
+);
+const results = await Promise.all(testPromises);
+for(const result of results){
+if (result.isValid) {
+validApiKeys.push(result.key);
+onValidKeyFound(result.key, validApiKeys.length);
+return false;
+}
+}
+}
+} else {
+onStatusUpdate(`Page ${pageNum}: No new potential keys found.`);
+}
+return html.includes('Load More Results') || html.includes('loadMoreResults');
+} catch (error) {
+onStatusUpdate(`Error on page ${pageNum}: ${error.message}. Stopping.`);
+return false;
+}
+}
+
+onStatusUpdate("Starting API key scan...");
+try {
+selectedProxyDetails = await determineFastestProxy(BASE_URL, PROXIES, onStatusUpdate, proxyTimeout);
+} catch (error) {
+onStatusUpdate(`Scraping aborted: ${error.message}`);
+return [];
+}
+
+let hasMore = true;
+while (hasMore && currentPage <= maxPages && validApiKeys.length === 0) {
+onStatusUpdate(`--- Processing Page ${currentPage}/${maxPages} ---`);
+hasMore = await processPage(currentPage, selectedProxyDetails);
+if (hasMore) currentPage++;
+}
+
+if (validApiKeys.length === 0) {
+onStatusUpdate(`Scraping complete. No valid keys found.`);
+}
+return validApiKeys;
+}
+
+/**
+* Nepflix Application Logic
+*/
+async function fetchHtmlViaProxy(url) {
+    for (const proxyBuilder of PROXIES) {
+        const proxyUrl = proxyBuilder(url);
+        try {
+            const response = await fetch(proxyUrl);
+            if (response.ok) {
+                return await response.text();
+            }
+        } catch (error) {
+            console.warn(`Proxy failed: ${proxyUrl}`, error);
+        }
+    }
+    return null;
+}
+
+function updateStatus(message) {
+const p = document.createElement('p');
+p.textContent = `> ${message}`;
+statusMessagesContainer.appendChild(p);
+}
+
+async function fetchFromTMDb(endpoint, page = 1) {
+    try {
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const url = `${TMDB_API_BASE_URL}${endpoint}${separator}api_key=${TMDB_API_KEY}&page=${page}`;
+        const response = await fetch(url);
+
+        if (response.status === 401) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            updateStatus("API key has expired or is invalid. Searching for a new one...");
+            loadingOverlay.style.opacity = '1';
+            loadingOverlay.style.display = 'flex';
+            mainContent.style.display = 'none';
+            startScraping();
+            return null;
+        }
+
+        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`Failed to fetch from TMDB: ${endpoint}`, error);
+        return null;
+    }
+}
+
+async function startPlayback(item, button) {
+    if (!item || !button) return;
+
+    const originalButtonHtml = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = 'Loading...';
+    playErrorMessage.style.display = 'none';
+
+    try {
+        const isMovie = item.media_type === 'movie';
+        let vidsrcUrl;
+
+        if (isMovie) {
+            vidsrcUrl = `${VIDSRC_BASE_URL}/embed/movie/${item.id}`;
+        } else {
+            const season = seasonSelect.value;
+            const episode = episodeSelect.value;
+            vidsrcUrl = `${VIDSRC_BASE_URL}/embed/tv/${item.id}?season=${season}&episode=${episode}`;
+        }
+        
+        const html = await fetchHtmlViaProxy(vidsrcUrl);
+        if (!html) {
+            throw new Error("Could not fetch video page via proxy.");
+        }
+
+        const iframeSrcMatch = html.match(/<iframe[^>]+src="([^"]+)"/i);
+        if (iframeSrcMatch && iframeSrcMatch[1]) {
+            let finalUrl = iframeSrcMatch[1];
+            if (finalUrl.startsWith('//')) {
+                finalUrl = 'https:' + finalUrl;
+            }
+            window.location.href = finalUrl;
+        } else {
+            throw new Error("Could not find video source.");
+        }
+
+    } catch (error) {
+        console.error(error);
+        playErrorMessage.textContent = 'Sorry, no sources found.';
+        playErrorMessage.style.display = 'inline';
+        button.disabled = false;
+        button.innerHTML = originalButtonHtml;
+    }
+}
+
+async function fetchAndPopulateSeasons(tvId) {
+    const data = await fetchFromTMDb(`/tv/${tvId}`);
+    if (data && data.seasons) {
+        currentModalItem.seasons = data.seasons;
+        seasonSelect.innerHTML = '';
+
+        data.seasons.forEach(season => {
+            if (season.season_number > 0 && season.episode_count > 0) {
+                const option = document.createElement('option');
+                option.value = season.season_number;
+                option.textContent = season.name;
+                seasonSelect.appendChild(option);
+            }
+        });
+        seasonSelect.disabled = false;
+        episodeSelect.disabled = false;
+        modalPlayButton.disabled = false;
+        
+        seasonSelect.dispatchEvent(new Event('change'));
+    }
+}
+
+function populateEpisodes() {
+    if (!currentModalItem || !currentModalItem.seasons) return;
+    
+    const selectedSeasonNumber = parseInt(seasonSelect.value, 10);
+    const seasonData = currentModalItem.seasons.find(s => s.season_number === selectedSeasonNumber);
+
+    episodeSelect.innerHTML = '';
+    if (seasonData) {
+        for (let i = 1; i <= seasonData.episode_count; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `Episode ${i}`;
+            episodeSelect.appendChild(option);
+        }
+    }
+}
+
+function closeModal() {
+    if(modal.style.display === 'block') {
+        modal.style.display = 'none';
+    }
+}
+
+function showMovieDetails(item) {
+    currentModalItem = item;
+    
+    playErrorMessage.style.display = 'none';
+    document.getElementById('modal-backdrop').style.backgroundImage = `url(${TMDB_IMAGE_BASE_URL}original${item.backdrop_path})`;
+    document.getElementById('modal-title').textContent = item.title || item.name;
+    document.getElementById('modal-description').textContent = item.overview;
+    document.getElementById('modal-rating').textContent = `Rating: ${item.vote_average.toFixed(1)}/10`;
+    document.getElementById('modal-release-date').textContent = `Release: ${item.release_date || item.first_air_date || 'N/A'}`;
+    
+    const isMovie = item.media_type === 'movie' || !item.media_type;
+    if (isMovie) {
+        selectorGroup.style.display = 'none';
+        modalPlayButton.disabled = false;
+    } else {
+        selectorGroup.style.display = 'flex';
+        modalPlayButton.disabled = true;
+        seasonSelect.disabled = true;
+        episodeSelect.disabled = true;
+        fetchAndPopulateSeasons(item.id);
+    }
+    
+    modal.style.display = 'block';
+    history.pushState({ modalOpen: true }, '', '#details');
+}
+
+async function populateHero() {
+    const data = await fetchFromTMDb('/trending/movie/day');
+    if (data && data.results && data.results.length > 0) {
+        const movie = data.results[Math.floor(Math.random() * data.results.length)];
+        movie.media_type = 'movie';
+        heroItem = movie;
+        const heroBanner = document.getElementById('hero-banner');
+        heroBanner.style.backgroundImage = `url(${TMDB_IMAGE_BASE_URL}original${movie.backdrop_path})`;
+        document.getElementById('hero-title').textContent = movie.title || movie.name;
+        document.getElementById('hero-description').textContent = movie.overview;
+    }
+}
+
+function appendPosters(row, movies, isLarge) {
+    movies.forEach(movie => {
+        if (!movie.media_type) {
+            movie.media_type = row.dataset.endpoint.includes('/movie') ? 'movie' : 'tv';
+        }
+        if (movie.poster_path) {
+            const poster = document.createElement('img');
+            poster.className = `poster ${isLarge ? 'large' : ''}`;
+            poster.src = `${TMDB_IMAGE_BASE_URL}w500${movie.poster_path}`;
+            poster.alt = movie.title || movie.name;
+            poster.onclick = () => showMovieDetails(movie);
+            row.appendChild(poster);
+        }
+    });
+}
+
+async function loadMoreMovies(row) {
+    row.dataset.loading = 'true';
+    const endpoint = row.dataset.endpoint;
+    const isLarge = row.dataset.large === 'true';
+    const currentPage = parseInt(row.dataset.page, 10);
+    const nextPage = currentPage + 1;
+
+    const data = await fetchFromTMDb(endpoint, nextPage);
+
+    if (data && data.results && data.results.length > 0) {
+        appendPosters(row, data.results, isLarge);
+        row.dataset.page = nextPage;
+    }
+    
+    row.dataset.loading = 'false';
+}
+
+function handleRowScroll(event) {
+    const row = event.target;
+    const isLoading = row.dataset.loading === 'true';
+
+    if (isLoading) return;
+
+    const scrollThreshold = 500;
+    if (row.scrollWidth - row.scrollLeft - row.clientWidth < scrollThreshold) {
+        loadMoreMovies(row);
+    }
+}
+
+function createMovieRow(category) {
+    const movieContainer = document.getElementById('movie-container');
+    const section = document.createElement('section');
+    section.className = 'movie-section';
+    const title = document.createElement('h2');
+    title.className = 'movie-section-title';
+    title.textContent = category.title;
+    const posterRow = document.createElement('div');
+    posterRow.className = 'poster-row';
+
+    posterRow.dataset.endpoint = category.endpoint;
+    posterRow.dataset.page = '1';
+    posterRow.dataset.loading = 'false';
+    posterRow.dataset.large = category.large;
+
+    posterRow.addEventListener('scroll', handleRowScroll);
+
+    section.appendChild(title);
+    section.appendChild(posterRow);
+    movieContainer.appendChild(section);
+
+    return posterRow;
+}
+
+async function populateMovieRows() {
+    const movieContainer = document.getElementById('movie-container');
+    movieContainer.innerHTML = ''; // Clear existing rows
+    for (const category of MOVIE_CATEGORIES) {
+        const data = await fetchFromTMDb(category.endpoint, 1);
+        if (data && data.results) {
+            const posterRow = createMovieRow(category);
+            appendPosters(posterRow, data.results, category.large);
+        }
+    }
+}
+
+async function displaySearchResults(results) {
+    searchResultsGrid.innerHTML = '';
+    const validResults = results.filter(item => item.media_type !== 'person' && item.poster_path);
+
+    if (validResults.length === 0) {
+        searchResultsGrid.innerHTML = '<p class="no-results">No results found.</p>';
+        return;
+    }
+
+    validResults.forEach(item => {
+        const poster = document.createElement('img');
+        poster.className = 'poster';
+        poster.src = `${TMDB_IMAGE_BASE_URL}w500${item.poster_path}`;
+        poster.alt = item.title || item.name;
+        poster.onclick = () => showMovieDetails(item);
+        searchResultsGrid.appendChild(poster);
+    });
+}
+
+async function performSearch(query) {
+    if (!query) {
+        searchResultsGrid.innerHTML = '';
+        return;
+    }
+    const data = await fetchFromTMDb(`/search/multi?query=${encodeURIComponent(query)}`);
+    if (data && data.results) {
+        displaySearchResults(data.results);
+    }
+}
+
+function toggleSearchView(showSearch) {
+    if (showSearch) {
+        mainView.style.display = 'none';
+        searchResultsContainer.style.display = 'block';
+    } else {
+        mainView.style.display = 'block';
+        searchResultsContainer.style.display = 'none';
+        searchInput.value = '';
+        searchResultsGrid.innerHTML = '';
+    }
+}
+
+function toggleSearchControls(showSearchInput) {
+    if(showSearchInput) {
+        searchContainer.classList.add('active');
+        headerLogo.style.display = 'none';
+        searchIcon.style.display = 'none';
+        searchInput.focus();
+    } else {
+        searchContainer.classList.remove('active');
+        headerLogo.style.display = 'block';
+        searchIcon.style.display = 'block';
+    }
+}
+
+async function initializeApp(apiKey) {
+    TMDB_API_KEY = apiKey;
+    updateStatus('Loading Nepflix content...');
+
+    await Promise.all([
+        populateHero(),
+        populateMovieRows()
+    ]);
+
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        mainContent.style.display = 'block';
+    }, 500);
+}
+
+function resetAllPlayButtons() {
+    const buttons = [heroPlayButton, modalPlayButton];
+    buttons.forEach(button => {
+        if (button.disabled) {
+            button.disabled = false;
+            button.innerHTML = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: currentcolor; vertical-align: middle;"><path d="M6 4l15 8-15 8z"></path></svg><span style="vertical-align: middle; margin-left: 8px;">Play</span>';
+        }
+    });
+}
+
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+});
+
+window.addEventListener('pageshow', (event) => {
+    resetAllPlayButtons();
+});
+
+window.addEventListener('popstate', (event) => {
+    closeModal();
+});
+
+modalCloseButton.onclick = () => {
+    if(history.state && history.state.modalOpen) {
+        history.back();
+    } else {
+        closeModal();
+    }
+};
+window.onclick = (event) => {
+    if (event.target == modal) {
+        if(history.state && history.state.modalOpen) {
+            history.back();
+        } else {
+            closeModal();
+        }
+    }
+};
+
+async function startScraping() {
+    let keyFound = false;
+    await scrapeTmdbKeys({
+        onStatusUpdate: updateStatus,
+        onValidKeyFound: (apiKey, totalKeys) => {
+            if (!keyFound) {
+                keyFound = true;
+                localStorage.setItem(LOCAL_STORAGE_KEY, apiKey);
+                updateStatus("SUCCESS: Valid API Key found and saved.");
+                initializeApp(apiKey);
+            }
+        }
+    });
+
+    if (!keyFound) {
+        updateStatus('CRITICAL: Could not find a working API key. Nepflix cannot be loaded.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Event Listeners
+    heroPlayButton.onclick = () => startPlayback(heroItem, heroPlayButton);
+    modalPlayButton.onclick = () => startPlayback(currentModalItem, modalPlayButton);
+    seasonSelect.addEventListener('change', populateEpisodes);
+    
+    searchIcon.addEventListener('click', () => {
+        toggleSearchControls(true);
+    });
+    
+    searchCloseButton.addEventListener('click', () => {
+        toggleSearchControls(false);
+        toggleSearchView(false);
+    });
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        if(query) {
+            performSearch(query);
+            toggleSearchView(true);
+        }
+    });
+
+    // App Initialization
+    const storedKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (storedKey) {
+        updateStatus("Found stored API key. Initializing...");
+        initializeApp(storedKey);
+    } else {
+        updateStatus("No API key found in storage. Starting scan...");
+        startScraping();
+    }
+});
+
+</script>
+</body>
+</html>
