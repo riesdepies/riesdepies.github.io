@@ -99,18 +99,63 @@
         ];
         
         // --- State Management ---
-        let currentPage = 1;
-        let currentQuery = '';
-        let isLoading = false;
-        let hasMorePages = true;
-        let originalDescription = '';
-        let isTranslated = false;
-        let isScraping = false;
+        let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
+        let originalDescription = '', isTranslated = false, isScraping = false;
+        let useProxyForApi = sessionStorage.getItem('useProxyForApi') === 'true';
+        let apiProxyIndex = parseInt(sessionStorage.getItem('apiProxyIndex')) || 1;
         
         // --- Helper functions ---
         function getApiKeyFromStorage() { return localStorage.getItem(API_KEY_STORAGE_KEY); }
         function setApiKeyInStorage(key) { localStorage.setItem(API_KEY_STORAGE_KEY, key); }
         function removeApiKeyFromStorage() { localStorage.removeItem(API_KEY_STORAGE_KEY); }
+
+        function getProxiedImageUrl(originalUrl) {
+            if (useProxyForApi && originalUrl) {
+                return PROXIES[apiProxyIndex](originalUrl);
+            }
+            return originalUrl;
+        }
+
+        async function fetchFromApi(endpoint) {
+            const directUrl = API_BASE_URL + endpoint;
+            if (!useProxyForApi) {
+                try {
+                    const response = await fetch(directUrl);
+                    if (!response.ok) throw new Error("Direct fetch failed");
+                    return response.json();
+                } catch (error) {
+                    console.warn('Directe API-aanroep mislukt, schakel over op proxy.', error.message);
+                    useProxyForApi = true; 
+                    sessionStorage.setItem('useProxyForApi', 'true');
+                }
+            }
+            try {
+                const proxyUrl = PROXIES[apiProxyIndex](directUrl);
+                const response = await fetch(proxyUrl);
+                return response.json();
+            } catch (error) {
+                console.warn(`Proxy #${apiProxyIndex} mislukt, start race...`);
+            }
+            const controller = new AbortController();
+            const signal = controller.signal;
+            const promises = PROXIES.map(async (proxyBuilder, index) => {
+                const proxyUrl = proxyBuilder(directUrl);
+                try {
+                    const response = await fetch(proxyUrl, { signal });
+                    if (!response.ok) throw new Error(`Proxy #${index} faalde`);
+                    apiProxyIndex = index; 
+                    sessionStorage.setItem('apiProxyIndex', index.toString());
+                    controller.abort();
+                    return response.json();
+                } catch (err) { throw err; }
+            });
+            try {
+                return await Promise.any(promises);
+            } catch (error) {
+                console.error("Alle API-proxies mislukt.", error);
+                throw new Error("API is onbereikbaar via alle proxies.");
+            }
+        }
         
         // --- View Management ---
         function resetToHomePage(event) {
@@ -154,15 +199,14 @@
             if (isLoading || !hasMorePages) return;
             isLoading = true;
             loader.style.display = 'block';
-            let apiUrl = `${API_BASE_URL}list_movies.json?page=${currentPage}`;
+            let endpoint = `list_movies.json?page=${currentPage}`;
             if (currentQuery) {
-                apiUrl += `&query_term=${encodeURIComponent(currentQuery)}&sort_by=download_count`;
+                endpoint += `&query_term=${encodeURIComponent(currentQuery)}&sort_by=download_count`;
             } else {
-                apiUrl += `&minimum_rating=7&sort_by=date_added`;
+                endpoint += `&minimum_rating=7&sort_by=date_added`;
             }
             try {
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+                const data = await fetchFromApi(endpoint);
                 if (data.status === 'ok' && data.data.movies?.length > 0) {
                     displayMovies(data.data.movies);
                     currentPage++;
@@ -173,6 +217,7 @@
                 }
             } catch (error) {
                 console.error("Fout bij ophalen films:", error);
+                resultsContainer.innerHTML = `<p class="message">${error.message}</p>`;
                 hasMorePages = false;
             } finally {
                 isLoading = false;
@@ -189,8 +234,7 @@
             detailContent.innerHTML = '<p class="message">Filmgegevens laden...</p>';
             suggestionsSection.innerHTML = ''; 
             try {
-                const response = await fetch(`${API_BASE_URL}movie_details.json?movie_id=${id}`);
-                const data = await response.json();
+                const data = await fetchFromApi(`movie_details.json?movie_id=${id}`);
                 if (data.status === 'ok' && data.data.movie) {
                     displayMovieDetails(data.data.movie);
                     fetchAndDisplaySuggestions(id);
@@ -198,16 +242,17 @@
                     detailContent.innerHTML = '<p class="message">Kon filmgegevens niet vinden.</p>';
                 }
             } catch (error) {
-                detailContent.innerHTML = '<p class="message">Er is een fout opgetreden.</p>';
+                detailContent.innerHTML = `<p class="message">${error.message}</p>`;
             }
         }
         
+        // AANGEPAST: Functie-inhoud hersteld
         function displayMovieDetails(movie) {
             originalDescription = movie.description_full; 
             isTranslated = false; 
             detailContent.innerHTML = `
                 <a href="#" data-imdb-id="${movie.imdb_code}" class="poster-container" id="play-link">
-                    <img src="${movie.large_cover_image}" alt="${movie.title}">
+                    <img src="${getProxiedImageUrl(movie.large_cover_image)}" alt="${movie.title}">
                     <div class="play-icon"><i class="fa-solid fa-play"></i></div>
                 </a>
                 <div class="detail-info">
@@ -232,12 +277,13 @@
             translateButton.addEventListener('click', handleTranslateClick);
         }
 
+        // AANGEPAST: Functie-inhoud hersteld
         function createMovieCard(movie) {
             const movieCard = document.createElement('div');
             movieCard.className = 'movie-card';
             movieCard.innerHTML = `
                 <a href="?movie_id=${movie.id}">
-                    <img src="${movie.medium_cover_image}" alt="${movie.title}" loading="lazy">
+                    <img src="${getProxiedImageUrl(movie.medium_cover_image)}" alt="${movie.title}" loading="lazy">
                     <div class="movie-info">
                         <h3>${movie.title}</h3>
                         <p class="movie-meta"><span>${movie.year}</span><a href="https://www.imdb.com/title/${movie.imdb_code}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">⭐${movie.rating}</a></p>
@@ -248,8 +294,7 @@
 
         async function fetchAndDisplaySuggestions(id) {
             try {
-                const response = await fetch(`${API_BASE_URL}movie_suggestions.json?movie_id=${id}`);
-                const data = await response.json();
+                const data = await fetchFromApi(`movie_suggestions.json?movie_id=${id}`);
                 if (data.status === 'ok' && data.data.movies?.length > 0) {
                     suggestionsSection.innerHTML = '<h2>Soortgelijke films</h2>';
                     const grid = document.createElement('div');
@@ -260,11 +305,13 @@
             } catch (error) { suggestionsSection.innerHTML = ''; }
         }
         
+        // AANGEPAST: Functie-inhoud hersteld
         function makeAbsoluteUrl(url, base) {
             if (!url) return null;
             try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
         }
-
+        
+        // AANGEPAST: Functie-inhoud hersteld
         async function handlePlayClick(event) {
             event.preventDefault();
             const link = event.currentTarget;
@@ -320,7 +367,7 @@
             }
         }
         
-        // AANGEPAST: Volledige functie hersteld
+        // AANGEPAST: Functie-inhoud hersteld
         async function handleTranslateClick(event) {
             event.preventDefault();
             const descriptionElement = document.getElementById('movie-description');
@@ -349,11 +396,9 @@
                     console.error('Translate error:', error.message);
                     removeApiKeyFromStorage();
                     buttonTextElement.innerText = 'Fout';
-                    console.log('De opgeslagen API-sleutel is ongeldig en wordt verwijderd. Er wordt een nieuwe gezocht.');
                     setTimeout(() => { buttonElement.style.display = 'none'; }, 2000);
                     scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => {
                         setApiKeyInStorage(key);
-                        console.log('Nieuwe API-sleutel gevonden. Probeer opnieuw te vertalen.');
                         buttonElement.style.display = 'inline-flex';
                         buttonTextElement.innerText = 'Vertaal';
                     }});
@@ -363,7 +408,7 @@
             }
         }
 
-        // AANGEPAST: Volledige functie hersteld
+        // AANGEPAST: Functie-inhoud hersteld
         async function scrapeAndValidateKeys(options = {}) {
             if (isScraping) return;
             isScraping = true;
@@ -377,7 +422,7 @@
             let validApiKeys = [];
             
             async function fetchWithProxy(url) {
-                 const proxyUrl = PROXIES[1](url); // Gebruik een betrouwbare proxy
+                 const proxyUrl = PROXIES[1](url);
                  const controller = new AbortController();
                  const timeoutId = setTimeout(() => controller.abort(), proxyTimeout);
                  const response = await fetch(proxyUrl, { signal: controller.signal });
