@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEPFLIX</title>
+    
+    <link rel="preload" href="https://fonts.gstatic.com/s/bebasneue/v10/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=block">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        /* CSS is ongewijzigd */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #141414; color: #fff; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        a { text-decoration: none; color: inherit; }
+        .movie-info p a:hover, .detail-meta a:hover { text-decoration: underline; }
+        header h1 { text-align: center; font-weight: normal; margin-bottom: 15px; }
+        #search-form { display: flex; justify-content: center; margin-bottom: 20px; }
+        #search-input { width: 50%; max-width: 500px; padding: 15px; font-size: 16px; border: 1px solid #333; border-radius: 4px 0 0 4px; background-color: #333; color: #fff; }
+        #search-button { padding: 15px 25px; font-size: 16px; border: none; background-color: #E50914; color: white; cursor: pointer; border-radius: 0 4px 4px 0; }
+        main.container { padding-top: 0; }
+        #results-container, #suggestions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; justify-items: center; }
+        .movie-card { background-color: #222; border-radius: 5px; overflow: hidden; transition: transform 0.2s ease; width: 100%; }
+        .movie-card:hover { transform: scale(1.05); }
+        .movie-card img { width: 100%; height: auto; display: block; }
+        .movie-info { padding: 10px; text-align: left; }
+        .movie-info h3 { font-size: 1em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-info p { font-size: 0.9em; margin: 0; color: #aaa; }
+        .movie-meta { display: flex; justify-content: space-between; align-items: center; }
+        .message { text-align: center; font-size: 1.2em; grid-column: 1 / -1; }
+        #loader { text-align: center; padding: 20px; grid-column: 1 / -1; display: none; }
+        #detail-page { display: none; }
+        #detail-content { display: flex; flex-direction: column; align-items: center; gap: 20px; padding-top: 0; }
+        .poster-container { position: relative; width: 100%; max-width: 350px; display: block; cursor: pointer; }
+        .poster-container img { width: 100%; height: auto; border-radius: 5px; display: block; }
+        .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: background-color 0.2s ease; }
+        .poster-container:hover .play-icon { background-color: rgba(0, 0, 0, 0.7); }
+        .play-icon .fa-solid { font-size: 36px; color: #fff; }
+        .detail-info { text-align: center; }
+        .detail-info h2 { margin: 0 0 10px 0; font-size: 2.2em; }
+        .detail-meta { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.1em; color: #ccc; margin-bottom: 20px; }
+        .detail-meta .rating { font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .detail-info .description { margin-top: 0; text-align: left; max-width: 700px; line-height: 1.6; color: #ccc; }
+        #translate-container { display: flex; align-items: center; justify-content: flex-end; width: 100%; max-width: 700px; margin-top: 10px; margin-bottom: 0px; }
+        #translate-button { padding: 5px 10px; font-size: 0.8em; background-color: #333; color: #fff; border: 1px solid #555; border-radius: 4px; cursor: pointer; display: none; align-items: center; gap: 6px; }
+        #translate-button:hover { background-color: #444; }
+        #suggestions-section { width: 100%; margin-top: 40px; border-top: 1px solid #333; padding-top: 20px; }
+        #suggestions-section h2 { color: #E50914; margin-bottom: 20px; text-align: center; }
+        @media (max-width: 767px) { header h1 svg { width: 240px; } }
+        @media (min-width: 768px) { #detail-content { flex-direction: row; align-items: flex-start; text-align: left; } .detail-info { text-align: left; } .detail-meta { justify-content: flex-start; } #results-container, #suggestions-grid { gap: 20px; } #suggestions-section h2 { text-align: left; } }
+    </style>
+</head>
+<body>
+
+    <header class="container">
+        <h1>
+            <a href="/" onclick="resetToHomePage(event)">
+                <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="300" height="auto" viewBox="0 0 968.7748 289.7129">
+                  <g fill="#E50914"><path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/></g></svg>
+            </a>
+        </h1>
+        <form id="search-form">
+            <input type="text" id="search-input" placeholder="Zoek een film..." required autocomplete="off">
+            <button type="submit" id="search-button">Zoek</button>
+        </form>
+    </header>
+
+    <main class="container">
+        <div id="results-container"></div>
+        <div id="loader">Laden...</div>
+        <div id="detail-page">
+            <div id="detail-content"></div>
+            <div id="suggestions-section"></div>
+        </div>
+    </main>
+
+    <script>
+        // --- Selectors and Constants ---
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const resultsContainer = document.getElementById('results-container');
+        const loader = document.getElementById('loader');
+        const detailPage = document.getElementById('detail-page');
+        const detailContent = document.getElementById('detail-content');
+        const suggestionsSection = document.getElementById('suggestions-section');
+        const API_BASE_URL = 'https://yts.mx/api/v2/';
+        const API_KEY_STORAGE_KEY = 'translateApiKey';
+        const PROXIES = [
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://api.corsproxy.io/${url}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+            (url) => `https://corsmirror.com/v1?url=${encodeURIComponent(url)}`,
+            (url) => `https://whateverorigin.org/get?url=${encodeURIComponent(url)}`,
+            (url) => `https://cors-proxy.tuananh.workers.dev/?${url}`,
+            (url) => `https://cors-proxy.novadrone16.workers.dev?url=${encodeURIComponent(url)}`,
+            (url) => `https://my-cors-proxy-kappa.vercel.app/api/proxy?url=${encodeURIComponent(url)}`
+        ];
+        
+        // --- State Management ---
+        let currentPage = 1;
+        let currentQuery = '';
+        let isLoading = false;
+        let hasMorePages = true;
+        let originalDescription = '';
+        let isTranslated = false;
+        let isScraping = false;
+        
+        // --- Helper functions ---
+        function getApiKeyFromStorage() { return localStorage.getItem(API_KEY_STORAGE_KEY); }
+        function setApiKeyInStorage(key) { localStorage.setItem(API_KEY_STORAGE_KEY, key); }
+        function removeApiKeyFromStorage() { localStorage.removeItem(API_KEY_STORAGE_KEY); }
+        
+        // --- View Management ---
+        function resetToHomePage(event) {
+            event.preventDefault();
+            resultsContainer.innerHTML = '';
+            searchInput.value = '';
+            currentQuery = '';
+            currentPage = 1;
+            hasMorePages = true;
+            isLoading = false;
+            window.history.pushState({}, '', window.location.pathname);
+            showSearchPage();
+            fetchAndDisplayMovies();
+        }
+
+        function showSearchPage() {
+            resultsContainer.style.display = 'grid';
+            detailPage.style.display = 'none';
+        }
+
+        function showDetailPage() {
+            resultsContainer.style.display = 'none';
+            detailPage.style.display = 'block';
+            loader.style.display = 'none';
+        }
+        
+        // --- Core Logic ---
+        function startNewSearch(query) {
+            showSearchPage();
+            resultsContainer.innerHTML = '';
+            currentQuery = query;
+            currentPage = 1;
+            isLoading = false;
+            hasMorePages = true;
+            const newUrl = `?q=${encodeURIComponent(currentQuery)}`;
+            window.history.pushState({ query: currentQuery }, '', newUrl);
+            fetchAndDisplayMovies();
+        }
+
+        async function fetchAndDisplayMovies() {
+            if (isLoading || !hasMorePages) return;
+            isLoading = true;
+            loader.style.display = 'block';
+            let apiUrl = `${API_BASE_URL}list_movies.json?page=${currentPage}`;
+            if (currentQuery) {
+                apiUrl += `&query_term=${encodeURIComponent(currentQuery)}&sort_by=download_count`;
+            } else {
+                apiUrl += `&minimum_rating=7&sort_by=date_added`;
+            }
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                if (data.status === 'ok' && data.data.movies?.length > 0) {
+                    displayMovies(data.data.movies);
+                    currentPage++;
+                    hasMorePages = (currentPage - 1) * 20 < data.data.movie_count;
+                } else {
+                    hasMorePages = false;
+                    if (currentPage === 1) resultsContainer.innerHTML = '<p class="message">Geen films gevonden.</p>';
+                }
+            } catch (error) {
+                console.error("Fout bij ophalen films:", error);
+                hasMorePages = false;
+            } finally {
+                isLoading = false;
+                loader.style.display = 'none';
+            }
+        }
+        
+        function displayMovies(movies) {
+            movies.forEach(movie => resultsContainer.appendChild(createMovieCard(movie)));
+        }
+        
+        async function fetchMovieDetails(id) {
+            showDetailPage();
+            detailContent.innerHTML = '<p class="message">Filmgegevens laden...</p>';
+            suggestionsSection.innerHTML = ''; 
+            try {
+                const response = await fetch(`${API_BASE_URL}movie_details.json?movie_id=${id}`);
+                const data = await response.json();
+                if (data.status === 'ok' && data.data.movie) {
+                    displayMovieDetails(data.data.movie);
+                    fetchAndDisplaySuggestions(id);
+                } else {
+                    detailContent.innerHTML = '<p class="message">Kon filmgegevens niet vinden.</p>';
+                }
+            } catch (error) {
+                detailContent.innerHTML = '<p class="message">Er is een fout opgetreden.</p>';
+            }
+        }
+        
+        function displayMovieDetails(movie) {
+            originalDescription = movie.description_full; 
+            isTranslated = false; 
+            detailContent.innerHTML = `
+                <a href="#" data-imdb-id="${movie.imdb_code}" class="poster-container" id="play-link">
+                    <img src="${movie.large_cover_image}" alt="${movie.title}">
+                    <div class="play-icon"><i class="fa-solid fa-play"></i></div>
+                </a>
+                <div class="detail-info">
+                    <h2>${movie.title}</h2>
+                    <div class="detail-meta">
+                        <span>${movie.year}</span>
+                        <a href="https://www.imdb.com/title/${movie.imdb_code}" target="_blank" rel="noopener noreferrer" class="rating"><span style="color: #f5c518;">⭐</span>${movie.rating}</a>
+                    </div>
+                    <p class="description" id="movie-description">${originalDescription || ''}</p>
+                    <div id="translate-container">
+                         <button id="translate-button">
+                            <svg style="width: 1em; height: 1em; fill: currentColor;" viewBox="0 0 24 24"><path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.28,8.36 14,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.65L4,19L9,14L11.11,16.11L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z" /></svg>
+                            <span id="translate-button-text">Vertaal</span>
+                         </button>
+                    </div>
+                </div>`;
+            document.getElementById('play-link').addEventListener('click', handlePlayClick);
+            const translateButton = document.getElementById('translate-button');
+            if (getApiKeyFromStorage() && originalDescription && originalDescription.trim() !== '') {
+                translateButton.style.display = 'inline-flex';
+            }
+            translateButton.addEventListener('click', handleTranslateClick);
+        }
+
+        function createMovieCard(movie) {
+            const movieCard = document.createElement('div');
+            movieCard.className = 'movie-card';
+            movieCard.innerHTML = `
+                <a href="?movie_id=${movie.id}">
+                    <img src="${movie.medium_cover_image}" alt="${movie.title}" loading="lazy">
+                    <div class="movie-info">
+                        <h3>${movie.title}</h3>
+                        <p class="movie-meta"><span>${movie.year}</span><a href="https://www.imdb.com/title/${movie.imdb_code}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">⭐${movie.rating}</a></p>
+                    </div>
+                </a>`;
+            return movieCard;
+        }
+
+        async function fetchAndDisplaySuggestions(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}movie_suggestions.json?movie_id=${id}`);
+                const data = await response.json();
+                if (data.status === 'ok' && data.data.movies?.length > 0) {
+                    suggestionsSection.innerHTML = '<h2>Soortgelijke films</h2>';
+                    const grid = document.createElement('div');
+                    grid.id = 'suggestions-grid';
+                    data.data.movies.forEach(movie => grid.appendChild(createMovieCard(movie)));
+                    suggestionsSection.appendChild(grid);
+                } else { suggestionsSection.innerHTML = ''; }
+            } catch (error) { suggestionsSection.innerHTML = ''; }
+        }
+        
+        function makeAbsoluteUrl(url, base) {
+            if (!url) return null;
+            try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
+        }
+
+        async function handlePlayClick(event) {
+            event.preventDefault();
+            const link = event.currentTarget;
+            const playIconContainer = link.querySelector('.play-icon');
+            if (!playIconContainer) return;
+            const originalIconHTML = playIconContainer.innerHTML;
+            playIconContainer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            link.style.pointerEvents = 'none';
+            const controller = new AbortController();
+            const signal = controller.signal;
+            const imdbId = link.dataset.imdbId;
+            const vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}`;
+            let definitiveFailure = false;
+            const promises = PROXIES.map(async (proxyBuilder) => {
+                const proxyUrl = proxyBuilder(vidsrcUrl);
+                try {
+                    const response = await fetch(proxyUrl, { signal });
+                    if (!response.ok) throw new Error(`Proxy failed: ${response.status}`);
+                    const htmlContent = await response.text();
+                    if (htmlContent.includes('This media is unavailable at the moment.')) {
+                        definitiveFailure = true;
+                        controller.abort();
+                        throw new Error("Media is unavailable.");
+                    }
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlContent, 'text/html');
+                    const iframe = doc.querySelector('iframe');
+                    if (!iframe) throw new Error("Iframe element not found");
+                    const rawSrc = iframe.getAttribute('src');
+                    if (!rawSrc) throw new Error("Iframe has no src attribute");
+                    const finalUrl = makeAbsoluteUrl(rawSrc, vidsrcUrl);
+                    if (!finalUrl) throw new Error("Could not normalize URL");
+                    return finalUrl;
+                } catch (error) {
+                    if (error.name !== 'AbortError') console.warn(`Proxy-poging mislukt:`, error.message);
+                    throw error;
+                }
+            });
+            try {
+                const winningUrl = await Promise.any(promises);
+                controller.abort();
+                playIconContainer.innerHTML = originalIconHTML;
+                link.style.pointerEvents = 'auto';
+                window.open(winningUrl, '_blank');
+            } catch (error) {
+                const message = definitiveFailure ? "Video niet beschikbaar" : "Kon bron niet vinden";
+                console.error(message, error);
+                playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
+                setTimeout(() => {
+                    playIconContainer.innerHTML = originalIconHTML;
+                    link.style.pointerEvents = 'auto';
+                }, 2500);
+            }
+        }
+        
+        // AANGEPAST: Volledige functie hersteld
+        async function handleTranslateClick(event) {
+            event.preventDefault();
+            const descriptionElement = document.getElementById('movie-description');
+            const buttonElement = document.getElementById('translate-button');
+            const buttonTextElement = document.getElementById('translate-button-text');
+            let apiKey = getApiKeyFromStorage();
+            if (!apiKey) { buttonElement.style.display = 'none'; return; }
+            buttonElement.disabled = true;
+
+            if (isTranslated) {
+                descriptionElement.innerText = originalDescription;
+                buttonTextElement.innerText = 'Vertaal';
+                isTranslated = false;
+                buttonElement.disabled = false;
+            } else {
+                buttonTextElement.innerText = 'Bezig...';
+                try {
+                    const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(originalDescription)}&target=nl&format=text`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (!response.ok) { throw new Error(data.error?.message || `HTTP ${response.status}`); }
+                    descriptionElement.innerText = data.data.translations[0].translatedText;
+                    buttonTextElement.innerText = 'Toon origineel';
+                    isTranslated = true;
+                } catch (error) {
+                    console.error('Translate error:', error.message);
+                    removeApiKeyFromStorage();
+                    buttonTextElement.innerText = 'Fout';
+                    console.log('De opgeslagen API-sleutel is ongeldig en wordt verwijderd. Er wordt een nieuwe gezocht.');
+                    setTimeout(() => { buttonElement.style.display = 'none'; }, 2000);
+                    scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => {
+                        setApiKeyInStorage(key);
+                        console.log('Nieuwe API-sleutel gevonden. Probeer opnieuw te vertalen.');
+                        buttonElement.style.display = 'inline-flex';
+                        buttonTextElement.innerText = 'Vertaal';
+                    }});
+                } finally {
+                    buttonElement.disabled = false;
+                }
+            }
+        }
+
+        // AANGEPAST: Volledige functie hersteld
+        async function scrapeAndValidateKeys(options = {}) {
+            if (isScraping) return;
+            isScraping = true;
+            console.log("Starten met scrapen van API sleutels...");
+            const {
+                maxPages = 5, maxKeys = 1, onStatusUpdate = (msg) => console.log(`[Scraper] ${msg}`),
+                onValidKeyFound = () => {}, proxyTimeout = 15000, apiKeyTestTimeout = 10000
+            } = options;
+            const BASE_URL = 'https://grep.app/search?regexp=true&q=%28transl.*AIzaSy%5BA-Za-z0-9_-%5D%7B33%7D%7CAIzaSy%5BA-Za-z0-9_-%5D%7B33%7D.*transl%29';
+            const API_KEY_REGEX = /AIzaSy[A-Za-z0-9_-]{33}/g;
+            let validApiKeys = [];
+            
+            async function fetchWithProxy(url) {
+                 const proxyUrl = PROXIES[1](url); // Gebruik een betrouwbare proxy
+                 const controller = new AbortController();
+                 const timeoutId = setTimeout(() => controller.abort(), proxyTimeout);
+                 const response = await fetch(proxyUrl, { signal: controller.signal });
+                 clearTimeout(timeoutId);
+                 if (!response.ok) throw new Error(`Proxy fetch failed: ${response.status}`);
+                 return await response.text();
+            }
+            async function testApiKeyValidity(apiKey) {
+                const translateApiUrl = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=test&target=nl`;
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), apiKeyTestTimeout);
+                    const response = await fetch(translateApiUrl, { method: 'GET', signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    return response.ok;
+                } catch (error) { return false; }
+            }
+            try {
+                for (let pageNum = 1; pageNum <= maxPages && validApiKeys.length < maxKeys; pageNum++) {
+                    onStatusUpdate(`Fetching page ${pageNum}...`);
+                    const html = await fetchWithProxy(`${BASE_URL}&page=${pageNum}`);
+                    const keys = [...new Set(html.match(API_KEY_REGEX) || [])];
+                    if (keys.length === 0 && !html.includes('Load More Results')) break;
+                    for (const key of keys) {
+                        if (await testApiKeyValidity(key)) {
+                            validApiKeys.push(key);
+                            onValidKeyFound(key, validApiKeys.length);
+                            if (validApiKeys.length >= maxKeys) break;
+                        }
+                    }
+                }
+            } catch(e) { onStatusUpdate("Scraping failed: " + e.message); } finally { isScraping = false; }
+        }
+        
+        // --- Event Listeners & Initialization ---
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query && query !== currentQuery) {
+                startNewSearch(query);
+            }
+        });
+        
+        function handleScroll() {
+            if (resultsContainer.style.display !== 'none' && !isLoading && hasMorePages) {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                    fetchAndDisplayMovies();
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!getApiKeyFromStorage()) {
+                scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => setApiKeyInStorage(key) });
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieId = urlParams.get('movie_id');
+            const query = urlParams.get('q');
+            if (movieId) {
+                currentQuery = query;
+                fetchMovieDetails(movieId);
+            } else if (query) {
+                searchInput.value = query;
+                startNewSearch(query);
+            } else {
+                showSearchPage();
+                fetchAndDisplayMovies();
+            }
+        });
+
+        window.addEventListener('scroll', handleScroll);
+
+        document.body.addEventListener('click', (e) => {
+            const anchor = e.target.closest('a[href*="?movie_id="]');
+            if (!anchor) return;
+            e.preventDefault();
+            const url = new URL(anchor.href);
+            const movieId = url.searchParams.get('movie_id');
+            const newUrl = `?movie_id=${movieId}` + (currentQuery ? `&q=${encodeURIComponent(currentQuery)}` : '');
+            window.history.pushState({ movieId, query: currentQuery }, '', newUrl);
+            fetchMovieDetails(movieId);
+        });
+
+        window.addEventListener('popstate', (e) => {
+             const urlParams = new URLSearchParams(window.location.search);
+             const movieId = urlParams.get('movie_id');
+             const query = urlParams.get('q');
+             
+             if (movieId) {
+                 currentQuery = query; 
+                 fetchMovieDetails(movieId);
+             } else if (query) {
+                 currentQuery = query;
+                 searchInput.value = query;
+                 showSearchPage();
+             } else {
+                 resetToHomePage(new Event('reset'));
+             }
+        });
+    </script>
+
+</body>
+</html>
