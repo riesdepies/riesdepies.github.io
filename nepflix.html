@@ -11,12 +11,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <style>
-        /* CSS is ongewijzigd */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #141414; color: #fff; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         a { text-decoration: none; color: inherit; }
         .movie-info p a:hover, .detail-meta a:hover { text-decoration: underline; }
         header h1 { text-align: center; font-weight: normal; margin-bottom: 15px; }
+        header h1 a { display: inline-block; }
+        #letter-i-proxied { display: none; }
+        body.proxy-active #letter-i-normal { display: none; }
+        body.proxy-active #letter-i-proxied { display: block; }
         #search-form { display: flex; justify-content: center; margin-bottom: 20px; }
         #search-input { width: 50%; max-width: 500px; padding: 15px; font-size: 16px; border: 1px solid #333; border-radius: 4px 0 0 4px; background-color: #333; color: #fff; }
         #search-button { padding: 15px 25px; font-size: 16px; border: none; background-color: #E50914; color: white; cursor: pointer; border-radius: 0 4px 4px 0; }
@@ -58,7 +61,18 @@
         <h1>
             <a href="/" onclick="resetToHomePage(event)">
                 <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="300" height="auto" viewBox="0 0 968.7748 289.7129">
-                  <g fill="#E50914"><path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/></g></svg>
+                  <defs>
+                    <mask id="proxy-indicator-mask">
+                      <rect x="743" y="0" width="44" height="290" fill="white"/>
+                      <text x="765" y="40" font-size="45px" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" fill="black">℗</text>
+                    </mask>
+                  </defs>
+                  <g fill="#E50914">
+                    <path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/>
+                    <path id="letter-i-normal" d="M743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130z"/>
+                    <path id="letter-i-proxied" d="M743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130z" mask="url(#proxy-indicator-mask)"/>
+                  </g>
+                </svg>
             </a>
         </h1>
         <form id="search-form">
@@ -77,6 +91,8 @@
     </main>
 
     <script>
+        document.body.classList.remove('proxy-active');
+
         // --- Selectors and Constants ---
         const searchForm = document.getElementById('search-form');
         const searchInput = document.getElementById('search-input');
@@ -87,22 +103,17 @@
         const suggestionsSection = document.getElementById('suggestions-section');
         const API_BASE_URL = 'https://yts.mx/api/v2/';
         const API_KEY_STORAGE_KEY = 'translateApiKey';
-        const PROXIES = [
+        const CORS_PROXIES = [
             (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
             (url) => `https://api.corsproxy.io/${url}`,
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-            (url) => `https://corsmirror.com/v1?url=${encodeURIComponent(url)}`,
-            (url) => `https://whateverorigin.org/get?url=${encodeURIComponent(url)}`,
-            (url) => `https://cors-proxy.tuananh.workers.dev/?${url}`,
-            (url) => `https://cors-proxy.novadrone16.workers.dev?url=${encodeURIComponent(url)}`,
-            (url) => `https://my-cors-proxy-kappa.vercel.app/api/proxy?url=${encodeURIComponent(url)}`
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
         ];
         
         // --- State Management ---
         let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
         let originalDescription = '', isTranslated = false, isScraping = false;
-        let useProxyForApi = sessionStorage.getItem('useProxyForApi') === 'true';
-        let apiProxyIndex = parseInt(sessionStorage.getItem('apiProxyIndex')) || 1;
+        let connectionMode = 'unknown'; // 'unknown', 'direct', 'proxy'
+        let apiProxyIndex = 1; 
         
         // --- Helper functions ---
         function getApiKeyFromStorage() { return localStorage.getItem(API_KEY_STORAGE_KEY); }
@@ -110,49 +121,59 @@
         function removeApiKeyFromStorage() { localStorage.removeItem(API_KEY_STORAGE_KEY); }
 
         function getProxiedImageUrl(originalUrl) {
-            if (useProxyForApi && originalUrl) {
-                return PROXIES[apiProxyIndex](originalUrl);
+            if (connectionMode === 'proxy' && originalUrl) {
+                // Gebruik een betrouwbare image-proxy, niet een algemene CORS-proxy.
+                const imageUrl = originalUrl.replace(/^https\?:\/\//, '');
+                return `https://images.weserv.nl/?url=${imageUrl}`;
             }
             return originalUrl;
         }
 
-        async function fetchFromApi(endpoint) {
-            const directUrl = API_BASE_URL + endpoint;
-            if (!useProxyForApi) {
-                try {
-                    const response = await fetch(directUrl);
-                    if (!response.ok) throw new Error("Direct fetch failed");
-                    return response.json();
-                } catch (error) {
-                    console.warn('Directe API-aanroep mislukt, schakel over op proxy.', error.message);
-                    useProxyForApi = true; 
-                    sessionStorage.setItem('useProxyForApi', 'true');
-                }
-            }
-            try {
-                const proxyUrl = PROXIES[apiProxyIndex](directUrl);
-                const response = await fetch(proxyUrl);
-                return response.json();
-            } catch (error) {
-                console.warn(`Proxy #${apiProxyIndex} mislukt, start race...`);
-            }
+        // AANGEPAST: Test de verbinding bij het laden van de pagina.
+        async function testApiConnection() {
             const controller = new AbortController();
-            const signal = controller.signal;
-            const promises = PROXIES.map(async (proxyBuilder, index) => {
-                const proxyUrl = proxyBuilder(directUrl);
-                try {
-                    const response = await fetch(proxyUrl, { signal });
-                    if (!response.ok) throw new Error(`Proxy #${index} faalde`);
-                    apiProxyIndex = index; 
-                    sessionStorage.setItem('apiProxyIndex', index.toString());
-                    controller.abort();
-                    return response.json();
-                } catch (err) { throw err; }
-            });
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 seconden time-out
+            
             try {
-                return await Promise.any(promises);
+                // We gebruiken een lichtgewicht endpoint voor de test.
+                const response = await fetch(`${API_BASE_URL}list_movies.json?limit=1`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (response.ok) {
+                    console.log("API-verbindingstest geslaagd: directe modus wordt gebruikt.");
+                    connectionMode = 'direct';
+                } else {
+                    throw new Error('API test-respons niet OK');
+                }
             } catch (error) {
-                console.error("Alle API-proxies mislukt.", error);
+                clearTimeout(timeoutId);
+                console.warn("API-verbindingstest mislukt, proxy-modus wordt gebruikt.", error.name);
+                connectionMode = 'proxy';
+                document.body.classList.add('proxy-active');
+            }
+        }
+        
+        // AANGEPAST: Vereenvoudigde functie die de vooraf bepaalde verbindingsmodus gebruikt.
+        async function fetchFromApi(endpoint) {
+            if (connectionMode === 'direct') {
+                const response = await fetch(API_BASE_URL + endpoint);
+                if (!response.ok) throw new Error("Directe verbinding is mislukt na een succesvolle test.");
+                return response.json();
+            }
+
+            // Als de modus 'proxy' is, start een race tussen de proxies.
+            const proxyPromises = CORS_PROXIES.map((proxyBuilder, index) => 
+                fetch(proxyBuilder(API_BASE_URL + endpoint))
+                    .then(response => {
+                        if (!response.ok) throw new Error(`Proxy #${index} mislukt`);
+                        apiProxyIndex = index;
+                        return response.json();
+                    })
+            );
+
+            try {
+                return await Promise.any(proxyPromises);
+            } catch (aggregateError) {
+                console.error("Alle API-proxies zijn mislukt.", aggregateError);
                 throw new Error("API is onbereikbaar via alle proxies.");
             }
         }
@@ -160,15 +181,7 @@
         // --- View Management ---
         function resetToHomePage(event) {
             event.preventDefault();
-            resultsContainer.innerHTML = '';
-            searchInput.value = '';
-            currentQuery = '';
-            currentPage = 1;
-            hasMorePages = true;
-            isLoading = false;
-            window.history.pushState({}, '', window.location.pathname);
-            showSearchPage();
-            fetchAndDisplayMovies();
+            window.location.href = window.location.pathname; // Herlaad de pagina voor een schone state.
         }
 
         function showSearchPage() {
@@ -361,7 +374,7 @@
             const controller = new AbortController();
             const signal = controller.signal;
             let definitiveFailure = false;
-            const promises = PROXIES.map(async (proxyBuilder) => {
+            const promises = CORS_PROXIES.map(async (proxyBuilder) => {
                 const proxyUrl = proxyBuilder(vidsrcUrl);
                 try {
                     const response = await fetch(proxyUrl, { signal });
@@ -397,7 +410,6 @@
             }
         }
         
-        // AANGEPAST: Functie-inhoud hersteld
         async function handleTranslateClick(event) {
             event.preventDefault();
             const descriptionElement = document.getElementById('movie-description');
@@ -440,7 +452,6 @@
             }
         }
 
-        // AANGEPAST: Functie-inhoud hersteld
         async function scrapeAndValidateKeys(options = {}) {
             if (isScraping) return;
             isScraping = true;
@@ -454,7 +465,7 @@
             let validApiKeys = [];
             
             async function fetchWithProxy(url) {
-                 const proxyUrl = PROXIES[1](url);
+                 const proxyUrl = CORS_PROXIES[1](url);
                  const controller = new AbortController();
                  const timeoutId = setTimeout(() => controller.abort(), proxyTimeout);
                  const response = await fetch(proxyUrl, { signal: controller.signal });
@@ -506,7 +517,12 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
+        // AANGEPAST: Initialisatie start nu met de verbindingstest.
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Voer eerst de test uit.
+            await testApiConnection();
+
+            // Ga dan pas verder met de rest van de logica.
             if (!getApiKeyFromStorage()) {
                 scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => setApiKeyInStorage(key) });
             }
