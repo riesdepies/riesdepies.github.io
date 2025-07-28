@@ -122,45 +122,74 @@
 
         function getProxiedImageUrl(originalUrl) {
             if (connectionMode === 'proxy' && originalUrl) {
-                // Gebruik een betrouwbare image-proxy, niet een algemene CORS-proxy.
                 const imageUrl = originalUrl.replace(/^https\?:\/\//, '');
                 return `https://images.weserv.nl/?url=${imageUrl}`;
             }
             return originalUrl;
         }
 
-        // AANGEPAST: Test de verbinding bij het laden van de pagina.
+        // AANGEPAST: Test de verbinding bij het laden met een race-conditie.
         async function testApiConnection() {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 seconden time-out
-            
+            console.log("Verbindingstest gestart: directe verbinding racet tegen proxies (met 1s vertraging).");
+
+            const directFetch = async () => {
+                const controller = new AbortController();
+                // Geef directe verbinding een time-out van 5s.
+                const timeoutId = setTimeout(() => controller.abort(), 5000); 
+                try {
+                    const response = await fetch(`${API_BASE_URL}list_movies.json?limit=1`, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (response.ok) return 'direct';
+                    throw new Error('Directe API-respons niet OK');
+                } catch (error) {
+                    clearTimeout(timeoutId);
+                    throw new Error(`Directe verbinding mislukt: ${error.message}`);
+                }
+            };
+
+            const proxyFetch = async () => {
+                // Wacht 1 seconde voordat de proxies starten.
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                console.log("1 seconde voorbij, proxies doen mee aan de race.");
+
+                const proxyPromises = CORS_PROXIES.map((proxyBuilder, index) =>
+                    fetch(proxyBuilder(`${API_BASE_URL}list_movies.json?limit=1`))
+                        .then(response => {
+                            if (!response.ok) throw new Error(`Proxy #${index} mislukt`);
+                            apiProxyIndex = index;
+                            return 'proxy'; 
+                        })
+                );
+                return Promise.any(proxyPromises);
+            };
+
             try {
-                // We gebruiken een lichtgewicht endpoint voor de test.
-                const response = await fetch(`${API_BASE_URL}list_movies.json?limit=1`, { signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (response.ok) {
-                    console.log("API-verbindingstest geslaagd: directe modus wordt gebruikt.");
+                const winner = await Promise.race([directFetch(), proxyFetch()]);
+
+                if (winner === 'direct') {
                     connectionMode = 'direct';
-                } else {
-                    throw new Error('API test-respons niet OK');
+                    console.log("RACE GEWONNEN: Directe verbinding.");
+                    document.body.classList.remove('proxy-active');
+                } else if (winner === 'proxy') {
+                    connectionMode = 'proxy';
+                    console.log(`RACE GEWONNEN: Proxy #${apiProxyIndex}.`);
+                    document.body.classList.add('proxy-active');
                 }
             } catch (error) {
-                clearTimeout(timeoutId);
-                console.warn("API-verbindingstest mislukt, proxy-modus wordt gebruikt.", error.name);
+                // Dit wordt bereikt als zowel de directe als alle proxy-pogingen mislukken.
+                console.error("Alle verbindingspogingen zijn mislukt. Valt terug op proxy-modus.", error);
                 connectionMode = 'proxy';
                 document.body.classList.add('proxy-active');
             }
         }
-        
-        // AANGEPAST: Vereenvoudigde functie die de vooraf bepaalde verbindingsmodus gebruikt.
+
         async function fetchFromApi(endpoint) {
             if (connectionMode === 'direct') {
                 const response = await fetch(API_BASE_URL + endpoint);
-                if (!response.ok) throw new Error("Directe verbinding is mislukt na een succesvolle test.");
+                if (!response.ok) throw new Error("Directe API-verbinding mislukt.");
                 return response.json();
             }
 
-            // Als de modus 'proxy' is, start een race tussen de proxies.
             const proxyPromises = CORS_PROXIES.map((proxyBuilder, index) => 
                 fetch(proxyBuilder(API_BASE_URL + endpoint))
                     .then(response => {
@@ -181,7 +210,7 @@
         // --- View Management ---
         function resetToHomePage(event) {
             event.preventDefault();
-            window.location.href = window.location.pathname; // Herlaad de pagina voor een schone state.
+            window.location.href = window.location.pathname;
         }
 
         function showSearchPage() {
@@ -517,9 +546,9 @@
             }
         }
         
-        // AANGEPAST: Initialisatie start nu met de verbindingstest.
+        // AANGEPAST: Initialisatie start met de race-conditie.
         document.addEventListener('DOMContentLoaded', async () => {
-            // Voer eerst de test uit.
+            // Voer eerst de test uit en wacht op het resultaat.
             await testApiConnection();
 
             // Ga dan pas verder met de rest van de logica.
