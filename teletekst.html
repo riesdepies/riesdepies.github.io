@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mobiele Teletekst Browser</title>
+    <style>
+        /* INLINE CSS */
+        @font-face {
+            font-family: 'VeraMono';
+            src: url('https://static.nos.nl/teletekst/Android_VeraMono.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --control-bg: #1a1a1a;
+            --control-border: #444444;
+            --button-bg: #005c9e;
+            --button-hover-bg: #007acc;
+            --input-bg: #333333;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #teletekst-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 5px;
+            background-color: var(--bg-color);
+        }
+
+        #teletekst-content {
+            font-family: 'VeraMono', monospace;
+            white-space: pre;
+            font-size: 3.8vw;
+            line-height: 1.1;
+            margin: 0;
+            color: var(--text-color);
+        }
+        
+        #teletekst-content a {
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Teletekst Colors */
+        .red { color: red; }
+        .green { color: lime; }
+        .yellow { color: yellow; }
+        .blue { color: #0080ff; }
+        .magenta { color: magenta; }
+        .cyan { color: cyan; }
+        .white { color: white; }
+        .black { color: black; }
+        .bg-red { background-color: red; }
+        .bg-green { background-color: lime; }
+        .bg-yellow { background-color: yellow; }
+        .bg-blue { background-color: #0080ff; }
+        .bg-magenta { background-color: magenta; }
+        .bg-cyan { background-color: cyan; }
+        .bg-white { background-color: white; }
+        .bg-black { background-color: black; }
+
+        #nav-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            padding: 8px;
+            background-color: var(--control-bg);
+            border-top: 1px solid var(--control-border);
+            flex-shrink: 0;
+        }
+
+        #nav-container input, #nav-container button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid var(--control-border);
+            color: var(--text-color);
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+        }
+        
+        #nav-container button {
+             background-color: var(--button-bg);
+             border-color: var(--button-bg);
+        }
+        
+        #nav-container button:hover:not(:disabled) {
+            background-color: var(--button-hover-bg);
+        }
+
+        #nav-container button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* Grid placement */
+        #settingsBtn { grid-column: 1 / 2; grid-row: 1; }
+        #pageInput { 
+            grid-column: 2 / 4;
+            grid-row: 1; 
+            text-align: center;
+            background-color: var(--input-bg);
+        }
+        #goBtn { grid-column: 4 / 5; grid-row: 1; }
+
+        #prevSubBtn { grid-column: 1 / 2; grid-row: 2; }
+        #prevBtn { grid-column: 2 / 3; grid-row: 2; }
+        #nextBtn { grid-column: 3 / 4; grid-row: 2; }
+        #nextSubBtn { grid-column: 4 / 5; grid-row: 2; }
+
+        /* Proxy Settings Modal */
+        #proxy-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        #proxy-modal {
+            background-color: var(--control-bg); padding: 20px; border-radius: 8px;
+            width: 90%; max-width: 500px; border: 1px solid var(--control-border);
+        }
+        #proxy-modal h2 { margin-top: 0; font-size: 1.2em; }
+        #proxy-list { list-style-type: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto; }
+        #proxy-list li { padding: 8px 0; cursor: pointer; }
+        #proxy-list input { margin-right: 10px; }
+        #closeProxyBtn {
+            width: 100%; margin-top: 15px; padding: 12px; font-size: 1.1em;
+            font-weight: 600; color: #fff; background-color: var(--button-bg);
+            border: none; border-radius: 5px; cursor: pointer;
+        }
+
+        @media (min-width: 600px) {
+            #teletekst-content { font-size: 22px; padding: 10px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="teletekst-container">
+        <pre id="teletekst-content">Teletekst wordt geladen...</pre>
+    </div>
+
+    <div id="nav-container">
+        <!-- Row 1 -->
+        <button id="settingsBtn">Proxy</button>
+        <input type="text" id="pageInput" pattern="\d{3}(-\d+)?" value="100">
+        <button id="goBtn">Ga</button>
+
+        <!-- Row 2 -->
+        <button id="prevSubBtn" disabled>&lt; Sub</button>
+        <button id="prevBtn" disabled>&lt; Pag</button>
+        <button id="nextBtn" disabled>Pag &gt;</button>
+        <button id="nextSubBtn" disabled>Sub &gt;</button>
+    </div>
+
+    <div id="proxy-overlay">
+        <div id="proxy-modal">
+            <h2>Selecteer CORS Proxy</h2>
+            <p style="font-size:0.9em; color:#ccc;">Gebruik een proxy als de Teletekst-API direct niet laadt vanwege CORS-beperkingen.</p>
+            <ul id="proxy-list"></ul>
+            <button id="closeProxyBtn">Sluiten</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        const contentEl = document.getElementById('teletekst-content');
+        const pageInput = document.getElementById('pageInput');
+        const goBtn = document.getElementById('goBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevSubBtn = document.getElementById('prevSubBtn');
+        const nextSubBtn = document.getElementById('nextSubBtn');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const proxyOverlay = document.getElementById('proxy-overlay');
+        const proxyListUl = document.getElementById('proxy-list');
+        const closeProxyBtn = document.getElementById('closeProxyBtn');
+
+        // State
+        let currentPageData = null;
+        const PROXY_STORAGE_KEY = 'teletekst-proxy-selection';
+
+        // Proxies Configuration
+        const proxies = [
+            { name: 'Direct (geen proxy)', template: null, needsEncoding: false },
+            { name: 'All Origins', template: 'https://api.allorigins.win/raw?url=', needsEncoding: true },
+            { name: 'CORSProxy.io', template: 'https://api.corsproxy.io/?', needsEncoding: false },
+            { name: 'corsmirror.com', template: 'https://corsmirror.com/v1?url=', needsEncoding: true },
+            { name: 'Tuananh Worker', template: 'https://cors-proxy.tuananh.workers.dev/?', needsEncoding: false },
+            { name: 'Novadrone Worker', template: 'https://cors-proxy.novadrone16.workers.dev?url=', needsEncoding: true },
+            { name: 'My CORS Proxy', template: 'https://my-cors-proxy-kappa.vercel.app/api/proxy?url=', needsEncoding: true }
+        ];
+        
+        let selectedProxy = getSavedProxy();
+
+        // --- Functions ---
+        
+        function getSavedProxy() {
+            const savedProxyName = localStorage.getItem(PROXY_STORAGE_KEY);
+            return proxies.find(p => p.name === savedProxyName) || proxies[0];
+        }
+
+        function constructApiUrl(pageNumber) {
+            const baseApiUrl = `https://teletekst-data.nos.nl/json/${pageNumber}`;
+            if (!selectedProxy.template) {
+                return baseApiUrl;
+            }
+            const urlPart = selectedProxy.needsEncoding ? encodeURIComponent(baseApiUrl) : baseApiUrl;
+            return selectedProxy.template + urlPart;
+        }
+
+        async function fetchPage(pageNumber) {
+            contentEl.textContent = `Pagina ${pageNumber} laden...`;
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            prevSubBtn.disabled = true;
+            nextSubBtn.disabled = true;
+
+            const finalUrl = constructApiUrl(pageNumber);
+
+            try {
+                const response = await fetch(finalUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                renderPage(data, pageNumber);
+                currentPageData = data;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                contentEl.textContent = `Fout bij laden van pagina ${pageNumber}.\n\n- Controleer je internetverbinding.\n- Probeer een andere CORS proxy via de 'Proxy' knop.`;
+            }
+        }
+
+        function renderPage(data, pageNumber) {
+            contentEl.innerHTML = data.content;
+            pageInput.value = pageNumber;
+            
+            // Update nav buttons
+            prevBtn.disabled = !data.prevPage;
+            nextBtn.disabled = !data.nextPage;
+            prevSubBtn.disabled = !data.prevSubPage;
+            nextSubBtn.disabled = !data.nextSubPage;
+        }
+        
+        function populateProxyList() {
+             proxyListUl.innerHTML = ''; // Clear existing
+             proxies.forEach(proxy => {
+                const li = document.createElement('li');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'proxy';
+                radio.id = `proxy-${proxy.name.replace(/\s/g, '')}`;
+                radio.value = proxy.name;
+                radio.checked = (proxy.name === selectedProxy.name);
+
+                const label = document.createElement('label');
+                label.htmlFor = radio.id;
+                label.textContent = proxy.name;
+                
+                li.appendChild(radio);
+                li.appendChild(label);
+                proxyListUl.appendChild(li);
+             });
+        }
+
+
+        // --- Event Listeners ---
+
+        goBtn.addEventListener('click', () => {
+            const page = pageInput.value;
+            if (page && /^\d{3}(-\d+)?$/.test(page)) {
+                fetchPage(page);
+            }
+        });
+
+        pageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                goBtn.click();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentPageData && currentPageData.prevPage) {
+                fetchPage(currentPageData.prevPage);
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentPageData && currentPageData.nextPage) {
+                fetchPage(currentPageData.nextPage);
+            }
+        });
+
+        prevSubBtn.addEventListener('click', () => {
+            if (currentPageData && currentPageData.prevSubPage) {
+                fetchPage(currentPageData.prevSubPage);
+            }
+        });
+
+        nextSubBtn.addEventListener('click', () => {
+            if (currentPageData && currentPageData.nextSubPage) {
+                fetchPage(currentPageData.nextSubPage);
+            }
+        });
+
+        contentEl.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href) {
+                e.preventDefault();
+                const pageMatch = link.href.match(/#(\d{3}(-\d+)?)/);
+                if (pageMatch && pageMatch[1]) {
+                    fetchPage(pageMatch[1]);
+                }
+            }
+        });
+        
+        settingsBtn.addEventListener('click', () => {
+            proxyOverlay.style.display = 'flex';
+        });
+
+        closeProxyBtn.addEventListener('click', () => {
+            proxyOverlay.style.display = 'none';
+        });
+
+        proxyOverlay.addEventListener('click', (e) => {
+            if (e.target === proxyOverlay) {
+                 proxyOverlay.style.display = 'none';
+            }
+        });
+        
+        proxyListUl.addEventListener('change', (e) => {
+            if (e.target.name === 'proxy') {
+                const newProxyName = e.target.value;
+                selectedProxy = proxies.find(p => p.name === newProxyName) || proxies[0];
+                localStorage.setItem(PROXY_STORAGE_KEY, newProxyName);
+                console.log(`Proxy set to: ${selectedProxy.name}`);
+                if(currentPageData) {
+                    fetchPage(pageInput.value);
+                }
+                 setTimeout(() => {  proxyOverlay.style.display = 'none'; }, 200);
+            }
+        });
+
+        // --- Initial Load ---
+        populateProxyList();
+        fetchPage('100'); // AANGEPAST
+    });
+    </script>
+
+</body>
+</html>
