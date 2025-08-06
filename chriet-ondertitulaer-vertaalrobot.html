@@ -761,7 +761,7 @@ const baseUrl = 'https://grep.app/search?regexp=true&q=%28gemini.*AIzaSy%5BA-Za-
 const testFn = async (apiKey, opts) => {
 const c = new AbortController(), tId = setTimeout(() => c.abort(), opts.apiKeyTestTimeout || 10000);
 try {
-const apiModelForTest = 'gemini-1.0-pro'; // Gebruik een bekend, stabiel model voor de test
+const apiModelForTest = 'gemini-2.0-flash'; // Gebruik een bekend, stabiel model voor de test
 const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${apiModelForTest}:generateContent?key=${apiKey}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents:[{parts:[{text:"test"}]}]}), signal: c.signal });
 clearTimeout(tId);
 if (r.status === 400) {
