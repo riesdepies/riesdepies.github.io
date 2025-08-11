@@ -284,6 +284,40 @@
             }
         }
         
+        // AANGEPAST: Functie om op IMDb ID te zoeken is hersteld.
+        async function fetchMovieByImdbId(imdbId) {
+            showDetailPage();
+            detailContent.innerHTML = '<p class="message">Zoeken op IMDb ID...</p>';
+            suggestionsSection.innerHTML = '';
+            try {
+                // De YTS API gebruikt de imdb_id in het 'query_term' veld om te zoeken.
+                const endpoint = `list_movies.json?query_term=${encodeURIComponent(imdbId)}`;
+                const data = await fetchFromApi(endpoint);
+                if (data.status === 'ok' && data.data.movies?.length > 0) {
+                    const movie = data.data.movies[0];
+                    const internalId = movie.id;
+                    
+                    // Behoud de 'q' parameter als die bestaat.
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const query = urlParams.get('q');
+                    currentQuery = query;
+
+                    // Vervang de URL met de movie_id, zodat de navigatie klopt.
+                    const newUrl = `?movie_id=${internalId}` + (query ? `&q=${encodeURIComponent(query)}` : '');
+                    window.history.replaceState({ movieId: internalId, query: query }, '', newUrl);
+                    
+                    // Geef de gevonden film direct weer, in plaats van opnieuw te fetchen.
+                    displayMovieDetails(movie);
+                    fetchAndDisplaySuggestions(internalId);
+                } else {
+                    detailContent.innerHTML = `<p class="message">Geen film gevonden voor IMDb ID: ${imdbId}</p>`;
+                }
+            } catch (error) {
+                console.error("Fout bij ophalen film via IMDb ID:", error);
+                detailContent.innerHTML = `<p class="message">${error.message}</p>`;
+            }
+        }
+
         function displayMovieDetails(movie) {
             originalDescription = movie.description_full; 
             isTranslated = false; 
@@ -346,7 +380,6 @@
             try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
         }
 
-        // AANGEPAST: De functie is aangepast om 'referrer checking' te omzeilen.
         async function handlePlayClick(event) {
             event.preventDefault();
             const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -369,7 +402,6 @@
                 newTab.document.body.innerHTML = '<h1 style="font-family: sans-serif; text-align: center; margin-top: 50px;">Videobron zoeken...</h1>';
                 try {
                     const winningUrl = await findVideoUrl(vidsrcUrl);
-                    // AANGEPAST: Gebruik een meta-refresh tag om de referrer te omzeilen.
                     newTab.document.write(`<meta http-equiv="refresh" content="0;url=${winningUrl}">`);
                     newTab.document.close();
                     playIconContainer.innerHTML = originalIconHTML;
@@ -385,7 +417,6 @@
             } else {
                 try {
                     const winningUrl = await findVideoUrl(vidsrcUrl);
-                    // AANGEPAST: Maak een link aan met rel="noreferrer" om de referrer te verwijderen.
                     const a = document.createElement('a');
                     a.href = winningUrl;
                     a.target = '_blank';
@@ -553,25 +584,38 @@
             }
         }
         
-        document.addEventListener('DOMContentLoaded', async () => {
-            await testApiConnection();
-
-            if (!getApiKeyFromStorage()) {
-                scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => setApiKeyInStorage(key) });
-            }
+        // AANGEPAST: De routeringslogica is in een aparte functie geplaatst voor hergebruik.
+        function handleRouteChange() {
             const urlParams = new URLSearchParams(window.location.search);
+            const imdbId = urlParams.get('imdb_id');
             const movieId = urlParams.get('movie_id');
             const query = urlParams.get('q');
-            if (movieId) {
+            
+            // De volgorde is belangrijk: imdb_id heeft voorrang.
+            if (imdbId) {
+                fetchMovieByImdbId(imdbId);
+            } else if (movieId) {
                 currentQuery = query;
                 fetchMovieDetails(movieId);
             } else if (query) {
                 searchInput.value = query;
                 startNewSearch(query);
             } else {
+                currentQuery = '';
+                searchInput.value = '';
                 showSearchPage();
                 fetchAndDisplayMovies();
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await testApiConnection();
+
+            if (!getApiKeyFromStorage()) {
+                scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => setApiKeyInStorage(key) });
+            }
+            // Roep de centrale routeringsfunctie aan bij het laden van de pagina.
+            handleRouteChange();
         });
 
         window.addEventListener('scroll', handleScroll);
@@ -587,21 +631,9 @@
             fetchMovieDetails(movieId);
         });
 
+        // AANGEPAST: De popstate listener roept nu ook de centrale routeringsfunctie aan.
         window.addEventListener('popstate', (e) => {
-             const urlParams = new URLSearchParams(window.location.search);
-             const movieId = urlParams.get('movie_id');
-             const query = urlParams.get('q');
-             
-             if (movieId) {
-                 currentQuery = query; 
-                 fetchMovieDetails(movieId);
-             } else if (query) {
-                 currentQuery = query;
-                 searchInput.value = query;
-                 showSearchPage();
-             } else {
-                 resetToHomePage(new Event('reset'));
-             }
+             handleRouteChange();
         });
     </script>
 
