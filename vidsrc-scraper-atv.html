@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vidsrc M3U8 Scraper (D-Pad Compatible)</title>
+<style>
+/* INLINE CSS */
+body {
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: #f0f2f5;
+color: #1c1e21;
+margin: 0;
+padding: 20px;
+display: flex;
+justify-content: center;
+align-items: flex-start;
+min-height: 100vh;
+}
+.container {
+width: 100%;
+max-width: 800px;
+background-color: #ffffff;
+border-radius: 8px;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
+padding: 20px;
+box-sizing: border-box;
+}
+h1 {
+font-size: 24px;
+text-align: center;
+border-bottom: 1px solid #dddfe2;
+padding-bottom: 15px;
+margin: 0 0 20px 0;
+}
+.input-group {
+margin-bottom: 15px;
+}
+.input-group label {
+display: block;
+font-weight: 600;
+margin-bottom: 5px;
+}
+.input-group input[type="text"],
+.input-group input[type="number"],
+.input-group select {
+width: 100%;
+padding: 10px;
+border-radius: 6px;
+border: 1px solid #dddfe2;
+box-sizing: border-box;
+font-size: 16px;
+}
+.tv-inputs-container, .movie-search-container {
+display: flex;
+gap: 15px;
+align-items: flex-end;
+}
+.tv-inputs-container .input-group, .movie-search-container .input-group {
+flex-grow: 1;
+}
+#startButton, #searchMovieButton {
+padding: 12px 20px;
+font-size: 16px;
+font-weight: bold;
+color: #fff;
+background-color: #1877f2;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+transition: background-color 0.2s;
+margin-top: 10px;
+width: 100%;
+}
+#searchMovieButton {
+width: auto;
+flex-shrink: 0;
+margin-bottom: 15px; /* Align with input field */
+}
+#startButton:hover, #searchMovieButton:hover {
+background-color: #166fe5;
+}
+#startButton:disabled, #searchMovieButton:disabled {
+background-color: #a0bdf5;
+cursor: not-allowed;
+}
+#log {
+margin-top: 20px;
+background-color: #272822;
+color: #f8f8f2;
+font-family: "Consolas", "Monaco", "Menlo", monospace;
+padding: 15px;
+border-radius: 6px;
+min-height: 150px;
+white-space: pre-wrap;
+word-wrap: break-word;
+font-size: 14px;
+overflow-y: auto;
+max-height: 400px;
+}
+#results {
+margin-top: 20px;
+}
+#results a {
+display: block;
+width: 100%;
+margin-bottom: 10px;
+padding: 10px 15px;
+font-size: 14px;
+color: #fff;
+background-color: #42b72a;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+text-align: left;
+transition: background-color 0.2s;
+text-decoration: none;
+box-sizing: border-box;
+}
+#results a:hover {
+background-color: #36a420;
+}
+#movieSearchResults {
+margin-top: 15px;
+}
+.movie-result-btn {
+display: block;
+width: 100%;
+margin-bottom: 8px;
+padding: 12px;
+font-size: 15px;
+background-color: #e7f3ff;
+border: 1px solid #cce0ff;
+border-radius: 6px;
+cursor: pointer;
+text-align: left;
+transition: background-color 0.2s, border-color 0.2s;
+}
+.movie-result-btn:hover {
+background-color: #dcebff;
+border-color: #b3d1ff;
+}
+
+/* --- D-PAD / TV FOCUS STYLES --- */
+*:focus {
+outline: 3px solid #007bff;
+outline-offset: 2px;
+box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+}
+
+#startButton:focus, #searchMovieButton:focus {
+background-color: #166fe5;
+}
+
+#results a:focus {
+background-color: #36a420;
+}
+
+.movie-result-btn:focus {
+background-color: #dcebff;
+border-color: #007bff;
+}
+/* --- END D-PAD STYLES --- */
+
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>Vidsrc M3U8 Scraper</h1>
+
+<div class="input-group">
+<label for="sourceSelect">Source</label>
+<select id="sourceSelect">
+<optgroup label="Listed on vidsrc.domains">
+<option value="vidsrc.in">vidsrc.in</option>
+<option value="vidsrc.io">vidsrc.io</option>
+<option value="vidsrc.me">vidsrc.me</option>
+<option value="vidsrc.net">vidsrc.net</option>
+<option value="vidsrc.pm">vidsrc.pm</option>
+<option value="vidsrc.vc">vidsrc.vc</option>
+<option value="vidsrc.xyz" selected>vidsrc.xyz</option>
+</optgroup>
+<optgroup label="Others">
+<option value="vidsrc.icu">vidsrc.icu</option>
+<option value="vidsrc.to">vidsrc.to</option>
+<option value="custom">Custom</option>
+</optgroup>
+</select>
+</div>
+
+<div id="customSourceContainer" class="input-group" style="display: none;">
+<label for="customSourceInput">Custom Domain</label>
+<input type="text" id="customSourceInput" placeholder="e.g., my-source.com">
+</div>
+
+<div class="input-group">
+<label for="typeSelect">Type</label>
+<select id="typeSelect">
+<option value="movie" selected>Movie</option>
+<option value="tv">TV Show</option>
+</select>
+</div>
+
+<!-- Movie Search Section -->
+<div id="movieSearchContainer">
+<div class="movie-search-container">
+<div class="input-group">
+<label for="movieSearchInput">Search Movie Title</label>
+<input type="text" id="movieSearchInput" placeholder="e.g., The Dark Knight">
+</div>
+<button id="searchMovieButton">Search</button>
+</div>
+<div id="movieSearchResults"></div>
+</div>
+
+<!-- TV Show Section -->
+<div id="tvShowContainer" style="display: none;">
+<div class="input-group">
+<label for="imdbInput">IMDb ID or Link</label>
+<input type="text" id="imdbInput" placeholder="e.g., tt0944947 or https://www.imdb.com/title/tt0944947/">
+</div>
+<div id="tvInputs">
+<div class="tv-inputs-container">
+<div class="input-group">
+<label for="seasonInput">Season</label>
+<input type="number" id="seasonInput" value="1" min="1">
+</div>
+<div class="input-group">
+<label for="episodeInput">Episode</label>
+<input type="number" id="episodeInput" value="1" min="1">
+</div>
+</div>
+</div>
+<button id="startButton">Start Process</button>
+</div>
+
+<div id="results"></div>
+<pre id="log">Select a type and enter the requested data.</pre>
+</div>
+
+<script>
+// INLINE JAVASCRIPT
+(function() {
+// --- LOCALSTORAGE KEYS ---
+const LS_KEYS = {
+SOURCE: 'vidsrcScraper_source',
+CUSTOM_SOURCE: 'vidsrcScraper_customSource',
+SEARCH_QUERY: 'vidsrcScraper_searchQuery'
+};
+
+// --- ELEMENT REFERENCES ---
+const sourceSelect = document.getElementById('sourceSelect');
+const customSourceContainer = document.getElementById('customSourceContainer');
+const customSourceInput = document.getElementById('customSourceInput');
+const typeSelect = document.getElementById('typeSelect');
+const logElement = document.getElementById('log');
+const resultsElement = document.getElementById('results');
+
+// Movie elements
+const movieSearchContainer = document.getElementById('movieSearchContainer');
+const movieSearchInput = document.getElementById('movieSearchInput');
+const searchMovieButton = document.getElementById('searchMovieButton');
+const movieSearchResults = document.getElementById('movieSearchResults');
+
+// TV Show elements
+const tvShowContainer = document.getElementById('tvShowContainer');
+const imdbInput = document.getElementById('imdbInput');
+const seasonInput = document.getElementById('seasonInput');
+const episodeInput = document.getElementById('episodeInput');
+const startButton = document.getElementById('startButton');
+
+// --- EVENT LISTENERS ---
+sourceSelect.addEventListener('change', toggleCustomSourceInput);
+customSourceInput.addEventListener('input', () => {
+localStorage.setItem(LS_KEYS.CUSTOM_SOURCE, customSourceInput.value);
+});
+typeSelect.addEventListener('change', toggleInputMode);
+startButton.addEventListener('click', startTvProcess);
+searchMovieButton.addEventListener('click', searchMovies);
+movieSearchInput.addEventListener('keyup', (event) => {
+if (event.key === 'Enter') {
+searchMovies();
+}
+});
+// D-Pad navigation listener
+document.addEventListener('keydown', handleDpadNavigation);
+
+
+function toggleCustomSourceInput() {
+localStorage.setItem(LS_KEYS.SOURCE, sourceSelect.value);
+if (sourceSelect.value === 'custom') {
+customSourceContainer.style.display = 'block';
+customSourceInput.focus(); // Focus on the new input
+} else {
+customSourceContainer.style.display = 'none';
+}
+}
+
+function toggleInputMode() {
+const isMovie = typeSelect.value === 'movie';
+movieSearchContainer.style.display = isMovie ? 'block' : 'none';
+tvShowContainer.style.display = isMovie ? 'none' : 'block';
+clearLog();
+logElement.innerHTML = 'Select a type and enter the requested data.';
+// Set focus to the first input of the active mode
+if (isMovie) {
+movieSearchInput.focus();
+} else {
+imdbInput.focus();
+}
+}
+
+/**
+* Fetches a URL through a series of CORS proxies.
+*/
+async function fetchViaCorsProxy(targetUrl, options = {}) {
+const proxies = [
+{ name: 'All Origins', template: 'https://api.allorigins.win/raw?url=', needsEncoding: true },
+{ name: 'CORSProxy.io', template: 'https://api.corsproxy.io/', needsEncoding: false },
+{ name: 'Codetabs', template: 'https://api.codetabs.com/v1/proxy?quest=', needsEncoding: true },
+];
+
+const constructProxyUrl = (proxy, url) => {
+const urlPart = proxy.needsEncoding ? encodeURIComponent(url) : url;
+return proxy.template + urlPart;
+};
+
+const fetchPromises = proxies.map(proxy => {
+const proxyUrl = constructProxyUrl(proxy, targetUrl);
+return new Promise((resolve, reject) => {
+fetch(proxyUrl, options)
+.then(response => {
+if (response.ok) {
+response.proxyName = proxy.name;
+resolve(response);
+} else {
+reject(new Error(`Proxy '${proxy.name}' failed with status: ${response.status}`));
+}
+})
+.catch(error => {
+reject(new Error(`Proxy '${proxy.name}' caused a network error: ${error.message}`));
+});
+});
+});
+
+try {
+const firstSuccessfulResponse = await Promise.any(fetchPromises);
+return firstSuccessfulResponse;
+} catch (error) {
+const allErrors = error.errors ? error.errors.map(e => e.message).join('; ') : 'Unknown error';
+throw new Error(`All CORS proxies failed. Errors: ${allErrors}`);
+}
+}
+
+/**
+* Searches for movies using the YTS API.
+*/
+async function searchMovies() {
+const query = movieSearchInput.value.trim();
+if (!query) {
+logMessage("Please enter a movie title to search.");
+return;
+}
+localStorage.setItem(LS_KEYS.SEARCH_QUERY, query);
+
+searchMovieButton.disabled = true;
+clearLog();
+movieSearchResults.innerHTML = '';
+logMessage(`Searching for movies with title: "${query}"...`);
+
+const apiUrl = `https://yts.mx/api/v2/list_movies.json?limit=20&query_term=${encodeURIComponent(query)}&sort_by=download_count&order_by=desc`;
+
+try {
+const response = await fetchViaCorsProxy(apiUrl);
+const data = await response.json();
+
+if (data.status === 'ok' && data.data.movie_count > 0) {
+logMessage(`Found ${data.data.movies.length} results. Sorted by popularity.`);
+displayMovieResults(data.data.movies);
+} else {
+logMessage("No movies found for this query.");
+}
+} catch (error) {
+logMessage(`ERROR searching for movies: ${error.message}`);
+} finally {
+searchMovieButton.disabled = false;
+}
+}
+
+/**
+* Displays movie search results as buttons and focuses the first one.
+*/
+function displayMovieResults(movies) {
+movieSearchResults.innerHTML = ''; // Clear previous results
+movies.forEach(movie => {
+const button = document.createElement('button');
+button.className = 'movie-result-btn';
+button.textContent = movie.title_long;
+button.dataset.imdbId = movie.imdb_code;
+button.dataset.title = movie.title_long;
+button.addEventListener('click', () => {
+startScrapingProcess(movie.imdb_code, 'movie', movie.title_long);
+});
+movieSearchResults.appendChild(button);
+});
+
+// For D-Pad: Focus on the first result automatically
+if (movieSearchResults.firstChild) {
+movieSearchResults.firstChild.focus();
+}
+}
+
+/**
+* Wrapper to start the TV process from the UI.
+*/
+function startTvProcess() {
+const imdbValue = imdbInput.value.trim();
+const imdbIdRegex = /(tt\d+)/;
+const match = imdbValue.match(imdbIdRegex);
+
+if (!match) {
+clearLog();
+logMessage("ERROR: Please enter a valid IMDb ID or link (e.g., tt1234567).");
+return;
+}
+const imdbId = match[1];
+const season = seasonInput.value;
+const episode = episodeInput.value;
+const title = `TV Show: ${imdbId} (S${season}E${episode})`;
+
+startScrapingProcess(imdbId, 'tv', title, season, episode);
+}
+
+// --- HELPER FUNCTIONS ---
+
+function logMessage(message) {
+logElement.innerHTML += message + '\n';
+logElement.scrollTop = logElement.scrollHeight;
+}
+
+function clearLog() {
+logElement.innerHTML = '';
+resultsElement.innerHTML = '';
+movieSearchResults.innerHTML = '';
+}
+
+function createUrlLink(label, url) {
+const link = document.createElement('a');
+link.textContent = label;
+link.href = url;
+link.target = '_blank';
+link.rel = 'noopener noreferrer';
+resultsElement.appendChild(link);
+link.focus(); // For D-Pad: Focus on the final result link
+}
+
+function extractM3u8Url(htmlContent) {
+const regex = /(https?:\/\/[^\s'"]+?\.m3u8[^\s'"]*)/;
+const match = htmlContent.match(regex);
+return match ? match[1] : null;
+}
+
+function findJsIframeSrc(html) {
+const combinedRegex = /(?:src:\s*|\.src\s*=\s*)["']([^"']+)["']/g;
+let match;
+while ((match = combinedRegex.exec(html)) !== null) {
+const url = match[1];
+if (url) {
+const path = url.split('?')[0].split('#')[0];
+if (!path.endsWith('.js')) {
+return url;
+}
+}
+}
+return null;
+}
+
+function findHtmlIframeSrc(html) {
+const staticRegex = /<iframe[^>]+src\s*=\s*["']([^"']+)["']/;
+const match = html.match(staticRegex);
+return match ? match[1] : null;
+}
+
+// --- D-PAD NAVIGATION LOGIC ---
+
+function handleDpadNavigation(event) {
+if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+return; // Ignore non-arrow keys
+}
+event.preventDefault(); // Prevent default browser scrolling
+
+// Find all currently visible and focusable elements
+const focusableElements = Array.from(
+document.querySelectorAll(
+'a[href], button:not(:disabled), input, select, [tabindex]:not([tabindex="-1"])'
+)
+).filter(el => {
+const style = window.getComputedStyle(el);
+return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetHeight > 0;
+});
+
+if (focusableElements.length === 0) return;
+
+const currentIndex = focusableElements.indexOf(document.activeElement);
+let nextIndex = currentIndex;
+
+// For this vertical layout, Left/Up are the same, and Right/Down are the same.
+if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+nextIndex = currentIndex > 0 ? currentIndex - 1 : focusableElements.length - 1;
+} else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+nextIndex = currentIndex < focusableElements.length - 1 ? currentIndex + 1 : 0;
+}
+
+focusableElements[nextIndex].focus();
+}
+
+// --- MAIN LOGIC ---
+
+async function startScrapingProcess(imdbId, type, title, season = null, episode = null) {
+const allButtons = document.querySelectorAll('button');
+allButtons.forEach(b => b.disabled = true);
+clearLog();
+
+let sourceDomain;
+if (sourceSelect.value === 'custom') {
+sourceDomain = customSourceInput.value.trim().replace(/^https?:\/\//, '');
+if (!sourceDomain) {
+logMessage('ERROR: Custom domain cannot be empty.');
+allButtons.forEach(b => b.disabled = false);
+return;
+}
+} else {
+sourceDomain = sourceSelect.value;
+}
+
+let initialTarget = `https://${sourceDomain}/embed/${type}/${imdbId}`;
+let logTitle = title;
+
+if (type === 'tv' && season && episode) {
+initialTarget += `?s=${season}&e=${episode}`;
+}
+
+logMessage(`Starting process for ${logTitle} via ${sourceDomain}...`);
+
+try {
+let currentUrl = initialTarget;
+let previousUrl = null;
+let stepCounter = 1;
+const maxSteps = 10;
+
+while (stepCounter <= maxSteps) {
+logMessage(`\n[Step ${stepCounter}] Fetching content...`);
+logMessage(`-> URL: ${currentUrl}`);
+
+const response = await fetchViaCorsProxy(currentUrl, {
+headers: { 'Referer': previousUrl || initialTarget }
+});
+logMessage(`-> Successfully fetched via proxy: ${response.proxyName}`);
+const html = await response.text();
+
+const m3u8Url = extractM3u8Url(html);
+if (m3u8Url) {
+logMessage(`\n[SUCCESS] M3U8 URL FOUND!`);
+createUrlLink('Found M3U8 Stream URL', m3u8Url);
+logMessage('\nPROCESS COMPLETE!');
+return;
+}
+
+let nextUrl = null;
+let foundSrc = null;
+let foundType = '';
+
+foundSrc = findHtmlIframeSrc(html);
+if (foundSrc) {
+foundType = 'standard (HTML) iframe';
+} else {
+foundSrc = findJsIframeSrc(html);
+if (foundSrc) {
+foundType = 'dynamic (JS) iframe';
+}
+}
+
+if (foundSrc) {
+try {
+nextUrl = new URL(foundSrc, currentUrl).href;
+logMessage(`-> No M3U8. Next level found via ${foundType}.`);
+createUrlLink(`Found Iframe URL (Step ${stepCounter})`, nextUrl);
+previousUrl = currentUrl;
+currentUrl = nextUrl;
+stepCounter++;
+} catch (e) {
+throw new Error(`Found src "${foundSrc}" is an invalid URL.`);
+}
+} else {
+throw new Error('No M3U8 or further iframe found. Process stopped.');
+}
+}
+
+if (stepCounter > maxSteps) {
+throw new Error(`Maximum steps (${maxSteps}) reached without finding an M3U8 link.`);
+}
+
+} catch (error) {
+logMessage(`\n--- ERROR OCCURRED ---`);
+logMessage(error.message);
+console.error(error);
+} finally {
+allButtons.forEach(b => b.disabled = false);
+}
+}
+
+/**
+* Loads saved settings from localStorage on page load.
+*/
+function loadSavedSettings() {
+const savedQuery = localStorage.getItem(LS_KEYS.SEARCH_QUERY);
+if (savedQuery) {
+movieSearchInput.value = savedQuery;
+}
+
+const savedCustomSource = localStorage.getItem(LS_KEYS.CUSTOM_SOURCE);
+if (savedCustomSource) {
+customSourceInput.value = savedCustomSource;
+}
+
+const savedSource = localStorage.getItem(LS_KEYS.SOURCE);
+if (savedSource) {
+sourceSelect.value = savedSource;
+}
+
+toggleCustomSourceInput();
+}
+
+// Initial setup
+loadSavedSettings();
+toggleInputMode(); // This will set the initial focus
+
+})();
+</script>
+</body>
+</html>
