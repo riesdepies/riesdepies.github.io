@@ -150,7 +150,9 @@
         let allMovies = [];
         let visibleRowIndex = 0;
         let lastFocusedElement = null;
-        let isPlayerActive = false; // De enige bron van waarheid
+        
+        // WIJZIGING: Duidelijke state-variabele
+        let isPlayerActive = false;
 
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
@@ -383,26 +385,25 @@
         }
         
         function openPlayer(url) {
-            if (isPlayerActive) return;
+            if (isPlayerActive) return; // Voorkom dubbel openen
             isPlayerActive = true;
             
             lastFocusedElement = document.activeElement;
             playerFrame.src = url;
             playerContainer.style.display = 'flex';
             document.body.classList.add('player-active');
-            
             grid.inert = true;
             
             history.pushState({player: 'open'}, '', '#player');
         }
 
         function closePlayer() {
-            if (!isPlayerActive) return;
+            if (!isPlayerActive) return; // Voorkom dubbel sluiten
             isPlayerActive = false;
 
             playerContainer.style.display = 'none';
             document.body.classList.remove('player-active');
-            playerFrame.src = ''; 
+            playerFrame.src = 'about:blank'; // Betere manier om te stoppen
             grid.inert = false;
             
             if (lastFocusedElement) {
@@ -411,6 +412,9 @@
         }
 
         grid.addEventListener('keydown', (e) => {
+            // WIJZIGING: Negeer alle input als de speler actief is
+            if (isPlayerActive) return;
+
             const activeElement = document.activeElement;
             if (!activeElement || !activeElement.classList.contains('movie-item')) return;
             
@@ -473,19 +477,8 @@
             }
         });
 
-        // WIJZIGING: PROACTIEF de 'terug'-knop onderscheppen is de primaire methode
-        window.addEventListener('keydown', (e) => {
-            if (isPlayerActive && (e.key === 'Backspace' || e.key === 'Escape')) {
-                e.preventDefault(); // Voorkom de standaard browseractie (essentieel!)
-                closePlayer();
-                if (history.state && history.state.player === 'open') {
-                    history.back(); // Synchroniseer de geschiedenis
-                }
-            }
-        });
-
-        // WIJZIGING: De 'popstate' listener is nu een VANGNET voor andere 'terug'-acties
         window.addEventListener('popstate', (event) => {
+            // De BACK knop triggert dit event. We sluiten de speler.
             if (isPlayerActive) {
                 closePlayer();
             }
