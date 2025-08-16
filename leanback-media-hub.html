@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film & Serie Browser</title>
+    <style>
+        /* INLINE CSS */
+        :root {
+            --primary-text-color: #ffffff;
+            --secondary-text-color: #cccccc;
+            --background-color: #141414;
+            --focus-outline-color: #00aaff;
+            --poster-width: 185px;
+            --poster-height: 278px;
+            --row-gap: 50px;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, and Opera */
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--primary-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        #details-banner {
+            position: relative;
+            height: 60vh;
+            width: 100%;
+            background-size: cover;
+            background-position: center center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px 60px;
+            transition: background-image 0.5s ease-in-out;
+            color: white;
+        }
+
+        #details-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(20, 20, 20, 1) 10%, rgba(20, 20, 20, 0.7) 30%, rgba(20, 20, 20, 0) 100%);
+            z-index: 1;
+        }
+
+        #details-content {
+            position: relative;
+            z-index: 2;
+            max-width: 50%;
+        }
+
+        #details-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0 0 1rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #details-overview {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            max-height: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            margin: 0;
+        }
+
+        #main-content {
+            padding: 20px 60px;
+            margin-top: calc(var(--row-gap) * -1); /* Overlap slightly with banner */
+            position: relative;
+            z-index: 3;
+        }
+
+        .category-row {
+            margin-bottom: var(--row-gap);
+        }
+
+        .category-title {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+
+        .poster-container {
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 20px; /* Space for focus outline */
+        }
+
+        .poster {
+            flex-shrink: 0;
+            width: var(--poster-width);
+            height: var(--poster-height);
+            margin-right: 15px;
+            border-radius: 5px;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative;
+            outline: none;
+            border: 2px solid transparent;
+        }
+
+        .poster:focus {
+            transform: scale(1.08);
+            border: 3px solid var(--focus-outline-color);
+            z-index: 10;
+        }
+
+        .rating {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .rating svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 4px;
+            fill: gold;
+        }
+
+        #apiKeyModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background-color: #222;
+            padding: 40px;
+            border-radius: 10px;
+        }
+
+        #apiKeyStatus {
+            margin-top: 20px;
+            color: var(--secondary-text-color);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="apiKeyModal" style="display: none;">
+        <div class="modal-content">
+            <h1>TMDB API Sleutel Vereist</h1>
+            <p>Er is geen geldige API sleutel gevonden.</p>
+            <p>Er wordt nu automatisch gezocht naar een werkende sleutel...</p>
+            <div id="apiKeyStatus">Initialiseren...</div>
+        </div>
+    </div>
+
+    <header id="details-banner">
+        <div id="details-content">
+            <h1 id="details-title">Welkom!</h1>
+            <p id="details-overview">Selecteer een film of serie hieronder om de details te bekijken.</p>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Categorie rijen worden hier dynamisch ingevoegd -->
+    </main>
+
+    <script>
+        // INLINE JAVASCRIPT
+        const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+        const API_KEY_STORAGE_KEY = 'tmdb_api_key';
+
+        const mainContent = document.getElementById('main-content');
+        const detailsBanner = document.getElementById('details-banner');
+        const detailsTitle = document.getElementById('details-title');
+        const detailsOverview = document.getElementById('details-overview');
+        const apiKeyModal = document.getElementById('apiKeyModal');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+
+        let API_KEY = '';
+
+        const CATEGORIES = [
+            { title: 'Trending Films', endpoint: '/trending/movie/week' },
+            { title: 'Populaire TV Series', endpoint: '/tv/popular' },
+            { title: 'Binnenkort in de bioscoop', endpoint: '/movie/upcoming' },
+            { title: 'Actie', endpoint: '/discover/movie', params: 'with_genres=28' },
+            { title: 'Komedie', endpoint: '/discover/movie', params: 'with_genres=35' },
+            { title: 'Horror', endpoint: '/discover/movie', params: 'with_genres=27' },
+            { title: 'Science Fiction', endpoint: '/discover/tv', params: 'with_genres=10765' },
+        ];
+        
+        // --- API Key Scraper Functie (zoals meegeleverd) ---
+        async function scrapeTmdbKeys(options = {}) {
+            const {
+                maxPages = 20,
+                onStatusUpdate = (message) => console.log(message),
+                onValidKeyFound = (apiKey, totalValidKeys) => {},
+                proxyTimeout = 15000,
+                apiKeyTestTimeout = 20000,
+                maxConcurrentKeyTests = 5
+            } = options;
+
+            const BASE_URL = 'https://grep.app/search?regexp=true&q=%28tmdb.*%5Ba-f0-9%5D%7B32%7D%7C%5Ba-f0-9%5D%7B32%7D.*tmdb%29';
+            const API_KEY_REGEX = /[a-f0-9]{32}/g;
+            const PROXIES = [
+                (url) => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`,
+                (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                (url) => `https://cors.eu.org/${url.replace(/^https?:\/\//, '')}`,
+                (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+            ];
+
+            let foundPotentialKeys = new Set();
+            let validApiKeys = [];
+            let currentPage = 1;
+            let selectedProxyDetails = null;
+
+            async function determineFastestProxy(baseUrlForTest, proxyList, statusUpdateFn, timeout) {
+                statusUpdateFn("Bepalen van de snelste proxy...");
+                const proxyPromises = proxyList.map(async (proxyBuilderFunc) => {
+                    const proxyUrl = proxyBuilderFunc(baseUrlForTest);
+                    const proxyNameMatch = proxyUrl.match(/https:\/\/([a-zA-Z0-9.-]+)/);
+                    const proxyName = proxyNameMatch ? proxyNameMatch[1] : 'Unknown Proxy';
+                    const startTime = Date.now();
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), timeout);
+                        statusUpdateFn(`Test proxy: ${proxyName}...`);
+                        const response = await fetch(proxyUrl, { signal: controller.signal });
+                        clearTimeout(timeoutId);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        await response.text(); 
+                        const duration = Date.now() - startTime;
+                        statusUpdateFn(`OK: ${proxyName} reageerde in ${duration}ms.`);
+                        return { proxyBuilder: proxyBuilderFunc, proxyName, duration, success: true };
+                    } catch (error) {
+                        statusUpdateFn(`FOUT: ${proxyName} (${error.name === 'AbortError' ? 'timeout' : error.message}).`);
+                        return { duration: Infinity, success: false };
+                    }
+                });
+
+                const results = await Promise.all(proxyPromises);
+                const fastestProxy = results.filter(r => r.success).sort((a, b) => a.duration - b.duration)[0];
+                
+                if (fastestProxy) {
+                    statusUpdateFn(`Snelste proxy geselecteerd: ${fastestProxy.proxyName}.`);
+                    return { proxyBuilder: fastestProxy.proxyBuilder, proxyName: fastestProxy.proxyName };
+                } else {
+                    throw new Error("Geen werkende proxy gevonden.");
+                }
+            }
+
+            async function fetchWithSelectedProxy(url, pageNum, proxyDetails, statusUpdateFn, timeout) {
+                const { proxyBuilder, proxyName } = proxyDetails;
+                const proxyUrl = proxyBuilder(url);
+                statusUpdateFn(`Pagina ${pageNum}: Ophalen via ${proxyName}...`);
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), timeout);
+                    const response = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.text();
+                } catch (error) {
+                    throw new Error(`Proxy fetch mislukt: ${error.message}`);
+                }
+            }
+
+            async function testApiKeyValidity(apiKey, statusFn) {
+                const shortKey = `${apiKey.substring(0, 8)}...`;
+                statusFn(`Test sleutel: ${shortKey}`);
+                const tmdbApiUrl = `https://api.themoviedb.org/3/configuration?api_key=${apiKey}`;
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), apiKeyTestTimeout);
+                    const response = await fetch(tmdbApiUrl, { method: 'GET', signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    return response.ok;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            async function processPage(pageNum, proxyDetails) {
+                onStatusUpdate(`Ophalen pagina ${pageNum}...`);
+                const urlToFetch = `${BASE_URL}&page=${pageNum}`;
+                try {
+                    const html = await fetchWithSelectedProxy(urlToFetch, pageNum, proxyDetails, onStatusUpdate, proxyTimeout);
+                    const keysOnPage = [...new Set(html.match(API_KEY_REGEX) || [])];
+                    const newKeys = keysOnPage.filter(key => !foundPotentialKeys.has(key));
+
+                    if (newKeys.length > 0) {
+                        onStatusUpdate(`Pagina ${pageNum}: ${newKeys.length} nieuwe potentiële sleutels gevonden. Testen...`);
+                        newKeys.forEach(key => foundPotentialKeys.add(key));
+
+                        for (let i = 0; i < newKeys.length; i += maxConcurrentKeyTests) {
+                            const batch = newKeys.slice(i, i + maxConcurrentKeyTests);
+                            const testPromises = batch.map(key => 
+                                testApiKeyValidity(key, onStatusUpdate).then(isValid => ({ key, isValid }))
+                            );
+                            const results = await Promise.all(testPromises);
+                            results.forEach(result => {
+                                if (result.isValid) {
+                                    validApiKeys.push(result.key);
+                                    onValidKeyFound(result.key, validApiKeys.length);
+                                }
+                            });
+                        }
+                    } else {
+                        onStatusUpdate(`Pagina ${pageNum}: Geen nieuwe potentiële sleutels gevonden.`);
+                    }
+                    return html.includes('Load More Results') || html.includes('loadMoreResults');
+                } catch (error) {
+                    onStatusUpdate(`Fout op pagina ${pageNum}: ${error.message}. Stoppen.`);
+                    return false;
+                }
+            }
+
+            onStatusUpdate("Starten proces...");
+            try {
+                selectedProxyDetails = await determineFastestProxy(BASE_URL, PROXIES, onStatusUpdate, proxyTimeout);
+            } catch (error) {
+                onStatusUpdate(`Scrapen afgebroken: ${error.message}`);
+                return [];
+            }
+
+            let hasMore = true;
+            while (hasMore && currentPage <= maxPages) {
+                onStatusUpdate(`--- Verwerken pagina ${currentPage}/${maxPages} ---`);
+                hasMore = await processPage(currentPage, selectedProxyDetails);
+                if (hasMore) currentPage++;
+            }
+
+            onStatusUpdate(`Scrapen voltooid. ${validApiKeys.length} geldige sleutel(s) gevonden.`);
+            return validApiKeys;
+        }
+
+
+        // --- Applicatie Logica ---
+
+        async function fetchFromTMDB(endpoint, params = '') {
+            const url = `${TMDB_BASE_URL}${endpoint}?api_key=${API_KEY}&language=nl-NL&${params}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.error("API fout:", response.status);
+                    return null;
+                }
+                return await response.json();
+            } catch (error) {
+                console.error("Fetch fout:", error);
+                return null;
+            }
+        }
+
+        function createPosterElement(item) {
+            if (!item.poster_path) return null;
+
+            const poster = document.createElement('div');
+            poster.className = 'poster';
+            poster.tabIndex = 0; // Maakt het element focusable voor D-pad
+            poster.style.backgroundImage = `url(${IMAGE_BASE_URL}w342${item.poster_path})`;
+            
+            // Sla data op in het element voor later gebruik
+            poster.dataset.title = item.title || item.name;
+            poster.dataset.overview = item.overview;
+            poster.dataset.backdrop = item.backdrop_path ? `${IMAGE_BASE_URL}w1280${item.backdrop_path}` : '';
+
+            // Toon rating
+            if (item.vote_average) {
+                const rating = document.createElement('div');
+                rating.className = 'rating';
+                const ratingValue = item.vote_average.toFixed(1);
+                rating.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    ${ratingValue}
+                `;
+                poster.appendChild(rating);
+            }
+
+            poster.addEventListener('focus', handlePosterFocus);
+            
+            return poster;
+        }
+        
+        function handlePosterFocus(event) {
+            const poster = event.currentTarget;
+            updateDetailsBanner(poster.dataset);
+
+            // Zorg ervoor dat het gefocuste item in beeld is
+            poster.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        function updateDetailsBanner(data) {
+            detailsTitle.textContent = data.title;
+            detailsOverview.textContent = data.overview || "Geen beschrijving beschikbaar.";
+            if (data.backdrop) {
+                detailsBanner.style.backgroundImage = `url(${data.backdrop})`;
+            } else {
+                detailsBanner.style.backgroundImage = 'none';
+            }
+        }
+
+        async function createCategoryRow({ title, endpoint, params }) {
+            const row = document.createElement('div');
+            row.className = 'category-row';
+
+            const categoryTitle = document.createElement('h2');
+            categoryTitle.className = 'category-title';
+            categoryTitle.textContent = title;
+
+            const posterContainer = document.createElement('div');
+            posterContainer.className = 'poster-container';
+
+            row.appendChild(categoryTitle);
+            row.appendChild(posterContainer);
+            mainContent.appendChild(row);
+
+            const data = await fetchFromTMDB(endpoint, params);
+            if (data && data.results) {
+                data.results.forEach(item => {
+                    const posterElement = createPosterElement(item);
+                    if (posterElement) {
+                        posterContainer.appendChild(posterElement);
+                    }
+                });
+            }
+        }
+
+        async function initializeApp() {
+            for (const category of CATEGORIES) {
+                await createCategoryRow(category);
+            }
+             // Set focus op het allereerste item voor een goede start
+            const firstPoster = document.querySelector('.poster');
+            if(firstPoster) {
+                firstPoster.focus();
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            API_KEY = localStorage.getItem(API_KEY_STORAGE_KEY);
+
+            if (API_KEY) {
+                // Valideer de sleutel voor de zekerheid
+                const response = await fetch(`${TMDB_BASE_URL}/configuration?api_key=${API_KEY}`);
+                if(response.ok) {
+                    initializeApp();
+                    return;
+                }
+            }
+
+            // Geen (geldige) sleutel gevonden, start de scraper
+            apiKeyModal.style.display = 'flex';
+            let keyFoundAndStarted = false;
+
+            const scraperOptions = {
+                onStatusUpdate: (message) => {
+                    apiKeyStatus.textContent = message;
+                },
+                onValidKeyFound: (apiKey, totalValidKeys) => {
+                    if (keyFoundAndStarted) return;
+                    
+                    keyFoundAndStarted = true;
+                    apiKeyStatus.textContent = `Geldige sleutel gevonden! ${apiKey.substring(0,8)}... De app wordt gestart.`;
+                    API_KEY = apiKey;
+                    localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+                    
+                    setTimeout(() => {
+                        apiKeyModal.style.display = 'none';
+                        initializeApp();
+                    }, 2000);
+                }
+            };
+            
+            const validKeys = await scrapeTmdbKeys(scraperOptions);
+
+            if (!keyFoundAndStarted) {
+                 apiKeyStatus.textContent = "Helaas, er kon geen werkende API sleutel worden gevonden. Probeer de pagina later opnieuw te laden.";
+            }
+        });
+    </script>
+</body>
+</html>
