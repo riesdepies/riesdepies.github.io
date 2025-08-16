@@ -106,7 +106,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
+            background-color: black;
             display: none;
             align-items: center;
             justify-content: center;
@@ -114,7 +114,6 @@
         }
 
         #player-frame {
-            /* WIJZIGING: Maak de video speler volledig schermvullend */
             width: 100%;
             height: 100%;
             border: none;
@@ -386,6 +385,24 @@
                 grid.appendChild(movieItem);
             }
         }
+        
+        // WIJZIGING: Aparte functies voor openen en sluiten van de speler
+        function openPlayer(url) {
+            lastFocusedElement = document.activeElement;
+            playerFrame.src = url;
+            playerContainer.style.display = 'flex';
+            document.body.classList.add('player-active');
+            history.pushState({playerOpen: true}, ''); // Voeg state toe aan geschiedenis
+        }
+        
+        function closePlayer() {
+            playerContainer.style.display = 'none';
+            document.body.classList.remove('player-active');
+            playerFrame.src = ''; 
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }
 
         grid.addEventListener('keydown', (e) => {
             const activeElement = document.activeElement;
@@ -437,11 +454,7 @@
                 case 'Enter':
                 case 'Ok':
                     if(activeElement.dataset.embedUrl) {
-                        lastFocusedElement = activeElement;
-                        playerFrame.src = activeElement.dataset.embedUrl;
-                        playerContainer.style.display = 'flex';
-                        document.body.classList.add('player-active');
-                        playerFrame.focus();
+                        openPlayer(activeElement.dataset.embedUrl);
                     }
                     return;
             }
@@ -454,15 +467,10 @@
             }
         });
 
-        window.addEventListener('keydown', (e) => {
-            if (playerContainer.style.display === 'flex' && (e.key === 'Backspace' || e.key === 'Escape')) {
-                e.preventDefault();
-                playerContainer.style.display = 'none';
-                document.body.classList.remove('player-active');
-                playerFrame.src = ''; 
-                if (lastFocusedElement) {
-                    lastFocusedElement.focus();
-                }
+        // WIJZIGING: Luister naar de 'popstate' event die door de 'Terug'-knop wordt getriggerd
+        window.addEventListener('popstate', () => {
+            if (document.body.classList.contains('player-active')) {
+                closePlayer();
             }
         });
 
