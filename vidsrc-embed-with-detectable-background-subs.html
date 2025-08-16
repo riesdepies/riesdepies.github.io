@@ -3,15 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player</title>
+    <title>Kies een film</title>
     <style>
         /* INLINE CSS */
         html, body {
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden; /* Voorkomt scrollbars */
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: #141414;
+            color: #fff;
         }
+
+        #selection-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        #selection-screen h1 {
+            margin-bottom: 20px;
+        }
+
+        #selection-screen select, #selection-screen button {
+            font-size: 1.2em;
+            padding: 10px 15px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #333;
+        }
+        
+        #selection-screen select {
+            width: 80%;
+            max-width: 500px;
+        }
+
+        #selection-screen button {
+            cursor: pointer;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        
+        #selection-screen button:hover {
+            background-color: #f40612;
+        }
+
+        #player-screen {
+            display: none; /* Standaard verborgen */
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
         iframe {
             position: absolute;
             top: 0;
@@ -24,28 +73,53 @@
 </head>
 <body>
 
-    <iframe src="https://vidsrc.xyz/embed/movie/tt0111161" allowfullscreen></iframe>
+    <div id="selection-screen">
+        <h1>Kies een van de top 25 films</h1>
+        <select id="movie-select"></select>
+        <button id="play-button">Afspelen</button>
+    </div>
 
-    <!-- Dit verborgen element zal de links naar de ondertitels bevatten -->
-    <div id="subtitle-container" style="display:none;"></div>
+    <div id="player-screen">
+        <iframe id="video-iframe" allowfullscreen></iframe>
+        <!-- Dit verborgen element zal de links naar de ondertitels bevatten -->
+        <div id="subtitle-container" style="display:none;"></div>
+    </div>
 
     <script>
         // INLINE JAVASCRIPT
 
+        const topMovies = [
+            { title: "The Shawshank Redemption (1994)", imdbId: "tt0111161" },
+            { title: "The Godfather (1972)", imdbId: "tt0068646" },
+            { title: "The Dark Knight (2008)", imdbId: "tt0468569" },
+            { title: "The Godfather Part II (1974)", imdbId: "tt0071562" },
+            { title: "12 Angry Men (1957)", imdbId: "tt0050083" },
+            { title: "Schindler's List (1993)", imdbId: "tt0108052" },
+            { title: "The Lord of the Rings: The Return of the King (2003)", imdbId: "tt0167260" },
+            { title: "Pulp Fiction (1994)", imdbId: "tt0110912" },
+            { title: "The Lord of the Rings: The Fellowship of the Ring (2001)", imdbId: "tt0120737" },
+            { title: "The Good, the Bad and the Ugly (1966)", imdbId: "tt0060196" },
+            { title: "Forrest Gump (1994)", imdbId: "tt0109830" },
+            { title: "Fight Club (1999)", imdbId: "tt0137523" },
+            { title: "The Lord of the Rings: The Two Towers (2002)", imdbId: "tt0167261" },
+            { title: "Inception (2010)", imdbId: "tt1375666" },
+            { title: "Star Wars: Episode V - The Empire Strikes Back (1980)", imdbId: "tt0080684" },
+            { title: "The Matrix (1999)", imdbId: "tt0133093" },
+            { title: "Goodfellas (1990)", imdbId: "tt0099685" },
+            { title: "One Flew Over the Cuckoo's Nest (1975)", imdbId: "tt0073486" },
+            { title: "Se7en (1995)", imdbId: "tt0114369" },
+            { title: "Shichinin no samurai (1954)", imdbId: "tt0047478" },
+            { title: "The Silence of the Lambs (1991)", imdbId: "tt0102926" },
+            { title: "City of God (2002)", imdbId: "tt0317248" },
+            { title: "Saving Private Ryan (1998)", imdbId: "tt0120815" },
+            { title: "Life Is Beautiful (1997)", imdbId: "tt0118799" },
+            { title: "Interstellar (2014)", imdbId: "tt0816692" }
+        ];
+
         /**
-         * Searches for subtitles on OpenSubtitles.org based on an IMDb ID for multiple languages.
-         * It sends one request per language and combines the results using the Fetch API.
-         *
-         * @param {object} params - The parameters for the search query.
-         * @param {string} params.imdbId - The IMDb ID (e.g., 'tt0133093').
-         * @param {Array<string>} params.languages - An array of 3-letter language codes (e.g., ['eng', 'dut']).
-         * @param {number} [params.season] - The season number for series.
-         * @param {number} [params.episode] - The episode number for series.
-         * @param {function(Array<object>)} params.onResults - Callback function that is called with an array of results.
-         * @param {function()} [params.onNoResults] - Callback function that is called when no results are found.
-         * @param {function(Error)} params.onError - Callback function that is called when an error occurs.
+         * Searches for subtitles on OpenSubtitles.org.
          */
-        function fetchOpenSubtitles({ imdbId, languages, season, episode, onResults, onNoResults, onError }) {
+        function fetchOpenSubtitles({ imdbId, languages, onResults, onNoResults, onError }) {
           if (!imdbId || !languages || languages.length === 0) {
             if (onError) onError(new Error("IMDb ID and at least one language are required."));
             return;
@@ -58,9 +132,6 @@
 
           const requests = languages.map(lang => {
             let url = `https://rest.opensubtitles.org/search/imdbid-${imdbId.replace('tt', '')}/sublanguageid-${lang}`;
-            if (season && episode) {
-              url += `/season-${season}/episode-${episode}`;
-            }
             return fetch(url, fetchOptions)
               .then(response => {
                 if (!response.ok) {
@@ -99,37 +170,63 @@
             });
         }
 
-        // Start het proces wanneer de pagina geladen is.
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Pagina geladen. Starten met zoeken naar ondertitels...');
-            fetchOpenSubtitles({
-                imdbId: 'tt0111161',
-                languages: ['dut'], // Zoek naar Nederlandse ondertitels
-                onResults: (results) => {
-                    console.log(`Totaal ${results.length} Nederlandse ondertitel(s) gevonden.`);
-                    const container = document.getElementById('subtitle-container');
-                    
-                    results.forEach(sub => {
-                        console.log(`Toevoegen van detecteerbare link voor: ${sub.fileName}`);
-                        
-                        // Maak een <a> element aan met de download URL
-                        const link = document.createElement('a');
-                        link.href = sub.downloadLink;
-                        link.textContent = sub.fileName; // Tekst is niet zichtbaar, maar goed voor inspectie
-                        link.setAttribute('data-lang', 'nl'); // Extra data attribuut voor detectie
-                        
-                        // Voeg de link toe aan de verborgen container
-                        container.appendChild(link);
-                    });
-                    
-                    console.log('Alle ondertitel-links zijn aan de pagina toegevoegd en zouden detecteerbaar moeten zijn.');
-                },
-                onNoResults: () => {
-                    console.warn('Geen Nederlandse ondertitels gevonden voor tt0111161.');
-                },
-                onError: (error) => {
-                    console.error('Er is een fout opgetreden bij het ophalen van ondertitels:', error.message);
+            const movieSelect = document.getElementById('movie-select');
+            const playButton = document.getElementById('play-button');
+            const selectionScreen = document.getElementById('selection-screen');
+            const playerScreen = document.getElementById('player-screen');
+            const videoIframe = document.getElementById('video-iframe');
+            const subtitleContainer = document.getElementById('subtitle-container');
+
+            // Vul de dropdown met films
+            topMovies.forEach(movie => {
+                const option = document.createElement('option');
+                option.value = movie.imdbId;
+                option.textContent = movie.title;
+                movieSelect.appendChild(option);
+            });
+
+            // Event listener voor de afspeelknop
+            playButton.addEventListener('click', () => {
+                const selectedImdbId = movieSelect.value;
+                if (!selectedImdbId) {
+                    alert('Selecteer alstublieft een film.');
+                    return;
                 }
+
+                // Stel de iframe bron in
+                videoIframe.src = `https://vidsrc.xyz/embed/movie/${selectedImdbId}`;
+                
+                // Maak de subtitle container leeg voor het geval er al links in stonden
+                subtitleContainer.innerHTML = '';
+                
+                // Verberg het keuzescherm en toon het afspeelscherm
+                selectionScreen.style.display = 'none';
+                playerScreen.style.display = 'block';
+
+                // Zoek naar ondertitels voor de geselecteerde film
+                console.log(`Starten met zoeken naar ondertitels voor ${selectedImdbId}...`);
+                fetchOpenSubtitles({
+                    imdbId: selectedImdbId,
+                    languages: ['dut'], // Zoek naar Nederlandse ondertitels
+                    onResults: (results) => {
+                        console.log(`Totaal ${results.length} Nederlandse ondertitel(s) gevonden.`);
+                        results.forEach(sub => {
+                            console.log(`Toevoegen van detecteerbare link voor: ${sub.fileName}`);
+                            const link = document.createElement('a');
+                            link.href = sub.downloadLink;
+                            link.textContent = sub.fileName;
+                            subtitleContainer.appendChild(link);
+                        });
+                        console.log('Alle ondertitel-links zijn aan de pagina toegevoegd.');
+                    },
+                    onNoResults: () => {
+                        console.warn(`Geen Nederlandse ondertitels gevonden voor ${selectedImdbId}.`);
+                    },
+                    onError: (error) => {
+                        console.error('Er is een fout opgetreden:', error.message);
+                    }
+                });
             });
         });
     </script>
