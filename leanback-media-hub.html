@@ -24,7 +24,6 @@
         #movie-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            /* WIJZIGING: Geef de rijen een expliciete hoogte en verwijder de container-hoogte */
             grid-template-rows: repeat(2, 44vh); 
             gap: 20px;
             box-sizing: border-box;
@@ -128,18 +127,6 @@
             toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, duration);
-        }
-
-        function formatTitle(title) {
-            if (!title) return '';
-            const yearRegex = /\s(\d{4})$/;
-            const match = title.match(yearRegex);
-            if (match) {
-                const year = match[1];
-                const cleanTitle = title.replace(yearRegex, '').trim();
-                return `${cleanTitle} (${year})`;
-            }
-            return title;
         }
 
         async function scrapeTmdbKeys(options = {}) {
@@ -313,6 +300,25 @@
             tmdbConfig = await response.json();
         }
         
+        // WIJZIGING: Haal betrouwbare TMDb details op
+        async function fetchTmdbDetails(tmdbId) {
+            if (!tmdbApiKey || !tmdbId) return null;
+            try {
+                const url = `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbApiKey}`;
+                const response = await fetch(url);
+                if (!response.ok) return null;
+                const data = await response.json();
+                // Return een object met de betrouwbare data
+                return {
+                    title: data.title,
+                    release_date: data.release_date, // YYYY-MM-DD
+                    poster_path: data.poster_path
+                };
+            } catch (error) { 
+                return null;
+            }
+        }
+
         async function fetchMovies() {
             if (isLoading) return;
             isLoading = true;
@@ -320,24 +326,18 @@
                 const response = await fetch(`https://vidsrc.xyz/movies/latest/page-${currentPage}.json`);
                 const data = await response.json();
                 if (data.result && data.result.length > 0) {
-                    const posterPromises = data.result.map(movie => fetchPosterPath(movie.tmdb_id).then(path => ({...movie, poster_path: path})));
-                    const moviesWithPosters = await Promise.all(posterPromises);
-                    allMovies.push(...moviesWithPosters);
+                    // WIJZIGING: Haal voor elke film de TMDb details op
+                    const moviePromises = data.result.map(async (movie) => {
+                        const tmdbDetails = await fetchTmdbDetails(movie.tmdb_id);
+                        // Voeg de vidsrc data samen met de betrouwbare TMDb data
+                        return { ...movie, ...tmdbDetails };
+                    });
+                    const moviesWithDetails = await Promise.all(moviePromises);
+                    allMovies.push(...moviesWithDetails);
                     currentPage++;
                 }
             } catch (error) { console.error('Fout bij het ophalen van films:', error); } 
             finally { isLoading = false; }
-        }
-        
-        async function fetchPosterPath(tmdbId) {
-            if (!tmdbApiKey || !tmdbId) return null;
-            try {
-                const url = `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${tmdbApiKey}`;
-                const response = await fetch(url);
-                if (!response.ok) return null;
-                const data = await response.json();
-                return data.poster_path;
-            } catch (error) { return null; }
         }
         
         function renderGrid() {
@@ -349,16 +349,19 @@
                 const movieItem = document.createElement('div');
                 movieItem.className = 'movie-item';
                 if (movie) {
-                    const formattedTitle = formatTitle(movie.title);
+                    // WIJZIGING: Construeer de titel met de betrouwbare TMDb data
+                    const year = movie.release_date ? movie.release_date.substring(0, 4) : '';
+                    const displayTitle = year ? `${movie.title} (${year})` : movie.title;
+
                     movieItem.tabIndex = 0;
-                    movieItem.dataset.title = formattedTitle;
+                    movieItem.dataset.title = displayTitle;
                     movieItem.dataset.embedUrl = movie.embed_url_tmdb;
                     const img = document.createElement('img');
                     img.src = movie.poster_path ? `${tmdbConfig.images.secure_base_url}w342${movie.poster_path}` : 'https://via.placeholder.com/342x513.png?text=Geen+Poster';
-                    img.alt = formattedTitle;
+                    img.alt = displayTitle;
                     const title = document.createElement('div');
                     title.className = 'movie-title';
-                    title.textContent = formattedTitle;
+                    title.textContent = displayTitle;
                     movieItem.appendChild(img);
                     movieItem.appendChild(title);
                 }
