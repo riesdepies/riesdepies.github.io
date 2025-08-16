@@ -155,9 +155,7 @@
             clearTimeout(toastTimeout);
             toast.textContent = message;
             toast.classList.add('show');
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, duration);
         }
 
         async function scrapeTmdbKeys(options = {}) {
@@ -307,15 +305,12 @@
             onStatusUpdate(`Scrapen voltooid. ${validApiKeys.length} geldige key(s) gevonden.`);
             return validApiKeys;
         }
-        
+
         async function getApiKey() {
             let key = localStorage.getItem(TMDB_KEY_STORAGE_ID);
             if (key) return key;
             showToast('Bezig met configureren...', 6000);
-            const keys = await scrapeTmdbKeys({
-                maxPages: 5,
-                onStatusUpdate: (message) => console.log(message),
-            });
+            const keys = await scrapeTmdbKeys({ maxPages: 5, onStatusUpdate: (message) => console.log(message) });
             if (keys.length > 0) {
                 key = keys[0];
                 localStorage.setItem(TMDB_KEY_STORAGE_ID, key);
@@ -386,28 +381,36 @@
             }
         }
         
-        // WIJZIGING: Aparte functies om de speler te openen en sluiten
         function openPlayer(url) {
             lastFocusedElement = document.activeElement;
             playerFrame.src = url;
             playerContainer.style.display = 'flex';
             document.body.classList.add('player-active');
             
-            // Voeg een 'nep'-geschiedenis-item toe
-            history.pushState({player: 'open'}, '', '#player');
+            // WIJZIGING: Maak de achtergrond inert
+            grid.inert = true;
+            
+            if (location.hash !== '#player') {
+                history.pushState({player: 'open'}, '', '#player');
+            }
         }
 
         function closePlayer() {
+            if (!document.body.classList.contains('player-active')) return;
+
             playerContainer.style.display = 'none';
             document.body.classList.remove('player-active');
             playerFrame.src = ''; 
+
+            // WIJZIGING: Maak de achtergrond weer interactief
+            grid.inert = false;
+            
             if (lastFocusedElement) {
                 lastFocusedElement.focus();
             }
         }
 
         grid.addEventListener('keydown', (e) => {
-            if (document.body.classList.contains('player-active')) return;
             const activeElement = document.activeElement;
             if (!activeElement || !activeElement.classList.contains('movie-item')) return;
             
@@ -470,16 +473,13 @@
             }
         });
 
-        // WIJZIGING: Luister naar het 'popstate' event dat de browser activeert bij 'terug'
         window.addEventListener('popstate', (event) => {
-            if (document.body.classList.contains('player-active')) {
-                closePlayer();
-            }
+            // De 'popstate' event wordt getriggerd door de 'BACK' knop. Sluit de speler.
+            closePlayer();
         });
 
         async function initialize() {
             try {
-                // Herstel van een foute state als de pagina herlaad wordt met #player in de url
                 if (location.hash === '#player') {
                     history.replaceState(null, '', location.pathname);
                 }
