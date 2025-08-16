@@ -15,7 +15,6 @@
             background-color: #141414;
             color: #fff;
         }
-
         #selection-screen {
             display: flex;
             flex-direction: column;
@@ -24,11 +23,7 @@
             height: 100vh;
             text-align: center;
         }
-
-        #selection-screen h1 {
-            margin-bottom: 20px;
-        }
-
+        #selection-screen h1 { margin-bottom: 20px; }
         #selection-screen select, #selection-screen button {
             font-size: 1.2em;
             padding: 10px 15px;
@@ -36,12 +31,7 @@
             border-radius: 5px;
             border: 1px solid #333;
         }
-        
-        #selection-screen select {
-            width: 80%;
-            max-width: 500px;
-        }
-
+        #selection-screen select { width: 80%; max-width: 500px; }
         #selection-screen button {
             cursor: pointer;
             background-color: #e50914;
@@ -49,26 +39,9 @@
             border: none;
             font-weight: bold;
         }
-        
-        #selection-screen button:hover {
-            background-color: #f40612;
-        }
-
-        #player-screen {
-            display: none; /* Standaard verborgen */
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
+        #selection-screen button:hover { background-color: #f40612; }
+        #player-screen { display: none; position: relative; width: 100%; height: 100%; }
+        iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
     </style>
 </head>
 <body>
@@ -81,93 +54,97 @@
 
     <div id="player-screen">
         <iframe id="video-iframe" allowfullscreen></iframe>
-        <!-- Dit verborgen element zal de links naar de ondertitels bevatten -->
-        <div id="subtitle-container" style="display:none;"></div>
+        <!-- 
+            Verborgen video element dat als "host" dient voor de <track> elementen.
+            De browser zal deze track elementen detecteren.
+        -->
+        <video id="subtitle-host" style="display:none;"></video>
     </div>
+    
+    <!-- Pako.js library voor GZIP decompressie is weer nodig -->
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 
     <script>
         // INLINE JAVASCRIPT
 
         const topMovies = [
-            { title: "The Shawshank Redemption (1994)", imdbId: "tt0111161" },
-            { title: "The Godfather (1972)", imdbId: "tt0068646" },
-            { title: "The Dark Knight (2008)", imdbId: "tt0468569" },
-            { title: "The Godfather Part II (1974)", imdbId: "tt0071562" },
-            { title: "12 Angry Men (1957)", imdbId: "tt0050083" },
-            { title: "Schindler's List (1993)", imdbId: "tt0108052" },
-            { title: "The Lord of the Rings: The Return of the King (2003)", imdbId: "tt0167260" },
-            { title: "Pulp Fiction (1994)", imdbId: "tt0110912" },
-            { title: "The Lord of the Rings: The Fellowship of the Ring (2001)", imdbId: "tt0120737" },
-            { title: "The Good, the Bad and the Ugly (1966)", imdbId: "tt0060196" },
-            { title: "Forrest Gump (1994)", imdbId: "tt0109830" },
-            { title: "Fight Club (1999)", imdbId: "tt0137523" },
-            { title: "The Lord of the Rings: The Two Towers (2002)", imdbId: "tt0167261" },
-            { title: "Inception (2010)", imdbId: "tt1375666" },
-            { title: "Star Wars: Episode V - The Empire Strikes Back (1980)", imdbId: "tt0080684" },
-            { title: "The Matrix (1999)", imdbId: "tt0133093" },
-            { title: "Goodfellas (1990)", imdbId: "tt0099685" },
-            { title: "One Flew Over the Cuckoo's Nest (1975)", imdbId: "tt0073486" },
-            { title: "Se7en (1995)", imdbId: "tt0114369" },
-            { title: "Shichinin no samurai (1954)", imdbId: "tt0047478" },
-            { title: "The Silence of the Lambs (1991)", imdbId: "tt0102926" },
-            { title: "City of God (2002)", imdbId: "tt0317248" },
-            { title: "Saving Private Ryan (1998)", imdbId: "tt0120815" },
-            { title: "Life Is Beautiful (1997)", imdbId: "tt0118799" },
-            { title: "Interstellar (2014)", imdbId: "tt0816692" }
+            { title: "The Shawshank Redemption (1994)", imdbId: "tt0111161" }, { title: "The Godfather (1972)", imdbId: "tt0068646" }, { title: "The Dark Knight (2008)", imdbId: "tt0468569" }, { title: "The Godfather Part II (1974)", imdbId: "tt0071562" }, { title: "12 Angry Men (1957)", imdbId: "tt0050083" }, { title: "Schindler's List (1993)", imdbId: "tt0108052" }, { title: "The Lord of the Rings: The Return of the King (2003)", imdbId: "tt0167260" }, { title: "Pulp Fiction (1994)", imdbId: "tt0110912" }, { title: "The Lord of the Rings: The Fellowship of the Ring (2001)", imdbId: "tt0120737" }, { title: "The Good, the Bad and the Ugly (1966)", imdbId: "tt0060196" }, { title: "Forrest Gump (1994)", imdbId: "tt0109830" }, { title: "Fight Club (1999)", imdbId: "tt0137523" }, { title: "The Lord of the Rings: The Two Towers (2002)", imdbId: "tt0167261" }, { title: "Inception (2010)", imdbId: "tt1375666" }, { title: "Star Wars: Episode V - The Empire Strikes Back (1980)", imdbId: "tt0080684" }, { title: "The Matrix (1999)", imdbId: "tt0133093" }, { title: "Goodfellas (1990)", imdbId: "tt0099685" }, { title: "One Flew Over the Cuckoo's Nest (1975)", imdbId: "tt0073486" }, { title: "Se7en (1995)", imdbId: "tt0114369" }, { title: "Shichinin no samurai (1954)", imdbId: "tt0047478" }, { title: "The Silence of the Lambs (1991)", imdbId: "tt0102926" }, { title: "City of God (2002)", imdbId: "tt0317248" }, { title: "Saving Private Ryan (1998)", imdbId: "tt0120815" }, { title: "Life Is Beautiful (1997)", imdbId: "tt0118799" }, { title: "Interstellar (2014)", imdbId: "tt0816692" }
         ];
-
-        /**
-         * Searches for subtitles on OpenSubtitles.org.
-         */
+        
         function fetchOpenSubtitles({ imdbId, languages, onResults, onNoResults, onError }) {
-          if (!imdbId || !languages || languages.length === 0) {
-            if (onError) onError(new Error("IMDb ID and at least one language are required."));
-            return;
-          }
-
-          const fetchOptions = {
-            method: 'GET',
-            headers: { 'X-User-Agent': 'OpenSubtitles-Fetcher-Demo-v1' }
-          };
-
-          const requests = languages.map(lang => {
-            let url = `https://rest.opensubtitles.org/search/imdbid-${imdbId.replace('tt', '')}/sublanguageid-${lang}`;
-            return fetch(url, fetchOptions)
-              .then(response => {
-                if (!response.ok) {
-                   console.warn(`Request for language '${lang}' failed, ignoring. Status: ${response.statusText}`);
-                   return [];
-                }
-                return response.json();
-              })
-              .catch(err => {
-                console.warn(`Network error for language '${lang}', ignoring. Error: ${err.message}`);
-                return [];
-              });
-          });
-
-          Promise.all(requests)
-            .then(responses => {
-              const allSubs = responses.flatMap(data => {
-                if (!data || !Array.isArray(data)) return [];
-                return data
-                  .filter(sub => sub.SubFormat === 'srt')
-                  .map(sub => ({
-                    fileName: sub.SubFileName,
-                    downloadLink: sub.SubDownloadLink,
-                    language: sub.LanguageName
-                  }));
-              });
-
-              if (allSubs.length > 0) {
-                onResults(allSubs);
-              } else {
-                if (onNoResults) onNoResults();
-              }
-            })
-            .catch(error => {
-              if (onError) onError(new Error(`A fundamental error occurred: ${error.message}`));
+            const fetchOptions = { method: 'GET', headers: { 'X-User-Agent': 'OpenSubtitles-Fetcher-Demo-v1' } };
+            const requests = languages.map(lang => {
+                let url = `https://rest.opensubtitles.org/search/imdbid-${imdbId.replace('tt', '')}/sublanguageid-${lang}`;
+                return fetch(url, fetchOptions)
+                    .then(response => response.ok ? response.json() : [])
+                    .catch(err => { console.warn(`Network error for language '${lang}', ignoring.`, err); return []; });
             });
+
+            Promise.all(requests).then(responses => {
+                const allSubs = responses.flatMap(data => {
+                    if (!data || !Array.isArray(data)) return [];
+                    return data.filter(sub => sub.SubFormat === 'srt' || sub.SubFormat === 'vtt').map(sub => ({
+                        fileName: sub.SubFileName,
+                        downloadLink: sub.SubDownloadLink,
+                        languageName: sub.LanguageName,
+                        langCode: sub.SubLanguageID, // 'dut' -> 'nl'
+                    }));
+                });
+                if (allSubs.length > 0) onResults(allSubs); else if (onNoResults) onNoResults();
+            }).catch(onError);
+        }
+        
+        /**
+         * Converteert SRT-formaat naar het web-vriendelijke VTT-formaat.
+         * Dit verhoogt de compatibiliteit.
+         * @param {string} srtText - De inhoud van het SRT-bestand.
+         * @returns {string} De inhoud in VTT-formaat.
+         */
+        function srtToVtt(srtText) {
+            let vttText = "WEBVTT\n\n";
+            vttText += srtText
+                .replace(/\r/g, '')
+                .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2') // Vervang komma door punt in tijdstempels
+                .split('\n\n')
+                .map(block => block.trim())
+                .filter(block => block)
+                .join('\n\n');
+            return vttText;
+        }
+        
+        /**
+         * Haalt de ondertitel op, pakt hem uit, converteert naar VTT en maakt een <track> element aan.
+         */
+        function createSubtitleTrackElement({ downloadLink, fileName, languageName, langCode, onSuccess, onError }) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", downloadLink, true);
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const srtText = pako.inflate(xhr.response, { to: 'string' });
+                        const vttText = srtToVtt(srtText);
+                        const blob = new Blob([vttText], { type: 'text/vtt;charset=utf-8' });
+                        const blobUrl = URL.createObjectURL(blob);
+                        
+                        const track = document.createElement('track');
+                        track.kind = 'subtitles';
+                        track.label = languageName; // bv. "Dutch"
+                        track.srclang = langCode === 'dut' ? 'nl' : langCode; // bv. "nl"
+                        track.src = blobUrl;
+                        
+                        if (onSuccess) onSuccess(track);
+                    } catch (e) {
+                        if (onError) onError(new Error('Fout bij verwerken ondertitel: ' + e.message));
+                    }
+                } else {
+                    if (onError) onError(new Error('Downloaden van ondertitel mislukt. Status: ' + xhr.status));
+                }
+            };
+            xhr.onerror = function() {
+                if (onError) onError(new Error('Netwerkfout bij downloaden ondertitel.'));
+            };
+            xhr.send();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -176,9 +153,8 @@
             const selectionScreen = document.getElementById('selection-screen');
             const playerScreen = document.getElementById('player-screen');
             const videoIframe = document.getElementById('video-iframe');
-            const subtitleContainer = document.getElementById('subtitle-container');
+            const subtitleHost = document.getElementById('subtitle-host');
 
-            // Vul de dropdown met films
             topMovies.forEach(movie => {
                 const option = document.createElement('option');
                 option.value = movie.imdbId;
@@ -186,46 +162,35 @@
                 movieSelect.appendChild(option);
             });
 
-            // Event listener voor de afspeelknop
             playButton.addEventListener('click', () => {
                 const selectedImdbId = movieSelect.value;
-                if (!selectedImdbId) {
-                    alert('Selecteer alstublieft een film.');
-                    return;
-                }
+                if (!selectedImdbId) return;
 
-                // Stel de iframe bron in
                 videoIframe.src = `https://vidsrc.xyz/embed/movie/${selectedImdbId}`;
+                subtitleHost.innerHTML = ''; // Maak host leeg
                 
-                // Maak de subtitle container leeg voor het geval er al links in stonden
-                subtitleContainer.innerHTML = '';
-                
-                // Verberg het keuzescherm en toon het afspeelscherm
                 selectionScreen.style.display = 'none';
                 playerScreen.style.display = 'block';
 
-                // Zoek naar ondertitels voor de geselecteerde film
                 console.log(`Starten met zoeken naar ondertitels voor ${selectedImdbId}...`);
                 fetchOpenSubtitles({
                     imdbId: selectedImdbId,
-                    languages: ['dut'], // Zoek naar Nederlandse ondertitels
+                    languages: ['dut'],
                     onResults: (results) => {
                         console.log(`Totaal ${results.length} Nederlandse ondertitel(s) gevonden.`);
                         results.forEach(sub => {
-                            console.log(`Toevoegen van detecteerbare link voor: ${sub.fileName}`);
-                            const link = document.createElement('a');
-                            link.href = sub.downloadLink;
-                            link.textContent = sub.fileName;
-                            subtitleContainer.appendChild(link);
+                            createSubtitleTrackElement({
+                                ...sub,
+                                onSuccess: (trackElement) => {
+                                    subtitleHost.appendChild(trackElement);
+                                    console.log(`Detecteerbaar <track> element toegevoegd voor: ${sub.fileName}`);
+                                },
+                                onError: (err) => console.error(err)
+                            });
                         });
-                        console.log('Alle ondertitel-links zijn aan de pagina toegevoegd.');
                     },
-                    onNoResults: () => {
-                        console.warn(`Geen Nederlandse ondertitels gevonden voor ${selectedImdbId}.`);
-                    },
-                    onError: (error) => {
-                        console.error('Er is een fout opgetreden:', error.message);
-                    }
+                    onNoResults: () => console.warn(`Geen Nederlandse ondertitels gevonden voor ${selectedImdbId}.`),
+                    onError: (err) => console.error('Er is een fout opgetreden:', err.message)
                 });
             });
         });
