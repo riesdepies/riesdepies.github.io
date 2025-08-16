@@ -150,6 +150,7 @@
         let allMovies = [];
         let visibleRowIndex = 0;
         let lastFocusedElement = null;
+        let isPlayerActive = false; // De enige bron van waarheid
 
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
@@ -382,27 +383,26 @@
         }
         
         function openPlayer(url) {
+            if (isPlayerActive) return;
+            isPlayerActive = true;
+            
             lastFocusedElement = document.activeElement;
             playerFrame.src = url;
             playerContainer.style.display = 'flex';
             document.body.classList.add('player-active');
             
-            // WIJZIGING: Maak de achtergrond inert
             grid.inert = true;
             
-            if (location.hash !== '#player') {
-                history.pushState({player: 'open'}, '', '#player');
-            }
+            history.pushState({player: 'open'}, '', '#player');
         }
 
         function closePlayer() {
-            if (!document.body.classList.contains('player-active')) return;
+            if (!isPlayerActive) return;
+            isPlayerActive = false;
 
             playerContainer.style.display = 'none';
             document.body.classList.remove('player-active');
             playerFrame.src = ''; 
-
-            // WIJZIGING: Maak de achtergrond weer interactief
             grid.inert = false;
             
             if (lastFocusedElement) {
@@ -473,9 +473,22 @@
             }
         });
 
+        // WIJZIGING: PROACTIEF de 'terug'-knop onderscheppen is de primaire methode
+        window.addEventListener('keydown', (e) => {
+            if (isPlayerActive && (e.key === 'Backspace' || e.key === 'Escape')) {
+                e.preventDefault(); // Voorkom de standaard browseractie (essentieel!)
+                closePlayer();
+                if (history.state && history.state.player === 'open') {
+                    history.back(); // Synchroniseer de geschiedenis
+                }
+            }
+        });
+
+        // WIJZIGING: De 'popstate' listener is nu een VANGNET voor andere 'terug'-acties
         window.addEventListener('popstate', (event) => {
-            // De 'popstate' event wordt getriggerd door de 'BACK' knop. Sluit de speler.
-            closePlayer();
+            if (isPlayerActive) {
+                closePlayer();
+            }
         });
 
         async function initialize() {
