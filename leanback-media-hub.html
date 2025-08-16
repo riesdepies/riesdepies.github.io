@@ -150,9 +150,6 @@
         let allMovies = [];
         let visibleRowIndex = 0;
         let lastFocusedElement = null;
-        
-        // WIJZIGING: Duidelijke state-variabele
-        let isPlayerActive = false;
 
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
@@ -385,25 +382,31 @@
         }
         
         function openPlayer(url) {
-            if (isPlayerActive) return; // Voorkom dubbel openen
-            isPlayerActive = true;
+            // Voorkom dubbel openen als de state al actief is
+            if (document.body.classList.contains('player-active')) return; 
             
             lastFocusedElement = document.activeElement;
             playerFrame.src = url;
             playerContainer.style.display = 'flex';
             document.body.classList.add('player-active');
-            grid.inert = true;
             
-            history.pushState({player: 'open'}, '', '#player');
+            // Maak de achtergrond inert EN zet focus op de iframe
+            grid.inert = true;
+            playerFrame.focus();
+            
+            // Creëer de history entry
+            location.hash = 'player';
         }
 
         function closePlayer() {
-            if (!isPlayerActive) return; // Voorkom dubbel sluiten
-            isPlayerActive = false;
+            // Voorkom dubbel sluiten
+            if (!document.body.classList.contains('player-active')) return;
 
-            playerContainer.style.display = 'none';
             document.body.classList.remove('player-active');
-            playerFrame.src = 'about:blank'; // Betere manier om te stoppen
+            playerContainer.style.display = 'none';
+            playerFrame.src = 'about:blank'; 
+            
+            // Maak de achtergrond weer interactief
             grid.inert = false;
             
             if (lastFocusedElement) {
@@ -412,9 +415,6 @@
         }
 
         grid.addEventListener('keydown', (e) => {
-            // WIJZIGING: Negeer alle input als de speler actief is
-            if (isPlayerActive) return;
-
             const activeElement = document.activeElement;
             if (!activeElement || !activeElement.classList.contains('movie-item')) return;
             
@@ -477,15 +477,17 @@
             }
         });
 
+        // WIJZIGING: De ENIGE manier om de speler te sluiten is via de browser's BACK knop.
         window.addEventListener('popstate', (event) => {
-            // De BACK knop triggert dit event. We sluiten de speler.
-            if (isPlayerActive) {
+            // Als de hash niet meer '#player' is, betekent het dat de gebruiker 'terug' is gegaan.
+            if (location.hash !== '#player') {
                 closePlayer();
             }
         });
 
         async function initialize() {
             try {
+                // Veiligheid: als de pagina herlaadt terwijl de speler open was, reset de state.
                 if (location.hash === '#player') {
                     history.replaceState(null, '', location.pathname);
                 }
