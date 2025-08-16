@@ -32,6 +32,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            transition: filter 0.3s; /* Soepele overgang voor blur */
+        }
+
+        /* WIJZIGING: Stijl voor wanneer de speler actief is */
+        body.player-active #movie-grid {
+            filter: blur(8px);
         }
 
         .movie-item {
@@ -94,6 +100,26 @@
             opacity: 1;
             visibility: visible;
         }
+
+        /* WIJZIGING: Stijlen voor de video player overlay */
+        #player-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none; /* Standaard verborgen */
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        #player-frame {
+            width: 90%;
+            height: 90%;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -101,11 +127,18 @@
     <div id="movie-grid"></div>
     <div id="toast"></div>
 
+    <!-- WIJZIGING: HTML voor de video player -->
+    <div id="player-container">
+        <iframe id="player-frame" allowfullscreen></iframe>
+    </div>
+
     <script>
     // INLINE JAVASCRIPT
     document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('movie-grid');
         const toast = document.getElementById('toast');
+        const playerContainer = document.getElementById('player-container');
+        const playerFrame = document.getElementById('player-frame');
         let toastTimeout;
         
         const TMDB_KEY_STORAGE_ID = 'tmdb_api_key';
@@ -119,6 +152,7 @@
         let tmdbConfig = null;
         let allMovies = [];
         let visibleRowIndex = 0;
+        let lastFocusedElement = null; // Om focus te herstellen
 
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
@@ -289,9 +323,7 @@
                 key = keys[0];
                 localStorage.setItem(TMDB_KEY_STORAGE_ID, key);
                 return key;
-            } else {
-                throw new Error('Kon geen geldige TMDb API key vinden.');
-            }
+            } else { throw new Error('Kon geen geldige TMDb API key vinden.'); }
         }
 
         async function fetchTmdbConfig() {
@@ -300,7 +332,6 @@
             tmdbConfig = await response.json();
         }
         
-        // WIJZIGING: Haal betrouwbare TMDb details op
         async function fetchTmdbDetails(tmdbId) {
             if (!tmdbApiKey || !tmdbId) return null;
             try {
@@ -308,15 +339,8 @@
                 const response = await fetch(url);
                 if (!response.ok) return null;
                 const data = await response.json();
-                // Return een object met de betrouwbare data
-                return {
-                    title: data.title,
-                    release_date: data.release_date, // YYYY-MM-DD
-                    poster_path: data.poster_path
-                };
-            } catch (error) { 
-                return null;
-            }
+                return { title: data.title, release_date: data.release_date, poster_path: data.poster_path };
+            } catch (error) { return null; }
         }
 
         async function fetchMovies() {
@@ -326,10 +350,8 @@
                 const response = await fetch(`https://vidsrc.xyz/movies/latest/page-${currentPage}.json`);
                 const data = await response.json();
                 if (data.result && data.result.length > 0) {
-                    // WIJZIGING: Haal voor elke film de TMDb details op
                     const moviePromises = data.result.map(async (movie) => {
                         const tmdbDetails = await fetchTmdbDetails(movie.tmdb_id);
-                        // Voeg de vidsrc data samen met de betrouwbare TMDb data
                         return { ...movie, ...tmdbDetails };
                     });
                     const moviesWithDetails = await Promise.all(moviePromises);
@@ -349,10 +371,8 @@
                 const movieItem = document.createElement('div');
                 movieItem.className = 'movie-item';
                 if (movie) {
-                    // WIJZIGING: Construeer de titel met de betrouwbare TMDb data
                     const year = movie.release_date ? movie.release_date.substring(0, 4) : '';
                     const displayTitle = year ? `${movie.title} (${year})` : movie.title;
-
                     movieItem.tabIndex = 0;
                     movieItem.dataset.title = displayTitle;
                     movieItem.dataset.embedUrl = movie.embed_url_tmdb;
@@ -418,8 +438,13 @@
                     break;
                 case 'Enter':
                 case 'Ok':
+                    // WIJZIGING: Open de speler in de overlay
                     if(activeElement.dataset.embedUrl) {
-                        window.location.href = activeElement.dataset.embedUrl;
+                        lastFocusedElement = activeElement;
+                        playerFrame.src = activeElement.dataset.embedUrl;
+                        playerContainer.style.display = 'flex';
+                        document.body.classList.add('player-active');
+                        playerFrame.focus();
                     }
                     return;
             }
@@ -427,10 +452,22 @@
             if (nextFocusIndex !== -1) {
                 requestAnimationFrame(() => {
                     const newItems = grid.querySelectorAll('.movie-item');
-                    if (newItems[nextFocusIndex]) {
-                        newItems[nextFocusIndex].focus();
-                    }
+                    if (newItems[nextFocusIndex]) { newItems[nextFocusIndex].focus(); }
                 });
+            }
+        });
+
+        // WIJZIGING: Globale listener voor de 'Terug'-knop
+        window.addEventListener('keydown', (e) => {
+            // Controleer of de speler zichtbaar is
+            if (playerContainer.style.display === 'flex' && (e.key === 'Backspace' || e.key === 'Escape')) {
+                e.preventDefault();
+                playerContainer.style.display = 'none';
+                document.body.classList.remove('player-active');
+                playerFrame.src = ''; // Stop de video
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                }
             }
         });
 
