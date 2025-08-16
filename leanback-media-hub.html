@@ -18,18 +18,17 @@
             background-color: #141414;
             color: #fff;
             font-family: Arial, sans-serif;
-            position: relative; /* Noodzakelijk voor absolute positionering van het kind-element */
+            position: relative;
         }
 
         #movie-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(2, 1fr);
+            /* WIJZIGING: Geef de rijen een expliciete hoogte en verwijder de container-hoogte */
+            grid-template-rows: repeat(2, 44vh); 
             gap: 20px;
             box-sizing: border-box;
             width: 95vw;
-            height: 90vh;
-            /* WIJZIGING: Gebruik absolute positionering met transform voor perfecte centrering */
             position: absolute;
             top: 50%;
             left: 50%;
@@ -131,7 +130,6 @@
             }, duration);
         }
 
-        // WIJZIGING: Functie om de titel te formatteren
         function formatTitle(title) {
             if (!title) return '';
             const yearRegex = /\s(\d{4})$/;
