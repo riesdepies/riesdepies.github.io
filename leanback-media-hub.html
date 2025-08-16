@@ -32,10 +32,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            transition: filter 0.3s; /* Soepele overgang voor blur */
+            transition: filter 0.3s;
         }
-
-        /* WIJZIGING: Stijl voor wanneer de speler actief is */
+        
         body.player-active #movie-grid {
             filter: blur(8px);
         }
@@ -100,8 +99,7 @@
             opacity: 1;
             visibility: visible;
         }
-
-        /* WIJZIGING: Stijlen voor de video player overlay */
+        
         #player-container {
             position: fixed;
             top: 0;
@@ -109,15 +107,16 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.85);
-            display: none; /* Standaard verborgen */
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
         }
 
         #player-frame {
-            width: 90%;
-            height: 90%;
+            /* WIJZIGING: Maak de video speler volledig schermvullend */
+            width: 100%;
+            height: 100%;
             border: none;
         }
     </style>
@@ -126,8 +125,7 @@
 
     <div id="movie-grid"></div>
     <div id="toast"></div>
-
-    <!-- WIJZIGING: HTML voor de video player -->
+    
     <div id="player-container">
         <iframe id="player-frame" allowfullscreen></iframe>
     </div>
@@ -152,7 +150,7 @@
         let tmdbConfig = null;
         let allMovies = [];
         let visibleRowIndex = 0;
-        let lastFocusedElement = null; // Om focus te herstellen
+        let lastFocusedElement = null;
 
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
@@ -438,7 +436,6 @@
                     break;
                 case 'Enter':
                 case 'Ok':
-                    // WIJZIGING: Open de speler in de overlay
                     if(activeElement.dataset.embedUrl) {
                         lastFocusedElement = activeElement;
                         playerFrame.src = activeElement.dataset.embedUrl;
@@ -457,14 +454,12 @@
             }
         });
 
-        // WIJZIGING: Globale listener voor de 'Terug'-knop
         window.addEventListener('keydown', (e) => {
-            // Controleer of de speler zichtbaar is
             if (playerContainer.style.display === 'flex' && (e.key === 'Backspace' || e.key === 'Escape')) {
                 e.preventDefault();
                 playerContainer.style.display = 'none';
                 document.body.classList.remove('player-active');
-                playerFrame.src = ''; // Stop de video
+                playerFrame.src = ''; 
                 if (lastFocusedElement) {
                     lastFocusedElement.focus();
                 }
