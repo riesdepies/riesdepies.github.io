@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
+    <style>
+        /* INLINE CSS */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Voorkomt scrollbars */
+        }
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <iframe src="https://vidsrc.xyz/embed/movie/tt0111161" allowfullscreen></iframe>
+
+    <!-- Dit verborgen element zal de links naar de ondertitels bevatten -->
+    <div id="subtitle-container" style="display:none;"></div>
+
+    <script>
+        // INLINE JAVASCRIPT
+
+        /**
+         * Searches for subtitles on OpenSubtitles.org based on an IMDb ID for multiple languages.
+         * It sends one request per language and combines the results using the Fetch API.
+         *
+         * @param {object} params - The parameters for the search query.
+         * @param {string} params.imdbId - The IMDb ID (e.g., 'tt0133093').
+         * @param {Array<string>} params.languages - An array of 3-letter language codes (e.g., ['eng', 'dut']).
+         * @param {number} [params.season] - The season number for series.
+         * @param {number} [params.episode] - The episode number for series.
+         * @param {function(Array<object>)} params.onResults - Callback function that is called with an array of results.
+         * @param {function()} [params.onNoResults] - Callback function that is called when no results are found.
+         * @param {function(Error)} params.onError - Callback function that is called when an error occurs.
+         */
+        function fetchOpenSubtitles({ imdbId, languages, season, episode, onResults, onNoResults, onError }) {
+          if (!imdbId || !languages || languages.length === 0) {
+            if (onError) onError(new Error("IMDb ID and at least one language are required."));
+            return;
+          }
+
+          const fetchOptions = {
+            method: 'GET',
+            headers: { 'X-User-Agent': 'OpenSubtitles-Fetcher-Demo-v1' }
+          };
+
+          const requests = languages.map(lang => {
+            let url = `https://rest.opensubtitles.org/search/imdbid-${imdbId.replace('tt', '')}/sublanguageid-${lang}`;
+            if (season && episode) {
+              url += `/season-${season}/episode-${episode}`;
+            }
+            return fetch(url, fetchOptions)
+              .then(response => {
+                if (!response.ok) {
+                   console.warn(`Request for language '${lang}' failed, ignoring. Status: ${response.statusText}`);
+                   return [];
+                }
+                return response.json();
+              })
+              .catch(err => {
+                console.warn(`Network error for language '${lang}', ignoring. Error: ${err.message}`);
+                return [];
+              });
+          });
+
+          Promise.all(requests)
+            .then(responses => {
+              const allSubs = responses.flatMap(data => {
+                if (!data || !Array.isArray(data)) return [];
+                return data
+                  .filter(sub => sub.SubFormat === 'srt')
+                  .map(sub => ({
+                    fileName: sub.SubFileName,
+                    downloadLink: sub.SubDownloadLink,
+                    language: sub.LanguageName
+                  }));
+              });
+
+              if (allSubs.length > 0) {
+                onResults(allSubs);
+              } else {
+                if (onNoResults) onNoResults();
+              }
+            })
+            .catch(error => {
+              if (onError) onError(new Error(`A fundamental error occurred: ${error.message}`));
+            });
+        }
+
+        // Start het proces wanneer de pagina geladen is.
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Pagina geladen. Starten met zoeken naar ondertitels...');
+            fetchOpenSubtitles({
+                imdbId: 'tt0111161',
+                languages: ['dut'], // Zoek naar Nederlandse ondertitels
+                onResults: (results) => {
+                    console.log(`Totaal ${results.length} Nederlandse ondertitel(s) gevonden.`);
+                    const container = document.getElementById('subtitle-container');
+                    
+                    results.forEach(sub => {
+                        console.log(`Toevoegen van detecteerbare link voor: ${sub.fileName}`);
+                        
+                        // Maak een <a> element aan met de download URL
+                        const link = document.createElement('a');
+                        link.href = sub.downloadLink;
+                        link.textContent = sub.fileName; // Tekst is niet zichtbaar, maar goed voor inspectie
+                        link.setAttribute('data-lang', 'nl'); // Extra data attribuut voor detectie
+                        
+                        // Voeg de link toe aan de verborgen container
+                        container.appendChild(link);
+                    });
+                    
+                    console.log('Alle ondertitel-links zijn aan de pagina toegevoegd en zouden detecteerbaar moeten zijn.');
+                },
+                onNoResults: () => {
+                    console.warn('Geen Nederlandse ondertitels gevonden voor tt0111161.');
+                },
+                onError: (error) => {
+                    console.error('Er is een fout opgetreden bij het ophalen van ondertitels:', error.message);
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
