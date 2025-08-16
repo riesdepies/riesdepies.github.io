@@ -3,134 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Film & Serie Browser</title>
+    <title>Media Browser</title>
     <style>
-        /* INLINE CSS */
         :root {
-            --primary-text-color: #ffffff;
-            --secondary-text-color: #cccccc;
-            --background-color: #141414;
-            --focus-outline-color: #00aaff;
-            --poster-width: 185px;
-            --poster-height: 278px;
-            --row-gap: 50px;
+            --bg-color: #141414;
+            --sidebar-bg: #101010;
+            --text-color: #e5e5e5;
+            --focus-color: #0071eb;
+            --poster-gap: 20px;
         }
 
         * {
             box-sizing: border-box;
-            scrollbar-width: none; /* Firefox */
-        }
-
-        *::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, and Opera */
+            outline: none;
         }
 
         body {
-            background-color: var(--background-color);
-            color: var(--primary-text-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
-        }
-
-        #details-banner {
-            position: relative;
-            height: 60vh;
-            width: 100%;
-            background-size: cover;
-            background-position: center center;
             display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 20px 60px;
-            transition: background-image 0.5s ease-in-out;
-            color: white;
-        }
-
-        #details-banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to top, rgba(20, 20, 20, 1) 10%, rgba(20, 20, 20, 0.7) 30%, rgba(20, 20, 20, 0) 100%);
-            z-index: 1;
-        }
-
-        #details-content {
-            position: relative;
-            z-index: 2;
-            max-width: 50%;
-        }
-
-        #details-title {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 0 0 1rem 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-
-        #details-overview {
-            font-size: 1.1rem;
-            line-height: 1.5;
-            max-height: 120px;
+            height: 100vh;
             overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            margin: 0;
+        }
+
+        #sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        #sidebar h2 {
+            margin-top: 0;
+            font-size: 1.2em;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        #sidebar nav a {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        #sidebar nav a:focus, #sidebar nav a:hover {
+            background-color: var(--focus-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        #sidebar nav a.active {
+            background-color: #2a2a2a;
+            font-weight: bold;
+        }
+        
+        #genre-list {
+            margin-top: 20px;
         }
 
         #main-content {
-            padding: 20px 60px;
-            margin-top: calc(var(--row-gap) * -1); /* Overlap slightly with banner */
-            position: relative;
-            z-index: 3;
+            flex-grow: 1;
+            padding: var(--poster-gap);
+            overflow-y: auto;
         }
 
-        .category-row {
-            margin-bottom: var(--row-gap);
-        }
-
-        .category-title {
-            font-size: 1.8rem;
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .poster-container {
-            display: flex;
-            overflow-x: auto;
-            overflow-y: hidden;
-            padding-bottom: 20px; /* Space for focus outline */
+        #poster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+            gap: var(--poster-gap);
         }
 
         .poster {
-            flex-shrink: 0;
-            width: var(--poster-width);
-            height: var(--poster-height);
-            margin-right: 15px;
-            border-radius: 5px;
-            background-color: #333;
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.2s ease-in-out;
-            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
             position: relative;
-            outline: none;
-            border: 2px solid transparent;
+            background-color: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 2 / 3;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 3px solid transparent;
         }
 
         .poster:focus {
             transform: scale(1.08);
-            border: 3px solid var(--focus-outline-color);
+            box-shadow: 0 0 20px rgba(0, 113, 235, 0.8);
             z-index: 10;
+            border-color: var(--focus-color);
         }
 
-        .rating {
+        .poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .poster .rating {
             position: absolute;
             top: 8px;
             left: 8px;
@@ -138,97 +116,107 @@
             color: #fff;
             padding: 4px 8px;
             border-radius: 5px;
-            font-size: 0.9rem;
+            font-size: 0.9em;
             font-weight: bold;
             display: flex;
             align-items: center;
         }
         
-        .rating svg {
-            width: 16px;
-            height: 16px;
-            margin-right: 4px;
-            fill: gold;
+        .poster .rating::before {
+            content: '★';
+            color: #ffc107;
+            margin-right: 5px;
         }
 
-        #apiKeyModal {
+        #scraper-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.9);
-            z-index: 9999;
-            display: flex;
+            z-index: 1000;
+            display: none; /* Hidden by default */
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            color: white;
             text-align: center;
-            padding: 20px;
-        }
-        
-        .modal-content {
-            background-color: #222;
-            padding: 40px;
-            border-radius: 10px;
         }
 
-        #apiKeyStatus {
-            margin-top: 20px;
-            color: var(--secondary-text-color);
+        .scraper-content {
+            background-color: #1d1d1d;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
             max-width: 600px;
-            line-height: 1.6;
         }
+        
+        .scraper-content h2 {
+            margin-top: 0;
+        }
+
+        #status-log {
+            height: 300px;
+            overflow-y: scroll;
+            background-color: #101010;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="apiKeyModal" style="display: none;">
-        <div class="modal-content">
-            <h1>TMDB API Sleutel Vereist</h1>
-            <p>Er is geen geldige API sleutel gevonden.</p>
-            <p>Er wordt nu automatisch gezocht naar een werkende sleutel...</p>
-            <div id="apiKeyStatus">Initialiseren...</div>
+    <div id="sidebar">
+        <h2>Ontdekken</h2>
+        <nav id="main-nav">
+            <a href="#" class="active" data-endpoint="/movie/popular">Populaire Films</a>
+            <a href="#" data-endpoint="/movie/top_rated">Top Films</a>
+            <a href="#" data-endpoint="/movie/now_playing">Nu in de Bioscoop</a>
+            <a href="#" data-endpoint="/movie/upcoming">Verwachte Films</a>
+            <a href="#" data-endpoint="/tv/popular">Populaire Series</a>
+            <a href="#" data-endpoint="/tv/top_rated">Top Series</a>
+        </nav>
+        
+        <div id="genre-list">
+             <h2>Genres</h2>
+             <nav id="movie-genres"></nav>
         </div>
     </div>
 
-    <header id="details-banner">
-        <div id="details-content">
-            <h1 id="details-title">Welkom!</h1>
-            <p id="details-overview">Selecteer een film of serie hieronder om de details te bekijken.</p>
-        </div>
-    </header>
-
     <main id="main-content">
-        <!-- Categorie rijen worden hier dynamisch ingevoegd -->
+        <div id="poster-grid"></div>
     </main>
 
+    <div id="scraper-overlay">
+        <div class="scraper-content">
+            <h2>TMDB API Sleutel Vereist</h2>
+            <p>Er is geen API sleutel gevonden. We zoeken er nu automatisch een voor u...</p>
+            <div id="status-log"></div>
+        </div>
+    </div>
+
     <script>
-        // INLINE JAVASCRIPT
-        const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-        const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
-        const API_KEY_STORAGE_KEY = 'tmdb_api_key';
+        const TMDB_API_KEY_STORAGE_KEY = 'tmdb_api_key';
+        const BASE_IMAGE_URL = 'https://image.tmdb.org/t/p/w500';
+        let apiKey = null;
 
-        const mainContent = document.getElementById('main-content');
-        const detailsBanner = document.getElementById('details-banner');
-        const detailsTitle = document.getElementById('details-title');
-        const detailsOverview = document.getElementById('details-overview');
-        const apiKeyModal = document.getElementById('apiKeyModal');
-        const apiKeyStatus = document.getElementById('apiKeyStatus');
+        const mainNav = document.getElementById('main-nav');
+        const genreNav = document.getElementById('movie-genres');
+        const posterGrid = document.getElementById('poster-grid');
+        const scraperOverlay = document.getElementById('scraper-overlay');
+        const statusLog = document.getElementById('status-log');
 
-        let API_KEY = '';
-
-        const CATEGORIES = [
-            { title: 'Trending Films', endpoint: '/trending/movie/week' },
-            { title: 'Populaire TV Series', endpoint: '/tv/popular' },
-            { title: 'Binnenkort in de bioscoop', endpoint: '/movie/upcoming' },
-            { title: 'Actie', endpoint: '/discover/movie', params: 'with_genres=28' },
-            { title: 'Komedie', endpoint: '/discover/movie', params: 'with_genres=35' },
-            { title: 'Horror', endpoint: '/discover/movie', params: 'with_genres=27' },
-            { title: 'Science Fiction', endpoint: '/discover/tv', params: 'with_genres=10765' },
-        ];
-        
-        // --- API Key Scraper Functie (zoals meegeleverd) ---
+        /**
+         * The provided scraper function to find a working TMDB API key.
+         */
         async function scrapeTmdbKeys(options = {}) {
             const {
                 maxPages = 20,
@@ -254,7 +242,7 @@
             let selectedProxyDetails = null;
 
             async function determineFastestProxy(baseUrlForTest, proxyList, statusUpdateFn, timeout) {
-                statusUpdateFn("Bepalen van de snelste proxy...");
+                statusUpdateFn("Determining the fastest proxy...");
                 const proxyPromises = proxyList.map(async (proxyBuilderFunc) => {
                     const proxyUrl = proxyBuilderFunc(baseUrlForTest);
                     const proxyNameMatch = proxyUrl.match(/https:\/\/([a-zA-Z0-9.-]+)/);
@@ -263,35 +251,35 @@
                     try {
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), timeout);
-                        statusUpdateFn(`Test proxy: ${proxyName}...`);
+                        statusUpdateFn(`Testing proxy: ${proxyName}...`);
                         const response = await fetch(proxyUrl, { signal: controller.signal });
                         clearTimeout(timeoutId);
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        await response.text(); 
+                        await response.text();
                         const duration = Date.now() - startTime;
-                        statusUpdateFn(`OK: ${proxyName} reageerde in ${duration}ms.`);
+                        statusUpdateFn(`OK: ${proxyName} responded in ${duration}ms.`);
                         return { proxyBuilder: proxyBuilderFunc, proxyName, duration, success: true };
                     } catch (error) {
-                        statusUpdateFn(`FOUT: ${proxyName} (${error.name === 'AbortError' ? 'timeout' : error.message}).`);
+                        statusUpdateFn(`FAIL: ${proxyName} (${error.name === 'AbortError' ? 'timeout' : error.message}).`);
                         return { duration: Infinity, success: false };
                     }
                 });
 
                 const results = await Promise.all(proxyPromises);
-                const fastestProxy = results.filter(r => r.success).sort((a, b) => a.duration - b.duration)[0];
-                
+                const fastestProxy = results.filter(r => r.success).sort((a, b) => a.duration - b.toString())[0];
+
                 if (fastestProxy) {
-                    statusUpdateFn(`Snelste proxy geselecteerd: ${fastestProxy.proxyName}.`);
+                    statusUpdateFn(`Fastest proxy selected: ${fastestProxy.proxyName}.`);
                     return { proxyBuilder: fastestProxy.proxyBuilder, proxyName: fastestProxy.proxyName };
                 } else {
-                    throw new Error("Geen werkende proxy gevonden.");
+                    throw new Error("No working proxy found.");
                 }
             }
 
             async function fetchWithSelectedProxy(url, pageNum, proxyDetails, statusUpdateFn, timeout) {
                 const { proxyBuilder, proxyName } = proxyDetails;
                 const proxyUrl = proxyBuilder(url);
-                statusUpdateFn(`Pagina ${pageNum}: Ophalen via ${proxyName}...`);
+                statusUpdateFn(`Page ${pageNum}: Fetching via ${proxyName}...`);
                 try {
                     const controller = new AbortController();
                     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -300,13 +288,13 @@
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     return await response.text();
                 } catch (error) {
-                    throw new Error(`Proxy fetch mislukt: ${error.message}`);
+                    throw new Error(`Proxy fetch failed: ${error.message}`);
                 }
             }
 
             async function testApiKeyValidity(apiKey, statusFn) {
                 const shortKey = `${apiKey.substring(0, 8)}...`;
-                statusFn(`Test sleutel: ${shortKey}`);
+                statusFn(`Testing key: ${shortKey}`);
                 const tmdbApiUrl = `https://api.themoviedb.org/3/configuration?api_key=${apiKey}`;
                 try {
                     const controller = new AbortController();
@@ -320,7 +308,7 @@
             }
 
             async function processPage(pageNum, proxyDetails) {
-                onStatusUpdate(`Ophalen pagina ${pageNum}...`);
+                onStatusUpdate(`Fetching page ${pageNum}...`);
                 const urlToFetch = `${BASE_URL}&page=${pageNum}`;
                 try {
                     const html = await fetchWithSelectedProxy(urlToFetch, pageNum, proxyDetails, onStatusUpdate, proxyTimeout);
@@ -328,12 +316,12 @@
                     const newKeys = keysOnPage.filter(key => !foundPotentialKeys.has(key));
 
                     if (newKeys.length > 0) {
-                        onStatusUpdate(`Pagina ${pageNum}: ${newKeys.length} nieuwe potentiële sleutels gevonden. Testen...`);
+                        onStatusUpdate(`Page ${pageNum}: Found ${newKeys.length} new potential keys. Testing...`);
                         newKeys.forEach(key => foundPotentialKeys.add(key));
 
                         for (let i = 0; i < newKeys.length; i += maxConcurrentKeyTests) {
                             const batch = newKeys.slice(i, i + maxConcurrentKeyTests);
-                            const testPromises = batch.map(key => 
+                            const testPromises = batch.map(key =>
                                 testApiKeyValidity(key, onStatusUpdate).then(isValid => ({ key, isValid }))
                             );
                             const results = await Promise.all(testPromises);
@@ -345,178 +333,203 @@
                             });
                         }
                     } else {
-                        onStatusUpdate(`Pagina ${pageNum}: Geen nieuwe potentiële sleutels gevonden.`);
+                        onStatusUpdate(`Page ${pageNum}: No new potential keys found.`);
                     }
                     return html.includes('Load More Results') || html.includes('loadMoreResults');
                 } catch (error) {
-                    onStatusUpdate(`Fout op pagina ${pageNum}: ${error.message}. Stoppen.`);
+                    onStatusUpdate(`Error on page ${pageNum}: ${error.message}. Stopping.`);
                     return false;
                 }
             }
 
-            onStatusUpdate("Starten proces...");
+            onStatusUpdate("Starting process...");
             try {
                 selectedProxyDetails = await determineFastestProxy(BASE_URL, PROXIES, onStatusUpdate, proxyTimeout);
             } catch (error) {
-                onStatusUpdate(`Scrapen afgebroken: ${error.message}`);
+                onStatusUpdate(`Scraping aborted: ${error.message}`);
                 return [];
             }
 
             let hasMore = true;
             while (hasMore && currentPage <= maxPages) {
-                onStatusUpdate(`--- Verwerken pagina ${currentPage}/${maxPages} ---`);
+                onStatusUpdate(`--- Processing Page ${currentPage}/${maxPages} ---`);
                 hasMore = await processPage(currentPage, selectedProxyDetails);
                 if (hasMore) currentPage++;
             }
 
-            onStatusUpdate(`Scrapen voltooid. ${validApiKeys.length} geldige sleutel(s) gevonden.`);
+            onStatusUpdate(`Scraping complete. Found ${validApiKeys.length} valid key(s).`);
             return validApiKeys;
         }
 
-
-        // --- Applicatie Logica ---
-
-        async function fetchFromTMDB(endpoint, params = '') {
-            const url = `${TMDB_BASE_URL}${endpoint}?api_key=${API_KEY}&language=nl-NL&${params}`;
+        /**
+         * Fetches data from a TMDB endpoint.
+         */
+        async function fetchFromTmdb(endpoint, params = {}) {
+            if (!apiKey) {
+                console.error("TMDB API Key is not set.");
+                return null;
+            }
+            const queryParams = new URLSearchParams({
+                api_key: apiKey,
+                language: 'nl-NL',
+                ...params
+            });
+            const url = `https://api.themoviedb.org/3${endpoint}?${queryParams.toString()}`;
+            
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    console.error("API fout:", response.status);
-                    return null;
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return await response.json();
             } catch (error) {
-                console.error("Fetch fout:", error);
+                console.error("Error fetching from TMDB:", error);
                 return null;
             }
         }
 
-        function createPosterElement(item) {
-            if (!item.poster_path) return null;
+        /**
+         * Renders a list of movies or series to the poster grid.
+         */
+        function renderContent(data) {
+            posterGrid.innerHTML = '';
+            if (!data || !data.results) return;
 
-            const poster = document.createElement('div');
-            poster.className = 'poster';
-            poster.tabIndex = 0; // Maakt het element focusable voor D-pad
-            poster.style.backgroundImage = `url(${IMAGE_BASE_URL}w342${item.poster_path})`;
-            
-            // Sla data op in het element voor later gebruik
-            poster.dataset.title = item.title || item.name;
-            poster.dataset.overview = item.overview;
-            poster.dataset.backdrop = item.backdrop_path ? `${IMAGE_BASE_URL}w1280${item.backdrop_path}` : '';
+            data.results.forEach(item => {
+                if (!item.poster_path) return; // Skip items without a poster
 
-            // Toon rating
-            if (item.vote_average) {
+                const posterElement = document.createElement('a');
+                posterElement.href = "#"; // For focusability
+                posterElement.classList.add('poster');
+                posterElement.setAttribute('aria-label', item.title || item.name);
+
+                const img = document.createElement('img');
+                img.src = `${BASE_IMAGE_URL}${item.poster_path}`;
+                img.alt = item.title || item.name;
+                img.loading = 'lazy';
+
                 const rating = document.createElement('div');
-                rating.className = 'rating';
-                const ratingValue = item.vote_average.toFixed(1);
-                rating.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    ${ratingValue}
-                `;
-                poster.appendChild(rating);
-            }
+                rating.classList.add('rating');
+                rating.textContent = item.vote_average.toFixed(1);
 
-            poster.addEventListener('focus', handlePosterFocus);
-            
-            return poster;
+                posterElement.appendChild(img);
+                posterElement.appendChild(rating);
+                posterGrid.appendChild(posterElement);
+            });
+        }
+
+        /**
+         * Loads content based on the selected navigation link.
+         */
+        async function loadContent(endpoint) {
+            const data = await fetchFromTmdb(endpoint);
+            renderContent(data);
         }
         
-        function handlePosterFocus(event) {
-            const poster = event.currentTarget;
-            updateDetailsBanner(poster.dataset);
-
-            // Zorg ervoor dat het gefocuste item in beeld is
-            poster.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        async function loadContentByGenre(genreId) {
+            const data = await fetchFromTmdb('/discover/movie', { with_genres: genreId });
+            renderContent(data);
         }
 
-        function updateDetailsBanner(data) {
-            detailsTitle.textContent = data.title;
-            detailsOverview.textContent = data.overview || "Geen beschrijving beschikbaar.";
-            if (data.backdrop) {
-                detailsBanner.style.backgroundImage = `url(${data.backdrop})`;
-            } else {
-                detailsBanner.style.backgroundImage = 'none';
+        /**
+         * Loads and populates the genre list in the sidebar.
+         */
+        async function loadGenres() {
+            const data = await fetchFromTmdb('/genre/movie/list');
+            if (!data || !data.genres) return;
+            
+            genreNav.innerHTML = '';
+            data.genres.forEach(genre => {
+                const link = document.createElement('a');
+                link.href = "#";
+                link.textContent = genre.name;
+                link.dataset.genreId = genre.id;
+                genreNav.appendChild(link);
+            });
+        }
+        
+        /**
+         * Handles clicks on navigation items.
+         */
+        function handleNavClick(event, navElement) {
+            event.preventDefault();
+            const target = event.target.closest('a');
+            if (!target) return;
+            
+            // Remove active class from all siblings
+            navElement.querySelectorAll('a').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('#main-nav a, #movie-genres a').forEach(a => a.classList.remove('active'));
+            
+            // Add active class to clicked link
+            target.classList.add('active');
+            
+            if (target.dataset.endpoint) {
+                loadContent(target.dataset.endpoint);
+            } else if (target.dataset.genreId) {
+                loadContentByGenre(target.dataset.genreId);
             }
         }
 
-        async function createCategoryRow({ title, endpoint, params }) {
-            const row = document.createElement('div');
-            row.className = 'category-row';
+        /**
+         * Application entry point.
+         */
+        async function main() {
+            apiKey = localStorage.getItem(TMDB_API_KEY_STORAGE_KEY);
 
-            const categoryTitle = document.createElement('h2');
-            categoryTitle.className = 'category-title';
-            categoryTitle.textContent = title;
+            if (!apiKey) {
+                scraperOverlay.style.display = 'flex';
+                let keyFound = false;
 
-            const posterContainer = document.createElement('div');
-            posterContainer.className = 'poster-container';
-
-            row.appendChild(categoryTitle);
-            row.appendChild(posterContainer);
-            mainContent.appendChild(row);
-
-            const data = await fetchFromTMDB(endpoint, params);
-            if (data && data.results) {
-                data.results.forEach(item => {
-                    const posterElement = createPosterElement(item);
-                    if (posterElement) {
-                        posterContainer.appendChild(posterElement);
+                const keys = await scrapeTmdbKeys({
+                    onStatusUpdate: (message) => {
+                        const p = document.createElement('p');
+                        p.textContent = message;
+                        statusLog.appendChild(p);
+                        statusLog.scrollTop = statusLog.scrollHeight;
+                    },
+                    onValidKeyFound: (foundKey, total) => {
+                        if (!keyFound) {
+                            keyFound = true;
+                            apiKey = foundKey;
+                            localStorage.setItem(TMDB_API_KEY_STORAGE_KEY, apiKey);
+                            
+                            const p = document.createElement('p');
+                            p.textContent = `SUCCESS: Valid key found! ${foundKey.substring(0,8)}... Loading content...`;
+                            p.style.color = '#28a745';
+                            p.style.fontWeight = 'bold';
+                            statusLog.appendChild(p);
+                            
+                            setTimeout(() => {
+                                scraperOverlay.style.display = 'none';
+                                initializePage();
+                            }, 2000);
+                        }
                     }
                 });
+
+                if (!keyFound) {
+                   const p = document.createElement('p');
+                   p.textContent = `Scraping finished, but no valid key was found. Please try reloading the page.`;
+                   p.style.color = '#dc3545';
+                   p.style.fontWeight = 'bold';
+                   statusLog.appendChild(p);
+                }
+            } else {
+                initializePage();
             }
         }
-
-        async function initializeApp() {
-            for (const category of CATEGORIES) {
-                await createCategoryRow(category);
-            }
-             // Set focus op het allereerste item voor een goede start
-            const firstPoster = document.querySelector('.poster');
-            if(firstPoster) {
-                firstPoster.focus();
-            }
-        }
-
-        window.addEventListener('load', async () => {
-            API_KEY = localStorage.getItem(API_KEY_STORAGE_KEY);
-
-            if (API_KEY) {
-                // Valideer de sleutel voor de zekerheid
-                const response = await fetch(`${TMDB_BASE_URL}/configuration?api_key=${API_KEY}`);
-                if(response.ok) {
-                    initializeApp();
-                    return;
-                }
-            }
-
-            // Geen (geldige) sleutel gevonden, start de scraper
-            apiKeyModal.style.display = 'flex';
-            let keyFoundAndStarted = false;
-
-            const scraperOptions = {
-                onStatusUpdate: (message) => {
-                    apiKeyStatus.textContent = message;
-                },
-                onValidKeyFound: (apiKey, totalValidKeys) => {
-                    if (keyFoundAndStarted) return;
-                    
-                    keyFoundAndStarted = true;
-                    apiKeyStatus.textContent = `Geldige sleutel gevonden! ${apiKey.substring(0,8)}... De app wordt gestart.`;
-                    API_KEY = apiKey;
-                    localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
-                    
-                    setTimeout(() => {
-                        apiKeyModal.style.display = 'none';
-                        initializeApp();
-                    }, 2000);
-                }
-            };
+        
+        function initializePage() {
+            mainNav.addEventListener('click', (e) => handleNavClick(e, mainNav));
+            genreNav.addEventListener('click', (e) => handleNavClick(e, genreNav));
             
-            const validKeys = await scrapeTmdbKeys(scraperOptions);
+            loadGenres();
+            // Load initial content
+            const initialEndpoint = document.querySelector('#main-nav a.active').dataset.endpoint;
+            loadContent(initialEndpoint);
+        }
 
-            if (!keyFoundAndStarted) {
-                 apiKeyStatus.textContent = "Helaas, er kon geen werkende API sleutel worden gevonden. Probeer de pagina later opnieuw te laden.";
-            }
-        });
+        window.onload = main;
     </script>
 </body>
 </html>
