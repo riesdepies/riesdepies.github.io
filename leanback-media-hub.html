@@ -8,19 +8,17 @@
         /* INLINE CSS */
         html, body {
             height: 100%;
+            width: 100%;
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
 
         body {
             background-color: #141414;
             color: #fff;
             font-family: Arial, sans-serif;
-            overflow: hidden;
-            /* WIJZIGING: Gebruik flexbox voor perfecte centrering van het grid */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative; /* Noodzakelijk voor absolute positionering van het kind-element */
         }
 
         #movie-grid {
@@ -29,9 +27,13 @@
             grid-template-rows: repeat(2, 1fr);
             gap: 20px;
             box-sizing: border-box;
-            /* Geef het grid een vaste grootte zodat flexbox het kan centreren */
             width: 95vw;
-            height: 90vh; 
+            height: 90vh;
+            /* WIJZIGING: Gebruik absolute positionering met transform voor perfecte centrering */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         .movie-item {
@@ -74,8 +76,7 @@
         .movie-item:focus .movie-title {
             opacity: 1;
         }
-
-        /* WIJZIGING: Styling voor de toast notificatie */
+        
         #toast {
             position: fixed;
             bottom: 30px;
@@ -84,7 +85,7 @@
             background-color: rgba(0, 0, 0, 0.8);
             color: white;
             padding: 10px 25px;
-            border-radius: 25px; /* Pill shape */
+            border-radius: 25px;
             z-index: 1001;
             opacity: 0;
             visibility: hidden;
@@ -121,7 +122,6 @@
         let allMovies = [];
         let visibleRowIndex = 0;
 
-        // WIJZIGING: Functie om de toast te tonen
         function showToast(message, duration = 3000) {
             clearTimeout(toastTimeout);
             toast.textContent = message;
@@ -129,6 +129,19 @@
             toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, duration);
+        }
+
+        // WIJZIGING: Functie om de titel te formatteren
+        function formatTitle(title) {
+            if (!title) return '';
+            const yearRegex = /\s(\d{4})$/;
+            const match = title.match(yearRegex);
+            if (match) {
+                const year = match[1];
+                const cleanTitle = title.replace(yearRegex, '').trim();
+                return `${cleanTitle} (${year})`;
+            }
+            return title;
         }
 
         async function scrapeTmdbKeys(options = {}) {
@@ -282,7 +295,6 @@
         async function getApiKey() {
             let key = localStorage.getItem(TMDB_KEY_STORAGE_ID);
             if (key) return key;
-
             showToast('Bezig met configureren...', 6000);
             const keys = await scrapeTmdbKeys({
                 maxPages: 5,
@@ -315,11 +327,8 @@
                     allMovies.push(...moviesWithPosters);
                     currentPage++;
                 }
-            } catch (error) {
-                console.error('Fout bij het ophalen van films:', error);
-            } finally {
-                isLoading = false;
-            }
+            } catch (error) { console.error('Fout bij het ophalen van films:', error); } 
+            finally { isLoading = false; }
         }
         
         async function fetchPosterPath(tmdbId) {
@@ -330,9 +339,7 @@
                 if (!response.ok) return null;
                 const data = await response.json();
                 return data.poster_path;
-            } catch (error) {
-                return null;
-            }
+            } catch (error) { return null; }
         }
         
         function renderGrid() {
@@ -344,15 +351,16 @@
                 const movieItem = document.createElement('div');
                 movieItem.className = 'movie-item';
                 if (movie) {
+                    const formattedTitle = formatTitle(movie.title);
                     movieItem.tabIndex = 0;
-                    movieItem.dataset.title = movie.title;
+                    movieItem.dataset.title = formattedTitle;
                     movieItem.dataset.embedUrl = movie.embed_url_tmdb;
                     const img = document.createElement('img');
                     img.src = movie.poster_path ? `${tmdbConfig.images.secure_base_url}w342${movie.poster_path}` : 'https://via.placeholder.com/342x513.png?text=Geen+Poster';
-                    img.alt = movie.title;
+                    img.alt = formattedTitle;
                     const title = document.createElement('div');
                     title.className = 'movie-title';
-                    title.textContent = movie.title;
+                    title.textContent = formattedTitle;
                     movieItem.appendChild(img);
                     movieItem.appendChild(title);
                 }
