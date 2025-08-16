@@ -12,7 +12,12 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Voorkom scrollen van de pagina */
+            overflow: hidden;
+            /* WIJZIGING: Maak body een flex container om het grid te centreren */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
 
         #status {
@@ -31,11 +36,12 @@
         #movie-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            grid-template-rows: repeat(2, 1fr); /* Expliciet 2 rijen */
+            grid-template-rows: repeat(2, 1fr);
             gap: 20px;
-            padding: 40px;
-            height: 100vh;
             box-sizing: border-box;
+            /* WIJZIGING: Geef het grid een vaste grootte zodat flexbox het kan centreren */
+            width: 95vw;
+            height: 90vh; 
         }
 
         .movie-item {
@@ -102,7 +108,7 @@
         let tmdbConfig = null;
         
         let allMovies = [];
-        let visibleRowIndex = 0; // De index van de bovenste zichtbare rij in allMovies
+        let visibleRowIndex = 0;
 
         async function scrapeTmdbKeys(options = {}) {
             const {
@@ -255,16 +261,12 @@
 
         async function getApiKey() {
             let key = localStorage.getItem(TMDB_KEY_STORAGE_ID);
-            if (key) {
-                return key;
-            }
-
+            if (key) return key;
             statusDiv.textContent = 'Bezig met configureren, een ogenblik geduld...';
             const keys = await scrapeTmdbKeys({
                 maxPages: 5,
                 onStatusUpdate: (message) => console.log(message),
             });
-
             if (keys.length > 0) {
                 key = keys[0];
                 localStorage.setItem(TMDB_KEY_STORAGE_ID, key);
@@ -283,11 +285,9 @@
         async function fetchMovies() {
             if (isLoading) return;
             isLoading = true;
-
             try {
                 const response = await fetch(`https://vidsrc.xyz/movies/latest/page-${currentPage}.json`);
                 const data = await response.json();
-
                 if (data.result && data.result.length > 0) {
                     const posterPromises = data.result.map(movie => fetchPosterPath(movie.tmdb_id).then(path => ({...movie, poster_path: path})));
                     const moviesWithPosters = await Promise.all(posterPromises);
@@ -315,7 +315,7 @@
         }
         
         function renderGrid() {
-            grid.innerHTML = ''; // Maak het grid leeg
+            grid.innerHTML = '';
             const startIndex = visibleRowIndex * COLUMN_COUNT;
             const moviesToRender = allMovies.slice(startIndex, startIndex + GRID_SIZE);
 
@@ -328,15 +328,12 @@
                     movieItem.tabIndex = 0;
                     movieItem.dataset.title = movie.title;
                     movieItem.dataset.embedUrl = movie.embed_url_tmdb;
-    
                     const img = document.createElement('img');
                     img.src = movie.poster_path ? `${tmdbConfig.images.secure_base_url}w342${movie.poster_path}` : 'https://via.placeholder.com/342x513.png?text=Geen+Poster';
                     img.alt = movie.title;
-    
                     const title = document.createElement('div');
                     title.className = 'movie-title';
                     title.textContent = movie.title;
-    
                     movieItem.appendChild(img);
                     movieItem.appendChild(title);
                 }
@@ -349,35 +346,36 @@
             if (!activeElement || !activeElement.classList.contains('movie-item')) return;
             
             e.preventDefault();
-
             const items = Array.from(grid.querySelectorAll('.movie-item'));
             const currentIndex = items.indexOf(activeElement);
-            
             let nextFocusIndex = -1;
 
             switch (e.key) {
                 case 'ArrowUp':
-                    if (currentIndex < COLUMN_COUNT && visibleRowIndex > 0) { // Bovenste rij & niet de allereerste rij
+                    if (currentIndex < COLUMN_COUNT && visibleRowIndex > 0) {
                         visibleRowIndex--;
                         renderGrid();
-                        nextFocusIndex = currentIndex + COLUMN_COUNT; // Focus naar onderste rij van nieuw grid
+                        // WIJZIGING: Focus blijft op hetzelfde element in het grid, dat nu de nieuwe bovenste rij is.
+                        nextFocusIndex = currentIndex;
                     } else if (currentIndex >= COLUMN_COUNT) {
                         nextFocusIndex = currentIndex - COLUMN_COUNT;
                     }
                     break;
                 case 'ArrowDown':
                     const maxRowIndex = Math.ceil(allMovies.length / COLUMN_COUNT) - ROW_COUNT;
-                    if (currentIndex >= COLUMN_COUNT && visibleRowIndex < maxRowIndex) { // Onderste rij
+                    if (currentIndex >= COLUMN_COUNT && visibleRowIndex < maxRowIndex) {
                         visibleRowIndex++;
                         renderGrid();
-                        nextFocusIndex = currentIndex - COLUMN_COUNT; // Focus naar bovenste rij van nieuw grid
-                        
-                        // Proactief meer films laden
+                        // WIJZIGING: Focus blijft op hetzelfde element in het grid, dat nu de nieuwe onderste rij is.
+                        nextFocusIndex = currentIndex;
                         if (maxRowIndex - visibleRowIndex < 3 && !isLoading) {
                            fetchMovies();
                         }
                     } else if (currentIndex < COLUMN_COUNT) {
-                        nextFocusIndex = currentIndex + COLUMN_COUNT;
+                        // Zorg ervoor dat er een item is om naartoe te focussen
+                        if (items[currentIndex + COLUMN_COUNT] && items[currentIndex + COLUMN_COUNT].hasAttribute('tabindex')) {
+                            nextFocusIndex = currentIndex + COLUMN_COUNT;
+                        }
                     }
                     break;
                 case 'ArrowLeft':
@@ -387,7 +385,10 @@
                     break;
                 case 'ArrowRight':
                     if ((currentIndex + 1) % COLUMN_COUNT !== 0) {
-                        nextFocusIndex = currentIndex + 1;
+                         // Zorg ervoor dat er een item is om naartoe te focussen
+                        if (items[currentIndex + 1] && items[currentIndex + 1].hasAttribute('tabindex')) {
+                            nextFocusIndex = currentIndex + 1;
+                        }
                     }
                     break;
                 case 'Enter':
@@ -399,7 +400,6 @@
             }
 
             if (nextFocusIndex !== -1) {
-                // Wacht tot de DOM is bijgewerkt na renderGrid()
                 requestAnimationFrame(() => {
                     const newItems = grid.querySelectorAll('.movie-item');
                     if (newItems[nextFocusIndex]) {
@@ -413,18 +413,14 @@
             try {
                 tmdbApiKey = await getApiKey();
                 await fetchTmdbConfig();
-
                 if (tmdbApiKey && tmdbConfig) {
                     statusDiv.textContent = 'Films laden...';
-                    // Laad initieel genoeg films om de eerste paar schermen te vullen
                     await fetchMovies();
                     await fetchMovies();
-                    
                     renderGrid();
-                    
                     setTimeout(() => {
                         statusDiv.style.display = 'none';
-                        const firstItem = grid.querySelector('.movie-item');
+                        const firstItem = grid.querySelector('.movie-item[tabindex="0"]');
                         if (firstItem) firstItem.focus();
                     }, 500);
                 }
