@@ -6,31 +6,21 @@
     <title>Android TV Film Grid</title>
     <style>
         /* INLINE CSS */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: #141414;
             color: #fff;
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             overflow: hidden;
-            /* WIJZIGING: Maak body een flex container om het grid te centreren */
+            /* WIJZIGING: Gebruik flexbox voor perfecte centrering van het grid */
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-        }
-
-        #status {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 10px;
-            text-align: center;
-            z-index: 1000;
-            font-size: 16px;
         }
 
         #movie-grid {
@@ -39,7 +29,7 @@
             grid-template-rows: repeat(2, 1fr);
             gap: 20px;
             box-sizing: border-box;
-            /* WIJZIGING: Geef het grid een vaste grootte zodat flexbox het kan centreren */
+            /* Geef het grid een vaste grootte zodat flexbox het kan centreren */
             width: 95vw;
             height: 90vh; 
         }
@@ -84,18 +74,40 @@
         .movie-item:focus .movie-title {
             opacity: 1;
         }
+
+        /* WIJZIGING: Styling voor de toast notificatie */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 25px; /* Pill shape */
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        #toast.show {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
 
-    <div id="status">Status: Initialiseren...</div>
     <div id="movie-grid"></div>
+    <div id="toast"></div>
 
     <script>
     // INLINE JAVASCRIPT
     document.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('movie-grid');
-        const statusDiv = document.getElementById('status');
+        const toast = document.getElementById('toast');
+        let toastTimeout;
         
         const TMDB_KEY_STORAGE_ID = 'tmdb_api_key';
         const ROW_COUNT = 2;
@@ -106,9 +118,18 @@
         let isLoading = false;
         let tmdbApiKey = null;
         let tmdbConfig = null;
-        
         let allMovies = [];
         let visibleRowIndex = 0;
+
+        // WIJZIGING: Functie om de toast te tonen
+        function showToast(message, duration = 3000) {
+            clearTimeout(toastTimeout);
+            toast.textContent = message;
+            toast.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
 
         async function scrapeTmdbKeys(options = {}) {
             const {
@@ -258,11 +279,11 @@
             return validApiKeys;
         }
 
-
         async function getApiKey() {
             let key = localStorage.getItem(TMDB_KEY_STORAGE_ID);
             if (key) return key;
-            statusDiv.textContent = 'Bezig met configureren, een ogenblik geduld...';
+
+            showToast('Bezig met configureren...', 6000);
             const keys = await scrapeTmdbKeys({
                 maxPages: 5,
                 onStatusUpdate: (message) => console.log(message),
@@ -318,12 +339,10 @@
             grid.innerHTML = '';
             const startIndex = visibleRowIndex * COLUMN_COUNT;
             const moviesToRender = allMovies.slice(startIndex, startIndex + GRID_SIZE);
-
             for(let i = 0; i < GRID_SIZE; i++) {
                 const movie = moviesToRender[i];
                 const movieItem = document.createElement('div');
                 movieItem.className = 'movie-item';
-                
                 if (movie) {
                     movieItem.tabIndex = 0;
                     movieItem.dataset.title = movie.title;
@@ -355,7 +374,6 @@
                     if (currentIndex < COLUMN_COUNT && visibleRowIndex > 0) {
                         visibleRowIndex--;
                         renderGrid();
-                        // WIJZIGING: Focus blijft op hetzelfde element in het grid, dat nu de nieuwe bovenste rij is.
                         nextFocusIndex = currentIndex;
                     } else if (currentIndex >= COLUMN_COUNT) {
                         nextFocusIndex = currentIndex - COLUMN_COUNT;
@@ -366,13 +384,12 @@
                     if (currentIndex >= COLUMN_COUNT && visibleRowIndex < maxRowIndex) {
                         visibleRowIndex++;
                         renderGrid();
-                        // WIJZIGING: Focus blijft op hetzelfde element in het grid, dat nu de nieuwe onderste rij is.
                         nextFocusIndex = currentIndex;
                         if (maxRowIndex - visibleRowIndex < 3 && !isLoading) {
+                           showToast('Meer films laden...');
                            fetchMovies();
                         }
                     } else if (currentIndex < COLUMN_COUNT) {
-                        // Zorg ervoor dat er een item is om naartoe te focussen
                         if (items[currentIndex + COLUMN_COUNT] && items[currentIndex + COLUMN_COUNT].hasAttribute('tabindex')) {
                             nextFocusIndex = currentIndex + COLUMN_COUNT;
                         }
@@ -385,7 +402,6 @@
                     break;
                 case 'ArrowRight':
                     if ((currentIndex + 1) % COLUMN_COUNT !== 0) {
-                         // Zorg ervoor dat er een item is om naartoe te focussen
                         if (items[currentIndex + 1] && items[currentIndex + 1].hasAttribute('tabindex')) {
                             nextFocusIndex = currentIndex + 1;
                         }
@@ -414,18 +430,17 @@
                 tmdbApiKey = await getApiKey();
                 await fetchTmdbConfig();
                 if (tmdbApiKey && tmdbConfig) {
-                    statusDiv.textContent = 'Films laden...';
+                    showToast('Films laden...');
                     await fetchMovies();
                     await fetchMovies();
                     renderGrid();
                     setTimeout(() => {
-                        statusDiv.style.display = 'none';
                         const firstItem = grid.querySelector('.movie-item[tabindex="0"]');
                         if (firstItem) firstItem.focus();
-                    }, 500);
+                    }, 100);
                 }
             } catch (error) {
-                statusDiv.textContent = `Initialisatie mislukt: ${error.message}`;
+                showToast(`Fout: ${error.message}`, 5000);
                 console.error(error);
             }
         }
