@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatische Doorverwijzing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Slider wordt omzeild...</h1>
+        <p>Een ogenblik geduld, de downloadpagina wordt geladen.</p>
+        <p>Als je niet automatisch wordt doorgestuurd, is de doelsite mogelijk gewijzigd.</p>
+    </div>
+
+    <!-- 
+      Dit onzichtbare formulier bootst het originele formulier na.
+      Het 'action' attribuut verwijst naar de URL waar de data naartoe moet.
+      De 'method' is 'post', net als in het origineel.
+      De verborgen inputvelden bevatten de data die de server verwacht.
+    -->
+    <form id="autoSubmitForm" action="https://dl.vidsrc.vip/movie/tt0061722" method="post" style="display:none;">
+        <input type="hidden" name="movieId" value="tt0061722">
+        <input type="hidden" name="slider" value="100">
+    </form>
+
+    <script type="text/javascript">
+        // Deze functie wordt uitgevoerd zodra de pagina volledig is geladen.
+        window.onload = function() {
+            // Het formulier wordt geselecteerd en onmiddellijk verstuurd.
+            document.getElementById('autoSubmitForm').submit();
+        };
+    </script>
+
+</body>
+</html>
