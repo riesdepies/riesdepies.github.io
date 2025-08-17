@@ -414,6 +414,7 @@
                         utterance.voice = dutchVoice;
                         utterance.lang = dutchVoice.lang;
                     } else {
+                        // Fallback in case no voice was loaded at all
                         utterance.lang = 'nl-NL';
                     }
                     
@@ -439,7 +440,7 @@
             }
             
             /**
-            * GEWIJZIGD: De logica is strikter gemaakt en zoekt nu uitsluitend naar 'nl-NL'.
+            * GEWIJZIGD: De logica geeft nu prioriteit aan de standaardstem van de browser.
             */
             function loadAndSetVoice() {
                 const allVoices = speechSynthesis.getVoices();
@@ -447,26 +448,23 @@
                     return;
                 }
 
-                // Stap 1: Zoek specifiek en uitsluitend naar de Nederlandse (nl-NL) stem.
-                const preferredVoice = allVoices.find(v => v.lang === 'nl-NL');
+                // Stap 1: Geef absolute prioriteit aan de standaardstem van de browser/OS.
+                // De '.default' eigenschap is true voor de stem die de gebruiker heeft ingesteld.
+                let preferredVoice = allVoices.find(v => v.default);
 
-                // Stap 2: Als de 'nl-NL' stem is gevonden, gebruik die dan.
-                if (preferredVoice) {
-                    dutchVoice = preferredVoice;
-                    return; 
+                // Stap 2: Als er (om een of andere reden) geen standaardstem is, zoek dan
+                // naar de eerste de beste Nederlandse stem als fallback.
+                if (!preferredVoice) {
+                    preferredVoice = allVoices.find(v => v.lang.startsWith('nl'));
+                }
+                
+                // Stap 3: Als er helemaal geen Nederlandse stem is, zoek dan een Engelse.
+                if (!preferredVoice) {
+                    preferredVoice = allVoices.find(v => v.lang.startsWith('en'));
                 }
 
-                // --- FALLBACKS (alleen als nl-NL NIET gevonden is) ---
-
-                // Stap 3: Als er helemaal geen Nederlandse stem is, zoek een Engelse als alternatief.
-                const englishVoice = allVoices.find(v => v.lang.startsWith('en'));
-                if (englishVoice) {
-                    dutchVoice = englishVoice;
-                    return;
-                }
-
-                // Stap 4: Als laatste redmiddel, neem de allereerste stem die de browser aanbiedt.
-                dutchVoice = allVoices[0];
+                // Stap 4: Wijs de gevonden stem toe, of als laatste redmiddel de allereerste stem.
+                dutchVoice = preferredVoice || allVoices[0];
             }
 
 
