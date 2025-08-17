@@ -336,7 +336,12 @@
 
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 
-                const requestBody = { contents: conversationHistory, systemInstruction: { parts: [{ text: systemPrompt }] } };
+                // GEWIJZIGD: De 'tools' parameter is toegevoegd om Google Search te activeren
+                const requestBody = { 
+                    contents: conversationHistory, 
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    tools: [{ "google_search": {} }] 
+                };
 
                 try {
                     const response = await fetch(API_URL, {
