@@ -240,6 +240,7 @@
             let apiKey = '';
             let systemPrompt = '';
             let conversationHistory = [];
+            let dutchVoice = null; // GEWIJZIGD: Variabele om geselecteerde stem op te slaan
             
             // App-specific LocalStorage keys
             const API_KEY_STORAGE_KEY = 'geminiVoiceChat_apiKey_v3';
@@ -259,6 +260,12 @@
             recognition.maxAlternatives = 1;
 
             loadSettings();
+            loadAndSetVoice(); // GEWIJZIGD: Roep de functie aan om de stem te laden
+
+            // GEWIJZIGD: Zorg ervoor dat de stem opnieuw wordt ingesteld als de lijst verandert
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadAndSetVoice;
+            }
 
             // --- Event Listeners ---
             micButton.addEventListener('click', toggleListen);
@@ -336,7 +343,6 @@
 
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 
-                // GEWIJZIGD: De 'tools' parameter is toegevoegd om Google Search te activeren
                 const requestBody = { 
                     contents: conversationHistory, 
                     systemInstruction: { parts: [{ text: systemPrompt }] },
@@ -375,12 +381,11 @@
             }
             
             /**
-            * NEW speak function to handle long texts by chunking them into sentences.
+            * GEWIJZIGD: De 'speak' functie is aangepast om een consistente stem te gebruiken.
             */
             function speak(text) {
                 userCancelledSpeech = false;
                 
-                // Regex to split text into sentences. It handles ., !, ?, and newlines.
                 const chunks = text.match(/[^.!?\n]+[.!?\n]*|[^.!?\n]+$/g) || [];
 
                 if (chunks.length === 0) {
@@ -391,14 +396,12 @@
                 
                 let chunkIndex = 0;
                 
-                // Set initial state
                 statusText.textContent = 'Aan het spreken...';
                 micButton.classList.remove('busy');
                 micButton.classList.add('is-stoppable');
                 micIcon.textContent = 'stop';
                 
                 const speakNextChunk = () => {
-                    // Stop if user cancelled or all chunks are spoken
                     if (userCancelledSpeech || chunkIndex >= chunks.length) {
                         if (userCancelledSpeech) {
                             statusText.textContent = 'Spraak afgebroken.';
@@ -411,55 +414,72 @@
 
                     const chunk = chunks[chunkIndex];
                     const utterance = new SpeechSynthesisUtterance(chunk.trim());
-                    const allVoices = speechSynthesis.getVoices();
                     
-                    utterance.voice = allVoices.find(v => v.lang.startsWith('nl')) || allVoices.find(v => v.lang.startsWith('en')) || allVoices[0];
-                    utterance.lang = utterance.voice ? utterance.voice.lang : 'nl-NL';
+                    // Gebruik de vooraf geselecteerde stem
+                    if (dutchVoice) {
+                        utterance.voice = dutchVoice;
+                        utterance.lang = dutchVoice.lang;
+                    } else {
+                        // Fallback voor als er geen stem gevonden is
+                        utterance.lang = 'nl-NL';
+                    }
                     
                     utterance.onend = () => {
-                        // Move to the next chunk when this one is done
                         chunkIndex++;
                         speakNextChunk();
                     };
 
                     utterance.onerror = (event) => {
                         if (userCancelledSpeech) { 
-                             utterance.onend(); // Treat it as finished to clean up
+                             utterance.onend();
                              return;
                         }
                         console.error('SpeechSynthesis Utterance Error:', event.error);
                         statusText.textContent = 'Fout bij het uitspreken van de tekst.';
-                        resetMic(); // Stop on error
+                        resetMic();
                     };
                     
                     speechSynthesis.speak(utterance);
                 };
                 
-                // Start speaking the first chunk
                 speakNextChunk();
+            }
+            
+            // --- Nieuwe Functie & Hulpprogramma's ---
+            /**
+            * NIEUW: Deze functie laadt stemmen en selecteert de beste Nederlandse optie.
+            */
+            function loadAndSetVoice() {
+                const allVoices = speechSynthesis.getVoices();
+                if (allVoices.length === 0) {
+                    // Soms is de lijst niet direct beschikbaar, 'onvoiceschanged' event vangt dit op.
+                    return;
+                }
+                // Geef voorkeur aan een specifieke NL stem, anders de eerste de beste NL stem.
+                dutchVoice = allVoices.find(v => v.lang === 'nl-NL') || allVoices.find(v => v.lang.startsWith('nl'));
+                
+                // Fallback naar Engels of de allereerste stem als er geen NL stem is
+                if (!dutchVoice) {
+                     dutchVoice = allVoices.find(v => v.lang.startsWith('en')) || allVoices[0];
+                }
             }
 
 
             // --- Settings & LocalStorage ---
             function loadSettings() {
-                // ** MIGRATION LOGIC ADDED HERE **
                 const OLD_API_KEY_STORAGE_KEY = 'geminiVoiceChat_apiKey_v2';
                 const OLD_SYSTEM_PROMPT_STORAGE_KEY = 'geminiVoiceChat_systemPrompt_v2';
                 const defaultPrompt = 'Belangrijk: Je bent een AI-assistent. Je antwoorden worden direct omgezet naar spraak via een Text-To-Speech engine. Gebruik daarom absoluut geen Markdown-opmaak, zoals asterisken voor lijsten of vetgedrukte tekst. Schrijf je antwoorden in volledige, vloeiende zinnen die natuurlijk klinken als ze worden uitgesproken. Houd je antwoorden beknopt.';
 
-                // Try loading new keys, then fall back to old keys
                 apiKey = localStorage.getItem(API_KEY_STORAGE_KEY) || localStorage.getItem(OLD_API_KEY_STORAGE_KEY) || '';
                 systemPrompt = localStorage.getItem(SYSTEM_PROMPT_STORAGE_KEY) || localStorage.getItem(OLD_SYSTEM_PROMPT_STORAGE_KEY) || defaultPrompt;
                 
-                // If we found any value, ensure it's saved under the new key name for the future
                 localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
                 localStorage.setItem(SYSTEM_PROMPT_STORAGE_KEY, systemPrompt);
                 
-                // Clean up old keys if they exist
                 localStorage.removeItem(OLD_API_KEY_STORAGE_KEY);
                 localStorage.removeItem(OLD_SYSTEM_PROMPT_STORAGE_KEY);
 
-                // Update the input fields with the loaded values
                 apiKeyInput.value = apiKey;
                 systemPromptInput.value = systemPrompt;
             }
