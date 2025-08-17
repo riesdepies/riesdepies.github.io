@@ -240,7 +240,7 @@
             let apiKey = '';
             let systemPrompt = '';
             let conversationHistory = [];
-            let dutchVoice = null;
+            let dutchVoice = null; // GEWIJZIGD: Variabele om geselecteerde stem op te slaan
             
             // App-specific LocalStorage keys
             const API_KEY_STORAGE_KEY = 'geminiVoiceChat_apiKey_v3';
@@ -260,8 +260,9 @@
             recognition.maxAlternatives = 1;
 
             loadSettings();
-            loadAndSetVoice();
+            loadAndSetVoice(); // GEWIJZIGD: Roep de functie aan om de stem te laden
 
+            // GEWIJZIGD: Zorg ervoor dat de stem opnieuw wordt ingesteld als de lijst verandert
             if (speechSynthesis.onvoiceschanged !== undefined) {
                 speechSynthesis.onvoiceschanged = loadAndSetVoice;
             }
@@ -307,11 +308,12 @@
                 if (speechSynthesis.speaking) {
                     userCancelledSpeech = true;
                     speechSynthesis.cancel();
+                    // The onend event from the utterance will handle the reset
                     return;
                 }
                 
                 if (micButton.classList.contains('busy')) {
-                    return; 
+                    return; // Do nothing if thinking
                 }
                 
                 if (!apiKey) {
@@ -378,6 +380,9 @@
                 }
             }
             
+            /**
+            * GEWIJZIGD: De 'speak' functie is aangepast om een consistente stem te gebruiken.
+            */
             function speak(text) {
                 userCancelledSpeech = false;
                 
@@ -410,11 +415,12 @@
                     const chunk = chunks[chunkIndex];
                     const utterance = new SpeechSynthesisUtterance(chunk.trim());
                     
+                    // Gebruik de vooraf geselecteerde stem
                     if (dutchVoice) {
                         utterance.voice = dutchVoice;
                         utterance.lang = dutchVoice.lang;
                     } else {
-                        // Fallback in case no voice was loaded at all
+                        // Fallback voor als er geen stem gevonden is
                         utterance.lang = 'nl-NL';
                     }
                     
@@ -439,32 +445,23 @@
                 speakNextChunk();
             }
             
+            // --- Nieuwe Functie & Hulpprogramma's ---
             /**
-            * GEWIJZIGD: De logica geeft nu prioriteit aan de standaardstem van de browser.
+            * NIEUW: Deze functie laadt stemmen en selecteert de beste Nederlandse optie.
             */
             function loadAndSetVoice() {
                 const allVoices = speechSynthesis.getVoices();
                 if (allVoices.length === 0) {
+                    // Soms is de lijst niet direct beschikbaar, 'onvoiceschanged' event vangt dit op.
                     return;
                 }
-
-                // Stap 1: Geef absolute prioriteit aan de standaardstem van de browser/OS.
-                // De '.default' eigenschap is true voor de stem die de gebruiker heeft ingesteld.
-                let preferredVoice = allVoices.find(v => v.default);
-
-                // Stap 2: Als er (om een of andere reden) geen standaardstem is, zoek dan
-                // naar de eerste de beste Nederlandse stem als fallback.
-                if (!preferredVoice) {
-                    preferredVoice = allVoices.find(v => v.lang.startsWith('nl'));
-                }
+                // Geef voorkeur aan een specifieke NL stem, anders de eerste de beste NL stem.
+                dutchVoice = allVoices.find(v => v.lang === 'nl-NL') || allVoices.find(v => v.lang.startsWith('nl'));
                 
-                // Stap 3: Als er helemaal geen Nederlandse stem is, zoek dan een Engelse.
-                if (!preferredVoice) {
-                    preferredVoice = allVoices.find(v => v.lang.startsWith('en'));
+                // Fallback naar Engels of de allereerste stem als er geen NL stem is
+                if (!dutchVoice) {
+                     dutchVoice = allVoices.find(v => v.lang.startsWith('en')) || allVoices[0];
                 }
-
-                // Stap 4: Wijs de gevonden stem toe, of als laatste redmiddel de allereerste stem.
-                dutchVoice = preferredVoice || allVoices[0];
             }
 
 
