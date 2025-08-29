@@ -72,6 +72,10 @@ font-weight: 700;
 display: flex;
 align-items: center;
 gap: 12px;
+/* AANGEPAST: Maak de titel klikbaar */
+cursor: pointer;
+user-select: none;
+-webkit-user-select: none; /* Voor Safari */
 }
 
 #settings-btn {
@@ -111,6 +115,7 @@ border-radius: var(--radius-lg);
 line-height: 1.6;
 font-size: 16px;
 word-wrap: break-word;
+transition: background-color 0.3s;
 }
 
 .message-bubble p:not(:last-child) {
@@ -143,6 +148,10 @@ align-self: flex-start;
 .bot-message .message-bubble {
 background-color: var(--bubble-bot-bg);
 border-bottom-left-radius: 4px;
+}
+
+.error-bubble {
+cursor: pointer;
 }
 
 .loader-bubble {
@@ -315,7 +324,7 @@ color: var(--color-text-primary);
 #cancel-settings-btn:hover { background-color: #e2e6e9; }
 
 
-/* --- AANGEPAST: Fullscreen Image Modal --- */
+/* --- Fullscreen Image Modal --- */
 #fullscreen-modal {
 position: fixed;
 top: 0; left: 0;
@@ -379,7 +388,8 @@ header { padding: 16px; }
 
 <div id="app-container">
 <header>
-<h1>🍌 Nano-Banana</h1>
+<!-- AANGEPAST: ID toegevoegd aan H1 -->
+<h1 id="page-title">🍌 Nano-Banana</h1>
 <button id="settings-btn" title="Settings">
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
@@ -429,7 +439,6 @@ header { padding: 16px; }
 </div>
 </div>
 
-<!-- AANGEPAST: Fullscreen Image Modal HTML -->
 <div id="fullscreen-modal">
   <button id="close-fullscreen-btn">&times;</button>
   <img id="fullscreen-image" src="" alt="Fullscreen Image">
@@ -451,14 +460,16 @@ uploadLabelTitle: "Attach image",
 removeImgBtnTitle: "Remove image",
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
+copied: "Copied!",
+clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.",
 welcome: "Welcome to Nano-Banana, an AI image generator and editor by Google. To begin, please enter your Google AI API key in the settings menu, accessible via the icon in the top right corner.",
 apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
 invalidApiKey: "Please enter a valid API key.",
 imgProcessError: "Sorry, I could not process your image.",
-genericError: "Oops! An error occurred: ",
-noResponse: "Something went wrong, I did not receive a response.",
-blockedResponse: "I cannot process this request. Reason: "
+genericError: "Oops! An error occurred. (Click this message to copy error details)",
+emptyResponse: "I'm sorry, I couldn't generate a response. (Click this message to copy response details)",
+blockedResponse: "I cannot process this request. (Click this message to copy response details) Reason: "
 },
 nl: {
 // UI Elements
@@ -473,19 +484,22 @@ uploadLabelTitle: "Afbeelding bijvoegen",
 removeImgBtnTitle: "Verwijder afbeelding",
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
+copied: "Gekopieerd!",
+clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.",
 welcome: "Welkom bij Nano-Banana, een AI-beeldgenerator en -editor van Google. Voer om te beginnen je Google AI API-sleutel in via het instellingenmenu, bereikbaar via het icoon rechtsboven.",
 apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
 invalidApiKey: "Voer een geldige API sleutel in.",
 imgProcessError: "Sorry, ik kon je afbeelding niet verwerken.",
-genericError: "Oeps! Er is een fout opgetreden: ",
-noResponse: "Er is iets misgegaan, ik heb geen antwoord ontvangen.",
-blockedResponse: "Ik kan dit verzoek niet verwerken. Reden: "
+genericError: "Oeps! Er is een fout opgetreden. (Klik op dit bericht om de foutdetails te kopiëren)",
+emptyResponse: "Sorry, ik kon geen antwoord genereren. (Klik op dit bericht om de responsdetails te kopiëren)",
+blockedResponse: "Ik kan dit verzoek niet verwerken. (Klik op dit bericht om de responsdetails te kopiëren) Reden: "
 }
 };
 let T; // Active translation object
 
 // DOM Elementen
+const pageTitle = document.getElementById('page-title'); // AANGEPAST: Titel element
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
@@ -498,7 +512,6 @@ const imageInput = document.getElementById('image-input');
 const imagePreviewContainer = document.getElementById('image-preview-container');
 const imagePreview = document.getElementById('image-preview');
 const removeImageBtn = document.getElementById('remove-image-btn');
-// AANGEPAST: Fullscreen Modal DOM Elementen
 const fullscreenModal = document.getElementById('fullscreen-modal');
 const fullscreenImage = document.getElementById('fullscreen-image');
 const closeFullscreenBtn = document.getElementById('close-fullscreen-btn');
@@ -622,27 +635,46 @@ function addBotMessage(textContent, imageObject = null) {
 
 function showLoader() {
     const loaderElement = document.createElement('div');
-    loaderElement.id = 'loader';
     loaderElement.className = 'chat-message bot-message';
     loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
     chatContainer.appendChild(loaderElement);
     scrollToBottom();
+    return loaderElement;
 }
 
-function hideLoader() {
-const loader = document.getElementById('loader');
-if (loader) loader.remove();
+function updateLoaderWithMessage(loaderElement, textContent, imageObject = null, errorDetails = null) {
+    const bubble = loaderElement.querySelector('.message-bubble');
+    if (!bubble) return;
+
+    bubble.classList.remove('loader-bubble');
+
+    let imageHtml = '';
+    if (imageObject && imageObject.data && imageObject.mimeType) {
+        imageHtml = `<img src="data:${imageObject.mimeType};base64,${imageObject.data}" alt="Generated Image" class="clickable-image">`;
+    }
+
+    let formattedText = textContent
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        
+    bubble.innerHTML = `<p>${formattedText.replace(/\n/g, '<br>')}</p>${imageHtml}`;
+
+    if (errorDetails) {
+        bubble.classList.add('error-bubble');
+        bubble.dataset.errorDetails = JSON.stringify(errorDetails, null, 2);
+    }
+
+    scrollToBottom();
 }
+
 
 function scrollToBottom() {
 chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// AANGEPAST: Functies voor fullscreen modal
 function openFullscreen(src) {
     fullscreenImage.src = src;
     fullscreenModal.style.display = 'flex';
-    // Add a state to browser history to handle the back button
     history.pushState({modal: 'image'}, '', '#image');
 }
 
@@ -650,14 +682,13 @@ function closeFullscreen() {
     if (fullscreenModal.style.display === 'none') return;
     fullscreenModal.style.display = 'none';
     fullscreenImage.src = '';
-    // If the modal was closed by the user (not the back button), go back in history
     if(location.hash === '#image') {
         history.back();
     }
 }
 
 async function callNanoBananaAPI() {
-    showLoader();
+    const loaderElement = showLoader();
     try {
         const response = await fetch(`${API_URL}?key=${apiKey}`, {
             method: 'POST',
@@ -665,49 +696,42 @@ async function callNanoBananaAPI() {
             body: JSON.stringify({ contents: chatHistory }),
         });
 
-        hideLoader();
+        const data = await response.json();
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+            updateLoaderWithMessage(loaderElement, T.genericError, null, data);
+            return;
         }
-
-        const data = await response.json();
 
         if (data.candidates && data.candidates.length > 0) {
             const botResponse = data.candidates[0].content;
             
             if (botResponse && botResponse.parts) {
                 chatHistory.push(botResponse);
-
                 let responseText = '';
                 let responseImage = null;
-
                 botResponse.parts.forEach(part => {
                     if (part.text) {
                         responseText += part.text + '\n';
                     } else if (part.inlineData?.data && part.inlineData?.mimeType) {
-                        responseImage = {
-                            data: part.inlineData.data,
-                            mimeType: part.inlineData.mimeType
-                        };
+                        responseImage = { data: part.inlineData.data, mimeType: part.inlineData.mimeType };
                     }
                 });
-
-                addBotMessage(responseText.trim(), responseImage);
+                updateLoaderWithMessage(loaderElement, responseText.trim(), responseImage);
             } else {
-                addBotMessage(T.noResponse);
-                console.error('API response candidate is missing content or parts:', data.candidates[0]);
+                updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
+                console.error('API response candidate is missing content or parts. Full response:', data);
             }
         } else if (data.promptFeedback) {
-            addBotMessage(T.blockedResponse + data.promptFeedback.blockReason);
+            updateLoaderWithMessage(loaderElement, T.blockedResponse + data.promptFeedback.blockReason, null, data);
         } else {
-            addBotMessage(T.noResponse);
+            updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
+            console.error('API returned no candidates and no feedback. Full response:', data);
         }
     } catch (error) {
         console.error('Error calling API:', error);
-        hideLoader();
-        addBotMessage(T.genericError + error.message);
+        const errorData = { error: error.toString(), stack: error.stack };
+        updateLoaderWithMessage(loaderElement, T.genericError, null, errorData);
     }
 }
 
@@ -718,6 +742,15 @@ document.addEventListener('DOMContentLoaded', () => {
 setLanguage(); // Set UI language and add welcome message
 apiKey = localStorage.getItem('nanoBananaApiKey');
 if (apiKey) apiKeyInput.value = apiKey;
+});
+
+// AANGEPAST: Event listener voor het wissen van de chat
+pageTitle.addEventListener('click', () => {
+    if (confirm(T.clearChatConfirm)) {
+        chatContainer.innerHTML = '';
+        chatHistory.length = 0; // Reset de chatgeschiedenis
+        addBotMessage(T.welcome);
+    }
 });
 
 settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; });
@@ -760,37 +793,48 @@ imageInput.value = '';
 imagePreviewContainer.style.display = 'none';
 });
 
-
-// --- AANGEPAST: Event Listeners voor Fullscreen Modal ---
-
-// Event delegation for dynamically added images in chat
+// --- Event Listeners voor Fullscreen & Fout Kopiëren ---
 chatContainer.addEventListener('click', (e) => {
+    // Afbeelding klikbaar voor fullscreen
     if (e.target.tagName === 'IMG' && e.target.classList.contains('clickable-image')) {
         openFullscreen(e.target.src);
     }
+
+    // Foutmelding klikbaar voor kopiëren
+    const errorBubble = e.target.closest('.error-bubble');
+    if (errorBubble && errorBubble.dataset.errorDetails) {
+        const detailsToCopy = errorBubble.dataset.errorDetails;
+        navigator.clipboard.writeText(detailsToCopy).then(() => {
+            const p = errorBubble.querySelector('p');
+            if (p) {
+                const originalText = p.innerHTML;
+                p.textContent = T.copied;
+                setTimeout(() => {
+                    p.innerHTML = originalText;
+                }, 1500);
+            }
+        }).catch(err => {
+            console.error('Failed to copy error details: ', err);
+        });
+    }
 });
 
-// Listener for the static preview image
 imagePreview.addEventListener('click', () => {
     if (imagePreview.src) {
         openFullscreen(imagePreview.src);
     }
 });
 
-// Listeners to close the modal
 closeFullscreenBtn.addEventListener('click', closeFullscreen);
 fullscreenModal.addEventListener('click', (e) => {
-    // Close if clicking on the background, but not on the image itself
     if (e.target === fullscreenModal) {
         closeFullscreen();
     }
 });
 
-// Listen for browser back button action
 window.addEventListener('popstate', (event) => {
     closeFullscreen();
 });
-
 
 </script>
 </body>
