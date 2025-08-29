@@ -141,6 +141,30 @@ background-color: var(--bubble-bot-bg);
 border-bottom-left-radius: 4px;
 }
 
+/* --- AANGEPAST: Loader Animatie --- */
+.loader-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 20px; /* Iets meer padding voor de animatie */
+}
+.loader-bubble span {
+    animation-name: bounce;
+    animation-duration: 1.4s;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+    font-size: 24px;
+    line-height: 1;
+}
+.loader-bubble span:nth-child(2) { animation-delay: .2s; }
+.loader-bubble span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1.0); }
+}
+
+
 /* Input Gedeelte */
 #input-area {
 flex-shrink: 0;
@@ -235,7 +259,7 @@ height: 48px;
 
 #image-input { display: none; }
 
-/* --- AANGEPAST: SETTINGS MODAL --- */
+/* --- SETTINGS MODAL --- */
 #settings-modal {
 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
 background: rgba(0, 0, 0, 0.5); display: none;
@@ -288,7 +312,7 @@ color: var(--color-text-primary);
 #cancel-settings-btn:hover { background-color: #e2e6e9; }
 
 
-/* --- AANGEPAST: Responsive Design voor Desktop --- */
+/* --- Responsive Design voor Desktop --- */
 @media (min-width: 901px) {
     html, body {
         height: auto;
@@ -322,7 +346,6 @@ header { padding: 16px; }
 <div id="app-container">
 <header>
 <h1>🍌 Nano-Banana</h1>
-<!-- AANGEPAST: Emoji vervangen door SVG -->
 <button id="settings-btn" title="Settings">
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
@@ -389,7 +412,7 @@ removeImgBtnTitle: "Remove image",
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
 // AANGEPAST: Welkomstbericht
-welcome: "Welcome to Nano-Banana, an AI image generator and editor by Google. To begin, please enter your Google AI API key in the settings menu, accessible via the icon in the top right corner.",
+welcome: "Welcome to Nano-Banana, an AI image generator/editor chatbot by Google. To begin, enter your Google AI API key in Settings.",
 apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
 invalidApiKey: "Please enter a valid API key.",
@@ -412,7 +435,7 @@ removeImgBtnTitle: "Verwijder afbeelding",
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
 // AANGEPAST: Welkomstbericht
-welcome: "Welkom bij Nano-Banana, een AI-beeldgenerator en -editor van Google. Voer om te beginnen je Google AI API-sleutel in via het instellingenmenu, bereikbaar via het icoon rechtsboven.",
+welcome: "Welkom bij Nano-Banana, een AI beeldgenerator/editor chatbot van Google. Voer om te beginnen je Google AI API sleutel in bij Instellingen.",
 apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
 invalidApiKey: "Voer een geldige API sleutel in.",
@@ -549,11 +572,12 @@ chatContainer.appendChild(messageElement);
 scrollToBottom();
 }
 
+// AANGEPAST: showLoader functie voor geanimeerde stipjes
 function showLoader() {
 const loaderElement = document.createElement('div');
 loaderElement.id = 'loader';
 loaderElement.className = 'chat-message bot-message';
-loaderElement.innerHTML = `<div class="message-bubble">...</div>`;
+loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
 chatContainer.appendChild(loaderElement);
 scrollToBottom();
 }
