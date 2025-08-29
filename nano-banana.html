@@ -141,12 +141,12 @@ background-color: var(--bubble-bot-bg);
 border-bottom-left-radius: 4px;
 }
 
-/* --- AANGEPAST: Loader Animatie --- */
+/* Loader Animatie */
 .loader-bubble {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 18px 20px; /* Iets meer padding voor de animatie */
+    padding: 18px 20px;
 }
 .loader-bubble span {
     animation-name: bounce;
@@ -320,15 +320,13 @@ color: var(--color-text-primary);
     }
 
     body {
-        /* Voegt ruimte toe rondom de hele app op grote schermen */
         padding: 40px 20px;
     }
 
     #app-container {
-        /* Zet een vaste hoogte die afhangt van de viewport, minus de body padding */
         height: calc(100vh - 80px);
-        max-height: 950px; /* Een limiet voor zeer hoge schermen */
-        border: 1px solid var(--border-color); /* Een subtiele rand voor definitie */
+        max-height: 950px;
+        border: 1px solid var(--border-color);
     }
 }
 
@@ -411,7 +409,6 @@ uploadLabelTitle: "Attach image",
 removeImgBtnTitle: "Remove image",
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
-// AANGEPAST: Welkomstbericht
 welcome: "Welcome to Nano-Banana, an AI image generator/editor chatbot by Google. To begin, enter your Google AI API key in Settings.",
 apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
@@ -434,7 +431,6 @@ uploadLabelTitle: "Afbeelding bijvoegen",
 removeImgBtnTitle: "Verwijder afbeelding",
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
-// AANGEPAST: Welkomstbericht
 welcome: "Welkom bij Nano-Banana, een AI beeldgenerator/editor chatbot van Google. Voer om te beginnen je Google AI API sleutel in bij Instellingen.",
 apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
@@ -560,19 +556,28 @@ chatContainer.appendChild(messageElement);
 scrollToBottom();
 }
 
-function addBotMessage(textContent, base64Image = null) {
-const messageElement = document.createElement('div');
-messageElement.className = 'chat-message bot-message';
-let imageHtml = base64Image ? `<img src="data:image/png;base64,${base64Image}" alt="Generated Image">` : '';
-let formattedText = textContent
-.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-.replace(/\*(.*?)\*/g, '<em>$1</em>');
-messageElement.innerHTML = `<div class="message-bubble"><p>${formattedText.replace(/\n/g, '<br>')}</p>${imageHtml}</div>`;
-chatContainer.appendChild(messageElement);
-scrollToBottom();
+// AANGEPAST: accepteert nu mimeType voor afbeeldingen
+function addBotMessage(textContent, base64Image = null, mimeType = 'image/png') {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'chat-message bot-message';
+    
+    let imageHtml = base64Image ? `<img src="data:${mimeType};base64,${base64Image}" alt="Generated Image">` : '';
+    
+    let formattedText = textContent
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    let textHtml = '';
+    // Voeg de <p> tag alleen toe als er daadwerkelijk tekst is
+    if (textContent.trim()) {
+        textHtml = `<p>${formattedText.replace(/\n/g, '<br>')}</p>`;
+    }
+    
+    messageElement.innerHTML = `<div class="message-bubble">${textHtml}${imageHtml}</div>`;
+    chatContainer.appendChild(messageElement);
+    scrollToBottom();
 }
 
-// AANGEPAST: showLoader functie voor geanimeerde stipjes
 function showLoader() {
 const loaderElement = document.createElement('div');
 loaderElement.id = 'loader';
@@ -613,13 +618,18 @@ if (data.candidates && data.candidates.length > 0) {
 const botResponse = data.candidates[0].content;
 chatHistory.push(botResponse);
 
-let responseText = '', responseImage = null;
+// AANGEPAST: Haalt nu ook het mimeType op uit de API response
+let responseText = '', responseImage = null, responseMimeType = null;
 botResponse.parts.forEach(part => {
-if (part.text) responseText += part.text + '\n';
-else if (part.inlineData?.data) responseImage = part.inlineData.data;
+if (part.text) {
+responseText += part.text + '\n';
+} else if (part.inlineData?.data) {
+responseImage = part.inlineData.data;
+responseMimeType = part.inlineData.mimeType;
+}
 });
 
-addBotMessage(responseText.trim(), responseImage);
+addBotMessage(responseText.trim(), responseImage, responseMimeType);
 } else if (data.promptFeedback) {
 addBotMessage(T.blockedResponse + data.promptFeedback.blockReason);
 } else {
