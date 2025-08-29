@@ -122,7 +122,6 @@ max-width: 100%;
 border-radius: var(--radius-md);
 margin-top: 12px;
 display: block;
-cursor: pointer;
 }
 
 .user-message {
@@ -142,7 +141,7 @@ background-color: var(--bubble-bot-bg);
 border-bottom-left-radius: 4px;
 }
 
-/* Loader Animatie */
+/* AANGEPAST: Loader Animatie hersteld naar origineel */
 .loader-bubble {
     display: flex;
     align-items: center;
@@ -164,7 +163,6 @@ border-bottom-left-radius: 4px;
     0%, 80%, 100% { transform: scale(0); }
     40% { transform: scale(1.0); }
 }
-
 
 /* Input Gedeelte */
 #input-area {
@@ -189,7 +187,6 @@ border-radius: var(--radius-md);
 max-height: 70px;
 border-radius: 8px;
 display: block;
-cursor: pointer; /* AANGEPAST */
 }
 #remove-image-btn {
 position: absolute;
@@ -314,39 +311,6 @@ color: var(--color-text-primary);
 #cancel-settings-btn:hover { background-color: #e2e6e9; }
 
 
-/* --- FULLSCREEN IMAGE MODAL --- */
-#fullscreen-modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    backdrop-filter: blur(8px);
-}
-#fullscreen-image {
-    max-width: 95%;
-    max-height: 95%;
-    object-fit: contain;
-    border-radius: var(--radius-md);
-}
-#close-fullscreen {
-    position: absolute;
-    top: 20px;
-    right: 35px;
-    color: #fff;
-    font-size: 40px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-#close-fullscreen:hover {
-    color: #ccc;
-}
-
-
 /* --- Responsive Design voor Desktop --- */
 @media (min-width: 901px) {
     html, body {
@@ -428,12 +392,6 @@ header { padding: 16px; }
 </div>
 </div>
 
-<!-- Fullscreen Image Modal HTML -->
-<div id="fullscreen-modal">
-    <span id="close-fullscreen" title="Close">&times;</span>
-    <img id="fullscreen-image" src="" alt="Fullscreen Image">
-</div>
-
 <script>
 // --- TRANSLATIONS ---
 const translations = {
@@ -450,7 +408,7 @@ uploadLabelTitle: "Attach image",
 removeImgBtnTitle: "Remove image",
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
-welcome: "Welcome to Nano-Banana, an AI image generator/editor chatbot by Google. To begin, enter your Google AI API key in Settings.",
+welcome: "Welcome to Nano-Banana, an AI image generator and editor by Google. To begin, please enter your Google AI API key in the settings menu, accessible via the icon in the top right corner.",
 apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
 invalidApiKey: "Please enter a valid API key.",
@@ -472,7 +430,7 @@ uploadLabelTitle: "Afbeelding bijvoegen",
 removeImgBtnTitle: "Verwijder afbeelding",
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
-welcome: "Welkom bij Nano-Banana, een AI beeldgenerator/editor chatbot van Google. Voer om te beginnen je Google AI API sleutel in bij Instellingen.",
+welcome: "Welkom bij Nano-Banana, een AI-beeldgenerator en -editor van Google. Voer om te beginnen je Google AI API-sleutel in via het instellingenmenu, bereikbaar via het icoon rechtsboven.",
 apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
 invalidApiKey: "Voer een geldige API sleutel in.",
@@ -497,9 +455,6 @@ const imageInput = document.getElementById('image-input');
 const imagePreviewContainer = document.getElementById('image-preview-container');
 const imagePreview = document.getElementById('image-preview');
 const removeImageBtn = document.getElementById('remove-image-btn');
-const fullscreenModal = document.getElementById('fullscreen-modal');
-const fullscreenImage = document.getElementById('fullscreen-image');
-const closeFullscreenBtn = document.getElementById('close-fullscreen');
 
 // Variabelen
 let apiKey = '';
@@ -600,33 +555,26 @@ chatContainer.appendChild(messageElement);
 scrollToBottom();
 }
 
-function addBotMessage(textContent, base64Image = null, mimeType = 'image/png') {
-    const messageElement = document.createElement('div');
-    messageElement.className = 'chat-message bot-message';
-    
-    let imageHtml = base64Image ? `<img src="data:${mimeType};base64,${base64Image}" alt="Generated Image">` : '';
-    
-    let formattedText = textContent
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-    let textHtml = '';
-    if (textContent.trim()) {
-        textHtml = `<p>${formattedText.replace(/\n/g, '<br>')}</p>`;
-    }
-    
-    messageElement.innerHTML = `<div class="message-bubble">${textHtml}${imageHtml}</div>`;
-    chatContainer.appendChild(messageElement);
-    scrollToBottom();
+function addBotMessage(textContent, base64Image = null) {
+const messageElement = document.createElement('div');
+messageElement.className = 'chat-message bot-message';
+let imageHtml = base64Image ? `<img src="data:image/png;base64,${base64Image}" alt="Generated Image">` : '';
+let formattedText = textContent
+.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+.replace(/\*(.*?)\*/g, '<em>$1</em>');
+messageElement.innerHTML = `<div class="message-bubble"><p>${formattedText.replace(/\n/g, '<br>')}</p>${imageHtml}</div>`;
+chatContainer.appendChild(messageElement);
+scrollToBottom();
 }
 
+// AANGEPAST: showLoader functie hersteld naar origineel
 function showLoader() {
-const loaderElement = document.createElement('div');
-loaderElement.id = 'loader';
-loaderElement.className = 'chat-message bot-message';
-loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
-chatContainer.appendChild(loaderElement);
-scrollToBottom();
+    const loaderElement = document.createElement('div');
+    loaderElement.id = 'loader';
+    loaderElement.className = 'chat-message bot-message';
+    loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
+    chatContainer.appendChild(loaderElement);
+    scrollToBottom();
 }
 
 function hideLoader() {
@@ -639,54 +587,57 @@ chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
 async function callNanoBananaAPI() {
-showLoader();
-try {
-const response = await fetch(`${API_URL}?key=${apiKey}`, {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ contents: chatHistory }),
-});
+    showLoader();
+    try {
+        const response = await fetch(`${API_URL}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: chatHistory }),
+        });
 
-hideLoader();
+        hideLoader();
 
-if (!response.ok) {
-const errorData = await response.json();
-throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.candidates && data.candidates.length > 0) {
+            const botResponse = data.candidates[0].content;
+            
+            if (botResponse && botResponse.parts) {
+                chatHistory.push(botResponse);
+
+                let responseText = '', responseImage = null;
+                botResponse.parts.forEach(part => {
+                    if (part.text) responseText += part.text + '\n';
+                    else if (part.inlineData?.data) responseImage = part.inlineData.data;
+                });
+
+                addBotMessage(responseText.trim(), responseImage);
+            } else {
+                addBotMessage(T.noResponse);
+                console.error('API response candidate is missing content or parts:', data.candidates[0]);
+            }
+        } else if (data.promptFeedback) {
+            addBotMessage(T.blockedResponse + data.promptFeedback.blockReason);
+        } else {
+            addBotMessage(T.noResponse);
+        }
+    } catch (error) {
+        console.error('Error calling API:', error);
+        hideLoader();
+        addBotMessage(T.genericError + error.message);
+    }
 }
 
-const data = await response.json();
-
-if (data.candidates && data.candidates.length > 0) {
-const botResponse = data.candidates[0].content;
-chatHistory.push(botResponse);
-
-let responseText = '', responseImage = null, responseMimeType = null;
-botResponse.parts.forEach(part => {
-if (part.text) {
-responseText += part.text + '\n';
-} else if (part.inlineData?.data) {
-responseImage = part.inlineData.data;
-responseMimeType = part.inlineData.mimeType;
-}
-});
-
-addBotMessage(responseText.trim(), responseImage, responseMimeType);
-} else if (data.promptFeedback) {
-addBotMessage(T.blockedResponse + data.promptFeedback.blockReason);
-} else {
-addBotMessage(T.noResponse);
-}
-} catch (error) {
-console.error('Error calling API:', error);
-hideLoader();
-addBotMessage(T.genericError + error.message);
-}
-}
 
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', () => {
-setLanguage();
+setLanguage(); // Set UI language and add welcome message
 apiKey = localStorage.getItem('nanoBananaApiKey');
 if (apiKey) apiKeyInput.value = apiKey;
 });
@@ -729,34 +680,6 @@ removeImageBtn.addEventListener('click', () => {
 currentFile = null;
 imageInput.value = '';
 imagePreviewContainer.style.display = 'none';
-});
-
-// Event listeners voor de fullscreen modal
-chatContainer.addEventListener('click', (e) => {
-    if (e.target.tagName === 'IMG' && e.target.closest('.message-bubble')) {
-        fullscreenImage.src = e.target.src;
-        fullscreenModal.style.display = 'flex';
-    }
-});
-
-// AANGEPAST: Maak de preview afbeelding ook klikbaar voor fullscreen
-imagePreview.addEventListener('click', (e) => {
-    fullscreenImage.src = e.target.src;
-    fullscreenModal.style.display = 'flex';
-});
-
-
-function closeFullscreenModal() {
-    fullscreenModal.style.display = 'none';
-}
-
-closeFullscreenBtn.addEventListener('click', closeFullscreenModal);
-
-fullscreenModal.addEventListener('click', (e) => {
-    // Sluit de modal alleen als er op de achtergrond wordt geklikt, niet op de afbeelding zelf
-    if (e.target === fullscreenModal) {
-        closeFullscreenModal();
-    }
 });
 
 </script>
