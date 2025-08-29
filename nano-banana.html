@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nano-Banana Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variabelen (Design Systeem) */
+        :root {
+            --font-family-sans: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --bg-page: #f8f9fa;
+            --bg-container: #ffffff;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #6c757d;
+            --accent-primary: #FFD54F;
+            --accent-primary-dark: #FFCA28;
+            --bubble-bot-bg: #f1f3f4;
+            --bubble-user-bg: #FFF9C4;
+            --border-color: #e9ecef;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.07);
+        }
+
+        /* Basis en Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-family-sans);
+            background-color: var(--bg-page);
+            color: var(--color-text-primary);
+        }
+        
+        /* Hoofd Layout Container */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--bg-container);
+            box-shadow: var(--shadow-md);
+            border-radius: var(--radius-xl);
+            max-height: 100%; 
+        }
+
+        /* Header */
+        header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-size: 1.5em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-text-secondary);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #settings-btn svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Chatberichten Gedeelte */
+        #chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-message {
+            display: flex;
+            max-width: 80%;
+            flex-shrink: 0;
+        }
+
+        .message-bubble {
+            padding: 14px 20px;
+            border-radius: var(--radius-lg);
+            line-height: 1.6;
+            font-size: 16px;
+            word-wrap: break-word;
+        }
+
+        .message-bubble p:not(:last-child) {
+            margin-bottom: 8px;
+        }
+
+        .message-bubble img {
+            max-width: 100%;
+            border-radius: var(--radius-md);
+            margin-top: 12px;
+            display: block;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .user-message .message-bubble {
+            background-color: var(--bubble-user-bg);
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+        }
+        .bot-message .message-bubble {
+            background-color: var(--bubble-bot-bg);
+            border-bottom-left-radius: 4px;
+        }
+        
+        /* Input Gedeelte */
+        #input-area {
+            flex-shrink: 0;
+            padding: 12px 24px 24px 24px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-container);
+        }
+        
+        #image-preview-container {
+            padding-bottom: 12px;
+            display: none;
+        }
+        #image-preview-wrapper {
+            position: relative;
+            display: inline-block;
+            background: var(--bubble-bot-bg);
+            padding: 8px;
+            border-radius: var(--radius-md);
+        }
+        #image-preview {
+            max-height: 70px;
+            border-radius: 8px;
+            display: block;
+        }
+        #remove-image-btn {
+            position: absolute;
+            top: -10px; right: -10px;
+            background: var(--color-text-secondary);
+            color: white; border: none; border-radius: 50%;
+            width: 24px; height: 24px;
+            font-size: 16px; line-height: 24px;
+            text-align: center; cursor: pointer; font-weight: bold;
+        }
+
+        #chat-form {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            background-color: #ffffff;
+            font-family: var(--font-family-sans);
+            font-size: 16px;
+            padding: 12px 16px;
+            min-height: 104px;
+            max-height: 250px;
+            resize: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #message-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4);
+        }
+        #message-input::placeholder {
+            color: var(--color-text-secondary);
+            opacity: 0.8;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .action-buttons button, .action-buttons label {
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            border-radius: 50%; border: none; cursor: pointer;
+            transition: background-color 0.2s;
+            background-color: var(--accent-primary);
+            color: var(--color-text-primary);
+        }
+        
+        .action-buttons button:hover, .action-buttons label:hover {
+            background-color: var(--accent-primary-dark);
+        }
+        
+        #upload-label {
+            width: 40px;
+            height: 40px;
+        }
+        #send-btn {
+            width: 48px;
+            height: 48px;
+        }
+        
+        #image-input { display: none; }
+        
+        /* --- AANGEPAST: SETTINGS MODAL --- */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        #settings-content {
+            background: var(--bg-container); padding: 30px;
+            border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+            width: 90%; max-width: 500px;
+        }
+        #settings-content h2 { 
+            margin-top: 0; 
+            margin-bottom: 24px;
+            color: var(--color-text-primary); 
+            font-family: var(--font-family-sans);
+        }
+        #settings-content label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 500; 
+            font-family: var(--font-family-sans);
+        }
+        #api-key-input {
+            width: 100%; padding: 12px;
+            border: 1px solid var(--border-color); border-radius: var(--radius-md);
+            font-size: 1em; margin-bottom: 24px; font-family: var(--font-family-sans);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #api-key-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4);
+        }
+        #settings-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        #settings-buttons button {
+            padding: 10px 20px; border: none; border-radius: var(--radius-md);
+            cursor: pointer; font-size: 1em; font-weight: 600; font-family: var(--font-family-sans);
+            transition: background-color 0.2s;
+        }
+        #save-settings-btn { 
+            background-color: var(--accent-primary); 
+            color: var(--color-text-primary); 
+        }
+        #save-settings-btn:hover { background-color: var(--accent-primary-dark); }
+        #cancel-settings-btn { 
+            background-color: var(--bubble-bot-bg);
+            color: var(--color-text-primary);
+        }
+        #cancel-settings-btn:hover { background-color: #e2e6e9; }
+        
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            #app-container { border-radius: 0; }
+            #input-area { padding: 12px; }
+            header { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>🍌 Nano-Banana</h1>
+            <!-- AANGEPAST: Emoji vervangen door SVG -->
+            <button id="settings-btn" title="Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                </svg>
+            </button>
+        </header>
+
+        <main id="chat-container">
+            <!-- Messages will be added here by JavaScript -->
+        </main>
+
+        <footer id="input-area">
+            <div id="image-preview-container">
+                <div id="image-preview-wrapper">
+                    <img id="image-preview" src="" alt="Image preview">
+                    <button id="remove-image-btn" title="Remove image">&times;</button>
+                </div>
+            </div>
+            <form id="chat-form">
+                <textarea id="message-input" placeholder="Ask a question or give a command..." rows="1"></textarea>
+                <div class="action-buttons">
+                    <input type="file" id="image-input" accept="image/*">
+                    <label for="image-input" id="upload-label" title="Attach image">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.122 2.122l7.81-7.81" />
+                        </svg>
+                    </label>
+                    <button type="submit" id="send-btn" title="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+        </footer>
+    </div>
+    
+    <div id="settings-modal">
+        <div id="settings-content">
+            <h2 id="settings-title">Settings</h2>
+            <label for="api-key-input" id="settings-label">Google AI API Key</label>
+            <input type="password" id="api-key-input" placeholder="Paste your API key here">
+            <div id="settings-buttons">
+                <button id="cancel-settings-btn">Cancel</button>
+                <button id="save-settings-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATIONS ---
+        const translations = {
+            en: {
+                // UI Elements
+                pageTitle: "Nano-Banana Interface",
+                settingsTitle: "Settings",
+                settingsBtnTitle: "Settings",
+                settingsLabel: "Google AI API Key",
+                apiKeyPlaceholder: "Paste your API key here",
+                cancel: "Cancel",
+                save: "Save",
+                uploadLabelTitle: "Attach image",
+                removeImgBtnTitle: "Remove image",
+                sendBtnTitle: "Send",
+                inputPlaceholder: "Ask a question or give a command...",
+                // AANGEPAST: Welkomstbericht
+                welcome: "Welcome to Nano-Banana, an AI image generator and editor by Google. To begin, please enter your Google AI API key in the settings menu, accessible via the icon in the top right corner.",
+                apiKeySaved: "API key saved!",
+                apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
+                invalidApiKey: "Please enter a valid API key.",
+                imgProcessError: "Sorry, I could not process your image.",
+                genericError: "Oops! An error occurred: ",
+                noResponse: "Something went wrong, I did not receive a response.",
+                blockedResponse: "I cannot process this request. Reason: "
+            },
+            nl: {
+                // UI Elements
+                pageTitle: "Nano-Banana Interface",
+                settingsTitle: "Instellingen",
+                settingsBtnTitle: "Instellingen",
+                settingsLabel: "Google AI API Sleutel",
+                apiKeyPlaceholder: "Plak hier je API sleutel",
+                cancel: "Annuleren",
+                save: "Opslaan",
+                uploadLabelTitle: "Afbeelding bijvoegen",
+                removeImgBtnTitle: "Verwijder afbeelding",
+                sendBtnTitle: "Verzend",
+                inputPlaceholder: "Stel een vraag of geef een commando...",
+                // AANGEPAST: Welkomstbericht
+                welcome: "Welkom bij Nano-Banana, een AI-beeldgenerator en -editor van Google. Voer om te beginnen je Google AI API-sleutel in via het instellingenmenu, bereikbaar via het icoon rechtsboven.",
+                apiKeySaved: "API sleutel opgeslagen!",
+                apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
+                invalidApiKey: "Voer een geldige API sleutel in.",
+                imgProcessError: "Sorry, ik kon je afbeelding niet verwerken.",
+                genericError: "Oeps! Er is een fout opgetreden: ",
+                noResponse: "Er is iets misgegaan, ik heb geen antwoord ontvangen.",
+                blockedResponse: "Ik kan dit verzoek niet verwerken. Reden: "
+            }
+        };
+        let T; // Active translation object
+
+        // DOM Elementen
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const cancelSettingsBtn = document.getElementById('cancel-settings-btn');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const chatContainer = document.getElementById('chat-container');
+        const imageInput = document.getElementById('image-input');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image-btn');
+
+        // Variabelen
+        let apiKey = '';
+        let currentFile = null;
+        const chatHistory = [];
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent';
+        
+        // --- Functions ---
+        
+        function setLanguage() {
+            const lang = navigator.language.split('-')[0];
+            document.documentElement.lang = lang;
+            T = (lang === 'nl') ? translations.nl : translations.en;
+
+            // Apply translations to UI
+            document.title = T.pageTitle;
+            settingsBtn.title = T.settingsBtnTitle;
+            document.getElementById('settings-title').textContent = T.settingsTitle;
+            document.getElementById('settings-label').textContent = T.settingsLabel;
+            apiKeyInput.placeholder = T.apiKeyPlaceholder;
+            cancelSettingsBtn.textContent = T.cancel;
+            saveSettingsBtn.textContent = T.save;
+            document.getElementById('upload-label').title = T.uploadLabelTitle;
+            removeImageBtn.title = T.removeImgBtnTitle;
+            document.getElementById('send-btn').title = T.sendBtnTitle;
+            messageInput.placeholder = T.inputPlaceholder;
+            
+            // Add initial message
+            addBotMessage(T.welcome);
+        }
+
+        function autoResizeTextarea() {
+            if (messageInput.value === '') {
+                messageInput.style.height = '104px';
+                return;
+            }
+            messageInput.style.height = 'auto';
+            messageInput.style.height = (messageInput.scrollHeight) + 'px';
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    const encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
+                    resolve({ mimeType: file.type, data: encoded });
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function handleUserMessage() {
+            const userMessageText = messageInput.value.trim();
+            if (!userMessageText && !currentFile) return;
+
+            if (!apiKey) {
+                addBotMessage(T.apiKeyNeeded);
+                return;
+            }
+
+            const userParts = [];
+            let imageForDisplay = null;
+            
+            if (currentFile) {
+                try {
+                    imageForDisplay = URL.createObjectURL(currentFile);
+                    const imageBase64 = await fileToBase64(currentFile);
+                    userParts.push({ inlineData: { mimeType: imageBase64.mimeType, data: imageBase64.data } });
+                } catch (error) {
+                    console.error("Error converting image:", error);
+                    addBotMessage(T.imgProcessError);
+                    return;
+                }
+            }
+
+            if (userMessageText) {
+                userParts.push({ text: userMessageText });
+            }
+
+            addUserMessage(userMessageText, imageForDisplay);
+            chatHistory.push({ role: "user", parts: userParts });
+
+            messageInput.value = '';
+            removeImageBtn.click();
+            autoResizeTextarea();
+            
+            callNanoBananaAPI();
+        }
+
+        function addUserMessage(message, imageUrl = null) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message user-message';
+            let imageHtml = imageUrl ? `<img src="${imageUrl}" alt="Uploaded by user">` : '';
+            let textHtml = message ? `<p>${message.replace(/\n/g, '<br>')}</p>` : '';
+            messageElement.innerHTML = `<div class="message-bubble">${imageHtml}${textHtml}</div>`;
+            chatContainer.appendChild(messageElement);
+            scrollToBottom();
+        }
+
+        function addBotMessage(textContent, base64Image = null) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'chat-message bot-message';
+            let imageHtml = base64Image ? `<img src="data:image/png;base64,${base64Image}" alt="Generated Image">` : '';
+            let formattedText = textContent
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            messageElement.innerHTML = `<div class="message-bubble"><p>${formattedText.replace(/\n/g, '<br>')}</p>${imageHtml}</div>`;
+            chatContainer.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        function showLoader() {
+            const loaderElement = document.createElement('div');
+            loaderElement.id = 'loader';
+            loaderElement.className = 'chat-message bot-message';
+            loaderElement.innerHTML = `<div class="message-bubble">...</div>`;
+            chatContainer.appendChild(loaderElement);
+            scrollToBottom();
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            if (loader) loader.remove();
+        }
+        
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function callNanoBananaAPI() {
+            showLoader();
+            try {
+                const response = await fetch(`${API_URL}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: chatHistory }),
+                });
+
+                hideLoader();
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.candidates && data.candidates.length > 0) {
+                    const botResponse = data.candidates[0].content;
+                    chatHistory.push(botResponse);
+                    
+                    let responseText = '', responseImage = null;
+                    botResponse.parts.forEach(part => {
+                        if (part.text) responseText += part.text + '\n';
+                        else if (part.inlineData?.data) responseImage = part.inlineData.data;
+                    });
+                    
+                    addBotMessage(responseText.trim(), responseImage);
+                } else if (data.promptFeedback) {
+                     addBotMessage(T.blockedResponse + data.promptFeedback.blockReason);
+                } else {
+                    addBotMessage(T.noResponse);
+                }
+            } catch (error) {
+                console.error('Error calling API:', error);
+                hideLoader();
+                addBotMessage(T.genericError + error.message);
+            }
+        }
+        
+        // --- Event Listeners ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            setLanguage(); // Set UI language and add welcome message
+            apiKey = localStorage.getItem('nanoBananaApiKey');
+            if (apiKey) apiKeyInput.value = apiKey;
+        });
+        
+        settingsBtn.addEventListener('click', () => { settingsModal.style.display = 'flex'; });
+        cancelSettingsBtn.addEventListener('click', () => { settingsModal.style.display = 'none'; });
+
+        saveSettingsBtn.addEventListener('click', () => {
+            const newApiKey = apiKeyInput.value.trim();
+            if (newApiKey) {
+                localStorage.setItem('nanoBananaApiKey', newApiKey);
+                apiKey = newApiKey;
+                settingsModal.style.display = 'none';
+                addBotMessage(T.apiKeySaved);
+            } else {
+                alert(T.invalidApiKey);
+            }
+        });
+        
+        chatForm.addEventListener('submit', (e) => { e.preventDefault(); handleUserMessage(); });
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserMessage(); }
+        });
+        messageInput.addEventListener('input', autoResizeTextarea);
+        
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentFile = file;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imagePreview.src = event.target.result;
+                    imagePreviewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        removeImageBtn.addEventListener('click', () => {
+            currentFile = null;
+            imageInput.value = '';
+            imagePreviewContainer.style.display = 'none';
+        });
+
+    </script>
+</body>
+</html>
