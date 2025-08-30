@@ -72,7 +72,6 @@ font-weight: 700;
 display: flex;
 align-items: center;
 gap: 12px;
-/* AANGEPAST: Maak de titel klikbaar */
 cursor: pointer;
 user-select: none;
 -webkit-user-select: none; /* Voor Safari */
@@ -118,6 +117,27 @@ word-wrap: break-word;
 transition: background-color 0.3s;
 }
 
+/* AANGEPAST: Container voor meerdere afbeeldingen in een bericht */
+.message-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.message-images img {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+.message-bubble p + .message-images {
+    margin-top: 12px;
+}
+.message-bubble .message-images:first-child {
+    margin-top: 0;
+}
+
+
 .message-bubble p:not(:last-child) {
 margin-bottom: 8px;
 }
@@ -125,7 +145,6 @@ margin-bottom: 8px;
 .message-bubble img {
 max-width: 100%;
 border-radius: var(--radius-md);
-margin-top: 12px;
 display: block;
 }
 
@@ -152,6 +171,11 @@ border-bottom-left-radius: 4px;
 
 .error-bubble {
 cursor: pointer;
+}
+.copy-span {
+    font-size: 0.9em;
+    color: var(--color-text-secondary);
+    opacity: 0.8;
 }
 
 .loader-bubble {
@@ -187,23 +211,28 @@ background: var(--bg-container);
 #image-preview-container {
 padding-bottom: 12px;
 display: none;
+position: relative;
 }
+/* AANGEPAST: Wrapper voor meerdere preview thumbnails */
 #image-preview-wrapper {
 position: relative;
-display: inline-block;
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
 background: var(--bubble-bot-bg);
 padding: 8px;
 border-radius: var(--radius-md);
 }
-#image-preview {
-max-height: 70px;
-border-radius: 8px;
-display: block;
-cursor: pointer;
+#image-preview-wrapper img {
+    height: 60px;
+    width: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
 }
 #remove-image-btn {
 position: absolute;
-top: -10px; right: -10px;
+top: 0px; right: -18px;
 background: var(--color-text-secondary);
 color: white; border: none; border-radius: 50%;
 width: 24px; height: 24px;
@@ -373,6 +402,10 @@ font-weight: bold;
         max-height: 950px;
         border: 1px solid var(--border-color);
     }
+    #remove-image-btn {
+        right: 0px;
+        top: -12px;
+    }
 }
 
 /* Responsive Design voor Mobiel */
@@ -381,6 +414,9 @@ font-weight: bold;
 #input-area { padding: 12px; }
 header { padding: 16px; }
 #close-fullscreen-btn { top: 15px; right: 15px; }
+#remove-image-btn {
+    top: -10px; right: -10px;
+}
 }
 </style>
 </head>
@@ -402,15 +438,16 @@ header { padding: 16px; }
 
 <footer id="input-area">
 <div id="image-preview-container">
-<div id="image-preview-wrapper">
-<img id="image-preview" src="" alt="Image preview">
-<button id="remove-image-btn" title="Remove image">&times;</button>
-</div>
+    <div id="image-preview-wrapper">
+        <!-- Image previews will be added here by JavaScript -->
+    </div>
+    <button id="remove-image-btn" title="Remove image">&times;</button>
 </div>
 <form id="chat-form">
 <textarea id="message-input" placeholder="Ask a question or give a command..." rows="1"></textarea>
 <div class="action-buttons">
-<input type="file" id="image-input" accept="image/*">
+<!-- AANGEPAST: 'multiple' attribuut toegevoegd -->
+<input type="file" id="image-input" accept="image/*" multiple>
 <label for="image-input" id="upload-label" title="Attach image">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.122 2.122l7.81-7.81" />
@@ -455,29 +492,28 @@ settingsLabel: "Google AI API Key",
 apiKeyPlaceholder: "Paste your API key here",
 cancel: "Cancel",
 save: "Save",
-uploadLabelTitle: "Attach image",
-removeImgBtnTitle: "Remove image",
+uploadLabelTitle: "Attach images",
+removeImgBtnTitle: "Remove all images",
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
-copied: "Copied!",
+copied: "(Copied!)",
+copyPrompt: "(Click to copy details)",
 clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.",
-welcome: "Welcome to Nano-Banana, an AI image generator and editor by Google. To begin, please enter your Google AI API key in the settings menu, accessible via the icon in the top right corner.",
+welcome_base: "Welcome to Nano-Banana, an AI image generator/editor chatbot by Google.",
+welcome_nokey: "Please enter your Google AI API key in Settings.",
 apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
 invalidApiKey: "Please enter a valid API key.",
-imgProcessError: "Sorry, I could not process your image.",
+imgProcessError: "Sorry, I could not process your image(s).",
 // Error messages
-genericError: "Oops! An error occurred. (Click this message to copy error details)",
-emptyResponse: "I'm sorry, I couldn't generate a response. (Click this message to copy response details)",
-blockedResponse: "I cannot process this request. (Click this message to copy response details) Reason: ",
-finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt. (Click to copy details)",
-finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request. (Click to copy details)",
-finishReasonOther: "The response could not be completed for an unspecified reason. Please try again. (Click to copy details)",
-finishReasonProhibited: "The response was blocked because it contained prohibited content. (Click to copy details)",
-// Partial response warnings
-responseIncompleteSafety: "Please note: The response may be incomplete as some content was blocked for safety reasons.",
-responseIncompleteRecitation: "Please note: The response may be incomplete to avoid recitation of copyrighted material.",
-responseIncompleteMaxTokens: "Please note: The response was cut short because it reached the maximum length."
+genericError: "Oops! An error occurred.",
+emptyResponse: "I'm sorry, I couldn't generate a response.",
+blockedResponse: "I cannot process this request. Reason:",
+finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.",
+finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.",
+finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.",
+finishReasonProhibited: "The response was blocked because it contained prohibited content.",
+imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*"
 },
 nl: {
 // UI Elements
@@ -488,29 +524,28 @@ settingsLabel: "Google AI API Sleutel",
 apiKeyPlaceholder: "Plak hier je API sleutel",
 cancel: "Annuleren",
 save: "Opslaan",
-uploadLabelTitle: "Afbeelding bijvoegen",
-removeImgBtnTitle: "Verwijder afbeelding",
+uploadLabelTitle: "Afbeeldingen bijvoegen",
+removeImgBtnTitle: "Verwijder alle afbeeldingen",
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
-copied: "Gekopieerd!",
+copied: "(Gekopieerd!)",
+copyPrompt: "(Klik om details te kopiëren)",
 clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.",
-welcome: "Welkom bij Nano-Banana, een AI-beeldgenerator en -editor van Google. Voer om te beginnen je Google AI API-sleutel in via het instellingenmenu, bereikbaar via het icoon rechtsboven.",
+welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator/editor chatbot van Google.",
+welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.",
 apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
 invalidApiKey: "Voer een geldige API sleutel in.",
-imgProcessError: "Sorry, ik kon je afbeelding niet verwerken.",
+imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.",
 // Error messages
-genericError: "Oeps! Er is een fout opgetreden. (Klik op dit bericht om de foutdetails te kopiëren)",
-emptyResponse: "Sorry, ik kon geen antwoord genereren. (Klik op dit bericht om de responsdetails te kopiëren)",
-blockedResponse: "Ik kan dit verzoek niet verwerken. (Klik op dit bericht om de responsdetails te kopiëren) Reden: ",
-finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan. (Klik om details te kopiëren)",
-finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren. (Klik om details te kopiëren)",
-finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw. (Klik om details te kopiëren)",
-finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte. (Klik om details te kopiëren)",
-// Partial response warnings
-responseIncompleteSafety: "Let op: Het antwoord is mogelijk onvolledig omdat een deel van de inhoud om veiligheidsredenen is geblokkeerd.",
-responseIncompleteRecitation: "Let op: Het antwoord is mogelijk onvolledig om herhaling van auteursrechtelijk beschermd materiaal te voorkomen.",
-responseIncompleteMaxTokens: "Let op: Het antwoord is afgebroken omdat de maximale lengte is bereikt."
+genericError: "Oeps! Er is een fout opgetreden.",
+emptyResponse: "Sorry, ik kon geen antwoord genereren.",
+blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:",
+finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.",
+finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.",
+finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.",
+finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.",
+imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*"
 }
 };
 let T; // Active translation object
@@ -527,7 +562,7 @@ const messageInput = document.getElementById('message-input');
 const chatContainer = document.getElementById('chat-container');
 const imageInput = document.getElementById('image-input');
 const imagePreviewContainer = document.getElementById('image-preview-container');
-const imagePreview = document.getElementById('image-preview');
+const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
 const removeImageBtn = document.getElementById('remove-image-btn');
 const fullscreenModal = document.getElementById('fullscreen-modal');
 const fullscreenImage = document.getElementById('fullscreen-image');
@@ -535,32 +570,37 @@ const closeFullscreenBtn = document.getElementById('close-fullscreen-btn');
 
 // Variabelen
 let apiKey = '';
-let currentFile = null;
+let currentFiles = []; // AANGEPAST: Van enkel bestand naar array
 const chatHistory = [];
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent';
 
 // --- Functions ---
 
+// AANGEPAST: Conditioneel welkomstbericht
 function setLanguage() {
-const lang = navigator.language.split('-')[0];
-document.documentElement.lang = lang;
-T = (lang === 'nl') ? translations.nl : translations.en;
+    const lang = navigator.language.split('-')[0];
+    document.documentElement.lang = lang;
+    T = (lang === 'nl') ? translations.nl : translations.en;
 
-// Apply translations to UI
-document.title = T.pageTitle;
-settingsBtn.title = T.settingsBtnTitle;
-document.getElementById('settings-title').textContent = T.settingsTitle;
-document.getElementById('settings-label').textContent = T.settingsLabel;
-apiKeyInput.placeholder = T.apiKeyPlaceholder;
-cancelSettingsBtn.textContent = T.cancel;
-saveSettingsBtn.textContent = T.save;
-document.getElementById('upload-label').title = T.uploadLabelTitle;
-removeImageBtn.title = T.removeImgBtnTitle;
-document.getElementById('send-btn').title = T.sendBtnTitle;
-messageInput.placeholder = T.inputPlaceholder;
+    // UI vertalen
+    document.title = T.pageTitle;
+    settingsBtn.title = T.settingsBtnTitle;
+    document.getElementById('settings-title').textContent = T.settingsTitle;
+    document.getElementById('settings-label').textContent = T.settingsLabel;
+    apiKeyInput.placeholder = T.apiKeyPlaceholder;
+    cancelSettingsBtn.textContent = T.cancel;
+    saveSettingsBtn.textContent = T.save;
+    document.getElementById('upload-label').title = T.uploadLabelTitle;
+    removeImageBtn.title = T.removeImgBtnTitle;
+    document.getElementById('send-btn').title = T.sendBtnTitle;
+    messageInput.placeholder = T.inputPlaceholder;
 
-// Add initial message
-addBotMessage(T.welcome);
+    // Conditioneel welkomstbericht toevoegen
+    let welcomeMessage = T.welcome_base;
+    if (!localStorage.getItem('nanoBananaApiKey')) {
+        welcomeMessage += ` ${T.welcome_nokey}`;
+    }
+    addBotMessage(welcomeMessage);
 }
 
 function autoResizeTextarea() {
@@ -584,53 +624,75 @@ reader.onerror = error => reject(error);
 });
 }
 
+// AANGEPAST: Verwerkt nu meerdere bestanden
 async function handleUserMessage() {
-const userMessageText = messageInput.value.trim();
-if (!userMessageText && !currentFile) return;
+    const userMessageText = messageInput.value.trim();
+    if (!userMessageText && currentFiles.length === 0) return;
 
-if (!apiKey) {
-addBotMessage(T.apiKeyNeeded);
-return;
+    if (!apiKey) {
+        addBotMessage(T.apiKeyNeeded);
+        return;
+    }
+
+    const userParts = [];
+    const imagesForDisplay = [];
+
+    if (currentFiles.length > 0) {
+        try {
+            // Maak display URLs en Base64-conversies parallel
+            const conversionPromises = currentFiles.map(file => {
+                imagesForDisplay.push(URL.createObjectURL(file));
+                return fileToBase64(file);
+            });
+            const imageBase64Array = await Promise.all(conversionPromises);
+            
+            imageBase64Array.forEach(imgData => {
+                userParts.push({ inlineData: { mimeType: imgData.mimeType, data: imgData.data } });
+            });
+
+        } catch (error) {
+            console.error("Error converting images:", error);
+            addBotMessage(T.imgProcessError);
+            return;
+        }
+    }
+
+    if (userMessageText) {
+        userParts.push({ text: userMessageText });
+    }
+
+    addUserMessage(userMessageText, imagesForDisplay);
+    chatHistory.push({ role: "user", parts: userParts });
+
+    messageInput.value = '';
+    removeImageBtn.click();
+    autoResizeTextarea();
+
+    callNanoBananaAPI();
 }
 
-const userParts = [];
-let imageForDisplay = null;
 
-if (currentFile) {
-try {
-imageForDisplay = URL.createObjectURL(currentFile);
-const imageBase64 = await fileToBase64(currentFile);
-userParts.push({ inlineData: { mimeType: imageBase64.mimeType, data: imageBase64.data } });
-} catch (error) {
-console.error("Error converting image:", error);
-addBotMessage(T.imgProcessError);
-return;
-}
-}
+// AANGEPAST: Kan nu een array van afbeelding URLs weergeven
+function addUserMessage(message, imageUrls = []) {
+    const messageElement = document.createElement('div');
+    messageElement.className = 'chat-message user-message';
 
-if (userMessageText) {
-userParts.push({ text: userMessageText });
-}
-
-addUserMessage(userMessageText, imageForDisplay);
-chatHistory.push({ role: "user", parts: userParts });
-
-messageInput.value = '';
-removeImageBtn.click();
-autoResizeTextarea();
-
-callNanoBananaAPI();
+    let imageHtml = '';
+    if (imageUrls.length > 0) {
+        imageHtml += '<div class="message-images">';
+        imageUrls.forEach(src => {
+            imageHtml += `<img src="${src}" alt="Uploaded by user" class="clickable-image">`;
+        });
+        imageHtml += '</div>';
+    }
+    
+    let textHtml = message ? `<p>${message.replace(/\n/g, '<br>')}</p>` : '';
+    
+    messageElement.innerHTML = `<div class="message-bubble">${textHtml}${imageHtml}</div>`;
+    chatContainer.appendChild(messageElement);
+    scrollToBottom();
 }
 
-function addUserMessage(message, imageUrl = null) {
-const messageElement = document.createElement('div');
-messageElement.className = 'chat-message user-message';
-let imageHtml = imageUrl ? `<img src="${imageUrl}" alt="Uploaded by user" class="clickable-image">` : '';
-let textHtml = message ? `<p>${message.replace(/\n/g, '<br>')}</p>` : '';
-messageElement.innerHTML = `<div class="message-bubble">${imageHtml}${textHtml}</div>`;
-chatContainer.appendChild(messageElement);
-scrollToBottom();
-}
 
 function addBotMessage(textContent, imageObject = null) {
     const messageElement = document.createElement('div');
@@ -674,16 +736,17 @@ function updateLoaderWithMessage(loaderElement, textContent, imageObject = null,
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>');
         
-    bubble.innerHTML = `<p>${formattedText.replace(/\n/g, '<br>')}</p>${imageHtml}`;
-
+    let errorHtml = '';
     if (errorDetails) {
         bubble.classList.add('error-bubble');
         bubble.dataset.errorDetails = JSON.stringify(errorDetails, null, 2);
+        errorHtml = ` <span class="copy-span">${T.copyPrompt}</span>`;
     }
+    
+    bubble.innerHTML = `<p>${formattedText.replace(/\n/g, '<br>')}${errorHtml}</p>${imageHtml}`;
 
     scrollToBottom();
 }
-
 
 function scrollToBottom() {
 chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -704,7 +767,6 @@ function closeFullscreen() {
     }
 }
 
-// --- AANGEPASTE FUNCTIE ---
 async function callNanoBananaAPI() {
     const loaderElement = showLoader();
     try {
@@ -717,7 +779,8 @@ async function callNanoBananaAPI() {
         const data = await response.json();
 
         if (!response.ok) {
-            updateLoaderWithMessage(loaderElement, data?.error?.message || T.genericError, null, data);
+            const errorMessage = data?.error?.message || T.genericError;
+            updateLoaderWithMessage(loaderElement, errorMessage, null, data);
             chatHistory.pop();
             return;
         }
@@ -725,66 +788,53 @@ async function callNanoBananaAPI() {
         const candidate = data.candidates?.[0];
 
         if (candidate) {
-            let responseText = '';
-            let responseImage = null;
-            let warningText = '';
-            let isPartialResponse = false;
-            
-            if (candidate.content?.parts?.length > 0) {
-                isPartialResponse = true;
-                chatHistory.push(candidate.content);
-                candidate.content.parts.forEach(part => {
-                    if (part.text) responseText += part.text + '\n';
-                    if (part.inlineData) responseImage = part.inlineData;
-                });
-            }
-
             const finishReason = candidate.finishReason;
-            let isError = false;
-            let errorDetails = null;
-
-            if (finishReason && finishReason !== 'STOP') {
-                errorDetails = data;
+            if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+                let reasonMessage = '';
                 switch (finishReason) {
-                    case 'MAX_TOKENS':
-                        warningText = T.responseIncompleteMaxTokens;
-                        break;
-                    case 'SAFETY':
-                        warningText = isPartialResponse ? T.responseIncompleteSafety : T.finishReasonSafety;
-                        isError = !isPartialResponse;
-                        break;
-                    case 'RECITATION':
-                        warningText = isPartialResponse ? T.responseIncompleteRecitation : T.finishReasonRecitation;
-                        isError = !isPartialResponse;
-                        break;
-                    case 'PROHIBITED_CONTENT':
-                        warningText = T.finishReasonProhibited;
-                        isError = true;
-                        break;
-                    default: // OTHER
-                        warningText = T.finishReasonOther;
-                        isError = !isPartialResponse;
-                        break;
+                    case 'SAFETY': reasonMessage = T.finishReasonSafety; break;
+                    case 'RECITATION': reasonMessage = T.finishReasonRecitation; break;
+                    case 'PROHIBITED_CONTENT': reasonMessage = T.finishReasonProhibited; break;
+                    default: reasonMessage = T.finishReasonOther;
                 }
+                updateLoaderWithMessage(loaderElement, reasonMessage, null, data);
+                chatHistory.pop();
+                return;
             }
 
-            if (isPartialResponse) {
-                const finalMessage = (responseText.trim() + (warningText ? `\n\n*${warningText}*` : '')).trim();
-                updateLoaderWithMessage(loaderElement, finalMessage, responseImage, errorDetails);
-            } else if (warningText) {
-                updateLoaderWithMessage(loaderElement, warningText, null, data);
-                chatHistory.pop();
+            if (candidate.content?.parts) {
+                chatHistory.push(candidate.content);
+                let responseText = '';
+                let responseImage = null;
+                
+                candidate.content.parts.forEach(part => {
+                    if (part.text) {
+                        responseText += part.text + '\n';
+                    } else if (part.inlineData?.data && part.inlineData?.mimeType) {
+                        responseImage = { data: part.inlineData.data, mimeType: part.inlineData.mimeType };
+                    }
+                });
+                
+                const hasText = responseText.trim().length > 0;
+                const hasImage = responseImage !== null;
+                const wasBlockedBySafety = candidate.safetyRatings?.some(r => r.probability !== 'NEGLIGIBLE');
+                
+                if (hasText && !hasImage && wasBlockedBySafety) {
+                    responseText += T.imageBlocked;
+                }
+                
+                updateLoaderWithMessage(loaderElement, responseText.trim(), responseImage);
             } else {
                 updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
                 chatHistory.pop();
             }
-
         } else if (data.promptFeedback) {
-            updateLoaderWithMessage(loaderElement, T.blockedResponse + data.promptFeedback.blockReason, null, data);
+            updateLoaderWithMessage(loaderElement, `${T.blockedResponse} ${data.promptFeedback.blockReason}`, null, data);
             chatHistory.pop();
         } else {
             updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
             chatHistory.pop();
+            console.error('API returned no candidates and no feedback. Full response:', data);
         }
     } catch (error) {
         console.error('Error calling API:', error);
@@ -793,7 +843,6 @@ async function callNanoBananaAPI() {
         chatHistory.pop();
     }
 }
-
 
 // --- Event Listeners ---
 
@@ -807,7 +856,11 @@ pageTitle.addEventListener('click', () => {
     if (confirm(T.clearChatConfirm)) {
         chatContainer.innerHTML = '';
         chatHistory.length = 0;
-        addBotMessage(T.welcome);
+        let welcomeMessage = T.welcome_base;
+        if (!apiKey) {
+            welcomeMessage += ` ${T.welcome_nokey}`;
+        }
+        addBotMessage(welcomeMessage);
     }
 });
 
@@ -832,26 +885,37 @@ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserMessage();
 });
 messageInput.addEventListener('input', autoResizeTextarea);
 
+// AANGEPAST: Event listener voor meerdere afbeeldingen
 imageInput.addEventListener('change', (e) => {
-const file = e.target.files[0];
-if (file) {
-currentFile = file;
-const reader = new FileReader();
-reader.onload = (event) => {
-imagePreview.src = event.target.result;
-imagePreviewContainer.style.display = 'block';
-};
-reader.readAsDataURL(file);
-}
+    currentFiles = Array.from(e.target.files);
+    imagePreviewWrapper.innerHTML = ''; // Maak de preview leeg
+    if (currentFiles.length > 0) {
+        currentFiles.forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.title = file.name;
+                img.addEventListener('click', () => openFullscreen(img.src));
+                imagePreviewWrapper.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+        imagePreviewContainer.style.display = 'block';
+    } else {
+        imagePreviewContainer.style.display = 'none';
+    }
 });
 
+// AANGEPAST: Knop om alle afbeeldingen te verwijderen
 removeImageBtn.addEventListener('click', () => {
-currentFile = null;
-imageInput.value = '';
-imagePreviewContainer.style.display = 'none';
+    currentFiles = [];
+    imageInput.value = ''; // Essentieel om dezelfde bestanden opnieuw te kunnen selecteren
+    imagePreviewWrapper.innerHTML = '';
+    imagePreviewContainer.style.display = 'none';
 });
 
-// --- Event Listeners voor Fullscreen & Fout Kopiëren (AANGEPAST) ---
+
 chatContainer.addEventListener('click', (e) => {
     if (e.target.tagName === 'IMG' && e.target.classList.contains('clickable-image')) {
         openFullscreen(e.target.src);
@@ -859,24 +923,24 @@ chatContainer.addEventListener('click', (e) => {
 
     const errorBubble = e.target.closest('.error-bubble');
     if (errorBubble && errorBubble.dataset.errorDetails) {
-        navigator.clipboard.writeText(errorBubble.dataset.errorDetails).then(() => {
-            const p = errorBubble.querySelector('p');
-            if (p) {
-                const originalHTML = p.innerHTML;
-                p.innerHTML = originalHTML.replace(/\(.*?\)/, `(${T.copied})`);
-                setTimeout(() => { p.innerHTML = originalHTML; }, 1500);
-            }
+        const copySpan = errorBubble.querySelector('.copy-span');
+        if (!copySpan || copySpan.textContent === T.copied) return;
+
+        const detailsToCopy = errorBubble.dataset.errorDetails;
+        navigator.clipboard.writeText(detailsToCopy).then(() => {
+            const originalText = copySpan.textContent;
+            copySpan.textContent = T.copied;
+            setTimeout(() => {
+                copySpan.textContent = originalText;
+            }, 1500);
         }).catch(err => {
             console.error('Failed to copy error details: ', err);
         });
     }
 });
 
-imagePreview.addEventListener('click', () => {
-    if (imagePreview.src) {
-        openFullscreen(imagePreview.src);
-    }
-});
+// AANGEPAST: De algemene preview-afbeelding bestaat niet meer
+// Klikken op thumbnails wordt nu direct in de 'change' listener afgehandeld
 
 closeFullscreenBtn.addEventListener('click', closeFullscreen);
 fullscreenModal.addEventListener('click', (e) => {
