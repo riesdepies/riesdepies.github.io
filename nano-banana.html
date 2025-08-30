@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nano-Banana Interface</title>
+<!-- AANGEPAST: Emoji favicon toegevoegd -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍌</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -27,7 +29,7 @@
 --shadow-md: 0 8px 24px rgba(0,0,0,0.07);
 }
 
-/* AANGEPAST: Dark Mode Variabelen */
+/* Dark Mode Variabelen */
 body.dark-mode {
 --bg-page: #121212;
 --bg-container: #1e1e1e;
@@ -87,7 +89,7 @@ header h1 { font-size: 1.5em; font-weight: 700; display: flex; align-items: cent
 #message-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4); }
 #message-input::placeholder { color: var(--color-text-secondary); opacity: 0.8; }
 .action-buttons { display: flex; flex-direction: column; gap: 8px; align-items: center; }
-.action-buttons button, .action-buttons label { display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; border: none; cursor: pointer; transition: background-color 0.2s; background-color: var(--accent-primary); color: #1a1a1a; } /* AANGEPAST: Vaste donkere tekstkleur */
+.action-buttons button, .action-buttons label { display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; border: none; cursor: pointer; transition: background-color: 0.2s; background-color: var(--accent-primary); color: #1a1a1a; }
 .action-buttons button:hover, .action-buttons label:hover { background-color: var(--accent-primary-dark); }
 #upload-label { width: 40px; height: 40px; }
 #send-btn { width: 48px; height: 48px; }
@@ -103,7 +105,7 @@ header h1 { font-size: 1.5em; font-weight: 700; display: flex; align-items: cent
 #api-key-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4); }
 #settings-buttons { display: flex; justify-content: flex-end; gap: 10px; }
 #settings-buttons button { padding: 10px 20px; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 1em; font-weight: 600; }
-#save-settings-btn { background-color: var(--accent-primary); color: #1a1a1a; } /* AANGEPAST: Vaste donkere tekstkleur */
+#save-settings-btn { background-color: var(--accent-primary); color: #1a1a1a; }
 #save-settings-btn:hover { background-color: var(--accent-primary-dark); }
 #cancel-settings-btn { background-color: var(--bubble-bot-bg); color: var(--color-text-primary); transition: background-color 0.3s; }
 #cancel-settings-btn:hover { background-color: #e2e6e9; }
@@ -111,7 +113,7 @@ body.dark-mode #cancel-settings-btn:hover { background-color: #3a3a3a; }
 #fullscreen-image { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: var(--radius-md); }
 #close-fullscreen-btn { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; line-height: 40px; text-align: center; cursor: pointer; font-weight: bold; }
 
-/* AANGEPAST: Stijlen voor de Dark Mode Toggle */
+/* Stijlen voor de Dark Mode Toggle */
 .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -152,7 +154,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 <div id="settings-modal">
 <div id="settings-content">
 <h2 id="settings-title">Settings</h2>
-<!-- AANGEPAST: Toggle switch toegevoegd -->
 <div class="setting-row">
     <label for="dark-mode-toggle" id="dark-mode-label">Dark Mode</label>
     <label class="toggle-switch">
@@ -427,7 +428,6 @@ function closeFullscreen() {
     }
 }
 
-// AANGEPAST: Functie om thema in te stellen
 function setTheme(theme) {
     localStorage.setItem('nanoBananaTheme', theme);
     document.body.className = theme === 'dark' ? 'dark-mode' : '';
@@ -459,7 +459,6 @@ function setupEventListeners() {
     D.settingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'flex');
     D.cancelSettingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'none');
     
-    // AANGEPAST: Sluiten bij klik buiten modal
     D.settingsModal.addEventListener('click', (e) => {
         if (e.target === D.settingsModal) {
             D.settingsModal.style.display = 'none';
@@ -478,7 +477,6 @@ function setupEventListeners() {
         }
     });
     
-    // AANGEPAST: Event listener voor dark mode toggle
     D.darkModeToggle.addEventListener('change', () => {
         setTheme(D.darkModeToggle.checked ? 'dark' : 'light');
     });
@@ -531,7 +529,6 @@ document.addEventListener('DOMContentLoaded', () => {
     apiKey = localStorage.getItem('nanoBananaApiKey') || '';
     if (apiKey) D.apiKeyInput.value = apiKey;
     
-    // AANGEPAST: Thema laden bij opstarten
     const savedTheme = localStorage.getItem('nanoBananaTheme') || 'light';
     setTheme(savedTheme);
 
