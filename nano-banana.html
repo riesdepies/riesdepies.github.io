@@ -117,7 +117,6 @@ word-wrap: break-word;
 transition: background-color 0.3s;
 }
 
-/* AANGEPAST: Container voor meerdere afbeeldingen in een bericht */
 .message-images {
     display: flex;
     flex-wrap: wrap;
@@ -213,32 +212,40 @@ padding-bottom: 12px;
 display: none;
 position: relative;
 }
-/* AANGEPAST: Wrapper voor meerdere preview thumbnails */
 #image-preview-wrapper {
-position: relative;
 display: flex;
 flex-wrap: wrap;
-gap: 8px;
+gap: 10px;
 background: var(--bubble-bot-bg);
-padding: 8px;
+padding: 10px;
 border-radius: var(--radius-md);
 }
-#image-preview-wrapper img {
+
+/* AANGEPAST: Stijlen voor individuele preview */
+.preview-image-wrapper {
+    position: relative;
+    display: inline-block;
+}
+.preview-image-wrapper img {
     height: 60px;
     width: 60px;
     object-fit: cover;
     border-radius: 8px;
     cursor: pointer;
+    display: block;
 }
-#remove-image-btn {
-position: absolute;
-top: 0px; right: -18px;
-background: var(--color-text-secondary);
-color: white; border: none; border-radius: 50%;
-width: 24px; height: 24px;
-font-size: 16px; line-height: 24px;
-text-align: center; cursor: pointer; font-weight: bold;
+.remove-preview-btn {
+    position: absolute;
+    top: -8px; right: -8px;
+    background: var(--color-text-secondary);
+    color: white; border: 1px solid var(--bg-container); border-radius: 50%;
+    width: 22px; height: 22px;
+    font-size: 14px; line-height: 20px;
+    text-align: center; cursor: pointer; font-weight: bold;
+    padding: 0;
+    box-shadow: var(--shadow-sm);
 }
+
 
 #chat-form {
 display: flex;
@@ -388,7 +395,7 @@ font-weight: bold;
 }
 
 
-/* --- Responsive Design voor Desktop --- */
+/* --- Responsive Design --- */
 @media (min-width: 901px) {
     html, body {
         height: auto;
@@ -402,21 +409,13 @@ font-weight: bold;
         max-height: 950px;
         border: 1px solid var(--border-color);
     }
-    #remove-image-btn {
-        right: 0px;
-        top: -12px;
-    }
 }
 
-/* Responsive Design voor Mobiel */
 @media (max-width: 900px) {
 #app-container { border-radius: 0; }
 #input-area { padding: 12px; }
 header { padding: 16px; }
 #close-fullscreen-btn { top: 15px; right: 15px; }
-#remove-image-btn {
-    top: -10px; right: -10px;
-}
 }
 </style>
 </head>
@@ -441,12 +440,10 @@ header { padding: 16px; }
     <div id="image-preview-wrapper">
         <!-- Image previews will be added here by JavaScript -->
     </div>
-    <button id="remove-image-btn" title="Remove image">&times;</button>
 </div>
 <form id="chat-form">
 <textarea id="message-input" placeholder="Ask a question or give a command..." rows="1"></textarea>
 <div class="action-buttons">
-<!-- AANGEPAST: 'multiple' attribuut toegevoegd -->
 <input type="file" id="image-input" accept="image/*" multiple>
 <label for="image-input" id="upload-label" title="Attach image">
 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -493,7 +490,7 @@ apiKeyPlaceholder: "Paste your API key here",
 cancel: "Cancel",
 save: "Save",
 uploadLabelTitle: "Attach images",
-removeImgBtnTitle: "Remove all images",
+removeImgBtnTitle: "Remove image", // Changed from "all images"
 sendBtnTitle: "Send",
 inputPlaceholder: "Ask a question or give a command...",
 copied: "(Copied!)",
@@ -525,7 +522,7 @@ apiKeyPlaceholder: "Plak hier je API sleutel",
 cancel: "Annuleren",
 save: "Opslaan",
 uploadLabelTitle: "Afbeeldingen bijvoegen",
-removeImgBtnTitle: "Verwijder alle afbeeldingen",
+removeImgBtnTitle: "Verwijder afbeelding", // Aangepast
 sendBtnTitle: "Verzend",
 inputPlaceholder: "Stel een vraag of geef een commando...",
 copied: "(Gekopieerd!)",
@@ -563,26 +560,23 @@ const chatContainer = document.getElementById('chat-container');
 const imageInput = document.getElementById('image-input');
 const imagePreviewContainer = document.getElementById('image-preview-container');
 const imagePreviewWrapper = document.getElementById('image-preview-wrapper');
-const removeImageBtn = document.getElementById('remove-image-btn');
 const fullscreenModal = document.getElementById('fullscreen-modal');
 const fullscreenImage = document.getElementById('fullscreen-image');
 const closeFullscreenBtn = document.getElementById('close-fullscreen-btn');
 
 // Variabelen
 let apiKey = '';
-let currentFiles = []; // AANGEPAST: Van enkel bestand naar array
+let currentFiles = []; // AANGEPAST: Structuur is nu [{id, file}, {id, file}, ...]
 const chatHistory = [];
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent';
 
 // --- Functions ---
 
-// AANGEPAST: Conditioneel welkomstbericht
 function setLanguage() {
     const lang = navigator.language.split('-')[0];
     document.documentElement.lang = lang;
     T = (lang === 'nl') ? translations.nl : translations.en;
 
-    // UI vertalen
     document.title = T.pageTitle;
     settingsBtn.title = T.settingsBtnTitle;
     document.getElementById('settings-title').textContent = T.settingsTitle;
@@ -591,11 +585,9 @@ function setLanguage() {
     cancelSettingsBtn.textContent = T.cancel;
     saveSettingsBtn.textContent = T.save;
     document.getElementById('upload-label').title = T.uploadLabelTitle;
-    removeImageBtn.title = T.removeImgBtnTitle;
     document.getElementById('send-btn').title = T.sendBtnTitle;
     messageInput.placeholder = T.inputPlaceholder;
 
-    // Conditioneel welkomstbericht toevoegen
     let welcomeMessage = T.welcome_base;
     if (!localStorage.getItem('nanoBananaApiKey')) {
         welcomeMessage += ` ${T.welcome_nokey}`;
@@ -624,7 +616,6 @@ reader.onerror = error => reject(error);
 });
 }
 
-// AANGEPAST: Verwerkt nu meerdere bestanden
 async function handleUserMessage() {
     const userMessageText = messageInput.value.trim();
     if (!userMessageText && currentFiles.length === 0) return;
@@ -636,11 +627,11 @@ async function handleUserMessage() {
 
     const userParts = [];
     const imagesForDisplay = [];
+    const filesToSend = currentFiles.map(item => item.file);
 
-    if (currentFiles.length > 0) {
+    if (filesToSend.length > 0) {
         try {
-            // Maak display URLs en Base64-conversies parallel
-            const conversionPromises = currentFiles.map(file => {
+            const conversionPromises = filesToSend.map(file => {
                 imagesForDisplay.push(URL.createObjectURL(file));
                 return fileToBase64(file);
             });
@@ -665,14 +656,13 @@ async function handleUserMessage() {
     chatHistory.push({ role: "user", parts: userParts });
 
     messageInput.value = '';
-    removeImageBtn.click();
+    clearAllPreviews();
     autoResizeTextarea();
 
     callNanoBananaAPI();
 }
 
 
-// AANGEPAST: Kan nu een array van afbeelding URLs weergeven
 function addUserMessage(message, imageUrls = []) {
     const messageElement = document.createElement('div');
     messageElement.className = 'chat-message user-message';
@@ -765,6 +755,54 @@ function closeFullscreen() {
     if(location.hash === '#image') {
         history.back();
     }
+}
+
+// --- NIEUWE FUNCTIES ---
+function createPreviewElement(id, file) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'preview-image-wrapper';
+    wrapper.dataset.id = id;
+
+    const img = document.createElement('img');
+    img.title = file.name;
+    img.addEventListener('click', () => openFullscreen(img.src));
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-preview-btn';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.title = T.removeImgBtnTitle;
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeImageById(id);
+    });
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(removeBtn);
+    imagePreviewWrapper.appendChild(wrapper);
+}
+
+function removeImageById(id) {
+    currentFiles = currentFiles.filter(item => item.id !== id);
+    const elementToRemove = imagePreviewWrapper.querySelector(`.preview-image-wrapper[data-id="${id}"]`);
+    if (elementToRemove) {
+        elementToRemove.remove();
+    }
+    if (currentFiles.length === 0) {
+        imagePreviewContainer.style.display = 'none';
+    }
+}
+
+function clearAllPreviews() {
+    currentFiles = [];
+    imageInput.value = '';
+    imagePreviewWrapper.innerHTML = '';
+    imagePreviewContainer.style.display = 'none';
 }
 
 async function callNanoBananaAPI() {
@@ -885,34 +923,19 @@ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserMessage();
 });
 messageInput.addEventListener('input', autoResizeTextarea);
 
-// AANGEPAST: Event listener voor meerdere afbeeldingen
+// AANGEPAST: Event listener voor toevoegen van afbeeldingen
 imageInput.addEventListener('change', (e) => {
-    currentFiles = Array.from(e.target.files);
-    imagePreviewWrapper.innerHTML = ''; // Maak de preview leeg
-    if (currentFiles.length > 0) {
-        currentFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = document.createElement('img');
-                img.src = event.target.result;
-                img.title = file.name;
-                img.addEventListener('click', () => openFullscreen(img.src));
-                imagePreviewWrapper.appendChild(img);
-            };
-            reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+        files.forEach(file => {
+            const id = Date.now() + '-' + file.name;
+            currentFiles.push({ id, file });
+            createPreviewElement(id, file);
         });
         imagePreviewContainer.style.display = 'block';
-    } else {
-        imagePreviewContainer.style.display = 'none';
     }
-});
-
-// AANGEPAST: Knop om alle afbeeldingen te verwijderen
-removeImageBtn.addEventListener('click', () => {
-    currentFiles = [];
-    imageInput.value = ''; // Essentieel om dezelfde bestanden opnieuw te kunnen selecteren
-    imagePreviewWrapper.innerHTML = '';
-    imagePreviewContainer.style.display = 'none';
+    // Belangrijk: reset de input zodat de 'change' event opnieuw kan triggeren
+    imageInput.value = '';
 });
 
 
@@ -938,9 +961,6 @@ chatContainer.addEventListener('click', (e) => {
         });
     }
 });
-
-// AANGEPAST: De algemene preview-afbeelding bestaat niet meer
-// Klikken op thumbnails wordt nu direct in de 'change' listener afgehandeld
 
 closeFullscreenBtn.addEventListener('click', closeFullscreen);
 fullscreenModal.addEventListener('click', (e) => {
