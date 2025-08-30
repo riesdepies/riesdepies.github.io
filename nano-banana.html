@@ -388,7 +388,6 @@ header { padding: 16px; }
 
 <div id="app-container">
 <header>
-<!-- AANGEPAST: ID toegevoegd aan H1 -->
 <h1 id="page-title">🍌 Nano-Banana</h1>
 <button id="settings-btn" title="Settings">
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -445,7 +444,7 @@ header { padding: 16px; }
 </div>
 
 <script>
-// --- TRANSLATIONS ---
+// --- TRANSLATIONS (AANGEPAST) ---
 const translations = {
 en: {
 // UI Elements
@@ -467,9 +466,18 @@ apiKeySaved: "API key saved!",
 apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.",
 invalidApiKey: "Please enter a valid API key.",
 imgProcessError: "Sorry, I could not process your image.",
+// Error messages
 genericError: "Oops! An error occurred. (Click this message to copy error details)",
 emptyResponse: "I'm sorry, I couldn't generate a response. (Click this message to copy response details)",
-blockedResponse: "I cannot process this request. (Click this message to copy response details) Reason: "
+blockedResponse: "I cannot process this request. (Click this message to copy response details) Reason: ",
+finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt. (Click to copy details)",
+finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request. (Click to copy details)",
+finishReasonOther: "The response could not be completed for an unspecified reason. Please try again. (Click to copy details)",
+finishReasonProhibited: "The response was blocked because it contained prohibited content. (Click to copy details)",
+// Partial response warnings
+responseIncompleteSafety: "Please note: The response may be incomplete as some content was blocked for safety reasons.",
+responseIncompleteRecitation: "Please note: The response may be incomplete to avoid recitation of copyrighted material.",
+responseIncompleteMaxTokens: "Please note: The response was cut short because it reached the maximum length."
 },
 nl: {
 // UI Elements
@@ -491,15 +499,24 @@ apiKeySaved: "API sleutel opgeslagen!",
 apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).",
 invalidApiKey: "Voer een geldige API sleutel in.",
 imgProcessError: "Sorry, ik kon je afbeelding niet verwerken.",
+// Error messages
 genericError: "Oeps! Er is een fout opgetreden. (Klik op dit bericht om de foutdetails te kopiëren)",
 emptyResponse: "Sorry, ik kon geen antwoord genereren. (Klik op dit bericht om de responsdetails te kopiëren)",
-blockedResponse: "Ik kan dit verzoek niet verwerken. (Klik op dit bericht om de responsdetails te kopiëren) Reden: "
+blockedResponse: "Ik kan dit verzoek niet verwerken. (Klik op dit bericht om de responsdetails te kopiëren) Reden: ",
+finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan. (Klik om details te kopiëren)",
+finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren. (Klik om details te kopiëren)",
+finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw. (Klik om details te kopiëren)",
+finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte. (Klik om details te kopiëren)",
+// Partial response warnings
+responseIncompleteSafety: "Let op: Het antwoord is mogelijk onvolledig omdat een deel van de inhoud om veiligheidsredenen is geblokkeerd.",
+responseIncompleteRecitation: "Let op: Het antwoord is mogelijk onvolledig om herhaling van auteursrechtelijk beschermd materiaal te voorkomen.",
+responseIncompleteMaxTokens: "Let op: Het antwoord is afgebroken omdat de maximale lengte is bereikt."
 }
 };
 let T; // Active translation object
 
 // DOM Elementen
-const pageTitle = document.getElementById('page-title'); // AANGEPAST: Titel element
+const pageTitle = document.getElementById('page-title');
 const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const saveSettingsBtn = document.getElementById('save-settings-btn');
@@ -687,6 +704,7 @@ function closeFullscreen() {
     }
 }
 
+// --- AANGEPASTE FUNCTIE ---
 async function callNanoBananaAPI() {
     const loaderElement = showLoader();
     try {
@@ -699,39 +717,80 @@ async function callNanoBananaAPI() {
         const data = await response.json();
 
         if (!response.ok) {
-            updateLoaderWithMessage(loaderElement, T.genericError, null, data);
+            updateLoaderWithMessage(loaderElement, data?.error?.message || T.genericError, null, data);
+            chatHistory.pop();
             return;
         }
 
-        if (data.candidates && data.candidates.length > 0) {
-            const botResponse = data.candidates[0].content;
+        const candidate = data.candidates?.[0];
+
+        if (candidate) {
+            let responseText = '';
+            let responseImage = null;
+            let warningText = '';
+            let isPartialResponse = false;
             
-            if (botResponse && botResponse.parts) {
-                chatHistory.push(botResponse);
-                let responseText = '';
-                let responseImage = null;
-                botResponse.parts.forEach(part => {
-                    if (part.text) {
-                        responseText += part.text + '\n';
-                    } else if (part.inlineData?.data && part.inlineData?.mimeType) {
-                        responseImage = { data: part.inlineData.data, mimeType: part.inlineData.mimeType };
-                    }
+            if (candidate.content?.parts?.length > 0) {
+                isPartialResponse = true;
+                chatHistory.push(candidate.content);
+                candidate.content.parts.forEach(part => {
+                    if (part.text) responseText += part.text + '\n';
+                    if (part.inlineData) responseImage = part.inlineData;
                 });
-                updateLoaderWithMessage(loaderElement, responseText.trim(), responseImage);
+            }
+
+            const finishReason = candidate.finishReason;
+            let isError = false;
+            let errorDetails = null;
+
+            if (finishReason && finishReason !== 'STOP') {
+                errorDetails = data;
+                switch (finishReason) {
+                    case 'MAX_TOKENS':
+                        warningText = T.responseIncompleteMaxTokens;
+                        break;
+                    case 'SAFETY':
+                        warningText = isPartialResponse ? T.responseIncompleteSafety : T.finishReasonSafety;
+                        isError = !isPartialResponse;
+                        break;
+                    case 'RECITATION':
+                        warningText = isPartialResponse ? T.responseIncompleteRecitation : T.finishReasonRecitation;
+                        isError = !isPartialResponse;
+                        break;
+                    case 'PROHIBITED_CONTENT':
+                        warningText = T.finishReasonProhibited;
+                        isError = true;
+                        break;
+                    default: // OTHER
+                        warningText = T.finishReasonOther;
+                        isError = !isPartialResponse;
+                        break;
+                }
+            }
+
+            if (isPartialResponse) {
+                const finalMessage = (responseText.trim() + (warningText ? `\n\n*${warningText}*` : '')).trim();
+                updateLoaderWithMessage(loaderElement, finalMessage, responseImage, errorDetails);
+            } else if (warningText) {
+                updateLoaderWithMessage(loaderElement, warningText, null, data);
+                chatHistory.pop();
             } else {
                 updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
-                console.error('API response candidate is missing content or parts. Full response:', data);
+                chatHistory.pop();
             }
+
         } else if (data.promptFeedback) {
             updateLoaderWithMessage(loaderElement, T.blockedResponse + data.promptFeedback.blockReason, null, data);
+            chatHistory.pop();
         } else {
             updateLoaderWithMessage(loaderElement, T.emptyResponse, null, data);
-            console.error('API returned no candidates and no feedback. Full response:', data);
+            chatHistory.pop();
         }
     } catch (error) {
         console.error('Error calling API:', error);
         const errorData = { error: error.toString(), stack: error.stack };
         updateLoaderWithMessage(loaderElement, T.genericError, null, errorData);
+        chatHistory.pop();
     }
 }
 
@@ -739,16 +798,15 @@ async function callNanoBananaAPI() {
 // --- Event Listeners ---
 
 document.addEventListener('DOMContentLoaded', () => {
-setLanguage(); // Set UI language and add welcome message
+setLanguage();
 apiKey = localStorage.getItem('nanoBananaApiKey');
 if (apiKey) apiKeyInput.value = apiKey;
 });
 
-// AANGEPAST: Event listener voor het wissen van de chat
 pageTitle.addEventListener('click', () => {
     if (confirm(T.clearChatConfirm)) {
         chatContainer.innerHTML = '';
-        chatHistory.length = 0; // Reset de chatgeschiedenis
+        chatHistory.length = 0;
         addBotMessage(T.welcome);
     }
 });
@@ -793,25 +851,20 @@ imageInput.value = '';
 imagePreviewContainer.style.display = 'none';
 });
 
-// --- Event Listeners voor Fullscreen & Fout Kopiëren ---
+// --- Event Listeners voor Fullscreen & Fout Kopiëren (AANGEPAST) ---
 chatContainer.addEventListener('click', (e) => {
-    // Afbeelding klikbaar voor fullscreen
     if (e.target.tagName === 'IMG' && e.target.classList.contains('clickable-image')) {
         openFullscreen(e.target.src);
     }
 
-    // Foutmelding klikbaar voor kopiëren
     const errorBubble = e.target.closest('.error-bubble');
     if (errorBubble && errorBubble.dataset.errorDetails) {
-        const detailsToCopy = errorBubble.dataset.errorDetails;
-        navigator.clipboard.writeText(detailsToCopy).then(() => {
+        navigator.clipboard.writeText(errorBubble.dataset.errorDetails).then(() => {
             const p = errorBubble.querySelector('p');
             if (p) {
-                const originalText = p.innerHTML;
-                p.textContent = T.copied;
-                setTimeout(() => {
-                    p.innerHTML = originalText;
-                }, 1500);
+                const originalHTML = p.innerHTML;
+                p.innerHTML = originalHTML.replace(/\(.*?\)/, `(${T.copied})`);
+                setTimeout(() => { p.innerHTML = originalHTML; }, 1500);
             }
         }).catch(err => {
             console.error('Failed to copy error details: ', err);
