@@ -101,7 +101,14 @@ header h1 { font-size: 1.5em; font-weight: 700; display: flex; align-items: cent
 #settings-content { background: var(--bg-container); padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); width: 90%; max-width: 500px; transition: background-color 0.3s; }
 #settings-content h2 { margin-top: 0; margin-bottom: 24px; }
 #settings-content label { display: block; margin-bottom: 8px; font-weight: 500; }
-#api-key-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1em; margin-bottom: 24px; background-color: var(--bg-container); color: var(--color-text-primary); transition: all 0.2s; }
+
+/* AANGEPAST: Stijlen voor API-sleutel wrapper, input en toggle-knop */
+.api-key-wrapper { position: relative; margin-bottom: 24px; }
+#api-key-input { width: 100%; padding: 12px 40px 12px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1em; background-color: var(--bg-container); color: var(--color-text-primary); transition: all 0.2s; }
+#toggle-api-key-visibility { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); transition: color 0.2s; }
+#toggle-api-key-visibility svg { width: 22px; height: 22px; }
+#toggle-api-key-visibility:hover { color: var(--color-text-primary); }
+
 #api-key-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4); }
 #settings-buttons { display: flex; justify-content: flex-end; gap: 10px; }
 #settings-buttons button { padding: 10px 20px; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 1em; font-weight: 600; }
@@ -155,14 +162,18 @@ input:checked + .slider:before { transform: translateX(22px); }
 <div id="settings-content">
 <h2 id="settings-title">Settings</h2>
 <div class="setting-row">
-    <label for="dark-mode-toggle" id="dark-mode-label">Dark Mode</label>
-    <label class="toggle-switch">
-        <input type="checkbox" id="dark-mode-toggle">
-        <span class="slider"></span>
-    </label>
+<label for="dark-mode-toggle" id="dark-mode-label">Dark Mode</label>
+<label class="toggle-switch">
+<input type="checkbox" id="dark-mode-toggle">
+<span class="slider"></span>
+</label>
 </div>
 <label for="api-key-input" id="settings-label">Google AI API Key</label>
-<input type="password" id="api-key-input" placeholder="Paste your API key here">
+<!-- AANGEPAST: Wrapper div voor input en knop toegevoegd -->
+<div class="api-key-wrapper">
+    <input type="password" id="api-key-input" placeholder="Paste your API key here">
+    <button type="button" id="toggle-api-key-visibility"></button>
+</div>
 <div id="settings-buttons">
 <button id="cancel-settings-btn">Cancel</button>
 <button id="save-settings-btn">Save</button>
@@ -177,9 +188,10 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 <script>
 // --- TRANSLATIONS ---
+// AANGEPAST: Vertalingen voor API-sleutel zichtbaarheid toegevoegd
 const translations = {
-    en: { pageTitle: "Nano-Banana Interface", settingsTitle: "Settings", settingsBtnTitle: "Settings", darkModeLabel: "Dark Mode", settingsLabel: "Google AI API Key", apiKeyPlaceholder: "Paste your API key here", cancel: "Cancel", save: "Save", uploadLabelTitle: "Attach images", removeImgBtnTitle: "Remove image", sendBtnTitle: "Send", inputPlaceholder: "Ask a question or give a command...", copied: "(Copied!)", copyPrompt: "(Click to copy details)", clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.", welcome_base: "Welcome to Nano-Banana, an AI image generator/editor/analyzer chatbot, powered by Google.", welcome_nokey: "Please enter your Google AI API key in Settings.", apiKeySaved: "API key saved!", apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.", invalidApiKey: "Please enter a valid API key.", imgProcessError: "Sorry, I could not process your image(s).", genericError: "Oops! An error occurred.", emptyResponse: "I'm sorry, I couldn't generate a response.", emptyResponseFiltered: "The response was empty. This can happen if the request violates content policies. Please try rephrasing your prompt.", blockedResponse: "I cannot process this request. Reason:", finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.", finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.", finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.", finishReasonProhibited: "The response was blocked because it contained prohibited content.", imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*" },
-    nl: { pageTitle: "Nano-Banana Interface", settingsTitle: "Instellingen", settingsBtnTitle: "Instellingen", darkModeLabel: "Donkere Modus", settingsLabel: "Google AI API Sleutel", apiKeyPlaceholder: "Plak hier je API sleutel", cancel: "Annuleren", save: "Opslaan", uploadLabelTitle: "Afbeeldingen bijvoegen", removeImgBtnTitle: "Verwijder afbeelding", sendBtnTitle: "Verzend", inputPlaceholder: "Stel een vraag of geef een commando...", copied: "(Gekopieerd!)", copyPrompt: "(Klik om details te kopiëren)", clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.", welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator, -editor en -analysator chatbot van Google.", welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.", apiKeySaved: "API sleutel opgeslagen!", apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).", invalidApiKey: "Voer een geldige API sleutel in.", imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.", genericError: "Oeps! Er is een fout opgetreden.", emptyResponse: "Sorry, ik kon geen antwoord genereren.", emptyResponseFiltered: "Het antwoord was leeg. Dit kan gebeuren als het verzoek de inhoudsregels schendt. Probeer je vraag anders te formuleren.", blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:", finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.", finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.", finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.", finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.", imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*" }
+en: { pageTitle: "Nano-Banana Interface", settingsTitle: "Settings", settingsBtnTitle: "Settings", darkModeLabel: "Dark Mode", settingsLabel: "Google AI API Key", apiKeyPlaceholder: "Paste your API key here", cancel: "Cancel", save: "Save", uploadLabelTitle: "Attach images", removeImgBtnTitle: "Remove image", sendBtnTitle: "Send", inputPlaceholder: "Ask a question or give a command...", copied: "(Copied!)", copyPrompt: "(Click to copy details)", clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.", welcome_base: "Welcome to Nano-Banana, an AI image generator/editor/analyzer chatbot, powered by Google.", welcome_nokey: "Please enter your Google AI API key in Settings.", apiKeySaved: "API key saved!", apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.", invalidApiKey: "Please enter a valid API key.", imgProcessError: "Sorry, I could not process your image(s).", genericError: "Oops! An error occurred.", emptyResponse: "I'm sorry, I couldn't generate a response.", emptyResponseFiltered: "The response was empty. This can happen if the request violates content policies. Please try rephrasing your prompt.", blockedResponse: "I cannot process this request. Reason:", finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.", finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.", finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.", finishReasonProhibited: "The response was blocked because it contained prohibited content.", imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*", showApiKeyTitle: "Show API Key", hideApiKeyTitle: "Hide API Key" },
+nl: { pageTitle: "Nano-Banana Interface", settingsTitle: "Instellingen", settingsBtnTitle: "Instellingen", darkModeLabel: "Donkere Modus", settingsLabel: "Google AI API Sleutel", apiKeyPlaceholder: "Plak hier je API sleutel", cancel: "Annuleren", save: "Opslaan", uploadLabelTitle: "Afbeeldingen bijvoegen", removeImgBtnTitle: "Verwijder afbeelding", sendBtnTitle: "Verzend", inputPlaceholder: "Stel een vraag of geef een commando...", copied: "(Gekopieerd!)", copyPrompt: "(Klik om details te kopiëren)", clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.", welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator, -editor en -analysator chatbot van Google.", welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.", apiKeySaved: "API sleutel opgeslagen!", apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).", invalidApiKey: "Voer een geldige API sleutel in.", imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.", genericError: "Oeps! Er is een fout opgetreden.", emptyResponse: "Sorry, ik kon geen antwoord genereren.", emptyResponseFiltered: "Het antwoord was leeg. Dit kan gebeuren als het verzoek de inhoudsregels schendt. Probeer je vraag anders te formuleren.", blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:", finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.", finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.", finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.", finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.", imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*", showApiKeyTitle: "Toon API Sleutel", hideApiKeyTitle: "Verberg API Sleutel" }
 };
 let T;
 
@@ -191,349 +203,365 @@ let currentFiles = [];
 
 // --- DOM HELPER ---
 const getElements = (ids) => ids.reduce((acc, id) => {
-    const camelCaseId = id.replace(/-./g, m => m[1].toUpperCase());
-    acc[camelCaseId] = document.getElementById(id);
-    return acc;
+const camelCaseId = id.replace(/-./g, m => m[1].toUpperCase());
+acc[camelCaseId] = document.getElementById(id);
+return acc;
 }, {});
 
+// AANGEPAST: 'toggle-api-key-visibility' toegevoegd aan de lijst
 const D = getElements([
-    'page-title', 'settings-btn', 'settings-modal', 'save-settings-btn', 'cancel-settings-btn',
-    'api-key-input', 'chat-form', 'message-input', 'chat-container', 'image-input',
-    'image-preview-container', 'image-preview-wrapper', 'fullscreen-modal', 'fullscreen-image',
-    'close-fullscreen-btn', 'dark-mode-toggle'
+'page-title', 'settings-btn', 'settings-modal', 'save-settings-btn', 'cancel-settings-btn',
+'api-key-input', 'chat-form', 'message-input', 'chat-container', 'image-input',
+'image-preview-container', 'image-preview-wrapper', 'fullscreen-modal', 'fullscreen-image',
+'close-fullscreen-btn', 'dark-mode-toggle', 'toggle-api-key-visibility'
 ]);
 
 // --- CORE FUNCTIONS ---
 
 function setLanguage() {
-    const lang = navigator.language.split('-')[0];
-    document.documentElement.lang = lang;
-    T = (lang === 'nl') ? translations.nl : translations.en;
-    
-    document.title = T.pageTitle;
-    D.settingsBtn.title = T.settingsBtnTitle;
-    document.getElementById('settings-title').textContent = T.settingsTitle;
-    document.getElementById('dark-mode-label').textContent = T.darkModeLabel;
-    document.getElementById('settings-label').textContent = T.settingsLabel;
-    D.apiKeyInput.placeholder = T.apiKeyPlaceholder;
-    D.cancelSettingsBtn.textContent = T.cancel;
-    D.saveSettingsBtn.textContent = T.save;
-    document.getElementById('upload-label').title = T.uploadLabelTitle;
-    document.getElementById('send-btn').title = T.sendBtnTitle;
-    D.messageInput.placeholder = T.inputPlaceholder;
+const lang = navigator.language.split('-')[0];
+document.documentElement.lang = lang;
+T = (lang === 'nl') ? translations.nl : translations.en;
 
-    let welcomeMessage = T.welcome_base;
-    if (!localStorage.getItem('nanoBananaApiKey')) {
-        welcomeMessage += ` ${T.welcome_nokey}`;
-    }
-    appendMessage('bot', { text: welcomeMessage });
+document.title = T.pageTitle;
+D.settingsBtn.title = T.settingsBtnTitle;
+document.getElementById('settings-title').textContent = T.settingsTitle;
+document.getElementById('dark-mode-label').textContent = T.darkModeLabel;
+document.getElementById('settings-label').textContent = T.settingsLabel;
+D.apiKeyInput.placeholder = T.apiKeyPlaceholder;
+D.cancelSettingsBtn.textContent = T.cancel;
+D.saveSettingsBtn.textContent = T.save;
+document.getElementById('upload-label').title = T.uploadLabelTitle;
+document.getElementById('send-btn').title = T.sendBtnTitle;
+D.messageInput.placeholder = T.inputPlaceholder;
+
+let welcomeMessage = T.welcome_base;
+if (!localStorage.getItem('nanoBananaApiKey')) {
+welcomeMessage += ` ${T.welcome_key}`;
+}
+appendMessage('bot', { text: welcomeMessage });
 }
 
 async function handleUserMessage() {
-    const userMessageText = D.messageInput.value.trim();
-    if (!userMessageText && currentFiles.length === 0) return;
-    if (!apiKey) return appendMessage('bot', { text: T.apiKeyNeeded });
+const userMessageText = D.messageInput.value.trim();
+if (!userMessageText && currentFiles.length === 0) return;
+if (!apiKey) return appendMessage('bot', { text: T.apiKeyNeeded });
 
-    const userParts = [];
-    const imagesForDisplay = [];
-    const filesToSend = currentFiles.map(item => item.file);
+const userParts = [];
+const imagesForDisplay = [];
+const filesToSend = currentFiles.map(item => item.file);
 
-    if (filesToSend.length > 0) {
-        try {
-            const conversionPromises = filesToSend.map(file => {
-                imagesForDisplay.push(URL.createObjectURL(file));
-                return fileToBase64(file);
-            });
-            const imageBase64Array = await Promise.all(conversionPromises);
-            imageBase64Array.forEach(imgData => userParts.push({ inlineData: { mimeType: imgData.mimeType, data: imgData.data } }));
-        } catch (error) {
-            console.error("Error converting images:", error);
-            return appendMessage('bot', { text: T.imgProcessError });
-        }
-    }
+if (filesToSend.length > 0) {
+try {
+const conversionPromises = filesToSend.map(file => {
+imagesForDisplay.push(URL.createObjectURL(file));
+return fileToBase64(file);
+});
+const imageBase64Array = await Promise.all(conversionPromises);
+imageBase64Array.forEach(imgData => userParts.push({ inlineData: { mimeType: imgData.mimeType, data: imgData.data } }));
+} catch (error) {
+console.error("Error converting images:", error);
+return appendMessage('bot', { text: T.imgProcessError });
+}
+}
 
-    if (userMessageText) userParts.push({ text: userMessageText });
+if (userMessageText) userParts.push({ text: userMessageText });
 
-    appendMessage('user', { text: userMessageText, images: imagesForDisplay });
-    chatHistory.push({ role: "user", parts: userParts });
+appendMessage('user', { text: userMessageText, images: imagesForDisplay });
+chatHistory.push({ role: "user", parts: userParts });
 
-    D.messageInput.value = '';
-    clearAllPreviews();
-    autoResizeTextarea();
+D.messageInput.value = '';
+clearAllPreviews();
+autoResizeTextarea();
 
-    callNanoBananaAPI();
+callNanoBananaAPI();
 }
 
 async function callNanoBananaAPI() {
-    const loaderElement = showLoader();
-    let success = false;
-    try {
-        const response = await fetch(`${API_URL}?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: chatHistory }),
-        });
-        const data = await response.json();
+const loaderElement = showLoader();
+let success = false;
+try {
+const response = await fetch(`${API_URL}?key=${apiKey}`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ contents: chatHistory }),
+});
+const data = await response.json();
 
-        if (!response.ok) {
-            return updateLoader(loaderElement, data?.error?.message || T.genericError, null, data);
-        }
-        
-        const candidate = data.candidates?.[0];
-        if (candidate) {
-            const { finishReason, content, safetyRatings } = candidate;
-            if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
-                const reasonMap = { 'SAFETY': T.finishReasonSafety, 'RECITATION': T.finishReasonRecitation, 'PROHIBITED_CONTENT': T.finishReasonProhibited };
-                return updateLoader(loaderElement, reasonMap[finishReason] || T.finishReasonOther, null, data);
-            }
+if (!response.ok) {
+return updateLoader(loaderElement, data?.error?.message || T.genericError, null, data);
+}
 
-            if (content?.parts) {
-                chatHistory.push(content);
-                const responseParts = { text: '', image: null };
-                content.parts.forEach(part => {
-                    if (part.text) responseParts.text += part.text + '\n';
-                    else if (part.inlineData) responseParts.image = { data: part.inlineData.data, mimeType: part.inlineData.mimeType };
-                });
+const candidate = data.candidates?.[0];
+if (candidate) {
+const { finishReason, content, safetyRatings } = candidate;
+if (finishReason && finishReason !== 'STOP' && finishReason !== 'MAX_TOKENS') {
+const reasonMap = { 'SAFETY': T.finishReasonSafety, 'RECITATION': T.finishReasonRecitation, 'PROHIBITED_CONTENT': T.finishReasonProhibited };
+return updateLoader(loaderElement, reasonMap[finishReason] || T.finishReasonOther, null, data);
+}
 
-                const trimmedText = responseParts.text.trim();
-                
-                if ((!trimmedText || trimmedText === '```') && !responseParts.image) {
-                    return updateLoader(loaderElement, T.emptyResponseFiltered, null, data);
-                }
+if (content?.parts) {
+chatHistory.push(content);
+const responseParts = { text: '', image: null };
+content.parts.forEach(part => {
+if (part.text) responseParts.text += part.text + '\n';
+else if (part.inlineData) responseParts.image = { data: part.inlineData.data, mimeType: part.inlineData.mimeType };
+});
 
-                const wasBlockedBySafety = safetyRatings?.some(r => r.probability !== 'NEGLIGIBLE');
-                if (trimmedText && !responseParts.image && wasBlockedBySafety) {
-                    responseParts.text += T.imageBlocked;
-                }
-                
-                updateLoader(loaderElement, responseParts.text.trim(), responseParts.image);
-            } else {
-                updateLoader(loaderElement, T.emptyResponseFiltered, null, data);
-            }
-        } else if (data.promptFeedback) {
-            updateLoader(loaderElement, `${T.blockedResponse} ${data.promptFeedback.blockReason}`, null, data);
-        } else {
-            updateLoader(loaderElement, T.emptyResponse, null, data);
-        }
-        success = true;
-    } catch (error) {
-        console.error('Error calling API:', error);
-        updateLoader(loaderElement, T.genericError, null, { error: error.toString() });
-    } finally {
-        if (!success) chatHistory.pop();
-    }
+const trimmedText = responseParts.text.trim();
+
+if ((!trimmedText || trimmedText === '```') && !responseParts.image) {
+return updateLoader(loaderElement, T.emptyResponseFiltered, null, data);
+}
+
+const wasBlockedBySafety = safetyRatings?.some(r => r.probability !== 'NEGLIGIBLE');
+if (trimmedText && !responseParts.image && wasBlockedBySafety) {
+responseParts.text += T.imageBlocked;
+}
+
+updateLoader(loaderElement, responseParts.text.trim(), responseParts.image);
+} else {
+updateLoader(loaderElement, T.emptyResponseFiltered, null, data);
+}
+} else if (data.promptFeedback) {
+updateLoader(loaderElement, `${T.blockedResponse} ${data.promptFeedback.blockReason}`, null, data);
+} else {
+updateLoader(loaderElement, T.emptyResponse, null, data);
+}
+success = true;
+} catch (error) {
+console.error('Error calling API:', error);
+updateLoader(loaderElement, T.genericError, null, { error: error.toString() });
+} finally {
+if (!success) chatHistory.pop();
+}
 }
 
 // --- UI & MESSAGE FUNCTIONS ---
 
 function createBubbleContent({ text = '', images = [], image, errorDetails = null }) {
-    let imageHtml = '';
-    const imageUrls = Array.isArray(images) ? images : [];
-    if (image?.data) imageUrls.push(`data:${image.mimeType};base64,${image.data}`);
+let imageHtml = '';
+const imageUrls = Array.isArray(images) ? images : [];
+if (image?.data) imageUrls.push(`data:${image.mimeType};base64,${image.data}`);
 
-    if (imageUrls.length > 0) {
-        imageHtml += '<div class="message-images">';
-        imageUrls.forEach(src => {
-            imageHtml += `<img src="${src}" alt="Image" class="clickable-image">`;
-        });
-        imageHtml += '</div>';
-    }
-    
-    const formattedText = text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/\n/g, '<br>');
+if (imageUrls.length > 0) {
+imageHtml += '<div class="message-images">';
+imageUrls.forEach(src => {
+imageHtml += `<img src="${src}" alt="Image" class="clickable-image">`;
+});
+imageHtml += '</div>';
+}
 
-    const errorHtml = errorDetails ? ` <span class="copy-span">${T.copyPrompt}</span>` : '';
-    const textHtml = text ? `<p>${formattedText}${errorHtml}</p>` : '';
-    
-    return `${textHtml}${imageHtml}`;
+const formattedText = text
+.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+.replace(/\*(.*?)\*/g, '<em>$1</em>')
+.replace(/\n/g, '<br>');
+
+const errorHtml = errorDetails ? ` <span class="copy-span">${T.copyPrompt}</span>` : '';
+const textHtml = text ? `<p>${formattedText}${errorHtml}</p>` : '';
+
+return `${textHtml}${imageHtml}`;
 }
 
 function appendMessage(type, content) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `chat-message ${type}-message`;
-    messageElement.innerHTML = `<div class="message-bubble">${createBubbleContent(content)}</div>`;
-    D.chatContainer.appendChild(messageElement);
-    scrollToBottom();
+const messageElement = document.createElement('div');
+messageElement.className = `chat-message ${type}-message`;
+messageElement.innerHTML = `<div class="message-bubble">${createBubbleContent(content)}</div>`;
+D.chatContainer.appendChild(messageElement);
+scrollToBottom();
 }
 
 function showLoader() {
-    const loaderElement = document.createElement('div');
-    loaderElement.className = 'chat-message bot-message';
-    loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
-    D.chatContainer.appendChild(loaderElement);
-    scrollToBottom();
-    return loaderElement;
+const loaderElement = document.createElement('div');
+loaderElement.className = 'chat-message bot-message';
+loaderElement.innerHTML = `<div class="message-bubble loader-bubble"><span>.</span><span>.</span><span>.</span></div>`;
+D.chatContainer.appendChild(loaderElement);
+scrollToBottom();
+return loaderElement;
 }
 
 function updateLoader(loaderElement, text, imageObject, errorDetails) {
-    const bubble = loaderElement.querySelector('.message-bubble');
-    if (!bubble) return;
-    bubble.classList.remove('loader-bubble');
-    bubble.innerHTML = createBubbleContent({ text, image: imageObject, errorDetails });
-    if (errorDetails) {
-        bubble.classList.add('error-bubble');
-        bubble.dataset.errorDetails = JSON.stringify(errorDetails, null, 2);
-    }
+const bubble = loaderElement.querySelector('.message-bubble');
+if (!bubble) return;
+bubble.classList.remove('loader-bubble');
+bubble.innerHTML = createBubbleContent({ text, image: imageObject, errorDetails });
+if (errorDetails) {
+bubble.classList.add('error-bubble');
+bubble.dataset.errorDetails = JSON.stringify(errorDetails, null, 2);
+}
 }
 
 function createPreviewElement(id, file) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'preview-image-wrapper';
-    wrapper.dataset.id = id;
-    
-    const img = document.createElement('img');
-    img.title = file.name;
-    img.onclick = () => openFullscreen(img.src);
+const wrapper = document.createElement('div');
+wrapper.className = 'preview-image-wrapper';
+wrapper.dataset.id = id;
 
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-preview-btn';
-    removeBtn.innerHTML = '&times;';
-    removeBtn.title = T.removeImgBtnTitle;
-    removeBtn.onclick = (e) => { e.stopPropagation(); removeImageById(id); };
+const img = document.createElement('img');
+img.title = file.name;
+img.onclick = () => openFullscreen(img.src);
 
-    const reader = new FileReader();
-    reader.onload = e => img.src = e.target.result;
-    reader.readAsDataURL(file);
+const removeBtn = document.createElement('button');
+removeBtn.className = 'remove-preview-btn';
+removeBtn.innerHTML = '&times;';
+removeBtn.title = T.removeImgBtnTitle;
+removeBtn.onclick = (e) => { e.stopPropagation(); removeImageById(id); };
 
-    wrapper.append(img, removeBtn);
-    D.imagePreviewWrapper.appendChild(wrapper);
+const reader = new FileReader();
+reader.onload = e => img.src = e.target.result;
+reader.readAsDataURL(file);
+
+wrapper.append(img, removeBtn);
+D.imagePreviewWrapper.appendChild(wrapper);
 }
 
 function removeImageById(id) {
-    currentFiles = currentFiles.filter(item => item.id !== id);
-    D.imagePreviewWrapper.querySelector(`.preview-image-wrapper[data-id="${id}"]`)?.remove();
-    if (currentFiles.length === 0) D.imagePreviewContainer.style.display = 'none';
+currentFiles = currentFiles.filter(item => item.id !== id);
+D.imagePreviewWrapper.querySelector(`.preview-image-wrapper[data-id="${id}"]`)?.remove();
+if (currentFiles.length === 0) D.imagePreviewContainer.style.display = 'none';
 }
 
 function clearAllPreviews() {
-    currentFiles = [];
-    D.imageInput.value = '';
-    D.imagePreviewWrapper.innerHTML = '';
-    D.imagePreviewContainer.style.display = 'none';
+currentFiles = [];
+D.imageInput.value = '';
+D.imagePreviewWrapper.innerHTML = '';
+D.imagePreviewContainer.style.display = 'none';
 }
 
 function openFullscreen(src) {
-    D.fullscreenImage.src = src;
-    D.fullscreenModal.style.display = 'flex';
-    history.pushState({ modal: 'fullscreen' }, '', '#fullscreen');
+D.fullscreenImage.src = src;
+D.fullscreenModal.style.display = 'flex';
+history.pushState({ modal: 'fullscreen' }, '', '#fullscreen');
 }
 
 function closeFullscreen() {
-    if (D.fullscreenModal.style.display === 'none') return;
-    D.fullscreenModal.style.display = 'none';
-    if (location.hash === '#fullscreen') {
-        history.back();
-    }
+if (D.fullscreenModal.style.display === 'none') return;
+D.fullscreenModal.style.display = 'none';
+if (location.hash === '#fullscreen') {
+history.back();
+}
 }
 
 function setTheme(theme) {
-    localStorage.setItem('nanoBananaTheme', theme);
-    document.body.className = theme === 'dark' ? 'dark-mode' : '';
-    D.darkModeToggle.checked = theme === 'dark';
+localStorage.setItem('nanoBananaTheme', theme);
+document.body.className = theme === 'dark' ? 'dark-mode' : '';
+D.darkModeToggle.checked = theme === 'dark';
 }
 
 const autoResizeTextarea = () => { D.messageInput.style.height = 'auto'; D.messageInput.style.height = D.messageInput.scrollHeight + 'px'; };
 const scrollToBottom = () => { D.chatContainer.scrollTop = D.chatContainer.scrollHeight; };
 const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve({ mimeType: file.type, data: reader.result.toString().replace(/^data:(.*,)?/, '') });
-    reader.onerror = error => reject(error);
+const reader = new FileReader();
+reader.readAsDataURL(file);
+reader.onload = () => resolve({ mimeType: file.type, data: reader.result.toString().replace(/^data:(.*,)?/, '') });
+reader.onerror = error => reject(error);
 });
 
 // --- EVENT LISTENERS ---
 
 function setupEventListeners() {
-    D.pageTitle.addEventListener('click', () => {
-        if (confirm(T.clearChatConfirm)) {
-            D.chatContainer.innerHTML = '';
-            chatHistory.length = 0;
-            let welcomeMessage = T.welcome_base;
-            if (!apiKey) welcomeMessage += ` ${T.welcome_nokey}`;
-            appendMessage('bot', { text: welcomeMessage });
-        }
-    });
+D.pageTitle.addEventListener('click', () => {
+if (confirm(T.clearChatConfirm)) {
+D.chatContainer.innerHTML = '';
+chatHistory.length = 0;
+let welcomeMessage = T.welcome_base;
+if (!apiKey) welcomeMessage += ` ${T.welcome_key}`;
+appendMessage('bot', { text: welcomeMessage });
+}
+});
 
-    D.settingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'flex');
-    D.cancelSettingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'none');
-    
-    D.settingsModal.addEventListener('click', (e) => {
-        if (e.target === D.settingsModal) {
-            D.settingsModal.style.display = 'none';
-        }
-    });
+D.settingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'flex');
+D.cancelSettingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'none');
 
-    D.saveSettingsBtn.addEventListener('click', () => {
-        const newApiKey = D.apiKeyInput.value.trim();
-        if (newApiKey) {
-            localStorage.setItem('nanoBananaApiKey', newApiKey);
-            apiKey = newApiKey;
-            D.settingsModal.style.display = 'none';
-            appendMessage('bot', { text: T.apiKeySaved });
-        } else {
-            alert(T.invalidApiKey);
-        }
-    });
-    
-    D.darkModeToggle.addEventListener('change', () => {
-        setTheme(D.darkModeToggle.checked ? 'dark' : 'light');
-    });
+D.settingsModal.addEventListener('click', (e) => {
+if (e.target === D.settingsModal) {
+D.settingsModal.style.display = 'none';
+}
+});
 
-    D.chatForm.addEventListener('submit', e => { e.preventDefault(); handleUserMessage(); });
-    D.messageInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserMessage(); } });
-    D.messageInput.addEventListener('input', autoResizeTextarea);
+D.saveSettingsBtn.addEventListener('click', () => {
+const newApiKey = D.apiKeyInput.value.trim();
+if (newApiKey) {
+localStorage.setItem('nanoBananaApiKey', newApiKey);
+apiKey = newApiKey;
+D.settingsModal.style.display = 'none';
+appendMessage('bot', { text: T.apiKeySaved });
+} else {
+alert(T.invalidApiKey);
+}
+});
 
-    D.imageInput.addEventListener('change', e => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) {
-            files.forEach(file => {
-                const id = Date.now() + '-' + file.name;
-                currentFiles.push({ id, file });
-                createPreviewElement(id, file);
-            });
-            D.imagePreviewContainer.style.display = 'block';
-        }
-        D.imageInput.value = '';
-    });
-    
-    D.chatContainer.addEventListener('click', e => {
-        const target = e.target;
-        if (target.tagName === 'IMG' && target.classList.contains('clickable-image')) {
-            openFullscreen(target.src);
-        }
-        const errorBubble = target.closest('.error-bubble');
-        if (errorBubble) {
-            const copySpan = errorBubble.querySelector('.copy-span');
-            if (copySpan && copySpan.textContent !== T.copied) {
-                navigator.clipboard.writeText(errorBubble.dataset.errorDetails).then(() => {
-                    const originalText = copySpan.textContent;
-                    copySpan.textContent = T.copied;
-                    setTimeout(() => { copySpan.textContent = originalText; }, 1500);
-                });
-            }
-        }
-    });
-    
-    D.closeFullscreenBtn.addEventListener('click', closeFullscreen);
-    D.fullscreenModal.addEventListener('click', e => { if (e.target === D.fullscreenModal) closeFullscreen(); });
-    window.addEventListener('popstate', () => {
-        if (D.fullscreenModal.style.display === 'flex') {
-            closeFullscreen();
-        }
-    });
+// AANGEPAST: Logica voor het togglen van API-sleutel zichtbaarheid
+const eyeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.432 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>`;
+const eyeSlashIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>`;
+
+D.toggleApiKeyVisibility.innerHTML = eyeIconSVG;
+D.toggleApiKeyVisibility.title = T.showApiKeyTitle;
+
+D.toggleApiKeyVisibility.addEventListener('click', () => {
+    const isPassword = D.apiKeyInput.type === 'password';
+    D.apiKeyInput.type = isPassword ? 'text' : 'password';
+    D.toggleApiKeyVisibility.innerHTML = isPassword ? eyeSlashIconSVG : eyeIconSVG;
+    D.toggleApiKeyVisibility.title = isPassword ? T.hideApiKeyTitle : T.showApiKeyTitle;
+});
+
+
+D.darkModeToggle.addEventListener('change', () => {
+setTheme(D.darkModeToggle.checked ? 'dark' : 'light');
+});
+
+D.chatForm.addEventListener('submit', e => { e.preventDefault(); handleUserMessage(); });
+D.messageInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleUserMessage(); } });
+D.messageInput.addEventListener('input', autoResizeTextarea);
+
+D.imageInput.addEventListener('change', e => {
+const files = Array.from(e.target.files);
+if (files.length > 0) {
+files.forEach(file => {
+const id = Date.now() + '-' + file.name;
+currentFiles.push({ id, file });
+createPreviewElement(id, file);
+});
+D.imagePreviewContainer.style.display = 'block';
+}
+D.imageInput.value = '';
+});
+
+D.chatContainer.addEventListener('click', e => {
+const target = e.target;
+if (target.tagName === 'IMG' && target.classList.contains('clickable-image')) {
+openFullscreen(target.src);
+}
+const errorBubble = target.closest('.error-bubble');
+if (errorBubble) {
+const copySpan = errorBubble.querySelector('.copy-span');
+if (copySpan && copySpan.textContent !== T.copied) {
+navigator.clipboard.writeText(errorBubble.dataset.errorDetails).then(() => {
+const originalText = copySpan.textContent;
+copySpan.textContent = T.copied;
+setTimeout(() => { copySpan.textContent = originalText; }, 1500);
+});
+}
+}
+});
+
+D.closeFullscreenBtn.addEventListener('click', closeFullscreen);
+D.fullscreenModal.addEventListener('click', e => { if (e.target === D.fullscreenModal) closeFullscreen(); });
+window.addEventListener('popstate', () => {
+if (D.fullscreenModal.style.display === 'flex') {
+closeFullscreen();
+}
+});
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    apiKey = localStorage.getItem('nanoBananaApiKey') || '';
-    if (apiKey) D.apiKeyInput.value = apiKey;
-    
-    const savedTheme = localStorage.getItem('nanoBananaTheme') || 'light';
-    setTheme(savedTheme);
+apiKey = localStorage.getItem('nanoBananaApiKey') || '';
+if (apiKey) D.apiKeyInput.value = apiKey;
 
-    setLanguage();
-    setupEventListeners();
+const savedTheme = localStorage.getItem('nanoBananaTheme') || 'light';
+setTheme(savedTheme);
+
+setLanguage();
+setupEventListeners();
 });
 
 </script>
