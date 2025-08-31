@@ -102,10 +102,11 @@ header h1 { font-size: 1.5em; font-weight: 700; display: flex; align-items: cent
 #settings-content h2 { margin-top: 0; margin-bottom: 24px; }
 #settings-content label { display: block; margin-bottom: 8px; font-weight: 500; }
 
-/* AANGEPAST: Stijlen voor API-sleutel wrapper, input en toggle-knop */
+/* Stijlen voor API-sleutel wrapper, input en toggle-knop */
 .api-key-wrapper { position: relative; margin-bottom: 24px; }
-#api-key-input { width: 100%; padding: 12px 40px 12px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1em; background-color: var(--bg-container); color: var(--color-text-primary); transition: all 0.2s; }
-#toggle-api-key-visibility { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); transition: color 0.2s; }
+/* AANGEPAST: padding-right vergroot om tekst niet onder knop te laten lopen */
+#api-key-input { width: 100%; padding: 12px 55px 12px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1em; background-color: var(--bg-container); color: var(--color-text-primary); transition: all 0.2s; }
+#toggle-api-key-visibility { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); background: transparent; border: none; border-left: 1px solid var(--border-color); padding: 6px 6px 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); transition: color 0.2s, border-color 0.3s; }
 #toggle-api-key-visibility svg { width: 22px; height: 22px; }
 #toggle-api-key-visibility:hover { color: var(--color-text-primary); }
 
@@ -169,7 +170,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 </label>
 </div>
 <label for="api-key-input" id="settings-label">Google AI API Key</label>
-<!-- AANGEPAST: Wrapper div voor input en knop toegevoegd -->
 <div class="api-key-wrapper">
     <input type="password" id="api-key-input" placeholder="Paste your API key here">
     <button type="button" id="toggle-api-key-visibility"></button>
@@ -188,7 +188,6 @@ input:checked + .slider:before { transform: translateX(22px); }
 
 <script>
 // --- TRANSLATIONS ---
-// AANGEPAST: Vertalingen voor API-sleutel zichtbaarheid toegevoegd
 const translations = {
 en: { pageTitle: "Nano-Banana Interface", settingsTitle: "Settings", settingsBtnTitle: "Settings", darkModeLabel: "Dark Mode", settingsLabel: "Google AI API Key", apiKeyPlaceholder: "Paste your API key here", cancel: "Cancel", save: "Save", uploadLabelTitle: "Attach images", removeImgBtnTitle: "Remove image", sendBtnTitle: "Send", inputPlaceholder: "Ask a question or give a command...", copied: "(Copied!)", copyPrompt: "(Click to copy details)", clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.", welcome_base: "Welcome to Nano-Banana, an AI image generator/editor/analyzer chatbot, powered by Google.", welcome_nokey: "Please enter your Google AI API key in Settings.", apiKeySaved: "API key saved!", apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.", invalidApiKey: "Please enter a valid API key.", imgProcessError: "Sorry, I could not process your image(s).", genericError: "Oops! An error occurred.", emptyResponse: "I'm sorry, I couldn't generate a response.", emptyResponseFiltered: "The response was empty. This can happen if the request violates content policies. Please try rephrasing your prompt.", blockedResponse: "I cannot process this request. Reason:", finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.", finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.", finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.", finishReasonProhibited: "The response was blocked because it contained prohibited content.", imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*", showApiKeyTitle: "Show API Key", hideApiKeyTitle: "Hide API Key" },
 nl: { pageTitle: "Nano-Banana Interface", settingsTitle: "Instellingen", settingsBtnTitle: "Instellingen", darkModeLabel: "Donkere Modus", settingsLabel: "Google AI API Sleutel", apiKeyPlaceholder: "Plak hier je API sleutel", cancel: "Annuleren", save: "Opslaan", uploadLabelTitle: "Afbeeldingen bijvoegen", removeImgBtnTitle: "Verwijder afbeelding", sendBtnTitle: "Verzend", inputPlaceholder: "Stel een vraag of geef een commando...", copied: "(Gekopieerd!)", copyPrompt: "(Klik om details te kopiëren)", clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.", welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator, -editor en -analysator chatbot van Google.", welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.", apiKeySaved: "API sleutel opgeslagen!", apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).", invalidApiKey: "Voer een geldige API sleutel in.", imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.", genericError: "Oeps! Er is een fout opgetreden.", emptyResponse: "Sorry, ik kon geen antwoord genereren.", emptyResponseFiltered: "Het antwoord was leeg. Dit kan gebeuren als het verzoek de inhoudsregels schendt. Probeer je vraag anders te formuleren.", blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:", finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.", finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.", finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.", finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.", imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*", showApiKeyTitle: "Toon API Sleutel", hideApiKeyTitle: "Verberg API Sleutel" }
@@ -208,7 +207,6 @@ acc[camelCaseId] = document.getElementById(id);
 return acc;
 }, {});
 
-// AANGEPAST: 'toggle-api-key-visibility' toegevoegd aan de lijst
 const D = getElements([
 'page-title', 'settings-btn', 'settings-modal', 'save-settings-btn', 'cancel-settings-btn',
 'api-key-input', 'chat-form', 'message-input', 'chat-container', 'image-input',
@@ -490,7 +488,6 @@ alert(T.invalidApiKey);
 }
 });
 
-// AANGEPAST: Logica voor het togglen van API-sleutel zichtbaarheid
 const eyeIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.432 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>`;
 const eyeSlashIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.243 4.243L6.228 6.228" /></svg>`;
 
