@@ -317,7 +317,6 @@ callNanoBananaAPI();
 
 async function callNanoBananaAPI() {
 const loaderElement = showLoader();
-let success = false;
 try {
 const apiHistory = chatHistory.map(({ role, parts }) => ({ role, parts }));
 
@@ -368,12 +367,12 @@ updateLoader(loaderElement, `${T.blockedResponse} ${data.promptFeedback.blockRea
 } else {
 updateLoader(loaderElement, T.emptyResponse, null, data);
 }
-success = true;
 } catch (error) {
 console.error('Error calling API:', error);
 updateLoader(loaderElement, T.genericError, null, { error: error.toString() });
 } finally {
-if (!success) chatHistory.pop();
+// AANGEPAST: De regel die het laatste bericht uit de geschiedenis verwijderde bij een fout is hier verwijderd.
+// Hierdoor blijft het bericht bewerkbaar.
 }
 }
 
