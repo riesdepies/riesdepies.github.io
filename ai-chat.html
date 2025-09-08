@@ -86,7 +86,6 @@ align-self: flex-start;
 border-top-left-radius: 0;
 text-align: left;
 cursor: default; /* Assistant messages are not clickable for editing */
-padding-bottom: 25px; /* Extra space for internet icon */
 }
 .message.editing {
 border: 1px dashed white;
@@ -480,9 +479,11 @@ let customGeminiModel = localStorage.getItem('customGeminiModel') || "";
 let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
 let initialHTML = document.documentElement.outerHTML;
 
+
 const CHAT_CONVERSATION_KEY = 'chatInterfaceConversation';
 const CHAT_CLEARED_STATE_KEY = 'chatInterfaceClearedState';
 let chatClearedState = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
+
 
 // Model Swap Variables
 let currentModel = null;
@@ -490,8 +491,10 @@ let previousModel = null;
 const CURRENT_MODEL_KEY = 'chatInterfaceCurrentModel';
 const PREVIOUS_MODEL_KEY = 'chatInterfacePreviousModel';
 
+
 // Google Search Tool Variable
 let googleSearchEnabled = localStorage.getItem('googleSearchEnabled') === 'true';
+
 
 const ICONS = {
 trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
@@ -502,12 +505,14 @@ swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24"
 globe: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`
 };
 
+
 document.addEventListener("DOMContentLoaded", function () {
 initializeModelSwap();
 initializeGoogleSearchToggle();
 loadSettings();
 initializeClearChatButton();
 handlePageLoadConversation();
+
 
 const consoleCopyButton = document.querySelector('.console-copy-code');
 consoleCopyButton.addEventListener('click', () => {
@@ -516,11 +521,13 @@ copyToClipboard(document.getElementById('console-output').textContent, consoleCo
 updateConsoleButtonText();
 adjustTextareaAndButtonHeight();
 
+
 const chatOutputDiv = document.getElementById('chat-output');
 chatOutputDiv.addEventListener('click', (event) => {
 if (event.target === chatOutputDiv && editIndex !== null) {
 const activeEditableMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
 const activeEditableSpan = activeEditableMessageDiv ? activeEditableMessageDiv.querySelector('.editable') : null;
+
 
 if (activeEditableSpan) {
 activeEditableSpan.blur();
@@ -534,15 +541,18 @@ updateClearChatButtonIcon();
 });
 });
 
+
 function handleUserInput() {
 adjustTextareaAndButtonHeight();
 toggleSendButton();
 }
 
+
 function adjustTextareaAndButtonHeight() {
 const userInputArea = document.getElementById('user-input');
 const sendButton = document.getElementById('send-button');
 const computedStyle = getComputedStyle(userInputArea);
+
 
 const lineHeight = parseFloat(computedStyle.lineHeight);
 const paddingTop = parseFloat(computedStyle.paddingTop);
@@ -550,16 +560,21 @@ const paddingBottom = parseFloat(computedStyle.paddingBottom);
 const borderTopWidth = parseFloat(computedStyle.borderTopWidth);
 const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth);
 
+
 const singleLineTextHeight = isNaN(lineHeight) ? (parseFloat(computedStyle.fontSize) * 1.5 || 20) : lineHeight;
 const heightForOneLine = singleLineTextHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+
 
 const maxLines = 2;
 const maxAllowedHeight = (maxLines * singleLineTextHeight) + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
 
+
 userInputArea.style.height = 'auto';
 let newCalculatedHeight = userInputArea.scrollHeight + borderTopWidth + borderBottomWidth;
 
+
 let targetHeight;
+
 
 if (newCalculatedHeight > maxAllowedHeight) {
 targetHeight = maxAllowedHeight;
@@ -569,16 +584,20 @@ targetHeight = heightForOneLine;
 targetHeight = newCalculatedHeight;
 }
 
+
 const cssMinHeight = parseFloat(computedStyle.minHeight) || 0;
 if (targetHeight < cssMinHeight) {
 targetHeight = cssMinHeight;
 }
+
 
 userInputArea.style.height = targetHeight + 'px';
 const finalButtonDimension = userInputArea.offsetHeight + 'px';
 sendButton.style.height = finalButtonDimension;
 sendButton.style.width = finalButtonDimension;
 }
+
+
 
 
 function saveFullConversation() {
@@ -588,6 +607,7 @@ modelSpecificConversationHistory: modelSpecificConversationHistory
 };
 localStorage.setItem(CHAT_CONVERSATION_KEY, JSON.stringify(conversationData));
 }
+
 
 function loadFullConversation() {
 const savedData = localStorage.getItem(CHAT_CONVERSATION_KEY);
@@ -610,11 +630,13 @@ return false;
 return false;
 }
 
+
 function initializeClearChatButton() {
 const button = document.getElementById('clear-chat-button');
 button.addEventListener('click', handleClearChatClick);
 updateClearChatButtonIcon();
 }
+
 
 function updateClearChatButtonIcon() {
 const button = document.getElementById('clear-chat-button');
@@ -636,18 +658,22 @@ if (currentSvgIcon) { currentSvgIcon.setAttribute('width', '20'); currentSvgIcon
 }
 }
 
+
 function handleClearChatClick() {
 if (editIndex !== null) {
 const currentEditingIndex = editIndex;
 const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
 const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
 
+
 if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
 const newText = editableMessageSpan.innerText;
 const originalRole = conversationHistory[currentEditingIndex].role;
 
+
 editableMessageSpan.setAttribute('contenteditable', 'false');
 if(messageDiv) messageDiv.classList.remove('editing');
+
 
 if (originalRole === 'user') {
 document.getElementById('user-input').value = newText;
@@ -672,6 +698,7 @@ updateClearChatButtonIcon();
 return;
 }
 
+
 if (chatClearedState) {
 if (loadFullConversation()) {
 chatClearedState = false;
@@ -693,9 +720,12 @@ updateClearChatButtonIcon();
 }
 
 
+
+
 function handlePageLoadConversation() {
 const hasSavedConversation = localStorage.getItem(CHAT_CONVERSATION_KEY) !== null;
 const userExplicitlyCleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
+
 
 if (hasSavedConversation) {
 if (userExplicitlyCleared) {
@@ -720,6 +750,8 @@ updateClearChatButtonIcon();
 }
 
 
+
+
 function loadSettings() {
 apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
 apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
@@ -732,6 +764,7 @@ document.getElementById('toggle-console-button').textContent = consoleEnabled ? 
 document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
 let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
 document.getElementById('api-provider').value = lastUsedApiProvider;
+
 
 updateModelOptions().then(() => {
 if (!lastUsedModels[lastUsedApiProvider] || !Array.from(document.getElementById('model-select').options).some(opt => opt.value === lastUsedModels[lastUsedApiProvider])) {
@@ -746,8 +779,10 @@ updateGoogleSearchToggleVisibility(); // New call
 updateCurrentModelFromUI(true); // Initialize current model on load
 });
 
+
 customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
 customGeminiModel = localStorage.getItem('customGeminiModel') || "";
+
 
 const currentProvider = document.getElementById('api-provider').value;
 const currentModelSelect = document.getElementById('model-select');
@@ -757,6 +792,7 @@ if (currentProvider === 'openai') customInput.value = customOpenAIModel;
 else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
 }
 }
+
 
 function setDefaultModel(provider) {
 const modelSelect = document.getElementById('model-select');
@@ -776,6 +812,7 @@ modelSelect.value = firstValidOption ? firstValidOption.value : (modelSelect.opt
 selectedModel = modelSelect.value;
 }
 
+
 marked.setOptions({gfm: true, breaks: true, headerIds: false});
 function parseApiKeys(input, provider) {
 let regex;
@@ -786,6 +823,7 @@ return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filte
 }
 function toggleSendButton() { document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === ""; }
 
+
 function showTab(tabName) {
 const tabs = document.querySelectorAll('.tab');
 tabs.forEach(tab => tab.classList.remove('active'));
@@ -795,6 +833,7 @@ document.getElementById('chat-input').style.display = 'none';
 document.getElementById('console-container').style.display = 'none';
 const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
 const swapModelButton = document.getElementById('swap-model-button');
+
 
 if (tabName === 'chat') {
 document.getElementById('chat-output').style.display = 'block';
@@ -816,16 +855,20 @@ swapModelButton.style.visibility = 'hidden';
 updateGoogleSearchToggleVisibility();
 }
 
+
 function saveSettings() {
 updateCurrentModelFromUI(false); // Update models before saving other settings
+
 
 apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
 apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
 localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
 localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
 
+
 systemPrompt = document.getElementById('system-prompt').value;
 localStorage.setItem('systemPrompt', systemPrompt);
+
 
 let currentProvider = document.getElementById('api-provider').value;
 let selectedModelValue = document.getElementById('model-select').value;
@@ -855,9 +898,11 @@ chatOutput.appendChild(errorMessageDiv); chatOutput.scrollTop = chatOutput.scrol
 function shortenMessage(text) { const safeText = String(text); const words = safeText.split(" "); if (words.length > 6) { return `${words.slice(0, 3).join(" ")} ... ${words.slice(-3).join(" ")}`; } return safeText; }
 function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data)); logToConsole(JSON.stringify(dataCopy, null, 2)); }
 
+
 async function sendMessage() {
 let userInputFromField = document.getElementById('user-input').value;
 systemPrompt = document.getElementById('system-prompt').value;
+
 
 if (chatClearedState && editIndex === null) {
 conversationHistory = [];
@@ -866,19 +911,23 @@ chatClearedState = false;
 localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
 }
 
+
 const apiKeysPresent = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== '');
 const trimmedUserInput = userInputFromField.trim();
+
 
 if (trimmedUserInput !== "" && apiKeysPresent) {
 const provider = document.getElementById('api-provider').value;
 document.getElementById('loading-spinner').style.display = 'flex';
 let userInputForApi;
 
+
 if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') {
 conversationHistory[editIndex].content = trimmedUserInput;
 conversationHistory = conversationHistory.slice(0, editIndex + 1);
 const numModelSpecificTurnsToKeep = Math.floor(editIndex / 2);
 if (modelSpecificConversationHistory.gemini) modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, numModelSpecificTurnsToKeep * 2);
+
 
 userInputForApi = trimmedUserInput;
 editIndex = null;
@@ -889,8 +938,10 @@ userInputForApi = trimmedUserInput;
 displayMessage(trimmedUserInput, 'user', conversationHistory.length - 1, true);
 }
 
+
 document.getElementById('user-input').value = '';
 handleUserInput();
+
 
 try { await tryNextApiKey(userInputForApi, provider); }
 catch (error) { if (document.getElementById('loading-spinner').style.display !== 'none') document.getElementById('loading-spinner').style.display = 'none';}
@@ -903,15 +954,18 @@ if (editIndex !== null) editIndex = null;
 updateClearChatButtonIcon();
 }
 
+
 async function tryNextApiKey(userInput, provider) {
 const currentModelSelected = document.getElementById('model-select').value;
 const apiKeyArray = apiKeys[provider].filter(key => key.trim() !== '');
+
 
 if (apiKeyArray.length === 0) {
 document.getElementById('loading-spinner').style.display = 'none';
 logErrorToConsole(`No valid API keys configured for ${provider}. Please add them in Settings.`);
 currentApiKeyIndex = 0; updateClearChatButtonIcon(); return;
 }
+
 
 if (currentApiKeyIndex < apiKeyArray.length) {
 const apiKey = apiKeyArray[currentApiKeyIndex];
@@ -925,14 +979,17 @@ geminiApiContents.push({"role": conversationHistory[i].role === "user" ? "user" 
 }
 geminiApiContents.push({ "role": "user", "parts": [{"text": userInput}]});
 
+
 let requestBody = {
 "systemInstruction": { "parts": [{"text": systemPrompt }] },
 "contents": geminiApiContents
 };
 
+
 if (googleSearchEnabled) {
 requestBody.tools = [{ "google_search": {} }];
 }
+
 
 response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}`, {
 method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -1021,7 +1078,9 @@ currentApiKeyIndex = 0;
 updateClearChatButtonIcon();
 }
 
+
 function escapeHtml(unsafe) { const div = document.createElement('div'); div.textContent = unsafe; return div.innerHTML; }
+
 
 function displayMessage(message, sender, index, isUserInput = false, reasoning = null, usedInternet = false) {
 let chatOutput = document.getElementById('chat-output');
@@ -1029,9 +1088,11 @@ let newMessageDiv = document.createElement('div');
 newMessageDiv.classList.add('message', sender);
 newMessageDiv.setAttribute('data-index', index);
 
+
 const editableSpan = document.createElement('span');
 editableSpan.classList.add('editable');
 editableSpan.setAttribute('tabindex', '0');
+
 
 if (sender === 'user') {
 editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
@@ -1040,12 +1101,15 @@ editableSpan.innerHTML = marked.parse(message, { breaks: true });
 }
 newMessageDiv.appendChild(editableSpan);
 
+
 newMessageDiv.addEventListener('click', function(event) {
 if (sender !== 'user') return;
 if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .internet-indicator')) return;
 
+
 const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
 const currentEditableSpan = newMessageDiv.querySelector('.editable');
+
 
 if (editIndex !== null && editIndex !== messageIndexOfThisMessage) {
 const otherMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
@@ -1055,6 +1119,7 @@ otherEditableSpan.blur();
 }
 }
 
+
 if (currentEditableSpan.getAttribute('contenteditable') !== 'true') {
 currentEditableSpan.setAttribute('contenteditable', 'true');
 editIndex = messageIndexOfThisMessage;
@@ -1063,6 +1128,7 @@ updateClearChatButtonIcon();
 currentEditableSpan.focus();
 }
 });
+
 
 editableSpan.addEventListener('focus', (e) => {
 const messageDiv = e.target.closest('.message');
@@ -1078,9 +1144,11 @@ updateClearChatButtonIcon();
 }
 });
 
+
 editableSpan.addEventListener('blur', (e) => {
 const messageDiv = e.target.closest('.message');
 if (!messageDiv) return;
+
 
 setTimeout(() => {
 if (editIndex === null) {
@@ -1091,6 +1159,7 @@ return;
 const blurredIndex = parseInt(messageDiv.dataset.index);
 const saveSendButton = document.getElementById('clear-chat-button');
 const focusWentToButton = document.activeElement === saveSendButton || saveSendButton.contains(document.activeElement);
+
 
 if (editIndex === blurredIndex && !focusWentToButton) {
 const newText = e.target.innerText;
@@ -1114,6 +1183,7 @@ messageDiv.classList.remove('editing');
 }, 50);
 });
 
+
 if (sender === 'assistant' && reasoning) {
 const reasoningDiv = document.createElement('div');
 reasoningDiv.className = 'reasoning-container collapsed';
@@ -1129,12 +1199,15 @@ reasoningDiv.innerHTML = `
 newMessageDiv.appendChild(reasoningDiv);
 }
 
+
 if (sender === 'assistant' && usedInternet) {
+newMessageDiv.style.paddingBottom = '25px';
 const indicator = document.createElement('div');
 indicator.className = 'internet-indicator';
 indicator.innerHTML = ICONS.globe;
 newMessageDiv.appendChild(indicator);
 }
+
 
 chatOutput.appendChild(newMessageDiv);
 if (chatOutput.lastChild === newMessageDiv) {
@@ -1143,6 +1216,8 @@ chatOutput.scrollTop = chatOutput.scrollHeight;
 Prism.highlightAllUnder(newMessageDiv);
 addRunAndCopyButtonsToCodeBlocks(newMessageDiv);
 }
+
+
 
 
 function displayPartialMessage(initialContent, sender) {
@@ -1158,6 +1233,7 @@ chatOutput.appendChild(partialMessage);
 chatOutput.scrollTop = chatOutput.scrollHeight;
 return partialMessage;
 }
+
 
 function toggleReasoning(element) { element.classList.toggle('collapsed'); }
 function addRunAndCopyButtonsToCodeBlocks(parentElement) {
@@ -1189,6 +1265,7 @@ newWindow.document.close();
 } else { alert('Failed to open a new tab. Please check your browser\'s pop-up blocker settings.'); }
 }
 
+
 function redrawMessages() {
 document.getElementById('chat-output').innerHTML = '';
 conversationHistory.forEach((entry, i) => {
@@ -1206,6 +1283,7 @@ updateClearChatButtonIcon();
 }
 }
 
+
 async function updateModelOptions() {
 const provider = document.getElementById('api-provider').value;
 const modelSelect = document.getElementById('model-select');
@@ -1216,11 +1294,13 @@ gemini: ['gemini-2.0-flash', 'gemini-2.0-pro-exp', 'gemini-2.5-flash-preview-05-
 openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom']
 };
 
+
 if (modelsByProvider[provider]) {
 modelsByProvider[provider].forEach(model => {
 modelSelect.add(new Option(model, model));
 });
 }
+
 
 const savedModelForProvider = lastUsedModels && lastUsedModels[provider];
 if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) {
@@ -1234,6 +1314,7 @@ selectedModel = modelSelect.value;
 toggleCustomModelField();
 updateGoogleSearchToggleVisibility(); // New call
 }
+
 
 function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px';}
 window.addEventListener('resize', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); });
@@ -1290,7 +1371,9 @@ if (targetContainer) targetContainer.style.display = 'block';
 }
 function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']; return emojiNumbers[num - 1] || `[${num}]`;}
 
+
 // --- Model Swap Functions ---
+
 
 function initializeModelSwap() {
 document.getElementById('swap-model-button').innerHTML = ICONS.swap;
@@ -1298,6 +1381,7 @@ document.getElementById('swap-model-button').onclick = swapModels;
 previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
 updateSwapButtonState();
 }
+
 
 function updateCurrentModelFromUI(isInitialLoad = false) {
 const provider = document.getElementById('api-provider').value;
@@ -1307,6 +1391,7 @@ model = document.getElementById('custom-model-input').value;
 }
 const newModel = { provider, model };
 
+
 if (!isInitialLoad && JSON.stringify(newModel) !== JSON.stringify(currentModel)) {
 if (currentModel) {
 previousModel = currentModel;
@@ -1314,10 +1399,12 @@ localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
 }
 }
 
+
 currentModel = newModel;
 localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
 updateSwapButtonState();
 }
+
 
 function updateSwapButtonState() {
 const swapButton = document.getElementById('swap-model-button');
@@ -1332,19 +1419,25 @@ swapButton.title = 'No previous model to swap with';
 }
 }
 
+
 async function swapModels() {
 if (!previousModel) return;
 
+
 [currentModel, previousModel] = [previousModel, currentModel];
+
 
 localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
 localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
 
+
 const apiProviderSelect = document.getElementById('api-provider');
 const modelSelect = document.getElementById('model-select');
 
+
 apiProviderSelect.value = currentModel.provider;
 await updateModelOptions();
+
 
 if (Array.from(modelSelect.options).some(opt => opt.value === currentModel.model)) {
 modelSelect.value = currentModel.model;
@@ -1353,18 +1446,23 @@ modelSelect.value = 'custom';
 document.getElementById('custom-model-input').value = currentModel.model;
 }
 
+
 toggleCustomModelField();
 updateApiKeyVisibility();
 updateSwapButtonState();
 updateGoogleSearchToggleVisibility();
 
+
 // Explicitly save settings to update localStorage for things like lastUsedModels
 saveSettings();
+
 
 showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
 }
 
+
 // --- Google Search Tool Functions ---
+
 
 function initializeGoogleSearchToggle() {
 const toggleButton = document.getElementById('google-search-toggle');
@@ -1373,12 +1471,14 @@ toggleButton.onclick = toggleGoogleSearch;
 updateGoogleSearchToggleState();
 }
 
+
 function toggleGoogleSearch() {
 googleSearchEnabled = !googleSearchEnabled;
 localStorage.setItem('googleSearchEnabled', googleSearchEnabled);
 updateGoogleSearchToggleState();
 showToast(`Google Search tool ${googleSearchEnabled ? 'enabled' : 'disabled'}`);
 }
+
 
 function updateGoogleSearchToggleState() {
 const toggleButton = document.getElementById('google-search-toggle');
@@ -1391,11 +1491,13 @@ toggleButton.title = 'Enable Google Search tool';
 }
 }
 
+
 function updateGoogleSearchToggleVisibility() {
 const toggleButton = document.getElementById('google-search-toggle');
 const provider = document.getElementById('api-provider').value;
 const currentTab = document.querySelector('.tab.active');
 const isChatOrSettings = currentTab && (currentTab.onclick.toString().includes('chat') || currentTab.onclick.toString().includes('settings'));
+
 
 if (provider === 'gemini' && isChatOrSettings) {
 toggleButton.style.display = 'flex';
@@ -1403,6 +1505,7 @@ toggleButton.style.display = 'flex';
 toggleButton.style.display = 'none';
 }
 }
+
 
 function showToast(message) {
 const toast = document.getElementById('toast-notification');
