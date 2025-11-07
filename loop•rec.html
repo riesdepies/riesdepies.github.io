@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>loop•rec</title>
+<!-- Include the LAME MP3 encoder library from a CDN -->
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<style>
+:root {
+--bg-color: #121212;
+--primary-text-color: #e0e0e0;
+--secondary-text-color: #b3b3b3;
+--accent-color: #e53935; /* Rood */
+--accent-hover-color: #f44336; /* Lichter rood */
+--surface-color: #1e1e1e;
+}
+
+html, body {
+height: 100%;
+margin: 0;
+padding: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: var(--bg-color);
+color: var(--primary-text-color);
+overflow: hidden;
+}
+
+.container {
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+align-items: center;
+height: 100%;
+/* MODIFICATION: Increased vertical padding */
+padding: 40px 20px;
+box-sizing: border-box;
+/* MODIFICATION: Increased gap for more space */
+gap: 40px;
+}
+
+.header {
+text-align: center;
+}
+
+h1 {
+margin: 0;
+font-size: 3.2em;
+color: var(--primary-text-color);
+font-weight: bold;
+letter-spacing: -1px;
+}
+
+.dot {
+color: var(--accent-color);
+animation: blink 1.2s infinite;
+margin: 0 0.1em;
+display: inline-block;
+transform: translateY(0.1em);
+}
+
+@keyframes blink {
+0%, 100% {
+opacity: 1;
+}
+50% {
+opacity: 0;
+}
+}
+
+#status {
+color: var(--secondary-text-color);
+margin: 0;
+height: auto;
+}
+
+.visualizer-container {
+width: 100%;
+height: 200px;
+max-height: 250px;
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 150px;
+padding: 0;
+}
+
+#visualizer {
+width: 100%;
+height: 100%;
+background-color: var(--surface-color);
+border-radius: 8px;
+}
+
+.controls {
+width: 100%;
+text-align: center;
+}
+
+#saveButton {
+background-color: var(--accent-color);
+color: white;
+border: none;
+border-radius: 50px;
+padding: 15px 30px;
+font-size: 1.2em;
+font-weight: bold;
+cursor: pointer;
+transition: background-color 0.2s, transform 0.1s;
+width: 100%;
+max-width: 300px;
+}
+
+#saveButton:hover {
+background-color: var(--accent-hover-color);
+}
+
+#saveButton:active {
+transform: scale(0.98);
+}
+
+#saveButton:disabled {
+background-color: #535353;
+cursor: not-allowed;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="header">
+<h1>loop<span class="dot">•</span>rec</h1>
+<p id="status"></p>
+</div>
+
+<div class="visualizer-container">
+<canvas id="visualizer"></canvas>
+</div>
+
+<div class="controls">
+<button id="saveButton" disabled>Save recorded audio</button>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+const statusEl = document.getElementById('status');
+const saveButton = document.getElementById('saveButton');
+const canvas = document.getElementById('visualizer');
+const canvasCtx = canvas.getContext('2d');
+
+let audioContext;
+let animationFrameId;
+let recordingStartTime;
+let buttonUpdateInterval;
+
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+let mp3Encoder;
+let mp3Chunks = [];
+const SCRIPT_PROCESSOR_BUFFER_SIZE = 4096;
+let visualizationData = [];
+let maxDataPoints;
+
+function resizeCanvas() {
+const container = document.querySelector('.visualizer-container');
+canvas.width = container.offsetWidth;
+canvas.height = container.offsetHeight;
+drawWaveform();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+async function init() {
+statusEl.textContent = 'Requesting microphone access...';
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+statusEl.textContent = 'Error: Your browser does not support audio recording.';
+return;
+}
+
+try {
+const constraints = {
+audio: {
+autoGainControl: false,
+echoCancellation: false,
+noiseSuppression: false
+}
+};
+const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const source = audioContext.createMediaStreamSource(stream);
+
+mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, 128);
+
+const pointsPerSecond = audioContext.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE;
+maxDataPoints = Math.ceil(pointsPerSecond * 300);
+
+const scriptProcessor = audioContext.createScriptProcessor(SCRIPT_PROCESSOR_BUFFER_SIZE, 1, 1);
+
+scriptProcessor.onaudioprocess = (e) => {
+const inputData = e.inputBuffer.getChannelData(0);
+
+let maxVal = 0;
+for (const sample of inputData) {
+if (Math.abs(sample) > maxVal) {
+maxVal = Math.abs(sample);
+}
+}
+visualizationData.push(maxVal);
+if (visualizationData.length > maxDataPoints) {
+visualizationData.shift();
+}
+
+const pcm_i16 = convertFloat32ToInt16(inputData);
+const mp3buf = mp3Encoder.encodeBuffer(pcm_i16);
+if (mp3buf.length > 0) {
+mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
+}
+};
+
+source.connect(scriptProcessor);
+scriptProcessor.connect(audioContext.destination);
+
+statusEl.textContent = '';
+saveButton.disabled = false;
+recordingStartTime = Date.now();
+buttonUpdateInterval = setInterval(updateButtonText, 1000);
+
+drawWaveform();
+
+} catch (err) {
+statusEl.textContent = `Error: ${err.message}. Please allow microphone access.`;
+console.error("Error accessing microphone:", err);
+}
+}
+
+function convertFloat32ToInt16(buffer) {
+let l = buffer.length;
+const buf = new Int16Array(l);
+while (l--) {
+buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
+}
+return buf;
+}
+
+function drawWaveform() {
+animationFrameId = requestAnimationFrame(drawWaveform);
+
+canvasCtx.fillStyle = '#1e1e1e';
+canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+canvasCtx.lineWidth = 2;
+canvasCtx.strokeStyle = '#b3b3b3';
+canvasCtx.beginPath();
+
+const currentDataLength = visualizationData.length;
+const scale = Math.min(currentDataLength, maxDataPoints);
+const sliceWidth = canvas.width / scale;
+let x = 0;
+
+const startPoint = Math.max(0, currentDataLength - maxDataPoints);
+
+for (let i = startPoint; i < currentDataLength; i++) {
+const item = visualizationData[i];
+const v = Math.min(canvas.height, item * canvas.height * 2);
+const y = (canvas.height - v) / 2;
+canvasCtx.moveTo(x, y);
+canvasCtx.lineTo(x, y + v);
+x += sliceWidth;
+}
+
+canvasCtx.stroke();
+}
+
+function updateButtonText() {
+if (!recordingStartTime) return;
+
+const elapsedMs = Date.now() - recordingStartTime;
+if (elapsedMs >= FIVE_MINUTES_MS) {
+saveButton.textContent = 'Save last 5 minutes';
+clearInterval(buttonUpdateInterval);
+} else {
+const elapsedSeconds = Math.floor(elapsedMs / 1000);
+const minutes = Math.floor(elapsedSeconds / 60);
+const seconds = elapsedSeconds % 60;
+const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
+saveButton.textContent = `Save recorded audio (${formattedTime})`;
+}
+}
+
+function saveRecordedAudio() {
+if (mp3Chunks.length === 0) {
+statusEl.textContent = 'No audio recorded yet.';
+setTimeout(() => { if(statusEl.textContent === 'No audio recorded yet.') statusEl.textContent = '' }, 3000);
+return;
+}
+
+saveButton.disabled = true;
+saveButton.textContent = 'Processing...';
+
+setTimeout(() => {
+const finalMp3buf = mp3Encoder.flush();
+if (finalMp3buf.length > 0) {
+mp3Chunks.push({ data: finalMp3buf, timestamp: Date.now() });
+}
+
+const now = Date.now();
+const relevantMp3Data = mp3Chunks
+.filter(chunk => now - chunk.timestamp <= FIVE_MINUTES_MS)
+.map(chunk => chunk.data);
+
+if (relevantMp3Data.length === 0) {
+statusEl.textContent = 'No recent audio to save.';
+saveButton.disabled = false;
+updateButtonText();
+setTimeout(() => { if(statusEl.textContent === 'No recent audio to save.') statusEl.textContent = '' }, 3000);
+return;
+}
+
+const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
+downloadMp3(mp3Blob);
+}, 50);
+}
+
+function downloadMp3(mp3Blob) {
+const url = URL.createObjectURL(mp3Blob);
+const a = document.createElement('a');
+a.style.display = 'none';
+a.href = url;
+const filename = `looprec-${new Date().toISOString()}.mp3`;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+
+saveButton.textContent = 'Saved!';
+
+setTimeout(() => {
+document.body.removeChild(a);
+window.URL.revokeObjectURL(url);
+
+setTimeout(() => {
+saveButton.disabled = false;
+updateButtonText();
+}, 1500);
+}, 100);
+}
+
+saveButton.addEventListener('click', saveRecordedAudio);
+
+init();
+});
+</script>
+
+</body>
+</html>
