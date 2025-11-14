@@ -97,7 +97,7 @@ width: 100%;
 text-align: center;
 }
 
-#actionButton {
+#saveButton {
 background-color: var(--accent-color);
 color: white;
 border: none;
@@ -111,15 +111,15 @@ width: 100%;
 max-width: 300px;
 }
 
-#actionButton:hover {
+#saveButton:hover {
 background-color: var(--accent-hover-color);
 }
 
-#actionButton:active {
+#saveButton:active {
 transform: scale(0.98);
 }
 
-#actionButton:disabled {
+#saveButton:disabled {
 background-color: #535353;
 cursor: not-allowed;
 }
@@ -138,14 +138,14 @@ cursor: not-allowed;
 </div>
 
 <div class="controls">
-<button id="actionButton">Start Recording</button>
+<button id="saveButton" disabled>Save recorded audio</button>
 </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 const statusEl = document.getElementById('status');
-const actionButton = document.getElementById('actionButton');
+const saveButton = document.getElementById('saveButton');
 const canvas = document.getElementById('visualizer');
 const canvasCtx = canvas.getContext('2d');
 
@@ -165,29 +165,15 @@ function resizeCanvas() {
 const container = document.querySelector('.visualizer-container');
 canvas.width = container.offsetWidth;
 canvas.height = container.offsetHeight;
-drawBlankWaveform();
+drawWaveform();
 }
 window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-
-function drawBlankWaveform() {
-canvasCtx.fillStyle = '#1e1e1e';
-canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-canvasCtx.lineWidth = 2;
-canvasCtx.strokeStyle = '#b3b3b3';
-canvasCtx.beginPath();
-canvasCtx.moveTo(0, canvas.height / 2);
-canvasCtx.lineTo(canvas.width, canvas.height / 2);
-canvasCtx.stroke();
-}
-
-async function requestAndStartRecording() {
-actionButton.disabled = true;
+async function init() {
 statusEl.textContent = 'Requesting microphone access...';
-
 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
 statusEl.textContent = 'Error: Your browser does not support audio recording.';
-actionButton.disabled = false;
 return;
 }
 
@@ -200,9 +186,6 @@ noiseSuppression: false
 }
 };
 const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-actionButton.removeEventListener('click', requestAndStartRecording);
-actionButton.addEventListener('click', saveRecordedAudio);
 
 audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const source = audioContext.createMediaStreamSource(stream);
@@ -238,16 +221,15 @@ mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
 source.connect(scriptProcessor);
 scriptProcessor.connect(audioContext.destination);
 
-statusEl.textContent = 'Recording...';
-actionButton.disabled = false;
+statusEl.textContent = '';
+saveButton.disabled = false;
 recordingStartTime = Date.now();
 buttonUpdateInterval = setInterval(updateButtonText, 1000);
-updateButtonText(); // Initial call
+
 drawWaveform();
 
 } catch (err) {
 statusEl.textContent = `Error: ${err.message}. Please allow microphone access.`;
-actionButton.disabled = false;
 console.error("Error accessing microphone:", err);
 }
 }
@@ -295,26 +277,27 @@ if (!recordingStartTime) return;
 
 const elapsedMs = Date.now() - recordingStartTime;
 if (elapsedMs >= FIVE_MINUTES_MS) {
-actionButton.textContent = 'Save last 5 minutes';
+saveButton.textContent = 'Save last 5 minutes';
 clearInterval(buttonUpdateInterval);
+buttonUpdateInterval = null; // Mark interval as cleared
 } else {
 const elapsedSeconds = Math.floor(elapsedMs / 1000);
 const minutes = Math.floor(elapsedSeconds / 60);
 const seconds = elapsedSeconds % 60;
 const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
-actionButton.textContent = `Save recorded audio (${formattedTime})`;
+saveButton.textContent = `Save recorded audio (${formattedTime})`;
 }
 }
 
 function saveRecordedAudio() {
 if (mp3Chunks.length === 0) {
 statusEl.textContent = 'No audio recorded yet.';
-setTimeout(() => { if(statusEl.textContent === 'No audio recorded yet.') statusEl.textContent = 'Recording...' }, 3000);
+setTimeout(() => { if(statusEl.textContent === 'No audio recorded yet.') statusEl.textContent = '' }, 3000);
 return;
 }
 
-actionButton.disabled = true;
-actionButton.textContent = 'Processing...';
+saveButton.disabled = true;
+saveButton.textContent = 'Processing...';
 
 setTimeout(() => {
 const finalMp3buf = mp3Encoder.flush();
@@ -329,14 +312,27 @@ const relevantMp3Data = mp3Chunks
 
 if (relevantMp3Data.length === 0) {
 statusEl.textContent = 'No recent audio to save.';
-actionButton.disabled = false;
+saveButton.disabled = false;
 updateButtonText();
-setTimeout(() => { if(statusEl.textContent === 'No recent audio to save.') statusEl.textContent = 'Recording...' }, 3000);
+setTimeout(() => { if(statusEl.textContent === 'No recent audio to save.') statusEl.textContent = '' }, 3000);
 return;
 }
 
 const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
 downloadMp3(mp3Blob);
+
+// MODIFICATION START: Reset buffer and start new recording
+mp3Chunks = [];
+recordingStartTime = Date.now();
+
+// Reset the button update interval
+if (buttonUpdateInterval) {
+    clearInterval(buttonUpdateInterval);
+}
+buttonUpdateInterval = setInterval(updateButtonText, 1000);
+updateButtonText(); // Update text immediately to 0:00
+// MODIFICATION END
+
 }, 50);
 }
 
@@ -350,27 +346,22 @@ a.download = filename;
 document.body.appendChild(a);
 a.click();
 
-actionButton.textContent = 'Saved!';
+saveButton.textContent = 'Saved!';
 
 setTimeout(() => {
 document.body.removeChild(a);
 window.URL.revokeObjectURL(url);
 
 setTimeout(() => {
-actionButton.disabled = false;
-updateButtonText();
+saveButton.disabled = false;
+// The button text will be updated by the interval that was reset in saveRecordedAudio
 }, 1500);
 }, 100);
 }
 
+saveButton.addEventListener('click', saveRecordedAudio);
 
-function setupInitialUI() {
-    statusEl.textContent = 'Click the button to grant microphone access and start recording.';
-    actionButton.addEventListener('click', requestAndStartRecording);
-    resizeCanvas();
-}
-
-setupInitialUI();
+init();
 });
 </script>
 
