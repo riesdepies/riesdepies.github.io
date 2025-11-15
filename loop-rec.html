@@ -161,6 +161,10 @@ const SCRIPT_PROCESSOR_BUFFER_SIZE = 4096;
 let visualizationData = [];
 let maxDataPoints;
 
+// MODIFICATION: Variables for filename counter
+let saveCounter = 1;
+let lastSaveDate = '';
+
 function resizeCanvas() {
 const container = document.querySelector('.visualizer-container');
 canvas.width = container.offsetWidth;
@@ -279,7 +283,6 @@ const elapsedMs = Date.now() - recordingStartTime;
 if (elapsedMs >= FIVE_MINUTES_MS) {
 saveButton.textContent = 'Save last 5 minutes';
 clearInterval(buttonUpdateInterval);
-buttonUpdateInterval = null; // Mark interval as cleared
 } else {
 const elapsedSeconds = Math.floor(elapsedMs / 1000);
 const minutes = Math.floor(elapsedSeconds / 60);
@@ -289,6 +292,7 @@ saveButton.textContent = `Save recorded audio (${formattedTime})`;
 }
 }
 
+// MODIFICATION: Reworked function to reset buffers after saving
 function saveRecordedAudio() {
 if (mp3Chunks.length === 0) {
 statusEl.textContent = 'No audio recorded yet.';
@@ -299,49 +303,65 @@ return;
 saveButton.disabled = true;
 saveButton.textContent = 'Processing...';
 
-setTimeout(() => {
-const finalMp3buf = mp3Encoder.flush();
-if (finalMp3buf.length > 0) {
-mp3Chunks.push({ data: finalMp3buf, timestamp: Date.now() });
+// --- 1. Capture current state for saving ---
+const chunksToSave = [...mp3Chunks];
+const finalBufferToSave = mp3Encoder.flush();
+if (finalBufferToSave.length > 0) {
+chunksToSave.push({ data: finalBufferToSave, timestamp: Date.now() });
 }
+const saveInitiationTime = Date.now();
 
-const now = Date.now();
-const relevantMp3Data = mp3Chunks
-.filter(chunk => now - chunk.timestamp <= FIVE_MINUTES_MS)
+// --- 2. Immediately reset for the next recording ---
+mp3Chunks = [];
+visualizationData = []; // Clears the visualizer
+recordingStartTime = Date.now();
+mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, 128);
+
+clearInterval(buttonUpdateInterval);
+buttonUpdateInterval = setInterval(updateButtonText, 1000);
+updateButtonText(); // Update button text to show (0:00)
+
+// --- 3. Process and download the captured audio in the background ---
+setTimeout(() => {
+const relevantMp3Data = chunksToSave
+.filter(chunk => saveInitiationTime - chunk.timestamp <= FIVE_MINUTES_MS)
 .map(chunk => chunk.data);
 
 if (relevantMp3Data.length === 0) {
 statusEl.textContent = 'No recent audio to save.';
-saveButton.disabled = false;
-updateButtonText();
+saveButton.disabled = false; // Re-enable button
 setTimeout(() => { if(statusEl.textContent === 'No recent audio to save.') statusEl.textContent = '' }, 3000);
 return;
 }
 
 const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
 downloadMp3(mp3Blob);
-
-// MODIFICATION START: Reset buffer and start new recording
-mp3Chunks = [];
-recordingStartTime = Date.now();
-
-// Reset the button update interval
-if (buttonUpdateInterval) {
-    clearInterval(buttonUpdateInterval);
-}
-buttonUpdateInterval = setInterval(updateButtonText, 1000);
-updateButtonText(); // Update text immediately to 0:00
-// MODIFICATION END
-
 }, 50);
 }
 
+// MODIFICATION: Reworked function to handle new filename format
 function downloadMp3(mp3Blob) {
 const url = URL.createObjectURL(mp3Blob);
 const a = document.createElement('a');
 a.style.display = 'none';
 a.href = url;
-const filename = `looprec-${new Date().toISOString()}.mp3`;
+
+// New filename logic
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
+const todayString = `${year}-${month}-${day}`;
+
+if (todayString !== lastSaveDate) {
+saveCounter = 1;
+lastSaveDate = todayString;
+}
+
+const counterString = String(saveCounter).padStart(2, '0');
+const filename = `loop•rec-[${todayString}]-${counterString}.mp3`;
+saveCounter++;
+
 a.download = filename;
 document.body.appendChild(a);
 a.click();
@@ -354,7 +374,8 @@ window.URL.revokeObjectURL(url);
 
 setTimeout(() => {
 saveButton.disabled = false;
-// The button text will be updated by the interval that was reset in saveRecordedAudio
+// The button text is now controlled by the new interval,
+// so no need to call updateButtonText() here.
 }, 1500);
 }, 100);
 }
