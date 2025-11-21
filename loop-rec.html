@@ -4,385 +4,866 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>loop•rec</title>
-<!-- Include the LAME MP3 encoder library from a CDN -->
 <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 <style>
 :root {
---bg-color: #121212;
---primary-text-color: #e0e0e0;
---secondary-text-color: #b3b3b3;
---accent-color: #e53935; /* Rood */
---accent-hover-color: #f44336; /* Lichter rood */
---surface-color: #1e1e1e;
+    --bg-color: #121212;
+    --primary-text-color: #e0e0e0;
+    --secondary-text-color: #b3b3b3;
+    --accent-color: #e53935;
+    --accent-hover-color: #f44336;
+    --surface-color: #1e1e1e;
+    --modal-bg: rgba(0, 0, 0, 0.85);
+    --success-color: #4caf50;
+    --clip-color: #ff1744;
 }
 
 html, body {
-height: 100%;
-margin: 0;
-padding: 0;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-background-color: var(--bg-color);
-color: var(--primary-text-color);
-overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    overflow: hidden;
 }
 
 .container {
-display: flex;
-flex-direction: column;
-justify-content: flex-start;
-align-items: center;
-height: 100%;
-/* MODIFICATION: Increased vertical padding */
-padding: 40px 20px;
-box-sizing: border-box;
-/* MODIFICATION: Increased gap for more space */
-gap: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100%;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    gap: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--secondary-text-color);
+    padding: 10px;
+    transition: color 0.2s;
+    z-index: 10;
+}
+
+.settings-btn:hover {
+    color: var(--primary-text-color);
+}
+
+.settings-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
 }
 
 .header {
-text-align: center;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin-top: 20px;
 }
 
 h1 {
-margin: 0;
-font-size: 3.2em;
-color: var(--primary-text-color);
-font-weight: bold;
-letter-spacing: -1px;
+    margin: 0;
+    font-size: 3.2em;
+    color: var(--primary-text-color);
+    font-weight: bold;
+    letter-spacing: -1px;
 }
 
 .dot {
-color: var(--accent-color);
-animation: blink 1.2s infinite;
-margin: 0 0.1em;
-display: inline-block;
-transform: translateY(0.1em);
+    color: var(--accent-color);
+    animation: blink 1.2s infinite;
+    margin: 0 0.1em;
+    display: inline-block;
+    transform: translateY(0.1em);
 }
 
 @keyframes blink {
-0%, 100% {
-opacity: 1;
-}
-50% {
-opacity: 0;
-}
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
 }
 
 #status {
-color: var(--secondary-text-color);
-margin: 0;
-height: auto;
+    color: var(--secondary-text-color);
+    margin: 5px 0 0 0;
+    height: auto;
+    min-height: 1.2em;
 }
 
 .visualizer-container {
-width: 100%;
-height: 200px;
-max-height: 250px;
-display: flex;
-align-items: center;
-justify-content: center;
-min-height: 150px;
-padding: 0;
+    width: 100%;
+    height: 200px;
+    max-height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 0;
+    position: relative;
 }
 
 #visualizer {
-width: 100%;
-height: 100%;
-background-color: var(--surface-color);
-border-radius: 8px;
+    width: 100%;
+    height: 100%;
+    background-color: var(--surface-color);
+    border-radius: 8px;
 }
 
 .controls {
-width: 100%;
-text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 #saveButton {
-background-color: var(--accent-color);
-color: white;
-border: none;
-border-radius: 50px;
-padding: 15px 30px;
-font-size: 1.2em;
-font-weight: bold;
-cursor: pointer;
-transition: background-color 0.2s, transform 0.1s;
-width: 100%;
-max-width: 300px;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+    overflow: hidden;
 }
 
 #saveButton:hover {
-background-color: var(--accent-hover-color);
+    background-color: var(--accent-hover-color);
 }
 
 #saveButton:active {
-transform: scale(0.98);
+    transform: scale(0.98);
 }
 
 #saveButton:disabled {
-background-color: #535353;
-cursor: not-allowed;
+    background-color: #535353;
+    cursor: not-allowed;
+}
+
+#downloadStandaloneButton {
+    background-color: transparent;
+    color: var(--secondary-text-color);
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    margin-top: 10px;
+}
+
+#downloadStandaloneButton:hover {
+    background-color: var(--secondary-text-color);
+    color: var(--bg-color);
+}
+
+#downloadStandaloneButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-bg);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--secondary-text-color);
+    font-size: 0.9em;
+}
+
+.setting-group select, 
+.setting-group input[type="range"] {
+    width: 100%;
+    background-color: var(--bg-color);
+    color: var(--primary-text-color);
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 1em;
+}
+
+.setting-group input[type="range"] {
+    padding: 0;
+    height: 4px;
+    margin: 15px 0;
+    -webkit-appearance: none;
+    background: #444;
+}
+
+.setting-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.range-value {
+    float: right;
+    color: var(--primary-text-color);
+}
+
+.flash-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--success-color);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 200;
+    transition: opacity 0.5s ease-out;
+}
+
+.flash-overlay.flash {
+    opacity: 0.3;
+    transition: none;
 }
 </style>
 </head>
 <body>
 
+<div class="flash-overlay" id="flashOverlay"></div>
+
 <div class="container">
-<div class="header">
-<h1>loop<span class="dot">•</span>rec</h1>
-<p id="status"></p>
+    <button id="settingsBtn" class="settings-btn" title="Settings">
+        <svg viewBox="0 0 24 24">
+            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+        </svg>
+    </button>
+
+    <div class="header">
+        <h1>loop<span class="dot">•</span>rec</h1>
+        <p id="status"></p>
+    </div>
+
+    <div class="visualizer-container">
+        <canvas id="visualizer"></canvas>
+    </div>
+
+    <div class="controls">
+        <button id="saveButton" disabled>Initializing...</button>
+        <button id="downloadStandaloneButton">Download Standalone Version</button>
+    </div>
 </div>
 
-<div class="visualizer-container">
-<canvas id="visualizer"></canvas>
-</div>
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Settings</h2>
+            <button class="close-btn" id="closeSettings">&times;</button>
+        </div>
+        
+        <div class="setting-group">
+            <label for="micSelect">Input Source</label>
+            <select id="micSelect"></select>
+        </div>
 
-<div class="controls">
-<button id="saveButton" disabled>Save recorded audio</button>
-</div>
+        <div class="setting-group">
+            <label for="bitrateSelect">Quality (Bitrate)</label>
+            <select id="bitrateSelect">
+                <option value="128">128 kbps (Standard)</option>
+                <option value="192" selected>192 kbps (High)</option>
+                <option value="256">256 kbps (Very High)</option>
+                <option value="320">320 kbps (Maximum)</option>
+            </select>
+        </div>
+
+        <div class="setting-group">
+            <label for="bufferRange">
+                Memory Buffer <span class="range-value" id="bufferValue">5 min</span>
+            </label>
+            <input type="range" id="bufferRange" min="1" max="20" value="5" step="1">
+        </div>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-const statusEl = document.getElementById('status');
-const saveButton = document.getElementById('saveButton');
-const canvas = document.getElementById('visualizer');
-const canvasCtx = canvas.getContext('2d');
+    const statusEl = document.getElementById('status');
+    const saveButton = document.getElementById('saveButton');
+    const canvas = document.getElementById('visualizer');
+    const canvasCtx = canvas.getContext('2d');
+    
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsBtn = document.getElementById('closeSettings');
+    const micSelect = document.getElementById('micSelect');
+    const bitrateSelect = document.getElementById('bitrateSelect');
+    const bufferRange = document.getElementById('bufferRange');
+    const bufferValue = document.getElementById('bufferValue');
+    const flashOverlay = document.getElementById('flashOverlay');
 
-let audioContext;
-let animationFrameId;
-let recordingStartTime;
-let buttonUpdateInterval;
+    let audioContext;
+    let mediaStream;
+    let sourceNode;
+    let workletNode;
+    let recordingStartTime;
+    let buttonUpdateInterval;
+    let pruneInterval;
+    let soundAudioCtx;
+    let gainNode;
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
-let mp3Encoder;
-let mp3Chunks = [];
-const SCRIPT_PROCESSOR_BUFFER_SIZE = 4096;
-let visualizationData = [];
-let maxDataPoints;
+    let config = {
+        bufferMinutes: 5,
+        bitrate: 192,
+        deviceId: 'default'
+    };
 
-// MODIFICATION: Variables for filename counter
-let saveCounter = 1;
-let lastSaveDate = '';
+    let mp3Encoder;
+    let mp3Chunks = [];
+    
+    let visualizationData = [];
+    let maxVisualPoints; 
+    const WORKLET_BUFFER_SIZE = 128; 
+    const VISUAL_DOWNSAMPLE_RATE = 25; 
+    let accumulatedMax = 0;
+    let accumulateCount = 0;
+    let isClipping = false;
+    let clipTimer = null;
 
-function resizeCanvas() {
-const container = document.querySelector('.visualizer-container');
-canvas.width = container.offsetWidth;
-canvas.height = container.offsetHeight;
-drawWaveform();
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+    window.addEventListener('beforeunload', (e) => {
+        if (mp3Chunks.length > 0) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
 
-async function init() {
-statusEl.textContent = 'Requesting microphone access...';
-if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-statusEl.textContent = 'Error: Your browser does not support audio recording.';
-return;
-}
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'PageDown') {
+            event.preventDefault();
+            if (!saveButton.disabled) {
+                saveButton.click();
+            }
+        }
+    });
 
-try {
-const constraints = {
-audio: {
-autoGainControl: false,
-echoCancellation: false,
-noiseSuppression: false
-}
-};
-const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const resumeAudio = () => {
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+    };
+    document.addEventListener('click', resumeAudio);
+    document.addEventListener('keydown', resumeAudio);
 
-audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const source = audioContext.createMediaStreamSource(stream);
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.classList.add('active');
+        populateDeviceList(); 
+    });
 
-mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, 128);
+    closeSettingsBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+    });
 
-const pointsPerSecond = audioContext.sampleRate / SCRIPT_PROCESSOR_BUFFER_SIZE;
-maxDataPoints = Math.ceil(pointsPerSecond * 300);
+    settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.remove('active');
+        }
+    });
 
-const scriptProcessor = audioContext.createScriptProcessor(SCRIPT_PROCESSOR_BUFFER_SIZE, 1, 1);
+    micSelect.addEventListener('change', async () => {
+        config.deviceId = micSelect.value;
+        await initAudio();
+    });
 
-scriptProcessor.onaudioprocess = (e) => {
-const inputData = e.inputBuffer.getChannelData(0);
+    bitrateSelect.addEventListener('change', () => {
+        config.bitrate = parseInt(bitrateSelect.value);
+        statusEl.textContent = 'Bitrate changed. Buffer reset.';
+        resetRecordingState();
+    });
 
-let maxVal = 0;
-for (const sample of inputData) {
-if (Math.abs(sample) > maxVal) {
-maxVal = Math.abs(sample);
-}
-}
-visualizationData.push(maxVal);
-if (visualizationData.length > maxDataPoints) {
-visualizationData.shift();
-}
+    bufferRange.addEventListener('input', () => {
+        config.bufferMinutes = parseInt(bufferRange.value);
+        bufferValue.textContent = `${config.bufferMinutes} min`;
+        updateButtonText();
+        recalcMaxVisualPoints();
+    });
 
-const pcm_i16 = convertFloat32ToInt16(inputData);
-const mp3buf = mp3Encoder.encodeBuffer(pcm_i16);
-if (mp3buf.length > 0) {
-mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
-}
-};
+    function resizeCanvas() {
+        const container = document.querySelector('.visualizer-container');
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-source.connect(scriptProcessor);
-scriptProcessor.connect(audioContext.destination);
+    function recalcMaxVisualPoints() {
+        if (!audioContext) return;
+        const pointsPerSecond = (audioContext.sampleRate / WORKLET_BUFFER_SIZE) / VISUAL_DOWNSAMPLE_RATE;
+        maxVisualPoints = Math.ceil(pointsPerSecond * (config.bufferMinutes * 60));
+    }
 
-statusEl.textContent = '';
-saveButton.disabled = false;
-recordingStartTime = Date.now();
-buttonUpdateInterval = setInterval(updateButtonText, 1000);
+    async function populateDeviceList() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+            const currentSelection = config.deviceId;
+            micSelect.innerHTML = '';
+            
+            audioInputs.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Microphone ${micSelect.length + 1}`;
+                micSelect.appendChild(option);
+            });
 
-drawWaveform();
+            if (Array.from(micSelect.options).some(opt => opt.value === currentSelection)) {
+                micSelect.value = currentSelection;
+            }
+        } catch (err) {
+            console.error('Error enumerating devices:', err);
+        }
+    }
 
-} catch (err) {
-statusEl.textContent = `Error: ${err.message}. Please allow microphone access.`;
-console.error("Error accessing microphone:", err);
-}
-}
+    async function initAudio() {
+        statusEl.textContent = 'Requesting microphone access...';
+        saveButton.disabled = true;
 
-function convertFloat32ToInt16(buffer) {
-let l = buffer.length;
-const buf = new Int16Array(l);
-while (l--) {
-buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
-}
-return buf;
-}
+        try {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
 
-function drawWaveform() {
-animationFrameId = requestAnimationFrame(drawWaveform);
+            const constraints = {
+                audio: {
+                    deviceId: config.deviceId ? { exact: config.deviceId } : undefined,
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    channelCount: 1
+                }
+            };
 
-canvasCtx.fillStyle = '#1e1e1e';
-canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
 
-canvasCtx.lineWidth = 2;
-canvasCtx.strokeStyle = '#b3b3b3';
-canvasCtx.beginPath();
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const workletCode = `
+                class RecorderProcessor extends AudioWorkletProcessor {
+                    process(inputs, outputs, parameters) {
+                        const inputData = inputs[0][0];
+                        if (inputData) {
+                            this.port.postMessage(inputData);
+                        }
+                        return true;
+                    }
+                }
+                registerProcessor('recorder-processor', RecorderProcessor);
+                `;
+                const workletBlob = new Blob([workletCode], { type: 'application/javascript' });
+                const workletUrl = URL.createObjectURL(workletBlob);
+                await audioContext.audioWorklet.addModule(workletUrl);
+            }
 
-const currentDataLength = visualizationData.length;
-const scale = Math.min(currentDataLength, maxDataPoints);
-const sliceWidth = canvas.width / scale;
-let x = 0;
+            if (audioContext.state === 'suspended') {
+                await audioContext.resume();
+            }
+            
+            if (sourceNode) {
+                sourceNode.disconnect();
+            }
+            if (workletNode) {
+                workletNode.disconnect();
+            }
 
-const startPoint = Math.max(0, currentDataLength - maxDataPoints);
+            sourceNode = audioContext.createMediaStreamSource(mediaStream);
+            workletNode = new AudioWorkletNode(audioContext, 'recorder-processor');
 
-for (let i = startPoint; i < currentDataLength; i++) {
-const item = visualizationData[i];
-const v = Math.min(canvas.height, item * canvas.height * 2);
-const y = (canvas.height - v) / 2;
-canvasCtx.moveTo(x, y);
-canvasCtx.lineTo(x, y + v);
-x += sliceWidth;
-}
+            if (!gainNode) {
+                gainNode = audioContext.createGain();
+                gainNode.gain.value = 0; 
+                gainNode.connect(audioContext.destination);
+            }
 
-canvasCtx.stroke();
-}
+            mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, config.bitrate);
+            recalcMaxVisualPoints();
 
-function updateButtonText() {
-if (!recordingStartTime) return;
+            workletNode.port.onmessage = (event) => {
+                const inputData = event.data;
 
-const elapsedMs = Date.now() - recordingStartTime;
-if (elapsedMs >= FIVE_MINUTES_MS) {
-saveButton.textContent = 'Save last 5 minutes';
-clearInterval(buttonUpdateInterval);
-} else {
-const elapsedSeconds = Math.floor(elapsedMs / 1000);
-const minutes = Math.floor(elapsedSeconds / 60);
-const seconds = elapsedSeconds % 60;
-const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
-saveButton.textContent = `Save recorded audio (${formattedTime})`;
-}
-}
+                let localMax = 0;
+                for (let i = 0; i < inputData.length; i++) {
+                    const abs = Math.abs(inputData[i]);
+                    if (abs > localMax) localMax = abs;
+                }
+                
+                if (localMax > 0.95) {
+                    isClipping = true;
+                    if(clipTimer) clearTimeout(clipTimer);
+                    clipTimer = setTimeout(() => { isClipping = false; }, 300);
+                }
 
-// MODIFICATION: Reworked function to reset buffers after saving
-function saveRecordedAudio() {
-if (mp3Chunks.length === 0) {
-statusEl.textContent = 'No audio recorded yet.';
-setTimeout(() => { if(statusEl.textContent === 'No audio recorded yet.') statusEl.textContent = '' }, 3000);
-return;
-}
+                if (localMax > accumulatedMax) accumulatedMax = localMax;
+                accumulateCount++;
 
-saveButton.disabled = true;
-saveButton.textContent = 'Processing...';
+                if (accumulateCount >= VISUAL_DOWNSAMPLE_RATE) {
+                    visualizationData.push(accumulatedMax);
+                    accumulatedMax = 0;
+                    accumulateCount = 0;
+                    
+                    if (visualizationData.length > maxVisualPoints) {
+                        visualizationData.shift();
+                    }
+                }
 
-// --- 1. Capture current state for saving ---
-const chunksToSave = [...mp3Chunks];
-const finalBufferToSave = mp3Encoder.flush();
-if (finalBufferToSave.length > 0) {
-chunksToSave.push({ data: finalBufferToSave, timestamp: Date.now() });
-}
-const saveInitiationTime = Date.now();
+                const pcm_i16 = convertFloat32ToInt16(inputData);
+                const mp3buf = mp3Encoder.encodeBuffer(pcm_i16);
+                if (mp3buf.length > 0) {
+                    mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
+                }
+            };
 
-// --- 2. Immediately reset for the next recording ---
-mp3Chunks = [];
-visualizationData = []; // Clears the visualizer
-recordingStartTime = Date.now();
-mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, 128);
+            sourceNode.connect(workletNode);
+            workletNode.connect(gainNode);
 
-clearInterval(buttonUpdateInterval);
-buttonUpdateInterval = setInterval(updateButtonText, 1000);
-updateButtonText(); // Update button text to show (0:00)
+            statusEl.textContent = '';
+            saveButton.disabled = false;
+            
+            resetRecordingState();
+            populateDeviceList(); 
 
-// --- 3. Process and download the captured audio in the background ---
-setTimeout(() => {
-const relevantMp3Data = chunksToSave
-.filter(chunk => saveInitiationTime - chunk.timestamp <= FIVE_MINUTES_MS)
-.map(chunk => chunk.data);
+        } catch (err) {
+            statusEl.textContent = `Error: ${err.message}. Please check permissions.`;
+            console.error("Init Error:", err);
+        }
+    }
 
-if (relevantMp3Data.length === 0) {
-statusEl.textContent = 'No recent audio to save.';
-saveButton.disabled = false; // Re-enable button
-setTimeout(() => { if(statusEl.textContent === 'No recent audio to save.') statusEl.textContent = '' }, 3000);
-return;
-}
+    function resetRecordingState() {
+        mp3Chunks = [];
+        visualizationData = [];
+        accumulatedMax = 0;
+        accumulateCount = 0;
+        recordingStartTime = Date.now();
+        
+        if (audioContext) {
+            mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, config.bitrate);
+        }
 
-const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
-downloadMp3(mp3Blob);
-}, 50);
-}
+        if (buttonUpdateInterval) clearInterval(buttonUpdateInterval);
+        buttonUpdateInterval = setInterval(updateButtonText, 1000);
 
-// MODIFICATION: Reworked function to handle new filename format
-function downloadMp3(mp3Blob) {
-const url = URL.createObjectURL(mp3Blob);
-const a = document.createElement('a');
-a.style.display = 'none';
-a.href = url;
+        if (pruneInterval) clearInterval(pruneInterval);
+        pruneInterval = setInterval(pruneChunks, 5000);
+    }
 
-// New filename logic
-const today = new Date();
-const year = today.getFullYear();
-const month = String(today.getMonth() + 1).padStart(2, '0');
-const day = String(today.getDate()).padStart(2, '0');
-const todayString = `${year}-${month}-${day}`;
+    function pruneChunks() {
+        if (mp3Chunks.length === 0) return;
+        
+        const bufferMs = config.bufferMinutes * 60 * 1000;
+        const cutoffTime = Date.now() - bufferMs - 10000; 
 
-if (todayString !== lastSaveDate) {
-saveCounter = 1;
-lastSaveDate = todayString;
-}
+        let spliceIndex = -1;
+        for(let i=0; i<mp3Chunks.length; i++) {
+            if (mp3Chunks[i].timestamp < cutoffTime) {
+                spliceIndex = i;
+            } else {
+                break;
+            }
+        }
 
-const counterString = String(saveCounter).padStart(2, '0');
-const filename = `loop•rec-[${todayString}]-${counterString}.mp3`;
-saveCounter++;
+        if (spliceIndex > -1) {
+            mp3Chunks.splice(0, spliceIndex + 1);
+        }
+    }
 
-a.download = filename;
-document.body.appendChild(a);
-a.click();
+    function playSaveSound() {
+        if (!soundAudioCtx) {
+            soundAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (soundAudioCtx.state === 'suspended') {
+            soundAudioCtx.resume();
+        }
+        const now = soundAudioCtx.currentTime;
 
-saveButton.textContent = 'Saved!';
+        // Oscillator 1 (C)
+        const osc1 = soundAudioCtx.createOscillator();
+        const gain1 = soundAudioCtx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(soundAudioCtx.destination);
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, now);
+        gain1.gain.setValueAtTime(0, now);
+        gain1.gain.linearRampToValueAtTime(0.4, now + 0.01);
+        gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+        osc1.start(now);
+        osc1.stop(now + 0.15);
 
-setTimeout(() => {
-document.body.removeChild(a);
-window.URL.revokeObjectURL(url);
+        // Oscillator 2 (G) - Hersteld
+        const osc2 = soundAudioCtx.createOscillator();
+        const gain2 = soundAudioCtx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(soundAudioCtx.destination);
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(783.99, now);
+        gain2.gain.setValueAtTime(0, now + 0.1);
+        gain2.gain.linearRampToValueAtTime(0.4, now + 0.11);
+        gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.3);
+        
+        flashOverlay.classList.add('flash');
+        setTimeout(() => flashOverlay.classList.remove('flash'), 500);
+    }
 
-setTimeout(() => {
-saveButton.disabled = false;
-// The button text is now controlled by the new interval,
-// so no need to call updateButtonText() here.
-}, 1500);
-}, 100);
-}
+    function convertFloat32ToInt16(buffer) {
+        let l = buffer.length;
+        const buf = new Int16Array(l);
+        while (l--) {
+            buf[l] = Math.min(1, Math.max(-1, buffer[l])) * 0x7FFF;
+        }
+        return buf;
+    }
 
-saveButton.addEventListener('click', saveRecordedAudio);
+    let animationFrameId;
+    function drawWaveform() {
+        animationFrameId = requestAnimationFrame(drawWaveform);
 
-init();
+        canvasCtx.fillStyle = '#1e1e1e';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (isClipping) {
+             canvasCtx.fillStyle = 'rgba(255, 23, 68, 0.2)';
+             canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+             canvasCtx.strokeStyle = '#ff1744';
+        } else {
+             canvasCtx.strokeStyle = '#b3b3b3';
+        }
+
+        canvasCtx.lineWidth = 2;
+        canvasCtx.beginPath();
+
+        const currentDataLength = visualizationData.length;
+        const scale = Math.min(currentDataLength, maxVisualPoints || 1000);
+        const sliceWidth = canvas.width / scale;
+        let x = 0;
+
+        const startPoint = Math.max(0, currentDataLength - (maxVisualPoints || 1000));
+
+        for (let i = 0; i < scale; i++) {
+            const index = startPoint + i;
+            const item = visualizationData[index];
+            
+            const v = Math.min(canvas.height, item * canvas.height * 2);
+            const y = (canvas.height - v) / 2;
+
+            canvasCtx.moveTo(x, y);
+            canvasCtx.lineTo(x, y + v);
+            x += sliceWidth;
+        }
+
+        canvasCtx.stroke();
+    }
+
+    function updateButtonText() {
+        if (!recordingStartTime) return;
+
+        const elapsedMs = Date.now() - recordingStartTime;
+        const bufferMs = config.bufferMinutes * 60 * 1000;
+
+        if (elapsedMs >= bufferMs) {
+            saveButton.textContent = `Save last ${config.bufferMinutes} minutes`;
+        } else {
+            const elapsedSeconds = Math.floor(elapsedMs / 1000);
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
+            saveButton.textContent = `Save recorded audio (${formattedTime})`;
+        }
+    }
+
+    function saveRecordedAudio() {
+        if (mp3Chunks.length === 0) {
+            statusEl.textContent = 'No audio recorded yet.';
+            return;
+        }
+
+        playSaveSound();
+        saveButton.disabled = true;
+        const originalText = saveButton.textContent;
+        saveButton.textContent = 'Processing...';
+
+        const chunksToSave = [...mp3Chunks];
+        const finalBufferToSave = mp3Encoder.flush();
+        if (finalBufferToSave.length > 0) {
+            chunksToSave.push({ data: finalBufferToSave, timestamp: Date.now() });
+        }
+        const saveInitiationTime = Date.now();
+
+        mp3Encoder = new lamejs.Mp3Encoder(1, audioContext.sampleRate, config.bitrate);
+        mp3Chunks = []; 
+        visualizationData = []; 
+        recordingStartTime = Date.now();
+        updateButtonText();
+
+        setTimeout(() => {
+            const bufferMs = config.bufferMinutes * 60 * 1000;
+            const relevantMp3Data = chunksToSave
+                .filter(chunk => saveInitiationTime - chunk.timestamp <= bufferMs)
+                .map(chunk => chunk.data);
+
+            if (relevantMp3Data.length === 0) {
+                statusEl.textContent = 'No recent audio to save.';
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+                return;
+            }
+
+            const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
+            downloadMp3(mp3Blob);
+        }, 50);
+    }
+
+    function downloadMp3(mp3Blob) {
+        const url = URL.createObjectURL(mp3Blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const hour = String(today.getHours()).padStart(2, '0');
+        const minute = String(today.getMinutes()).padStart(2, '0');
+        const todayString = `${year}-${month}-${day}_${hour}-${minute}`;
+
+        const filename = `loop•rec-[${todayString}].mp3`;
+
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        saveButton.textContent = 'Saved!';
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            saveButton.disabled = false;
+        }, 1500);
+    }
+
+    saveButton.addEventListener('click', saveRecordedAudio);
+
+    drawWaveform();
+    initAudio();
+
+    const downloadStandaloneButton = document.getElementById('downloadStandaloneButton');
+    if (downloadStandaloneButton) {
+        downloadStandaloneButton.addEventListener('click', async () => {
+            const button = downloadStandaloneButton;
+            const originalText = 'Download Standalone Version';
+            button.textContent = 'Preparing...';
+            button.disabled = true;
+
+            try {
+                const lameJsResponse = await fetch('https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js');
+                if (!lameJsResponse.ok) throw new Error('Failed to fetch lame.min.js');
+                const lameJsCode = await lameJsResponse.text();
+
+                let htmlContent = document.documentElement.outerHTML;
+
+                const scriptTagToReplace = '<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"><\/script>';
+                const inlineScriptTag = `<script>${lameJsCode}<\/script>`;
+                htmlContent = htmlContent.replace(scriptTagToReplace, inlineScriptTag);
+
+                htmlContent = htmlContent.replace(/<button id="downloadStandaloneButton".*?>.*?<\/button>\s*/s, '');
+                
+                const logicToRemoveRegex = /\/\/ --- Standalone Download Logic ---[\s\S]*?\/\/ --- End Standalone Download Logic ---/m;
+                htmlContent = htmlContent.replace(logicToRemoveRegex, '');
+
+                const blob = new Blob([htmlContent], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'loop-rec-standalone.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                button.textContent = 'Downloaded!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error creating standalone version:', error);
+                button.textContent = 'Error! Try again.';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }, 3000);
+            }
+        });
+    }
 });
 </script>
 
