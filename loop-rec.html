@@ -600,23 +600,18 @@ if (config.channelMode) channelSelect.value = config.channelMode;
 if (config.telegramToken) telegramTokenInput.value = config.telegramToken;
 if (config.telegramChatId) telegramChatIdInput.value = config.telegramChatId;
 
-// Auto-expand inputs if empty
-if (!config.telegramToken || !config.telegramChatId) {
-tgInputs.classList.remove('hidden');
-tgToggleIcon.classList.add('rotated');
-}
-
-// Start polling immediately
+// Auto-expand inputs ONLY if credentials exist but are maybe partial, or if user left them open last time (optional)
+// But typically, we keep them closed unless necessary.
+// If credentials exist, start polling
+if (config.telegramToken && config.telegramChatId) {
 startTelegramPolling();
+}
 
 } catch (e) {
 console.error("Failed to load settings", e);
 }
-} else {
-// First run
-tgInputs.classList.remove('hidden');
-tgToggleIcon.classList.add('rotated');
 }
+// If no settings (fresh run), we do NOT auto-open telegram inputs or modal
 }
 
 function saveSettings() {
@@ -1034,14 +1029,13 @@ return;
 }
 const needsTelegram = config.saveMode === 'telegram' || config.saveMode === 'both';
 
-if ((needsTelegram || (config.telegramToken && config.telegramChatId)) && (!config.telegramToken || !config.telegramChatId)) {
-if (needsTelegram) {
+// Only check for credentials if we ACTUALLY need Telegram
+if (needsTelegram && (!config.telegramToken || !config.telegramChatId)) {
 showStatus('Missing Telegram Token or Chat ID.', 3000);
 settingsModal.classList.add('active');
 tgInputs.classList.remove('hidden');
 tgToggleIcon.classList.add('rotated');
 return;
-}
 }
 
 playSaveSound();
@@ -1259,13 +1253,40 @@ try {
 const lameJsResponse = await fetch('https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js');
 if (!lameJsResponse.ok) throw new Error('Failed to fetch lame.min.js');
 const lameJsCode = await lameJsResponse.text();
+
+// We get the outerHTML, but we MUST sanitize it to mimic the original untouched code
+// because the current DOM might have classes like 'active', 'fade-out' or changed text.
 let htmlContent = document.documentElement.outerHTML;
+
+// 1. Inject the library
 const scriptTagToReplace = '<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"><\/script>';
 const inlineScriptTag = `<script>${lameJsCode}<\/script>`;
 htmlContent = htmlContent.replace(scriptTagToReplace, inlineScriptTag);
+
+// 2. Remove the Standalone Button container
 htmlContent = htmlContent.replace(/<div id="standalone-container">[\s\S]*?<\/div>/, '');
+
+// 3. Remove the Standalone Logic Script
 const logicToRemoveRegex = /\/\/ --- Standalone Download Logic ---[\s\S]*?\/\/ --- End Standalone Download Logic ---/m;
 htmlContent = htmlContent.replace(logicToRemoveRegex, '');
+
+// 4. SANITIZE DOM STATE to restore "Original/Default" state
+// Reset Modal (remove 'active')
+htmlContent = htmlContent.replace(/class="modal-overlay active"/g, 'class="modal-overlay"');
+// Reset Telegram Inputs (ensure 'hidden' is present)
+htmlContent = htmlContent.replace(/id="tgInputs" class="telegram-inputs"/g, 'id="tgInputs" class="telegram-inputs hidden"');
+// Reset Telegram Icon Rotation
+htmlContent = htmlContent.replace(/id="tgToggleIcon" class="tg-toggle-icon rotated"/g, 'id="tgToggleIcon" class="tg-toggle-icon"');
+// Reset Status Text
+htmlContent = htmlContent.replace(/<p id="status"[^>]*>.*?<\/p>/, '<p id="status"></p>');
+// Reset Save Button State and Text
+htmlContent = htmlContent.replace(/<button id="saveButton"[^>]*>.*?<\/button>/, '<button id="saveButton" disabled>Initializing...</button>');
+// Reset Telegram Status Text and LED
+htmlContent = htmlContent.replace(/id="tgStatusText">.*?<\/span>/, 'id="tgStatusText">Disconnected</span>');
+htmlContent = htmlContent.replace(/id="tgStatusLed" class="status-led.*?"/, 'id="tgStatusLed" class="status-led"');
+// Reset Visualizer Canvas (it creates inline width/height that we don't strictly need in source)
+htmlContent = htmlContent.replace(/<canvas id="visualizer" width=".*?" height=".*?"><\/canvas>/, '<canvas id="visualizer"></canvas>');
+
 const blob = new Blob([htmlContent], { type: 'text/html' });
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
