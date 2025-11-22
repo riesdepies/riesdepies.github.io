@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>loop•rec (True Stereo)</title>
+<title>loop•rec</title>
 <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 <style>
 :root {
@@ -13,10 +13,12 @@
 --accent-color: #e53935;
 --accent-hover-color: #f44336;
 --surface-color: #1e1e1e;
+--panel-color: #252525;
 --modal-bg: rgba(0, 0, 0, 0.85);
 --success-color: #4caf50;
 --clip-color: #ff1744;
 --telegram-color: #0088cc;
+--warning-color: #ff9800;
 }
 
 html, body {
@@ -100,6 +102,12 @@ margin: 5px 0 0 0;
 height: auto;
 min-height: 1.2em;
 font-size: 0.9em;
+transition: opacity 0.5s ease;
+opacity: 1;
+}
+
+#status.fade-out {
+opacity: 0;
 }
 
 .visualizer-container {
@@ -264,10 +272,82 @@ color: var(--primary-text-color);
 display: none;
 }
 
+/* Telegram Card */
+.telegram-card {
+background-color: var(--panel-color);
+border-radius: 8px;
+margin-bottom: 20px;
+overflow: hidden;
+border: 1px solid #333;
+}
+
+.telegram-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 15px;
+cursor: pointer;
+background-color: rgba(255,255,255,0.03);
+}
+
+.telegram-header:hover {
+background-color: rgba(255,255,255,0.06);
+}
+
+.tg-status-group {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.status-led {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background-color: #555;
+transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.status-led.connected { background-color: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+.status-led.connecting { background-color: var(--warning-color); }
+.status-led.error { background-color: var(--clip-color); }
+
+.tg-label {
+font-weight: 500;
+color: var(--primary-text-color);
+}
+
+.tg-sub {
+font-size: 0.8em;
+color: var(--secondary-text-color);
+margin-left: 5px;
+}
+
+.tg-toggle-icon {
+color: var(--secondary-text-color);
+transition: transform 0.3s;
+}
+
+.tg-toggle-icon.rotated {
+transform: rotate(90deg);
+}
+
+.telegram-inputs {
+padding: 0 15px 15px 15px;
+border-top: 1px solid #333;
+animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
 .telegram-note {
 font-size: 0.8em;
-color: #666;
-margin-top: 5px;
+color: #777;
+margin-top: 8px;
+line-height: 1.4;
 }
 
 /* Standalone Generator Styles */
@@ -378,16 +458,36 @@ background-color: var(--telegram-color);
 </select>
 </div>
 
-<!-- Telegram Settings Section -->
-<div id="telegramSettings" class="hidden">
-<div class="setting-group">
-<label for="telegramToken">Telegram Bot Token</label>
-<input type="password" id="telegramToken" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+<!-- Telegram Card (Compact UI) -->
+<div class="telegram-card">
+<div class="telegram-header" id="tgHeader">
+<div class="tg-status-group">
+<div class="status-led" id="tgStatusLed"></div>
+<div>
+<span class="tg-label">Telegram</span>
+<span class="tg-sub" id="tgStatusText">Disconnected</span>
+</div>
+</div>
+<div class="tg-toggle-icon" id="tgToggleIcon">
+<!-- Gear Icon -->
+<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+</svg>
+</div>
+</div>
+
+<div id="tgInputs" class="telegram-inputs hidden">
+<div class="setting-group" style="margin-top: 15px;">
+<label for="telegramToken">Bot Token</label>
+<input type="password" id="telegramToken" placeholder="123456:ABC-DEF1234ghIkl...">
 </div>
 <div class="setting-group">
-<label for="telegramChatId">Telegram Chat ID</label>
-<input type="text" id="telegramChatId" placeholder="-100123456789 or @channelname">
-<p class="telegram-note">The prefix -100 will be added automatically if omitted.</p>
+<label for="telegramChatId">Chat ID / @channel</label>
+<input type="text" id="telegramChatId" placeholder="-100123456... or @name">
+<p class="telegram-note">
+Bot must be member/admin. Triggers via <b>/save</b> in Channel or DM.
+</p>
+</div>
 </div>
 </div>
 
@@ -433,9 +533,15 @@ const bitrateSelect = document.getElementById('bitrateSelect');
 const bufferRange = document.getElementById('bufferRange');
 const bufferValue = document.getElementById('bufferValue');
 const saveModeSelect = document.getElementById('saveModeSelect');
-const telegramSettingsDiv = document.getElementById('telegramSettings');
+
+// Telegram Elements
+const tgHeader = document.getElementById('tgHeader');
+const tgInputs = document.getElementById('tgInputs');
+const tgToggleIcon = document.getElementById('tgToggleIcon');
 const telegramTokenInput = document.getElementById('telegramToken');
 const telegramChatIdInput = document.getElementById('telegramChatId');
+const tgStatusLed = document.getElementById('tgStatusLed');
+const tgStatusText = document.getElementById('tgStatusText');
 
 const flashOverlay = document.getElementById('flashOverlay');
 
@@ -454,7 +560,7 @@ let config = {
 bufferMinutes: 5,
 bitrate: 192,
 deviceId: 'default',
-channelMode: 'stereo', // 'ch1', 'ch2', 'stereo'
+channelMode: 'stereo',
 saveMode: 'local',
 telegramToken: '',
 telegramChatId: ''
@@ -471,6 +577,13 @@ let accumulatedMax = 0;
 let accumulateCount = 0;
 let isClipping = false;
 let clipTimer = null;
+let statusTimer = null;
+
+// Telegram Remote Control Vars
+let telegramPollingActive = false;
+let lastUpdateId = 0;
+let pollingAbortController = null;
+let tgDebounceTimer = null;
 
 // Load settings
 function loadSettings() {
@@ -486,24 +599,50 @@ if (config.saveMode) saveModeSelect.value = config.saveMode;
 if (config.channelMode) channelSelect.value = config.channelMode;
 if (config.telegramToken) telegramTokenInput.value = config.telegramToken;
 if (config.telegramChatId) telegramChatIdInput.value = config.telegramChatId;
-toggleTelegramSettings();
+
+// Auto-expand inputs if empty
+if (!config.telegramToken || !config.telegramChatId) {
+tgInputs.classList.remove('hidden');
+tgToggleIcon.classList.add('rotated');
+}
+
+// Start polling immediately
+startTelegramPolling();
+
 } catch (e) {
 console.error("Failed to load settings", e);
 }
+} else {
+// First run
+tgInputs.classList.remove('hidden');
+tgToggleIcon.classList.add('rotated');
 }
 }
 
 function saveSettings() {
+// Just save to local storage, do NOT interrupt polling
 localStorage.setItem('looprec_settings', JSON.stringify(config));
 }
 
-function toggleTelegramSettings() {
-if (config.saveMode === 'telegram' || config.saveMode === 'both') {
-telegramSettingsDiv.classList.remove('hidden');
-} else {
-telegramSettingsDiv.classList.add('hidden');
+function saveAndRestartTelegram() {
+saveSettings();
+// Debounce the restart so we don't hammer the API while typing
+if (tgDebounceTimer) clearTimeout(tgDebounceTimer);
+tgDebounceTimer = setTimeout(() => {
+startTelegramPolling();
+}, 1000);
 }
-updateButtonText();
+
+function showStatus(message, duration = 0) {
+if (statusTimer) clearTimeout(statusTimer);
+statusEl.classList.remove('fade-out');
+statusEl.textContent = message;
+
+if (duration > 0) {
+statusTimer = setTimeout(() => {
+statusEl.classList.add('fade-out');
+}, duration);
+}
 }
 
 document.addEventListener('keydown', (event) => {
@@ -549,10 +688,11 @@ await initAudio();
 bitrateSelect.addEventListener('change', () => {
 config.bitrate = parseInt(bitrateSelect.value);
 saveSettings();
-statusEl.textContent = 'Bitrate changed. Buffer reset.';
+showStatus('Bitrate changed. Buffer reset.', 3000);
 resetRecordingState();
 });
 
+// IMPORTANT: Only save settings here, DO NOT restart polling
 bufferRange.addEventListener('input', () => {
 config.bufferMinutes = parseInt(bufferRange.value);
 saveSettings();
@@ -564,17 +704,23 @@ recalcMaxVisualPoints();
 saveModeSelect.addEventListener('change', () => {
 config.saveMode = saveModeSelect.value;
 saveSettings();
-toggleTelegramSettings();
 });
 
+// Toggle Telegram Inputs
+tgHeader.addEventListener('click', () => {
+tgInputs.classList.toggle('hidden');
+tgToggleIcon.classList.toggle('rotated');
+});
+
+// Inputs update settings AND trigger a delayed restart
 telegramTokenInput.addEventListener('input', () => {
 config.telegramToken = telegramTokenInput.value.trim();
-saveSettings();
+saveAndRestartTelegram();
 });
 
 telegramChatIdInput.addEventListener('input', () => {
 config.telegramChatId = telegramChatIdInput.value.trim();
-saveSettings();
+saveAndRestartTelegram();
 });
 
 function resizeCanvas() {
@@ -612,7 +758,7 @@ console.error('Error enumerating devices:', err);
 }
 
 async function initAudio() {
-statusEl.textContent = 'Requesting audio access...';
+showStatus('Requesting audio access...');
 saveButton.disabled = true;
 
 try {
@@ -620,23 +766,19 @@ if (mediaStream) {
 mediaStream.getTracks().forEach(track => track.stop());
 }
 
-// IMPORTANT: Explicitly turn OFF all processing to prevent browser from forcing mono
 const constraints = {
 audio: {
 deviceId: config.deviceId && config.deviceId !== 'default' ? { exact: config.deviceId } : undefined,
 echoCancellation: false,
 noiseSuppression: false,
 autoGainControl: false,
-channelCount: 2 
+channelCount: 2
 }
 };
 
 mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-
-// Verify what we actually got from the browser
 const track = mediaStream.getAudioTracks()[0];
 const settings = track.getSettings();
-// console.log("Track settings:", settings);
 
 if (!audioContext) {
 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -645,7 +787,6 @@ class RecorderProcessor extends AudioWorkletProcessor {
 process(inputs, outputs, parameters) {
 const input = inputs[0];
 if (input && input.length > 0) {
-// Force copy of all available channels
 const channels = [];
 for(let i = 0; i < input.length; i++) {
 channels.push(input[i].slice());
@@ -669,11 +810,10 @@ if (workletNode) workletNode.disconnect();
 
 sourceNode = audioContext.createMediaStreamSource(mediaStream);
 
-// Create Worklet with explicit output channels to avoid downmixing in the graph
 workletNode = new AudioWorkletNode(audioContext, 'recorder-processor', {
 numberOfInputs: 1,
 numberOfOutputs: 1,
-outputChannelCount: [2], // Tell the graph we handle stereo
+outputChannelCount: [2],
 channelCount: 2,
 channelCountMode: 'explicit'
 });
@@ -684,7 +824,6 @@ gainNode.gain.value = 0;
 gainNode.connect(audioContext.destination);
 }
 
-// Reset Encoder
 const isStereo = config.channelMode === 'stereo';
 mp3Encoder = new lamejs.Mp3Encoder(isStereo ? 2 : 1, audioContext.sampleRate, config.bitrate);
 recalcMaxVisualPoints();
@@ -692,10 +831,6 @@ recalcMaxVisualPoints();
 workletNode.port.onmessage = (event) => {
 const channels = event.data;
 if (!channels || channels.length === 0) return;
-
-// DEBUG: Check if we really get stereo
-// If input is mono, channels.length will be 1.
-// If input is stereo, channels.length will be 2.
 
 let dataToEncodeL, dataToEncodeR;
 let visualData;
@@ -705,26 +840,21 @@ if (channels.length >= 2) {
 dataToEncodeL = channels[0];
 dataToEncodeR = channels[1];
 } else {
-// Browser gave us mono despite request
 dataToEncodeL = channels[0];
-dataToEncodeR = channels[0]; // Dual Mono fallback
+dataToEncodeR = channels[0];
 }
-// Simple mix for visualizer only
 visualData = new Float32Array(dataToEncodeL.length);
 for(let i=0; i<dataToEncodeL.length; i++) {
 visualData[i] = (dataToEncodeL[i] + dataToEncodeR[i]) / 2;
 }
 } else if (config.channelMode === 'ch2') {
-// If we have 2 channels, grab #2. If only 1, grab #1.
 visualData = (channels.length > 1) ? channels[1] : channels[0];
 dataToEncodeL = visualData;
 } else {
-// Mono Ch 1
 visualData = channels[0];
 dataToEncodeL = visualData;
 }
 
-// 1. Visualizer stats
 let localMax = 0;
 for (let i = 0; i < visualData.length; i++) {
 const abs = Math.abs(visualData[i]);
@@ -747,7 +877,6 @@ accumulateCount = 0;
 if (visualizationData.length > maxVisualPoints) visualizationData.shift();
 }
 
-// 2. Encode
 let mp3buf;
 const pcmLeft = convertFloat32ToInt16(dataToEncodeL);
 
@@ -766,16 +895,15 @@ mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
 sourceNode.connect(workletNode);
 workletNode.connect(gainNode);
 
-// Check input channel count for user info
-const inputChannels = settings.channelCount || 2; // sometimes undefined in firefox
-statusEl.textContent = `Ready (Rec: ${inputChannels}ch source)`;
+const inputChannels = settings.channelCount || 2;
+showStatus(`Ready (Rec: ${inputChannels}ch source)`, 3000);
 saveButton.disabled = false;
 
 resetRecordingState();
 populateDeviceList();
 
 } catch (err) {
-statusEl.textContent = `Error: ${err.message}`;
+showStatus(`Error: ${err.message}`);
 console.error("Init Error:", err);
 }
 }
@@ -901,14 +1029,21 @@ saveButton.textContent = `${actionText} (${formattedTime})`;
 
 async function saveRecordedAudio() {
 if (mp3Chunks.length === 0) {
-statusEl.textContent = 'No audio recorded yet.';
+showStatus('No audio recorded yet.', 3000);
 return;
 }
-if ((config.saveMode === 'telegram' || config.saveMode === 'both') && (!config.telegramToken || !config.telegramChatId)) {
-statusEl.textContent = 'Missing Telegram Token or Chat ID.';
+const needsTelegram = config.saveMode === 'telegram' || config.saveMode === 'both';
+
+if ((needsTelegram || (config.telegramToken && config.telegramChatId)) && (!config.telegramToken || !config.telegramChatId)) {
+if (needsTelegram) {
+showStatus('Missing Telegram Token or Chat ID.', 3000);
 settingsModal.classList.add('active');
+tgInputs.classList.remove('hidden');
+tgToggleIcon.classList.add('rotated');
 return;
 }
+}
+
 playSaveSound();
 saveButton.disabled = true;
 const originalText = saveButton.textContent;
@@ -931,7 +1066,7 @@ setTimeout(async () => {
 const bufferMs = config.bufferMinutes * 60 * 1000;
 const relevantMp3Data = chunksToSave.filter(chunk => saveInitiationTime - chunk.timestamp <= bufferMs).map(chunk => chunk.data);
 if (relevantMp3Data.length === 0) {
-statusEl.textContent = 'No recent audio.';
+showStatus('No recent audio.', 3000);
 saveButton.disabled = false;
 saveButton.textContent = originalText;
 return;
@@ -946,15 +1081,14 @@ if (config.saveMode === 'telegram' || config.saveMode === 'both') {
 saveButton.textContent = 'Uploading...';
 await uploadToTelegram(mp3Blob, filename);
 }
-statusEl.textContent = 'Done!';
+showStatus('Done!', 3000);
 saveButton.textContent = 'Saved!';
 } catch (e) {
 console.error(e);
-statusEl.textContent = 'Error: ' + e.message;
+showStatus('Error: ' + e.message);
 saveButton.textContent = 'Error';
 } finally {
 setTimeout(() => {
-statusEl.textContent = '';
 saveButton.disabled = false;
 updateButtonText();
 }, 2000);
@@ -987,6 +1121,123 @@ const response = await fetch(url, { method: 'POST', body: formData });
 const result = await response.json();
 if (!result.ok) throw new Error(result.description || 'Telegram Upload Failed');
 return result;
+}
+
+/* --- Telegram Long Polling Logic --- */
+
+function updateTgStatusUI(state) {
+tgStatusLed.className = 'status-led';
+if (state === 'connected') {
+tgStatusLed.classList.add('connected');
+tgStatusText.textContent = 'Connected';
+} else if (state === 'connecting') {
+tgStatusLed.classList.add('connecting');
+tgStatusText.textContent = 'Connecting...';
+} else {
+tgStatusLed.classList.add('error');
+tgStatusText.textContent = 'Disconnected';
+}
+}
+
+function stopTelegramPolling() {
+telegramPollingActive = false;
+if (pollingAbortController) {
+pollingAbortController.abort();
+pollingAbortController = null;
+}
+updateTgStatusUI('disconnected');
+}
+
+function startTelegramPolling() {
+stopTelegramPolling(); // Reset existing
+// If no credentials, stay disconnected
+if (!config.telegramToken || !config.telegramChatId) {
+updateTgStatusUI('disconnected');
+return;
+}
+telegramPollingActive = true;
+updateTgStatusUI('connecting');
+processTelegramUpdates();
+}
+
+async function processTelegramUpdates() {
+let offset = lastUpdateId + 1;
+while (telegramPollingActive) {
+try {
+pollingAbortController = new AbortController();
+const url = `https://api.telegram.org/bot${config.telegramToken}/getUpdates?offset=${offset}&timeout=30&allowed_updates=["message","channel_post"]`;
+
+const response = await fetch(url, { signal: pollingAbortController.signal });
+if (!response.ok) {
+if (response.status === 401 || response.status === 404) {
+updateTgStatusUI('error');
+telegramPollingActive = false;
+showStatus("Telegram Token Invalid");
+return;
+}
+await new Promise(r => setTimeout(r, 5000));
+continue;
+}
+
+const data = await response.json();
+if (data.ok) {
+updateTgStatusUI('connected');
+for (const update of data.result) {
+lastUpdateId = update.update_id;
+offset = lastUpdateId + 1;
+
+const msg = update.message || update.channel_post;
+if (!msg || !msg.text) continue;
+
+let isAllowed = false;
+let targetChatId = config.telegramChatId.trim();
+if (!targetChatId.startsWith('@') && !targetChatId.startsWith('-') && /^\d+$/.test(targetChatId)) {
+targetChatId = '-100' + targetChatId;
+}
+
+const senderId = String(msg.chat.id);
+if (targetChatId.startsWith('@')) {
+if(msg.chat.username && '@' + msg.chat.username === targetChatId) isAllowed = true;
+} else {
+if (senderId === targetChatId) isAllowed = true;
+}
+
+if (!isAllowed && msg.chat.type === 'private') {
+isAllowed = await checkMembership(targetChatId, msg.from.id);
+}
+
+if (isAllowed) {
+const text = msg.text.trim().toLowerCase();
+if (text === '/save' || text === 'save') {
+if (!saveButton.disabled) {
+showStatus("Remote Trigger Received!");
+saveRecordedAudio();
+}
+}
+}
+}
+}
+} catch (e) {
+if (e.name === 'AbortError') return;
+console.warn("Polling error", e);
+updateTgStatusUI('connecting');
+await new Promise(r => setTimeout(r, 5000));
+}
+}
+}
+
+async function checkMembership(chatId, userId) {
+try {
+const url = `https://api.telegram.org/bot${config.telegramToken}/getChatMember?chat_id=${chatId}&user_id=${userId}`;
+const response = await fetch(url);
+const data = await response.json();
+if (!data.ok) return false;
+const status = data.result.status;
+return ['creator', 'administrator', 'member'].includes(status);
+} catch (e) {
+console.error("Error checking membership", e);
+return false;
+}
 }
 
 saveButton.addEventListener('click', saveRecordedAudio);
