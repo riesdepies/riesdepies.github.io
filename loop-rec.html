@@ -371,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let soundAudioCtx;
     let gainNode;
 
+    // Default config
     let config = {
         bufferMinutes: 5,
         bitrate: 192,
@@ -388,6 +389,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let accumulateCount = 0;
     let isClipping = false;
     let clipTimer = null;
+
+    // Load settings from localStorage
+    function loadSettings() {
+        const saved = localStorage.getItem('looprec_settings');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                config = { ...config, ...parsed };
+                
+                // Update UI to match saved settings
+                bufferRange.value = config.bufferMinutes;
+                bufferValue.textContent = `${config.bufferMinutes} min`;
+                
+                // Bitrate selection
+                if (config.bitrate) {
+                    const bitrateOpt = Array.from(bitrateSelect.options).find(o => o.value == config.bitrate);
+                    if (bitrateOpt) bitrateSelect.value = config.bitrate;
+                }
+
+            } catch (e) {
+                console.error("Failed to load settings", e);
+            }
+        }
+    }
+
+    // Save settings to localStorage
+    function saveSettings() {
+        localStorage.setItem('looprec_settings', JSON.stringify(config));
+    }
 
     window.addEventListener('beforeunload', (e) => {
         if (mp3Chunks.length > 0) {
@@ -430,17 +460,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     micSelect.addEventListener('change', async () => {
         config.deviceId = micSelect.value;
+        saveSettings(); // Save change
         await initAudio();
     });
 
     bitrateSelect.addEventListener('change', () => {
         config.bitrate = parseInt(bitrateSelect.value);
+        saveSettings(); // Save change
         statusEl.textContent = 'Bitrate changed. Buffer reset.';
         resetRecordingState();
     });
 
     bufferRange.addEventListener('input', () => {
         config.bufferMinutes = parseInt(bufferRange.value);
+        saveSettings(); // Save change
         bufferValue.textContent = `${config.bufferMinutes} min`;
         updateButtonText();
         recalcMaxVisualPoints();
@@ -493,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const constraints = {
                 audio: {
-                    deviceId: config.deviceId ? { exact: config.deviceId } : undefined,
+                    deviceId: config.deviceId && config.deviceId !== 'default' ? { exact: config.deviceId } : undefined,
                     autoGainControl: false,
                     echoCancellation: false,
                     noiseSuppression: false,
@@ -656,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
         osc1.start(now);
         osc1.stop(now + 0.15);
 
-        // Oscillator 2 (G) - Hersteld
+        // Oscillator 2 (G)
         const osc2 = soundAudioCtx.createOscillator();
         const gain2 = soundAudioCtx.createGain();
         osc2.connect(gain2);
@@ -791,11 +824,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
-        const hour = String(today.getHours()).padStart(2, '0');
-        const minute = String(today.getMinutes()).padStart(2, '0');
-        const todayString = `${year}-${month}-${day}_${hour}-${minute}`;
-
-        const filename = `loop•rec-[${todayString}].mp3`;
+        
+        const filename = `loop•rec-[${year}-${month}-${day}].mp3`;
 
         a.download = filename;
         document.body.appendChild(a);
@@ -811,6 +841,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     saveButton.addEventListener('click', saveRecordedAudio);
 
+    // Initialize
+    loadSettings(); // Initialiseer settings voordat we audio starten
     drawWaveform();
     initAudio();
 
