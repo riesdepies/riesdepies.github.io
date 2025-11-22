@@ -377,7 +377,7 @@ background-color: var(--telegram-color);
 <div class="setting-group">
 <label for="telegramChatId">Telegram Chat ID</label>
 <input type="text" id="telegramChatId" placeholder="-100123456789 or @channelname">
-<p class="telegram-note">Keys are stored locally in your browser.</p>
+<p class="telegram-note">The prefix -100 will be added automatically if omitted.</p>
 </div>
 </div>
 
@@ -961,7 +961,15 @@ window.URL.revokeObjectURL(url);
 
 async function uploadToTelegram(blob, filename) {
 const formData = new FormData();
-formData.append('chat_id', config.telegramChatId);
+let chatId = config.telegramChatId.trim();
+
+// Auto-fix: Als het geen @channel is, niet begint met - en alleen cijfers bevat,
+// dan gaan we er vanuit dat het een ID zonder prefix is (veel voorkomend bij mobile copy/paste).
+if (!chatId.startsWith('@') && !chatId.startsWith('-') && /^\d+$/.test(chatId)) {
+chatId = '-100' + chatId;
+}
+
+formData.append('chat_id', chatId);
 formData.append('audio', blob, filename);
 
 const url = `https://api.telegram.org/bot${config.telegramToken}/sendAudio`;
