@@ -243,7 +243,7 @@ closeTrailerModal();
 // --- State Management ---
 let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
 let lastListScrollPosition = 0; 
-let currentPersonId = null; // Nieuwe state om huidige persoon te onthouden
+let currentPersonId = null;
 
 // --- Helper functions ---
 function getApiKeyFromStorage() { return localStorage.getItem(TMDB_KEY_STORAGE_KEY); }
@@ -415,7 +415,7 @@ resultsContainer.style.display = 'grid';
 detailPage.style.display = 'none';
 resultsContainer.innerHTML = '';
 currentQuery = query;
-currentPersonId = null; // Reset persoon bij nieuwe zoekopdracht
+currentPersonId = null;
 currentPage = 1;
 isLoading = false;
 hasMorePages = true;
@@ -430,7 +430,7 @@ resultsContainer.style.display = 'grid';
 detailPage.style.display = 'none';
 resultsContainer.innerHTML = '<p class="message">Titels laden...</p>';
 currentQuery = '';
-currentPersonId = personId; // Update state
+currentPersonId = personId;
 currentPage = 1;
 hasMorePages = false;
 lastListScrollPosition = 0;
@@ -571,6 +571,7 @@ const data = await fetchFromApi(`find/${imdbId}`, { external_source: 'imdb_id' }
 
 let result = null;
 let type = null;
+let jumpToSeason = null; // Voor afleveringen
 
 if (data.movie_results && data.movie_results.length > 0) {
 result = data.movie_results[0];
@@ -578,12 +579,18 @@ type = 'movie';
 } else if (data.tv_results && data.tv_results.length > 0) {
 result = data.tv_results[0];
 type = 'tv';
+} else if (data.tv_episode_results && data.tv_episode_results.length > 0) {
+// Aflevering gevonden!
+const ep = data.tv_episode_results[0];
+result = { id: ep.show_id }; // We hebben de show nodig
+type = 'tv';
+jumpToSeason = ep.season_number;
 }
 
 if (result) {
 const newUrl = `?id=${result.id}&type=${type}`;
 window.history.replaceState({ id: result.id, type: type }, '', newUrl);
-fetchDetails(result.id, type);
+fetchDetails(result.id, type, jumpToSeason);
 } else {
 detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${escapeHtml(imdbId)}</p>`;
 }
@@ -593,14 +600,14 @@ else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}<
 }
 }
 
-async function fetchDetails(id, type) {
+async function fetchDetails(id, type, jumpToSeason = null) {
 showDetailPage();
 detailContent.innerHTML = '<p class="message">Gegevens laden...</p>';
 suggestionsSection.innerHTML = '';
 
 try {
 const data = await fetchFromApi(`${type}/${id}`, { append_to_response: 'external_ids,similar,credits,videos' });
-displayDetailView(data, type);
+displayDetailView(data, type, jumpToSeason);
 
 if (data.similar && data.similar.results.length > 0) {
 suggestionsSection.innerHTML = '<h2>Soortgelijke titels</h2>';
@@ -620,7 +627,7 @@ else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}<
 }
 }
 
-function displayDetailView(item, type) {
+function displayDetailView(item, type, jumpToSeason = null) {
 const isTv = type === 'tv';
 const title = isTv ? item.name : item.title;
 const date = isTv ? item.first_air_date : item.release_date;
@@ -704,7 +711,7 @@ castList.appendChild(div);
 }
 
 if (isTv) {
-setupTvLogic(item.id, item.seasons, imdbId);
+setupTvLogic(item.id, item.seasons, imdbId, jumpToSeason);
 } else if (imdbId) {
 document.getElementById('play-poster').addEventListener('click', (e) => handlePlayClick(e, imdbId));
 document.getElementById('play-poster').classList.remove('no-click');
@@ -723,7 +730,7 @@ behavior: 'smooth'
 }
 }
 
-function setupTvLogic(tmdbId, seasons, imdbId) {
+function setupTvLogic(tmdbId, seasons, imdbId, jumpToSeason = null) {
 const select = document.getElementById('season-select');
 const validSeasons = seasons.filter(s => s.season_number > 0);
 
@@ -734,9 +741,18 @@ option.text = `Seizoen ${season.season_number}`;
 select.appendChild(option);
 });
 
-if (validSeasons.length > 0) {
-select.value = validSeasons[0].season_number;
-loadEpisodes(tmdbId, validSeasons[0].season_number, imdbId);
+// Bepaal welk seizoen we moeten laden
+let seasonToLoad = validSeasons.length > 0 ? validSeasons[0].season_number : null;
+
+// Als er een specifiek seizoen gevraagd wordt (bv via IMDb aflevering ID), check of dat bestaat
+if (jumpToSeason !== null) {
+const target = validSeasons.find(s => s.season_number === jumpToSeason);
+if (target) seasonToLoad = jumpToSeason;
+}
+
+if (seasonToLoad !== null) {
+select.value = seasonToLoad;
+loadEpisodes(tmdbId, seasonToLoad, imdbId);
 }
 
 select.addEventListener('change', (e) => {
@@ -958,15 +974,13 @@ fetchDetails(id, type);
 } else if (imdbId) {
 fetchContentByImdbId(imdbId);
 } else if (personId) {
-// Controle: is deze persoon al geladen (en verborgen)?
 if (currentPersonId == personId && resultsContainer.children.length > 0) {
-showSearchPage(); // Toon bestaande resultaten + restore scroll
+showSearchPage(); 
 } else {
 const name = (e.state && e.state.person_name) ? e.state.person_name : "Persoon";
 fetchPersonCredits(personId, name);
 }
 } else {
-// Home/Zoek resultaten
 if (queryFromUrl !== currentQuery && queryFromUrl !== '') {
 searchInput.value = queryFromUrl;
 startNewSearch(queryFromUrl);
