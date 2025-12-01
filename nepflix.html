@@ -104,8 +104,10 @@ main.container { padding-top: 0; }
 #tv-controls { max-width: 700px; margin: 30px auto 0; text-align: left; width: 100%; border-top: 1px solid #333; padding-top: 20px; }
 #season-select { background: #333; color: white; border: 1px solid #555; padding: 10px; font-size: 16px; border-radius: 4px; margin-bottom: 15px; width: 100%; max-width: 200px; cursor: pointer; }
 #episodes-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
-.episode-item { display: flex; align-items: center; background: #222; padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+.episode-item { display: flex; align-items: center; background: #222; padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s, border 0.2s; border: 1px solid transparent; }
 .episode-item:hover { background: #333; }
+.episode-item.active-episode { border: 1px solid #E50914; background: #2a2a2a; }
+
 .episode-item img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; margin-right: 15px; background: #111; opacity: 0; transition: opacity 0.3s ease; }
 .episode-item img.loaded { opacity: 1; }
 .episode-info { flex: 1; }
@@ -571,7 +573,8 @@ const data = await fetchFromApi(`find/${imdbId}`, { external_source: 'imdb_id' }
 
 let result = null;
 let type = null;
-let jumpToSeason = null; // Voor afleveringen
+let jumpToSeason = null;
+let jumpToEpisode = null; // Nieuwe var
 
 if (data.movie_results && data.movie_results.length > 0) {
 result = data.movie_results[0];
@@ -580,17 +583,17 @@ type = 'movie';
 result = data.tv_results[0];
 type = 'tv';
 } else if (data.tv_episode_results && data.tv_episode_results.length > 0) {
-// Aflevering gevonden!
 const ep = data.tv_episode_results[0];
-result = { id: ep.show_id }; // We hebben de show nodig
+result = { id: ep.show_id }; 
 type = 'tv';
 jumpToSeason = ep.season_number;
+jumpToEpisode = ep.episode_number; // Opslaan
 }
 
 if (result) {
 const newUrl = `?id=${result.id}&type=${type}`;
 window.history.replaceState({ id: result.id, type: type }, '', newUrl);
-fetchDetails(result.id, type, jumpToSeason);
+fetchDetails(result.id, type, jumpToSeason, jumpToEpisode);
 } else {
 detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${escapeHtml(imdbId)}</p>`;
 }
@@ -600,14 +603,14 @@ else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}<
 }
 }
 
-async function fetchDetails(id, type, jumpToSeason = null) {
+async function fetchDetails(id, type, jumpToSeason = null, jumpToEpisode = null) {
 showDetailPage();
 detailContent.innerHTML = '<p class="message">Gegevens laden...</p>';
 suggestionsSection.innerHTML = '';
 
 try {
 const data = await fetchFromApi(`${type}/${id}`, { append_to_response: 'external_ids,similar,credits,videos' });
-displayDetailView(data, type, jumpToSeason);
+displayDetailView(data, type, jumpToSeason, jumpToEpisode);
 
 if (data.similar && data.similar.results.length > 0) {
 suggestionsSection.innerHTML = '<h2>Soortgelijke titels</h2>';
@@ -627,7 +630,7 @@ else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}<
 }
 }
 
-function displayDetailView(item, type, jumpToSeason = null) {
+function displayDetailView(item, type, jumpToSeason = null, jumpToEpisode = null) {
 const isTv = type === 'tv';
 const title = isTv ? item.name : item.title;
 const date = isTv ? item.first_air_date : item.release_date;
@@ -711,7 +714,7 @@ castList.appendChild(div);
 }
 
 if (isTv) {
-setupTvLogic(item.id, item.seasons, imdbId, jumpToSeason);
+setupTvLogic(item.id, item.seasons, imdbId, jumpToSeason, jumpToEpisode);
 } else if (imdbId) {
 document.getElementById('play-poster').addEventListener('click', (e) => handlePlayClick(e, imdbId));
 document.getElementById('play-poster').classList.remove('no-click');
@@ -730,7 +733,7 @@ behavior: 'smooth'
 }
 }
 
-function setupTvLogic(tmdbId, seasons, imdbId, jumpToSeason = null) {
+function setupTvLogic(tmdbId, seasons, imdbId, jumpToSeason = null, jumpToEpisode = null) {
 const select = document.getElementById('season-select');
 const validSeasons = seasons.filter(s => s.season_number > 0);
 
@@ -741,10 +744,8 @@ option.text = `Seizoen ${season.season_number}`;
 select.appendChild(option);
 });
 
-// Bepaal welk seizoen we moeten laden
 let seasonToLoad = validSeasons.length > 0 ? validSeasons[0].season_number : null;
 
-// Als er een specifiek seizoen gevraagd wordt (bv via IMDb aflevering ID), check of dat bestaat
 if (jumpToSeason !== null) {
 const target = validSeasons.find(s => s.season_number === jumpToSeason);
 if (target) seasonToLoad = jumpToSeason;
@@ -752,7 +753,7 @@ if (target) seasonToLoad = jumpToSeason;
 
 if (seasonToLoad !== null) {
 select.value = seasonToLoad;
-loadEpisodes(tmdbId, seasonToLoad, imdbId);
+loadEpisodes(tmdbId, seasonToLoad, imdbId, jumpToEpisode);
 }
 
 select.addEventListener('change', (e) => {
@@ -760,7 +761,7 @@ loadEpisodes(tmdbId, e.target.value, imdbId);
 });
 }
 
-async function loadEpisodes(tmdbId, seasonNum, imdbId) {
+async function loadEpisodes(tmdbId, seasonNum, imdbId, highlightEpisode = null) {
 const list = document.getElementById('episodes-list');
 list.innerHTML = '<p>Afleveringen laden...</p>';
 
@@ -771,6 +772,10 @@ list.innerHTML = '';
 data.episodes.forEach(ep => {
 const div = document.createElement('div');
 div.className = 'episode-item';
+if (highlightEpisode && ep.episode_number === highlightEpisode) {
+div.classList.add('active-episode');
+}
+
 div.innerHTML = `
 <img src="${getImageUrl(ep.still_path)}" alt="Aflevering ${ep.episode_number}" onload="this.classList.add('loaded')">
 <div class="episode-info">
@@ -782,6 +787,17 @@ div.innerHTML = `
 div.addEventListener('click', (e) => handlePlayClick(e, imdbId, seasonNum, ep.episode_number));
 list.appendChild(div);
 });
+
+// Scroll to active episode
+if (highlightEpisode) {
+const active = list.querySelector('.active-episode');
+if (active) {
+setTimeout(() => {
+active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}, 100);
+}
+}
+
 } catch (e) {
 list.innerHTML = '<p>Kon afleveringen niet laden.</p>';
 }
