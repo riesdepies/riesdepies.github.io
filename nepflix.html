@@ -145,7 +145,7 @@ main.container { padding-top: 0; }
 </a>
 </h1>
 <form id="search-form">
-<input type="text" id="search-input" placeholder="Zoek films en series..." required autocomplete="off">
+<input type="text" id="search-input" placeholder="Zoek films, series of plak een URL..." required autocomplete="off">
 <button type="submit" id="search-button">Zoek</button>
 </form>
 </header>
@@ -789,16 +789,15 @@ div.addEventListener('click', (e) => handlePlayClick(e, imdbId, seasonNum, ep.ep
 list.appendChild(div);
 });
 
-// Scroll to active episode with improved timing
+// Robust Scroll to active episode
 if (highlightEpisode) {
 const active = list.querySelector('.active-episode');
 if (active) {
-// Directe scroll
-active.scrollIntoView({ behavior: 'auto', block: 'center' });
-// Uitgestelde scroll voor lay-out shifts
+requestAnimationFrame(() => {
 setTimeout(() => {
 active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}, 500);
+}, 300);
+});
 }
 }
 
@@ -963,30 +962,58 @@ fetchAndDisplayContent();
 }
 });
 
+// Helper om input te parsen
+function parseSearchQuery(input) {
+const trimmed = input.trim();
+const lower = trimmed.toLowerCase();
+
+// 1. IMDb ID (tt12345)
+const imdbIdMatch = lower.match(/^(tt\d+)$/);
+if (imdbIdMatch) return { type: 'imdb_id', value: imdbIdMatch[1] };
+
+// 2. IMDb URL
+const imdbUrlMatch = lower.match(/imdb\.com\/title\/(tt\d+)/);
+if (imdbUrlMatch) return { type: 'imdb_id', value: imdbUrlMatch[1] };
+
+// 3. TMDB TV Episode URL (Specific)
+// Pattern: .../tv/123-name/season/1/episode/1
+const tmdbEpMatch = lower.match(/themoviedb\.org\/tv\/(\d+)[^\/]*\/season\/(\d+)\/episode\/(\d+)/);
+if (tmdbEpMatch) return { 
+type: 'tmdb_tv_ep', 
+id: tmdbEpMatch[1], 
+season: tmdbEpMatch[2], 
+episode: tmdbEpMatch[3] 
+};
+
+// 4. TMDB URL (General - Movie or TV)
+const tmdbMatch = lower.match(/themoviedb\.org\/(movie|tv)\/(\d+)/);
+if (tmdbMatch) return { type: 'tmdb_general', mediaType: tmdbMatch[1], id: tmdbMatch[2] };
+
+// 5. Normal Search
+return { type: 'text', query: trimmed };
+}
+
 searchForm.addEventListener('submit', (e) => {
 e.preventDefault();
-const query = searchInput.value.trim();
+const query = searchInput.value;
 if (!query) return;
 
-// 1. Check for IMDb ID (standalone tt123 or inside URL)
-const imdbMatch = query.match(/tt\d{7,}/);
-// 2. Check for TMDB URL (themoviedb.org/tv/123 or movie/123)
-const tmdbMatch = query.match(/themoviedb\.org\/(movie|tv)\/(\d+)/);
+const result = parseSearchQuery(query);
 
-if (imdbMatch) {
-const imdbId = imdbMatch[0];
-const newUrl = `?imdb_id=${imdbId}`;
-window.history.pushState({ imdb_id: imdbId }, '', newUrl);
-fetchContentByImdbId(imdbId);
-} else if (tmdbMatch) {
-const type = tmdbMatch[1];
-const id = tmdbMatch[2];
-const newUrl = `?id=${id}&type=${type}`;
-window.history.pushState({ id, type }, '', newUrl);
-fetchDetails(id, type);
+if (result.type === 'imdb_id') {
+const newUrl = `?imdb_id=${result.value}`;
+window.history.pushState({ imdb_id: result.value }, '', newUrl);
+fetchContentByImdbId(result.value);
+} else if (result.type === 'tmdb_tv_ep') {
+const newUrl = `?id=${result.id}&type=tv&season=${result.season}&episode=${result.episode}`;
+window.history.pushState({ id: result.id, type: 'tv', season: result.season, episode: result.episode }, '', newUrl);
+fetchDetails(result.id, 'tv', parseInt(result.season), parseInt(result.episode));
+} else if (result.type === 'tmdb_general') {
+const newUrl = `?id=${result.id}&type=${result.mediaType}`;
+window.history.pushState({ id: result.id, type: result.mediaType }, '', newUrl);
+fetchDetails(result.id, result.mediaType);
 } else {
-// Standard search
-startNewSearch(query);
+startNewSearch(result.query);
 }
 });
 
