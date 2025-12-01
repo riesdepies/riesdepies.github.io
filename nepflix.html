@@ -126,7 +126,6 @@ const API_BASE_URL = 'https://api.themoviedb.org/3/';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w780';
 const TMDB_KEY_STORAGE_KEY = 'tmdbApiKey';
 
-// De centrale lijst met alle beschikbare proxies
 const PROXIES = [
     (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     (url) => `https://api.corsproxy.io/?${encodeURIComponent(url)}`,
@@ -143,7 +142,7 @@ function showToast(message) {
     toast.className = 'toast';
     toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${message}</span>`;
     container.appendChild(toast);
-    void toast.offsetWidth; // Trigger reflow
+    void toast.offsetWidth;
     toast.classList.add('visible');
     setTimeout(() => {
         toast.classList.remove('visible');
@@ -169,7 +168,6 @@ function makeAbsoluteUrl(url, base) {
 }
 
 // --- Generieke Proxy Functie ---
-// Start alle proxies tegelijkertijd en geeft het eerste succesvolle resultaat (tekst) terug.
 async function fetchTextViaProxies(targetUrl, timeout = 10000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -228,7 +226,6 @@ async function scrapeTmdbKeys(options = {}) {
         const urlToFetch = `${BASE_URL}&page=${pageNum}`;
         
         try {
-            // Gebruik de generieke proxy functie
             const html = await fetchTextViaProxies(urlToFetch);
             const keysOnPage = [...new Set(html.match(API_KEY_REGEX) || [])];
             const newKeys = keysOnPage.filter(key => !foundPotentialKeys.has(key));
@@ -275,7 +272,6 @@ async function fetchFromApi(endpoint, params = {}) {
 
     const url = `${API_BASE_URL}${endpoint}?${urlParams.toString()}`;
 
-    // 1. Probeer direct
     try {
         const response = await fetch(url);
         if (response.status === 401 || response.status === 403) {
@@ -287,7 +283,6 @@ async function fetchFromApi(endpoint, params = {}) {
     } catch (error) {
         if (error.message === "Ongeldige API sleutel") throw error;
         
-        // 2. Fallback: Gebruik de generieke proxy functie
         console.warn("Direct fetch mislukt, probeer proxies...", error);
         try {
             const jsonText = await fetchTextViaProxies(url);
@@ -389,6 +384,38 @@ function createContentCard(item) {
         </div>
     </a>`;
     return card;
+}
+
+// Nieuwe functie voor IMDb redirect logica
+async function fetchContentByImdbId(imdbId) {
+    showDetailPage();
+    detailContent.innerHTML = '<p class="message">Zoeken op IMDb ID...</p>';
+    
+    try {
+        const data = await fetchFromApi(`find/${imdbId}`, { external_source: 'imdb_id' });
+        
+        let result = null;
+        let type = null;
+
+        if (data.movie_results && data.movie_results.length > 0) {
+            result = data.movie_results[0];
+            type = 'movie';
+        } else if (data.tv_results && data.tv_results.length > 0) {
+            result = data.tv_results[0];
+            type = 'tv';
+        }
+
+        if (result) {
+            const newUrl = `?id=${result.id}&type=${type}`;
+            window.history.replaceState({ id: result.id, type: type }, '', newUrl);
+            fetchDetails(result.id, type);
+        } else {
+            detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${imdbId}</p>`;
+        }
+    } catch (error) {
+        if (error.message === "Ongeldige API sleutel") handleMissingKey();
+        else detailContent.innerHTML = `<p class="message">${error.message}</p>`;
+    }
 }
 
 async function fetchDetails(id, type) {
@@ -562,7 +589,6 @@ async function handlePlayClick(event, imdbId, season = null, episode = null) {
             } catch (e) { throw e; }
         });
 
-        // 3 seconden timeout voor de race
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => {
                 controller.abort();
@@ -572,7 +598,7 @@ async function handlePlayClick(event, imdbId, season = null, episode = null) {
 
         try {
             const url = await Promise.race([Promise.any(promises), timeoutPromise]);
-            controller.abort(); // Cancel andere requests
+            controller.abort(); 
             return url;
         } catch (e) { 
             throw new Error("Video niet beschikbaar."); 
@@ -640,8 +666,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const id = urlParams.get('id');
         const type = urlParams.get('type');
         const query = urlParams.get('q');
+        const imdbId = urlParams.get('imdb_id');
 
-        if (id && type) {
+        if (imdbId) {
+            fetchContentByImdbId(imdbId);
+        } else if (id && type) {
             currentQuery = query;
             fetchDetails(id, type);
         } else if (query) {
