@@ -29,22 +29,36 @@ header h1 a { display: inline-block; }
 #search-button { padding: 15px 25px; font-size: 16px; border: none; background-color: #E50914; color: white; cursor: pointer; border-radius: 0 4px 4px 0; }
 main.container { padding-top: 0; }
 #results-container, #suggestions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; justify-items: center; }
+
+/* Movie Card Styles */
 .movie-card { background-color: #222; border-radius: 5px; overflow: hidden; transition: transform 0.2s ease; width: 100%; position: relative; }
 .movie-card:hover { transform: scale(1.05); }
-.movie-card img { width: 100%; height: auto; display: block; min-height: 195px; background: #333; }
-.movie-card .type-badge { position: absolute; top: 5px; right: 5px; background: rgba(229, 9, 20, 0.8); padding: 2px 6px; font-size: 0.7em; border-radius: 3px; font-weight: bold; }
+
+/* Verbeterde Lazy Loading & Layout stabiliteit */
+.movie-card img { width: 100%; height: auto; display: block; min-height: 195px; background: #333; opacity: 0; transition: opacity 0.4s ease-in; }
+.movie-card img.loaded { opacity: 1; }
+
+/* Badge Colors */
+.movie-card .type-badge { position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.7em; border-radius: 3px; font-weight: bold; color: #fff; z-index: 2; }
+.type-badge.movie { background: rgba(229, 9, 20, 0.9); } /* Rood */
+.type-badge.tv { background: rgba(0, 113, 235, 0.9); }    /* Blauw */
+
 .movie-info { padding: 10px; text-align: left; }
 .movie-info h3 { font-size: 1em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .movie-info p { font-size: 0.9em; margin: 0; color: #aaa; }
 .movie-meta { display: flex; justify-content: space-between; align-items: center; }
+
 .message { text-align: center; font-size: 1.2em; grid-column: 1 / -1; margin-top: 20px; }
 #loader { text-align: center; padding: 20px; grid-column: 1 / -1; display: none; }
 #scraper-status { text-align: center; padding: 20px; background: #333; margin-bottom: 20px; border-radius: 5px; font-family: monospace; display: none; color: #0f0; }
+
 #detail-page { display: none; }
 #detail-content { display: flex; flex-direction: column; align-items: center; gap: 20px; padding-top: 0; }
 .poster-container { position: relative; width: 100%; max-width: 350px; display: block; cursor: pointer; }
 .poster-container.no-click { cursor: default; }
-.poster-container img { width: 100%; height: auto; border-radius: 5px; display: block; }
+.poster-container img { width: 100%; height: auto; border-radius: 5px; display: block; opacity: 0; transition: opacity 0.4s ease; }
+.poster-container img.loaded { opacity: 1; }
+
 .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: background-color 0.2s ease; }
 .poster-container:not(.no-click):hover .play-icon { background-color: rgba(0, 0, 0, 0.7); }
 .play-icon .fa-solid { font-size: 36px; color: #fff; }
@@ -59,7 +73,8 @@ main.container { padding-top: 0; }
 #episodes-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
 .episode-item { display: flex; align-items: center; background: #222; padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
 .episode-item:hover { background: #333; }
-.episode-item img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; margin-right: 15px; background: #111; }
+.episode-item img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; margin-right: 15px; background: #111; opacity: 0; transition: opacity 0.3s ease; }
+.episode-item img.loaded { opacity: 1; }
 .episode-info { flex: 1; }
 .episode-number { color: #E50914; font-weight: bold; margin-right: 10px; }
 .episode-title { font-weight: bold; }
@@ -370,13 +385,18 @@ function createContentCard(item) {
     const date = isTv ? (item.first_air_date || '') : (item.release_date || '');
     const year = date ? date.split('-')[0] : 'N/A';
     const rating = item.vote_average ? item.vote_average.toFixed(1) : '?';
+    const badgeClass = isTv ? 'type-badge tv' : 'type-badge movie';
     
     const card = document.createElement('div');
     card.className = 'movie-card';
+    
+    // Construct HTML with badge and lazy load handler
     card.innerHTML = `
     <a href="?id=${item.id}&type=${isTv ? 'tv' : 'movie'}">
-        <img src="${getImageUrl(item.poster_path)}" alt="${title}" loading="lazy">
-        <span class="type-badge">${isTv ? 'SERIE' : 'FILM'}</span>
+        <div style="position:relative; min-height: 195px; background: #333;">
+            <img src="${getImageUrl(item.poster_path)}" alt="${title}" loading="lazy" onload="this.classList.add('loaded')">
+            <span class="${badgeClass}">${isTv ? 'SERIE' : 'FILM'}</span>
+        </div>
         <div class="movie-info">
             <h3>${title}</h3>
             <p class="movie-meta"><span>${year}</span><span>⭐${rating}</span></p>
@@ -454,7 +474,7 @@ function displayDetailView(item, type) {
 
     let html = `
     <div class="${isTv ? 'poster-container no-click' : 'poster-container'}" id="play-poster">
-        <img src="${getImageUrl(item.poster_path)}" alt="${title}">
+        <img src="${getImageUrl(item.poster_path)}" alt="${title}" onload="this.classList.add('loaded')">
         ${!isTv ? '<div class="play-icon"><i class="fa-solid fa-play"></i></div>' : ''}
     </div>
     <div class="detail-info">
@@ -479,6 +499,19 @@ function displayDetailView(item, type) {
     } else if (imdbId) {
         document.getElementById('play-poster').addEventListener('click', (e) => handlePlayClick(e, imdbId));
         document.getElementById('play-poster').classList.remove('no-click');
+    }
+
+    // Scroll Logic for Mobile
+    if (window.innerWidth < 768) {
+        setTimeout(() => {
+             const main = document.querySelector('main');
+             if(main) {
+                 window.scrollTo({
+                     top: main.offsetTop - 10,
+                     behavior: 'smooth'
+                 });
+             }
+        }, 150); // Small delay to ensure render
     }
 }
 
@@ -515,7 +548,7 @@ async function loadEpisodes(tmdbId, seasonNum, imdbId) {
             const div = document.createElement('div');
             div.className = 'episode-item';
             div.innerHTML = `
-                <img src="${getImageUrl(ep.still_path)}" alt="Aflevering ${ep.episode_number}">
+                <img src="${getImageUrl(ep.still_path)}" alt="Aflevering ${ep.episode_number}" onload="this.classList.add('loaded')">
                 <div class="episode-info">
                     <div class="episode-title"><span class="episode-number">${ep.episode_number}.</span> ${ep.name}</div>
                     <div class="episode-overview">${ep.overview || ''}</div>
