@@ -574,7 +574,7 @@ const data = await fetchFromApi(`find/${imdbId}`, { external_source: 'imdb_id' }
 let result = null;
 let type = null;
 let jumpToSeason = null;
-let jumpToEpisode = null; // Nieuwe var
+let jumpToEpisode = null;
 
 if (data.movie_results && data.movie_results.length > 0) {
 result = data.movie_results[0];
@@ -587,12 +587,13 @@ const ep = data.tv_episode_results[0];
 result = { id: ep.show_id }; 
 type = 'tv';
 jumpToSeason = ep.season_number;
-jumpToEpisode = ep.episode_number; // Opslaan
+jumpToEpisode = ep.episode_number;
 }
 
 if (result) {
-const newUrl = `?id=${result.id}&type=${type}`;
-window.history.replaceState({ id: result.id, type: type }, '', newUrl);
+// Update URL met specifieke aflevering/seizoen data voor delen
+const newUrl = `?id=${result.id}&type=${type}${jumpToSeason ? `&season=${jumpToSeason}` : ''}${jumpToEpisode ? `&episode=${jumpToEpisode}` : ''}`;
+window.history.replaceState({ id: result.id, type, season: jumpToSeason, episode: jumpToEpisode }, '', newUrl);
 fetchDetails(result.id, type, jumpToSeason, jumpToEpisode);
 } else {
 detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${escapeHtml(imdbId)}</p>`;
@@ -788,13 +789,16 @@ div.addEventListener('click', (e) => handlePlayClick(e, imdbId, seasonNum, ep.ep
 list.appendChild(div);
 });
 
-// Scroll to active episode
+// Scroll to active episode with improved timing
 if (highlightEpisode) {
 const active = list.querySelector('.active-episode');
 if (active) {
+// Directe scroll
+active.scrollIntoView({ behavior: 'auto', block: 'center' });
+// Uitgestelde scroll voor lay-out shifts
 setTimeout(() => {
 active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}, 100);
+}, 500);
 }
 }
 
@@ -939,12 +943,14 @@ const type = urlParams.get('type');
 const query = urlParams.get('q');
 const imdbId = urlParams.get('imdb_id');
 const personId = urlParams.get('person_id');
+const season = urlParams.get('season');
+const episode = urlParams.get('episode');
 
 if (imdbId) {
 fetchContentByImdbId(imdbId);
 } else if (id && type) {
 currentQuery = query || ''; 
-fetchDetails(id, type);
+fetchDetails(id, type, season ? parseInt(season) : null, episode ? parseInt(episode) : null);
 } else if (personId) {
 fetchPersonCredits(personId, "Persoon");
 } else if (query) {
@@ -960,7 +966,28 @@ fetchAndDisplayContent();
 searchForm.addEventListener('submit', (e) => {
 e.preventDefault();
 const query = searchInput.value.trim();
-if (query) startNewSearch(query);
+if (!query) return;
+
+// 1. Check for IMDb ID (standalone tt123 or inside URL)
+const imdbMatch = query.match(/tt\d{7,}/);
+// 2. Check for TMDB URL (themoviedb.org/tv/123 or movie/123)
+const tmdbMatch = query.match(/themoviedb\.org\/(movie|tv)\/(\d+)/);
+
+if (imdbMatch) {
+const imdbId = imdbMatch[0];
+const newUrl = `?imdb_id=${imdbId}`;
+window.history.pushState({ imdb_id: imdbId }, '', newUrl);
+fetchContentByImdbId(imdbId);
+} else if (tmdbMatch) {
+const type = tmdbMatch[1];
+const id = tmdbMatch[2];
+const newUrl = `?id=${id}&type=${type}`;
+window.history.pushState({ id, type }, '', newUrl);
+fetchDetails(id, type);
+} else {
+// Standard search
+startNewSearch(query);
+}
 });
 
 window.addEventListener('scroll', handleScroll);
@@ -984,9 +1011,11 @@ const type = urlParams.get('type');
 const imdbId = urlParams.get('imdb_id');
 const personId = urlParams.get('person_id');
 const queryFromUrl = urlParams.get('q') || '';
+const season = urlParams.get('season');
+const episode = urlParams.get('episode');
 
 if (id && type) {
-fetchDetails(id, type);
+fetchDetails(id, type, season ? parseInt(season) : null, episode ? parseInt(episode) : null);
 } else if (imdbId) {
 fetchContentByImdbId(imdbId);
 } else if (personId) {
