@@ -34,14 +34,14 @@ main.container { padding-top: 0; }
 .movie-card { background-color: #222; border-radius: 5px; overflow: hidden; transition: transform 0.2s ease; width: 100%; position: relative; }
 .movie-card:hover { transform: scale(1.05); }
 
-/* Verbeterde Lazy Loading & Layout stabiliteit */
+/* Lazy Loading & Layout stabiliteit */
 .movie-card img { width: 100%; height: auto; display: block; min-height: 195px; background: #333; opacity: 0; transition: opacity 0.4s ease-in; }
 .movie-card img.loaded { opacity: 1; }
 
 /* Badge Colors */
 .movie-card .type-badge { position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.7em; border-radius: 3px; font-weight: bold; color: #fff; z-index: 2; }
-.type-badge.movie { background: rgba(229, 9, 20, 0.9); } /* Rood */
-.type-badge.tv { background: rgba(0, 113, 235, 0.9); }    /* Blauw */
+.type-badge.movie { background: rgba(229, 9, 20, 0.9); }
+.type-badge.tv { background: rgba(0, 113, 235, 0.9); }
 
 .movie-info { padding: 10px; text-align: left; }
 .movie-info h3 { font-size: 1em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -368,6 +368,19 @@ async function fetchAndDisplayContent() {
     } finally {
         isLoading = false;
         loader.style.display = 'none';
+        
+        // NIEUW: Check of scherm gevuld is, zo niet: haal meer op
+        ensureScreenFilled();
+    }
+}
+
+function ensureScreenFilled() {
+    if (!hasMorePages || resultsContainer.style.display === 'none') return;
+    
+    // Buffer van 100px om zeker te zijn
+    if (document.documentElement.scrollHeight <= window.innerHeight + 100) {
+        console.log("Scherm niet vol, meer ophalen...");
+        fetchAndDisplayContent();
     }
 }
 
@@ -390,7 +403,6 @@ function createContentCard(item) {
     const card = document.createElement('div');
     card.className = 'movie-card';
     
-    // Construct HTML with badge and lazy load handler
     card.innerHTML = `
     <a href="?id=${item.id}&type=${isTv ? 'tv' : 'movie'}">
         <div style="position:relative; min-height: 195px; background: #333;">
@@ -511,7 +523,7 @@ function displayDetailView(item, type) {
                      behavior: 'smooth'
                  });
              }
-        }, 150); // Small delay to ensure render
+        }, 150); 
     }
 }
 
