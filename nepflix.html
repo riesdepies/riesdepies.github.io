@@ -197,12 +197,23 @@ const PROXIES = [
 (url) => `https://thingproxy.freeboard.io/fetch/${url}`
 ];
 
+// --- Security Helper (XSS Protection) ---
+function escapeHtml(text) {
+if (!text) return '';
+return text.toString()
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#039;");
+}
+
 // --- UI Helpers (Toast & Modal) ---
 function showToast(message) {
 const container = document.getElementById('toast-container');
 const toast = document.createElement('div');
 toast.className = 'toast';
-toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${message}</span>`;
+toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${escapeHtml(message)}</span>`;
 container.appendChild(toast);
 void toast.offsetWidth;
 toast.classList.add('visible');
@@ -231,6 +242,8 @@ closeTrailerModal();
 
 // --- State Management ---
 let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
+let lastListScrollPosition = 0; 
+let currentPersonId = null; // Nieuwe state om huidige persoon te onthouden
 
 // --- Helper functions ---
 function getApiKeyFromStorage() { return localStorage.getItem(TMDB_KEY_STORAGE_KEY); }
@@ -378,46 +391,58 @@ window.location.href = window.location.pathname;
 }
 
 function showSearchPage() {
+if (detailPage.style.display === 'block') {
+detailPage.style.display = 'none';
+resultsContainer.style.display = 'grid';
+setTimeout(() => window.scrollTo(0, lastListScrollPosition), 0);
+} else {
 resultsContainer.style.display = 'grid';
 detailPage.style.display = 'none';
 }
+}
 
 function showDetailPage() {
+lastListScrollPosition = window.scrollY;
 resultsContainer.style.display = 'none';
 detailPage.style.display = 'block';
 loader.style.display = 'none';
+window.scrollTo(0, 0);
 }
 
 // --- Core Logic ---
 function startNewSearch(query) {
-showSearchPage();
+resultsContainer.style.display = 'grid';
+detailPage.style.display = 'none';
 resultsContainer.innerHTML = '';
 currentQuery = query;
+currentPersonId = null; // Reset persoon bij nieuwe zoekopdracht
 currentPage = 1;
 isLoading = false;
 hasMorePages = true;
+lastListScrollPosition = 0;
 const newUrl = `?q=${encodeURIComponent(currentQuery)}`;
 window.history.pushState({ query: currentQuery }, '', newUrl);
 fetchAndDisplayContent();
 }
 
 async function fetchPersonCredits(personId, personName) {
-showSearchPage();
+resultsContainer.style.display = 'grid';
+detailPage.style.display = 'none';
 resultsContainer.innerHTML = '<p class="message">Titels laden...</p>';
-currentQuery = ''; 
+currentQuery = '';
+currentPersonId = personId; // Update state
 currentPage = 1;
 hasMorePages = false;
+lastListScrollPosition = 0;
 
 const newUrl = `?person_id=${personId}`;
 window.history.pushState({ person_id: personId, person_name: personName }, '', newUrl);
 
 try {
-// FIX: Als naam ontbreekt (bijv. bij refresh/back), haal hem op
 if (!personName || personName === 'Persoon') {
 try {
 const personData = await fetchFromApi(`person/${personId}`);
 personName = personData.name;
-// Update state zodat bij een volgende keer 'back' klikken de naam er wel is
 window.history.replaceState({ person_id: personId, person_name: personName }, '', newUrl);
 } catch (e) {
 personName = 'Onbekend';
@@ -425,16 +450,14 @@ personName = 'Onbekend';
 }
 
 const data = await fetchFromApi(`person/${personId}/combined_credits`);
-resultsContainer.innerHTML = ''; 
+resultsContainer.innerHTML = '';
 
 if (data.cast && data.cast.length > 0) {
-// 1. Maak header met correcte naam
 const header = document.createElement('h2');
 header.className = 'results-header';
 header.textContent = `Titels met ${personName}`;
 resultsContainer.appendChild(header);
 
-// 2. Filter en sorteer
 const uniqueItems = [];
 const map = new Map();
 data.cast.forEach(item => {
@@ -444,15 +467,18 @@ uniqueItems.push(item);
 }
 });
 uniqueItems.sort((a, b) => b.popularity - a.popularity);
-
-// 3. Toon resultaten
 displayContent(uniqueItems);
 } else {
 resultsContainer.innerHTML = '<p class="message">Geen titels gevonden voor deze persoon.</p>';
 }
 } catch (error) {
 if (error.message === "Ongeldige API sleutel") handleMissingKey();
-else resultsContainer.innerHTML = `<p class="message">${error.message}</p>`;
+else {
+const msg = document.createElement('p');
+msg.className = 'message';
+msg.textContent = error.message;
+resultsContainer.appendChild(msg);
+}
 }
 }
 
@@ -481,13 +507,16 @@ if (currentPage === 1) resultsContainer.innerHTML = '<p class="message">Niets ge
 if (error.message === "Ongeldige API sleutel") handleMissingKey();
 else {
 console.error("Fout:", error);
-resultsContainer.innerHTML = `<p class="message">${error.message}</p>`;
+const msg = document.createElement('p');
+msg.className = 'message';
+msg.textContent = error.message;
+resultsContainer.innerHTML = '';
+resultsContainer.appendChild(msg);
 }
 hasMorePages = false;
 } finally {
 isLoading = false;
 loader.style.display = 'none';
-
 ensureScreenFilled();
 }
 }
@@ -521,12 +550,12 @@ card.className = 'movie-card';
 card.innerHTML = `
 <a href="?id=${item.id}&type=${isTv ? 'tv' : 'movie'}">
 <div style="position:relative; min-height: 195px; background: #333;">
-<img src="${getImageUrl(item.poster_path)}" alt="${title}" loading="lazy" onload="this.classList.add('loaded')">
+<img src="${getImageUrl(item.poster_path)}" alt="${escapeHtml(title)}" loading="lazy" onload="this.classList.add('loaded')">
 <span class="${badgeClass}">${isTv ? 'SERIE' : 'FILM'}</span>
 </div>
 <div class="movie-info">
-<h3>${title}</h3>
-<p class="movie-meta"><span>${year}</span><span>⭐${rating}</span></p>
+<h3>${escapeHtml(title)}</h3>
+<p class="movie-meta"><span>${escapeHtml(year)}</span><span>⭐${rating}</span></p>
 </div>
 </a>`;
 return card;
@@ -556,11 +585,11 @@ const newUrl = `?id=${result.id}&type=${type}`;
 window.history.replaceState({ id: result.id, type: type }, '', newUrl);
 fetchDetails(result.id, type);
 } else {
-detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${imdbId}</p>`;
+detailContent.innerHTML = `<p class="message">Geen resultaat gevonden voor ${escapeHtml(imdbId)}</p>`;
 }
 } catch (error) {
 if (error.message === "Ongeldige API sleutel") handleMissingKey();
-else detailContent.innerHTML = `<p class="message">${error.message}</p>`;
+else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`;
 }
 }
 
@@ -570,7 +599,6 @@ detailContent.innerHTML = '<p class="message">Gegevens laden...</p>';
 suggestionsSection.innerHTML = '';
 
 try {
-// Request credits and videos as well
 const data = await fetchFromApi(`${type}/${id}`, { append_to_response: 'external_ids,similar,credits,videos' });
 displayDetailView(data, type);
 
@@ -588,7 +616,7 @@ suggestionsSection.appendChild(grid);
 }
 } catch (error) {
 if (error.message === "Ongeldige API sleutel") handleMissingKey();
-else detailContent.innerHTML = `<p class="message">${error.message}</p>`;
+else detailContent.innerHTML = `<p class="message">${escapeHtml(error.message)}</p>`;
 }
 }
 
@@ -609,29 +637,29 @@ trailerBtn = `<button class="trailer-btn" onclick="openTrailerModal('${trailer.k
 }
 }
 
-// Crew Logic (Director / Creator) with ID based search
+// Crew Logic
 let creatorOrDirector = 'Onbekend';
 let label = 'Regisseur';
 if (isTv && item.created_by && item.created_by.length > 0) {
 label = 'Gemaakt door';
-creatorOrDirector = item.created_by.map(c => `<span class="crew-link" onclick="fetchPersonCredits(${c.id}, '${c.name.replace(/'/g, "\\'")}')">${c.name}</span>`).join(', ');
+creatorOrDirector = item.created_by.map(c => `<span class="crew-link" onclick="fetchPersonCredits(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">${escapeHtml(c.name)}</span>`).join(', ');
 } else if (item.credits && item.credits.crew) {
 const directors = item.credits.crew.filter(c => c.job === 'Director');
 if (directors.length > 0) {
-creatorOrDirector = directors.map(d => `<span class="crew-link" onclick="fetchPersonCredits(${d.id}, '${d.name.replace(/'/g, "\\'")}')">${d.name}</span>`).join(', ');
+creatorOrDirector = directors.map(d => `<span class="crew-link" onclick="fetchPersonCredits(${d.id}, '${escapeHtml(d.name).replace(/'/g, "\\'")}')">${escapeHtml(d.name)}</span>`).join(', ');
 }
 }
 
 let html = `
 <div class="${isTv ? 'poster-container no-click' : 'poster-container'}" id="play-poster">
-<img src="${getImageUrl(item.poster_path)}" alt="${title}" onload="this.classList.add('loaded')">
+<img src="${getImageUrl(item.poster_path)}" alt="${escapeHtml(title)}" onload="this.classList.add('loaded')">
 ${!isTv ? '<div class="play-icon"><i class="fa-solid fa-play"></i></div>' : ''}
 </div>
 <div class="detail-info">
-<h2>${title}</h2>
+<h2>${escapeHtml(title)}</h2>
 
 <div class="detail-meta">
-<span>${year}</span>
+<span>${escapeHtml(year)}</span>
 <span>${isTv ? (item.number_of_seasons + ' Seizoenen') : ''}</span>
 <a href="https://www.imdb.com/title/${imdbId}" target="_blank" class="rating"><span style="color: #f5c518;">⭐</span>${rating}</a>
 ${trailerBtn}
@@ -641,7 +669,7 @@ ${trailerBtn}
 <span class="crew-label">${label}:</span> ${creatorOrDirector}
 </div>
 
-<p class="description">${item.overview || 'Geen beschrijving beschikbaar.'}</p>
+<p class="description">${escapeHtml(item.overview || 'Geen beschrijving beschikbaar.')}</p>
 
 <div class="cast-section">
 <h3>Cast</h3>
@@ -657,7 +685,6 @@ ${isTv ? `<div id="tv-controls">
 
 detailContent.innerHTML = html;
 
-// Render Cast with ID based search & Fallback images
 if (item.credits && item.credits.cast) {
 const castList = document.getElementById('cast-list');
 item.credits.cast.slice(0, 15).forEach(actor => {
@@ -668,9 +695,9 @@ div.onclick = () => fetchPersonCredits(actor.id, actor.name);
 const imgUrl = actor.profile_path ? `${TMDB_IMAGE_BASE}${actor.profile_path}` : PLACEHOLDER_AVATAR;
 
 div.innerHTML = `
-<img src="${imgUrl}" alt="${actor.name}" loading="lazy" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}';">
-<div class="cast-name">${actor.name}</div>
-<div class="cast-character">${actor.character}</div>
+<img src="${imgUrl}" alt="${escapeHtml(actor.name)}" loading="lazy" onerror="this.onerror=null; this.src='${PLACEHOLDER_AVATAR}';">
+<div class="cast-name">${escapeHtml(actor.name)}</div>
+<div class="cast-character">${escapeHtml(actor.character)}</div>
 `;
 castList.appendChild(div);
 });
@@ -683,7 +710,6 @@ document.getElementById('play-poster').addEventListener('click', (e) => handlePl
 document.getElementById('play-poster').classList.remove('no-click');
 }
 
-// Scroll Logic for Mobile
 if (window.innerWidth < 768) {
 setTimeout(() => {
 const main = document.querySelector('main');
@@ -732,8 +758,8 @@ div.className = 'episode-item';
 div.innerHTML = `
 <img src="${getImageUrl(ep.still_path)}" alt="Aflevering ${ep.episode_number}" onload="this.classList.add('loaded')">
 <div class="episode-info">
-<div class="episode-title"><span class="episode-number">${ep.episode_number}.</span> ${ep.name}</div>
-<div class="episode-overview">${ep.overview || ''}</div>
+<div class="episode-title"><span class="episode-number">${ep.episode_number}.</span> ${escapeHtml(ep.name)}</div>
+<div class="episode-overview">${escapeHtml(ep.overview || '')}</div>
 </div>
 <div style="margin-left:10px;"><i class="fa-solid fa-play-circle" style="font-size: 24px;"></i></div>
 `;
@@ -762,7 +788,6 @@ vidsrcUrl = `https://vidsrc.net/embed/tv/${imdbId}/${season}/${episode}`;
 vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}`;
 }
 
-// UI Feedback
 let iconContainer;
 let originalIconHTML;
 
@@ -886,10 +911,9 @@ const personId = urlParams.get('person_id');
 if (imdbId) {
 fetchContentByImdbId(imdbId);
 } else if (id && type) {
-currentQuery = query;
+currentQuery = query || ''; 
 fetchDetails(id, type);
 } else if (personId) {
-// Naam is hier nog niet bekend in URL, dus stuur "Persoon" mee (functie haalt hem op)
 fetchPersonCredits(personId, "Persoon");
 } else if (query) {
 searchInput.value = query;
@@ -927,20 +951,33 @@ const id = urlParams.get('id');
 const type = urlParams.get('type');
 const imdbId = urlParams.get('imdb_id');
 const personId = urlParams.get('person_id');
+const queryFromUrl = urlParams.get('q') || '';
 
 if (id && type) {
 fetchDetails(id, type);
 } else if (imdbId) {
 fetchContentByImdbId(imdbId);
 } else if (personId) {
-// Probeer naam uit history state te halen, anders "Persoon" (die dan gefetcht wordt)
+// Controle: is deze persoon al geladen (en verborgen)?
+if (currentPersonId == personId && resultsContainer.children.length > 0) {
+showSearchPage(); // Toon bestaande resultaten + restore scroll
+} else {
 const name = (e.state && e.state.person_name) ? e.state.person_name : "Persoon";
 fetchPersonCredits(personId, name);
-} else if (urlParams.get('q')) {
-searchInput.value = urlParams.get('q');
-startNewSearch(urlParams.get('q'));
+}
 } else {
-resetToHomePage();
+// Home/Zoek resultaten
+if (queryFromUrl !== currentQuery && queryFromUrl !== '') {
+searchInput.value = queryFromUrl;
+startNewSearch(queryFromUrl);
+} else if (queryFromUrl === '' && currentQuery !== '' && !personId) {
+startNewSearch('');
+} else {
+showSearchPage();
+if(resultsContainer.children.length === 0) {
+fetchAndDisplayContent();
+}
+}
 }
 });
 </script>
