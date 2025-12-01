@@ -282,7 +282,6 @@ async function fetchFromApi(endpoint, params = {}) {
         return await response.json();
     } catch (error) {
         if (error.message === "Ongeldige API sleutel") throw error;
-        
         console.warn("Direct fetch mislukt, probeer proxies...", error);
         try {
             const jsonText = await fetchTextViaProxies(url);
@@ -386,7 +385,7 @@ function createContentCard(item) {
     return card;
 }
 
-// Nieuwe functie voor IMDb redirect logica
+// Functie voor IMDb redirect
 async function fetchContentByImdbId(imdbId) {
     showDetailPage();
     detailContent.innerHTML = '<p class="message">Zoeken op IMDb ID...</p>';
@@ -707,8 +706,18 @@ window.addEventListener('popstate', (e) => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     const type = urlParams.get('type');
-    if (id && type) fetchDetails(id, type);
-    else resetToHomePage();
+    const imdbId = urlParams.get('imdb_id');
+    
+    if (id && type) {
+        fetchDetails(id, type);
+    } else if (imdbId) {
+        fetchContentByImdbId(imdbId);
+    } else if (urlParams.get('q')) {
+        searchInput.value = urlParams.get('q');
+        startNewSearch(urlParams.get('q'));
+    } else {
+        resetToHomePage();
+    }
 });
 </script>
 </body>
