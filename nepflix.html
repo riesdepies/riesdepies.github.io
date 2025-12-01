@@ -1,641 +1,686 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nepflix</title>
-    
-    <link rel="preload" href="https://fonts.gstatic.com/s/bebasneue/v10/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=block">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #141414; color: #fff; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        a { text-decoration: none; color: inherit; }
-        .movie-info p a:hover, .detail-meta a:hover { text-decoration: underline; }
-        header h1 { text-align: center; font-weight: normal; margin-bottom: 15px; }
-        header h1 a { display: inline-block; }
-        #letter-i-proxied { display: none; }
-        body.proxy-active #letter-i-normal { display: none; }
-        body.proxy-active #letter-i-proxied { display: block; }
-        #search-form { display: flex; justify-content: center; margin-bottom: 20px; }
-        #search-input { width: 50%; max-width: 500px; padding: 15px; font-size: 16px; border: 1px solid #333; border-radius: 4px 0 0 4px; background-color: #333; color: #fff; }
-        #search-button { padding: 15px 25px; font-size: 16px; border: none; background-color: #E50914; color: white; cursor: pointer; border-radius: 0 4px 4px 0; }
-        main.container { padding-top: 0; }
-        #results-container, #suggestions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; justify-items: center; }
-        .movie-card { background-color: #222; border-radius: 5px; overflow: hidden; transition: transform 0.2s ease; width: 100%; }
-        .movie-card:hover { transform: scale(1.05); }
-        .movie-card img { width: 100%; height: auto; display: block; }
-        .movie-info { padding: 10px; text-align: left; }
-        .movie-info h3 { font-size: 1em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .movie-info p { font-size: 0.9em; margin: 0; color: #aaa; }
-        .movie-meta { display: flex; justify-content: space-between; align-items: center; }
-        .message { text-align: center; font-size: 1.2em; grid-column: 1 / -1; }
-        #loader { text-align: center; padding: 20px; grid-column: 1 / -1; display: none; }
-        #detail-page { display: none; }
-        #detail-content { display: flex; flex-direction: column; align-items: center; gap: 20px; padding-top: 0; }
-        .poster-container { position: relative; width: 100%; max-width: 350px; display: block; cursor: pointer; }
-        .poster-container img { width: 100%; height: auto; border-radius: 5px; display: block; }
-        .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: background-color 0.2s ease; }
-        .poster-container:hover .play-icon { background-color: rgba(0, 0, 0, 0.7); }
-        .play-icon .fa-solid { font-size: 36px; color: #fff; }
-        .detail-info { text-align: center; }
-        .detail-info h2 { margin: 0 0 10px 0; font-size: 2.2em; }
-        .detail-meta { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.1em; color: #ccc; margin-bottom: 20px; }
-        .detail-meta .rating { font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .detail-info .description { margin-top: 0; text-align: left; max-width: 700px; line-height: 1.6; color: #ccc; }
-        #translate-container { display: flex; align-items: center; justify-content: flex-end; width: 100%; max-width: 700px; margin-top: 10px; margin-bottom: 0px; }
-        #translate-button { padding: 5px 10px; font-size: 0.8em; background-color: #333; color: #fff; border: 1px solid #555; border-radius: 4px; cursor: pointer; display: none; align-items: center; gap: 6px; }
-        #translate-button:hover { background-color: #444; }
-        #suggestions-section { width: 100%; margin-top: 40px; border-top: 1px solid #333; padding-top: 20px; }
-        #suggestions-section h2 { color: #E50914; margin-bottom: 20px; text-align: center; }
-        @media (max-width: 767px) { header h1 svg { width: 240px; } }
-        @media (min-width: 768px) { #detail-content { flex-direction: row; align-items: flex-start; text-align: left; } .detail-info { text-align: left; } .detail-meta { justify-content: flex-start; } #results-container, #suggestions-grid { gap: 20px; } #suggestions-section h2 { text-align: left; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nepflix</title>
+
+<link rel="preload" href="https://fonts.gstatic.com/s/bebasneue/v10/JTUSjIg69CK48gW7PXoo9Wlhyw.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=block">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background-color: #141414; color: #fff; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+a { text-decoration: none; color: inherit; }
+.movie-info p a:hover, .detail-meta a:hover { text-decoration: underline; }
+header h1 { text-align: center; font-weight: normal; margin-bottom: 15px; }
+header h1 a { display: inline-block; }
+
+/* Toast Notification Styles */
+#toast-container { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px; }
+.toast { background: #333; color: #fff; padding: 15px 20px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-size: 15px; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; text-align: center; pointer-events: auto; border-bottom: 3px solid #E50914; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.toast.visible { opacity: 1; transform: translateY(0); }
+.toast i { color: #E50914; }
+
+#search-form { display: flex; justify-content: center; margin-bottom: 20px; }
+#search-input { width: 50%; max-width: 500px; padding: 15px; font-size: 16px; border: 1px solid #333; border-radius: 4px 0 0 4px; background-color: #333; color: #fff; }
+#search-button { padding: 15px 25px; font-size: 16px; border: none; background-color: #E50914; color: white; cursor: pointer; border-radius: 0 4px 4px 0; }
+main.container { padding-top: 0; }
+#results-container, #suggestions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; justify-items: center; }
+.movie-card { background-color: #222; border-radius: 5px; overflow: hidden; transition: transform 0.2s ease; width: 100%; position: relative; }
+.movie-card:hover { transform: scale(1.05); }
+.movie-card img { width: 100%; height: auto; display: block; min-height: 195px; background: #333; }
+.movie-card .type-badge { position: absolute; top: 5px; right: 5px; background: rgba(229, 9, 20, 0.8); padding: 2px 6px; font-size: 0.7em; border-radius: 3px; font-weight: bold; }
+.movie-info { padding: 10px; text-align: left; }
+.movie-info h3 { font-size: 1em; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.movie-info p { font-size: 0.9em; margin: 0; color: #aaa; }
+.movie-meta { display: flex; justify-content: space-between; align-items: center; }
+.message { text-align: center; font-size: 1.2em; grid-column: 1 / -1; margin-top: 20px; }
+#loader { text-align: center; padding: 20px; grid-column: 1 / -1; display: none; }
+#scraper-status { text-align: center; padding: 20px; background: #333; margin-bottom: 20px; border-radius: 5px; font-family: monospace; display: none; color: #0f0; }
+#detail-page { display: none; }
+#detail-content { display: flex; flex-direction: column; align-items: center; gap: 20px; padding-top: 0; }
+.poster-container { position: relative; width: 100%; max-width: 350px; display: block; cursor: pointer; }
+.poster-container.no-click { cursor: default; }
+.poster-container img { width: 100%; height: auto; border-radius: 5px; display: block; }
+.play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: background-color 0.2s ease; }
+.poster-container:not(.no-click):hover .play-icon { background-color: rgba(0, 0, 0, 0.7); }
+.play-icon .fa-solid { font-size: 36px; color: #fff; }
+.detail-info { text-align: center; width: 100%; }
+.detail-info h2 { margin: 0 0 10px 0; font-size: 2.2em; }
+.detail-meta { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1.1em; color: #ccc; margin-bottom: 20px; }
+.detail-meta .rating { font-weight: bold; display: flex; align-items: center; gap: 5px; }
+.detail-info .description { margin-top: 0; text-align: left; max-width: 700px; line-height: 1.6; color: #ccc; margin-left: auto; margin-right: auto; }
+
+#tv-controls { max-width: 700px; margin: 20px auto 0; text-align: left; width: 100%; }
+#season-select { background: #333; color: white; border: 1px solid #555; padding: 10px; font-size: 16px; border-radius: 4px; margin-bottom: 15px; width: 100%; max-width: 200px; cursor: pointer; }
+#episodes-list { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; }
+.episode-item { display: flex; align-items: center; background: #222; padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+.episode-item:hover { background: #333; }
+.episode-item img { width: 120px; height: 68px; object-fit: cover; border-radius: 2px; margin-right: 15px; background: #111; }
+.episode-info { flex: 1; }
+.episode-number { color: #E50914; font-weight: bold; margin-right: 10px; }
+.episode-title { font-weight: bold; }
+.episode-overview { font-size: 0.8em; color: #aaa; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 5px; }
+
+#suggestions-section { width: 100%; margin-top: 40px; border-top: 1px solid #333; padding-top: 20px; }
+#suggestions-section h2 { color: #E50914; margin-bottom: 20px; text-align: center; }
+
+@media (max-width: 767px) { header h1 svg { width: 240px; } }
+@media (min-width: 768px) { 
+    #detail-content { flex-direction: row; align-items: flex-start; text-align: left; } 
+    .detail-info { text-align: left; } 
+    .detail-meta { justify-content: flex-start; } 
+    .detail-info .description { margin-left: 0; margin-right: 0; }
+    #tv-controls { margin-left: 0; }
+    #results-container, #suggestions-grid { gap: 20px; } 
+    #suggestions-section h2 { text-align: left; } 
+}
+</style>
 </head>
 <body>
 
-    <header class="container">
-        <h1>
-            <a href="/" onclick="resetToHomePage(event)">
-                <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="300" height="auto" viewBox="0 0 968.7748 289.7129">
-                  <defs>
-                    <mask id="proxy-indicator-mask">
-                      <rect x="743" y="0" width="44" height="290" fill="white"/>
-                      <text x="765" y="40" font-size="45px" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" fill="black">℗</text>
-                    </mask>
-                  </defs>
-                  <g fill="#E50914">
-                    <path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/>
-                    <path id="letter-i-normal" d="M743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130z"/>
-                    <path id="letter-i-proxied" d="M743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130z" mask="url(#proxy-indicator-mask)"/>
-                  </g>
-                </svg>
-            </a>
-        </h1>
-        <form id="search-form">
-            <input type="text" id="search-input" placeholder="Zoek een film..." required autocomplete="off">
-            <button type="submit" id="search-button">Zoek</button>
-        </form>
-    </header>
+<header class="container">
+<h1>
+<a href="/" onclick="resetToHomePage(event)">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="300" height="auto" viewBox="0 0 968.7748 289.7129">
+<g fill="#E50914">
+<path d="M0 144.5397c0 79.5.3 144.7.8 144.9.4.2 9.3-1 19.7-2.8l19-3.2.5-104.4c.3-57.4.8-103.5 1.2-102.4 2.3 6.5 42.2 153.8 49.8 184 1.8 7.2 3.6 13.3 3.9 13.7.6.6 28.8-2.6 41.9-4.8l3.2-.5V.1397h-39l-.1 79.7-.1 79.8-2.3-7.5c-1.3-4.1-10.7-37.6-21-74.5-10.2-36.9-19.3-69.4-20.1-72.3l-1.5-5.2H0v144.4zM172 132.6397c0 125.5.1 132.5 1.8 132.5.9 0 10-.9 20.2-2 22.7-2.4 71.5-6.7 86.8-7.6l11.2-.7v-38.7h-3.4c-4.3 0-59.3 3.8-66.8 4.6l-5.8.6v-78.1l5.3-.5c2.8-.3 11.7-.8 19.7-1.1 8-.3 19.1-.8 24.8-1.1l10.2-.6v-36l-13.7.6c-7.6.3-21.1.9-30 1.2l-16.3.6v-69.9l9.2-.7c5-.3 22.1-.6 38-.6H292v-35H172v132.5zM319 126.7397v126.7l4.8-.6c2.6-.3 12.5-.9 22-1.3l17.2-.7v-97.6l3.3-.5c1.7-.3 10.2-.7 18.7-1 17.6-.5 25.9-2.3 37.2-8.3 7.8-4.1 16.5-12.8 20.4-20.5 5.8-11.5 6.7-17.8 6.8-47.8 0-25.7-.1-28-2.2-35.5-4.4-15.1-12.7-25.5-25.5-31.9-13.1-6.4-16.5-6.8-61.9-7.3l-40.8-.4v126.7zm72.2-91.5c6.5 1.4 11.1 5.7 12.8 11.8.7 2.8 1 12.9.8 30.4-.3 25.6-.4 26.3-2.7 30.4-4 6.9-8.6 8.6-25.3 9.1l-13.8.5V34.1397h11.5c6.2 0 13.8.5 16.7 1.1zM470 124.1397v124h44v-107.1l28.5.7 28.5.7v-35.3h-8.8c-4.9 0-17.7-.3-28.5-.7l-19.7-.6V34.1397h72v-34H470v124zM607 125.4397v125.3l24.8 1.3c23.8 1.2 71.5 4.4 85.5 5.7l6.7.7v-39.1l-3.2-.5c-1.8-.3-16.8-1.3-33.3-2.2-16.5-.9-31.3-1.8-33-2.1l-3-.4.3-107 .2-107h-45v125.3zM815.1 8.3397c10.6 28.9 27.9 76.7 34.8 96.5l8.1 23.1-13.6 37.9c-16.3 45.3-35.6 100.5-35.2 100.8.3.2 33.8 4.4 38.6 4.8 2.3.2 3.2-2.4 20.6-54.8l18.2-55 1.6 5c8.5 27.5 22 72.5 27.4 91.5 3.6 12.9 6.8 23.7 7 23.9.4.4 45.8 8 46.2 7.7.8-.8-24.4-83.2-38.9-127.3l-10-30.2 15.2-43.3c8.3-23.8 18.7-53.5 23-66.1l7.8-22.7-20.6.2-20.6.3-15.8 46.5c-8.8 25.6-16.4 47.6-16.9 48.9-.9 2-3.3-4.2-16.5-43.5-8.4-25.3-15.9-47.4-16.5-49.2l-1.2-3.2h-45.7l3 8.2z"/>
+<path d="M743 130.1397c0 105.7.2 130 1.3 130 .7 0 10 .9 20.7 2s20 2 20.7 2c1.1 0 1.3-24.7 1.3-132v-132h-44v130z"/>
+</g>
+</svg>
+</a>
+</h1>
+<form id="search-form">
+<input type="text" id="search-input" placeholder="Zoek films en series..." required autocomplete="off">
+<button type="submit" id="search-button">Zoek</button>
+</form>
+</header>
 
-    <main class="container">
-        <div id="results-container"></div>
-        <div id="loader">Laden...</div>
-        <div id="detail-page">
-            <div id="detail-content"></div>
-            <div id="suggestions-section"></div>
-        </div>
-    </main>
+<main class="container">
+<div id="scraper-status"></div>
+<div id="results-container"></div>
+<div id="loader">Laden...</div>
+<div id="detail-page">
+<div id="detail-content"></div>
+<div id="suggestions-section"></div>
+</div>
+</main>
 
-    <script>
-        document.body.classList.remove('proxy-active');
+<div id="toast-container"></div>
 
-        // --- Selectors and Constants ---
-        const searchForm = document.getElementById('search-form');
-        const searchInput = document.getElementById('search-input');
-        const resultsContainer = document.getElementById('results-container');
-        const loader = document.getElementById('loader');
-        const detailPage = document.getElementById('detail-page');
-        const detailContent = document.getElementById('detail-content');
-        const suggestionsSection = document.getElementById('suggestions-section');
-        const API_BASE_URL = 'https://yts.mx/api/v2/';
-        const API_KEY_STORAGE_KEY = 'translateApiKey';
-        const CORS_PROXIES = [
-            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-            (url) => `https://api.corsproxy.io/${url}`,
-            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-        ];
-        
-        // --- State Management ---
-        let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
-        let originalDescription = '', isTranslated = false, isScraping = false;
-        let connectionMode = 'unknown'; // 'unknown', 'direct', 'proxy'
-        let apiProxyIndex = 1; 
-        
-        // --- Helper functions ---
-        function getApiKeyFromStorage() { return localStorage.getItem(API_KEY_STORAGE_KEY); }
-        function setApiKeyInStorage(key) { localStorage.setItem(API_KEY_STORAGE_KEY, key); }
-        function removeApiKeyFromStorage() { localStorage.removeItem(API_KEY_STORAGE_KEY); }
+<script>
+// --- Selectors and Constants ---
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const resultsContainer = document.getElementById('results-container');
+const loader = document.getElementById('loader');
+const detailPage = document.getElementById('detail-page');
+const detailContent = document.getElementById('detail-content');
+const suggestionsSection = document.getElementById('suggestions-section');
+const scraperStatus = document.getElementById('scraper-status');
 
-        function getProxiedImageUrl(originalUrl) {
-            if (connectionMode === 'proxy' && originalUrl) {
-                const imageUrl = originalUrl.replace(/^https\?:\/\//, '');
-                return `https://images.weserv.nl/?url=${imageUrl}`;
-            }
-            return originalUrl;
+const API_BASE_URL = 'https://api.themoviedb.org/3/';
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w780';
+const TMDB_KEY_STORAGE_KEY = 'tmdbApiKey';
+
+// De centrale lijst met alle beschikbare proxies
+const PROXIES = [
+    (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    (url) => `https://api.corsproxy.io/?${encodeURIComponent(url)}`,
+    (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    (url) => `https://cors.eu.org/${url.replace(/^https?:\/\//, '')}`,
+    (url) => `https://corsproxy.org/?${encodeURIComponent(url)}`,
+    (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+];
+
+// --- UI Helpers (Toast) ---
+function showToast(message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i><span>${message}</span>`;
+    container.appendChild(toast);
+    void toast.offsetWidth; // Trigger reflow
+    toast.classList.add('visible');
+    setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// --- State Management ---
+let currentPage = 1, currentQuery = '', isLoading = false, hasMorePages = true;
+
+// --- Helper functions ---
+function getApiKeyFromStorage() { return localStorage.getItem(TMDB_KEY_STORAGE_KEY); }
+function setApiKeyInStorage(key) { localStorage.setItem(TMDB_KEY_STORAGE_KEY, key); }
+function removeApiKeyFromStorage() { localStorage.removeItem(TMDB_KEY_STORAGE_KEY); }
+
+function getImageUrl(path) {
+    return path ? `${TMDB_IMAGE_BASE}${path}` : 'https://via.placeholder.com/300x450?text=Geen+Poster';
+}
+
+function makeAbsoluteUrl(url, base) {
+    if (!url) return null;
+    try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
+}
+
+// --- Generieke Proxy Functie ---
+// Start alle proxies tegelijkertijd en geeft het eerste succesvolle resultaat (tekst) terug.
+async function fetchTextViaProxies(targetUrl, timeout = 10000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    const proxyPromises = PROXIES.map(async (proxyBuilder) => {
+        const proxyUrl = proxyBuilder(targetUrl);
+        try {
+            const response = await fetch(proxyUrl, { signal: controller.signal });
+            if (!response.ok) throw new Error(`Status ${response.status}`);
+            return await response.text();
+        } catch (error) {
+            throw error;
         }
+    });
 
-        async function testApiConnection() {
-            console.log("Verbindingstest gestart: directe verbinding racet tegen proxies (met 1s vertraging).");
+    try {
+        const result = await Promise.any(proxyPromises);
+        clearTimeout(timeoutId);
+        return result;
+    } catch (aggregateError) {
+        clearTimeout(timeoutId);
+        throw new Error("Alle proxies zijn mislukt of time-out.");
+    }
+}
 
-            const directFetch = async () => {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); 
-                try {
-                    const response = await fetch(`${API_BASE_URL}list_movies.json?limit=1`, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    if (response.ok) return 'direct';
-                    throw new Error('Directe API-respons niet OK');
-                } catch (error) {
-                    clearTimeout(timeoutId);
-                    throw new Error(`Directe verbinding mislukt: ${error.message}`);
-                }
-            };
+// --- Key Scraper ---
+async function scrapeTmdbKeys(options = {}) {
+    const {
+        maxPages = 20,
+        onStatusUpdate = (message) => console.log(message),
+        onValidKeyFound = (apiKey, totalValidKeys) => {},
+        apiKeyTestTimeout = 20000,
+        maxConcurrentKeyTests = 5
+    } = options;
 
-            const proxyFetch = async () => {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                console.log("1 seconde voorbij, proxies doen mee aan de race.");
+    const BASE_URL = 'https://grep.app/search?regexp=true&q=%28tmdb.*%5Ba-f0-9%5D%7B32%7D%7C%5Ba-f0-9%5D%7B32%7D.*tmdb%29';
+    const API_KEY_REGEX = /[a-f0-9]{32}/g;
+    
+    let foundPotentialKeys = new Set();
+    let validApiKeys = [];
+    let currentPage = 1;
 
-                const proxyPromises = CORS_PROXIES.map((proxyBuilder, index) =>
-                    fetch(proxyBuilder(`${API_BASE_URL}list_movies.json?limit=1`))
-                        .then(response => {
-                            if (!response.ok) throw new Error(`Proxy #${index} mislukt`);
-                            apiProxyIndex = index;
-                            return 'proxy'; 
-                        })
-                );
-                return Promise.any(proxyPromises);
-            };
-
-            try {
-                const winner = await Promise.race([directFetch(), proxyFetch()]);
-
-                if (winner === 'direct') {
-                    connectionMode = 'direct';
-                    console.log("RACE GEWONNEN: Directe verbinding.");
-                    document.body.classList.remove('proxy-active');
-                } else if (winner === 'proxy') {
-                    connectionMode = 'proxy';
-                    console.log(`RACE GEWONNEN: Proxy #${apiProxyIndex}.`);
-                    document.body.classList.add('proxy-active');
-                }
-            } catch (error) {
-                console.error("Alle verbindingspogingen zijn mislukt. Valt terug op proxy-modus.", error);
-                connectionMode = 'proxy';
-                document.body.classList.add('proxy-active');
-            }
-        }
-
-        async function fetchFromApi(endpoint) {
-            if (connectionMode === 'direct') {
-                const response = await fetch(API_BASE_URL + endpoint);
-                if (!response.ok) throw new Error("Directe API-verbinding mislukt.");
-                return response.json();
-            }
-
-            const proxyPromises = CORS_PROXIES.map((proxyBuilder, index) => 
-                fetch(proxyBuilder(API_BASE_URL + endpoint))
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Proxy #${index} mislukt`);
-                        apiProxyIndex = index;
-                        return response.json();
-                    })
-            );
-
-            try {
-                return await Promise.any(proxyPromises);
-            } catch (aggregateError) {
-                console.error("Alle API-proxies zijn mislukt.", aggregateError);
-                throw new Error("API is onbereikbaar via alle proxies.");
-            }
-        }
-        
-        // --- View Management ---
-        function resetToHomePage(event) {
-            event.preventDefault();
-            window.location.href = window.location.pathname;
-        }
-
-        function showSearchPage() {
-            resultsContainer.style.display = 'grid';
-            detailPage.style.display = 'none';
-        }
-
-        function showDetailPage() {
-            resultsContainer.style.display = 'none';
-            detailPage.style.display = 'block';
-            loader.style.display = 'none';
-        }
-        
-        // --- Core Logic ---
-        function startNewSearch(query) {
-            showSearchPage();
-            resultsContainer.innerHTML = '';
-            currentQuery = query;
-            currentPage = 1;
-            isLoading = false;
-            hasMorePages = true;
-            const newUrl = `?q=${encodeURIComponent(currentQuery)}`;
-            window.history.pushState({ query: currentQuery }, '', newUrl);
-            fetchAndDisplayMovies();
-        }
-
-        async function fetchAndDisplayMovies() {
-            if (isLoading || !hasMorePages) return;
-            isLoading = true;
-            loader.style.display = 'block';
-            let endpoint = `list_movies.json?page=${currentPage}`;
-            if (currentQuery) {
-                endpoint += `&query_term=${encodeURIComponent(currentQuery)}&sort_by=download_count`;
-            } else {
-                endpoint += `&minimum_rating=7&sort_by=date_added`;
-            }
-            try {
-                const data = await fetchFromApi(endpoint);
-                if (data.status === 'ok' && data.data.movies?.length > 0) {
-                    displayMovies(data.data.movies);
-                    currentPage++;
-                    hasMorePages = (currentPage - 1) * 20 < data.data.movie_count;
-                } else {
-                    hasMorePages = false;
-                    if (currentPage === 1) resultsContainer.innerHTML = '<p class="message">Geen films gevonden.</p>';
-                }
-            } catch (error) {
-                console.error("Fout bij ophalen films:", error);
-                resultsContainer.innerHTML = `<p class="message">${error.message}</p>`;
-                hasMorePages = false;
-            } finally {
-                isLoading = false;
-                loader.style.display = 'none';
-            }
-        }
-        
-        function displayMovies(movies) {
-            movies.forEach(movie => resultsContainer.appendChild(createMovieCard(movie)));
-        }
-        
-        async function fetchMovieDetails(id) {
-            showDetailPage();
-            detailContent.innerHTML = '<p class="message">Filmgegevens laden...</p>';
-            suggestionsSection.innerHTML = ''; 
-            try {
-                const data = await fetchFromApi(`movie_details.json?movie_id=${id}`);
-                if (data.status === 'ok' && data.data.movie) {
-                    displayMovieDetails(data.data.movie);
-                    fetchAndDisplaySuggestions(id);
-                } else {
-                    detailContent.innerHTML = '<p class="message">Kon filmgegevens niet vinden.</p>';
-                }
-            } catch (error) {
-                detailContent.innerHTML = `<p class="message">${error.message}</p>`;
-            }
-        }
-        
-        // AANGEPAST: Functie om op IMDb ID te zoeken is hersteld.
-        async function fetchMovieByImdbId(imdbId) {
-            showDetailPage();
-            detailContent.innerHTML = '<p class="message">Zoeken op IMDb ID...</p>';
-            suggestionsSection.innerHTML = '';
-            try {
-                // De YTS API gebruikt de imdb_id in het 'query_term' veld om te zoeken.
-                const endpoint = `list_movies.json?query_term=${encodeURIComponent(imdbId)}`;
-                const data = await fetchFromApi(endpoint);
-                if (data.status === 'ok' && data.data.movies?.length > 0) {
-                    const movie = data.data.movies[0];
-                    const internalId = movie.id;
-                    
-                    // Behoud de 'q' parameter als die bestaat.
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const query = urlParams.get('q');
-                    currentQuery = query;
-
-                    // Vervang de URL met de movie_id, zodat de navigatie klopt.
-                    const newUrl = `?movie_id=${internalId}` + (query ? `&q=${encodeURIComponent(query)}` : '');
-                    window.history.replaceState({ movieId: internalId, query: query }, '', newUrl);
-                    
-                    // Geef de gevonden film direct weer, in plaats van opnieuw te fetchen.
-                    displayMovieDetails(movie);
-                    fetchAndDisplaySuggestions(internalId);
-                } else {
-                    detailContent.innerHTML = `<p class="message">Geen film gevonden voor IMDb ID: ${imdbId}</p>`;
-                }
-            } catch (error) {
-                console.error("Fout bij ophalen film via IMDb ID:", error);
-                detailContent.innerHTML = `<p class="message">${error.message}</p>`;
-            }
-        }
-
-        function displayMovieDetails(movie) {
-            originalDescription = movie.description_full; 
-            isTranslated = false; 
-            detailContent.innerHTML = `
-                <a href="#" data-imdb-id="${movie.imdb_code}" class="poster-container" id="play-link">
-                    <img src="${getProxiedImageUrl(movie.large_cover_image)}" alt="${movie.title}">
-                    <div class="play-icon"><i class="fa-solid fa-play"></i></div>
-                </a>
-                <div class="detail-info">
-                    <h2>${movie.title}</h2>
-                    <div class="detail-meta">
-                        <span>${movie.year}</span>
-                        <a href="https://www.imdb.com/title/${movie.imdb_code}" target="_blank" rel="noopener noreferrer" class="rating"><span style="color: #f5c518;">⭐</span>${movie.rating}</a>
-                    </div>
-                    <p class="description" id="movie-description">${originalDescription || ''}</p>
-                    <div id="translate-container">
-                         <button id="translate-button">
-                            <svg style="width: 1em; height: 1em; fill: currentColor;" viewBox="0 0 24 24"><path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.28,8.36 14,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.65L4,19L9,14L11.11,16.11L12.87,15.07M18.5,10H16.5L12,22H14L15.12,19H19.87L21,22H23L18.5,10M15.88,17L17.5,12.67L19.12,17H15.88Z" /></svg>
-                            <span id="translate-button-text">Vertaal</span>
-                         </button>
-                    </div>
-                </div>`;
-            document.getElementById('play-link').addEventListener('click', handlePlayClick);
-            const translateButton = document.getElementById('translate-button');
-            if (getApiKeyFromStorage() && originalDescription && originalDescription.trim() !== '') {
-                translateButton.style.display = 'inline-flex';
-            }
-            translateButton.addEventListener('click', handleTranslateClick);
-        }
-
-        function createMovieCard(movie) {
-            const movieCard = document.createElement('div');
-            movieCard.className = 'movie-card';
-            movieCard.innerHTML = `
-                <a href="?movie_id=${movie.id}">
-                    <img src="${getProxiedImageUrl(movie.medium_cover_image)}" alt="${movie.title}" loading="lazy">
-                    <div class="movie-info">
-                        <h3>${movie.title}</h3>
-                        <p class="movie-meta"><span>${movie.year}</span><a href="https://www.imdb.com/title/${movie.imdb_code}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">⭐${movie.rating}</a></p>
-                    </div>
-                </a>`;
-            return movieCard;
-        }
-
-        async function fetchAndDisplaySuggestions(id) {
-            try {
-                const data = await fetchFromApi(`movie_suggestions.json?movie_id=${id}`);
-                if (data.status === 'ok' && data.data.movies?.length > 0) {
-                    suggestionsSection.innerHTML = '<h2>Soortgelijke films</h2>';
-                    const grid = document.createElement('div');
-                    grid.id = 'suggestions-grid';
-                    data.data.movies.forEach(movie => grid.appendChild(createMovieCard(movie)));
-                    suggestionsSection.appendChild(grid);
-                } else { suggestionsSection.innerHTML = ''; }
-            } catch (error) { suggestionsSection.innerHTML = ''; }
-        }
-        
-        function makeAbsoluteUrl(url, base) {
-            if (!url) return null;
-            try { return new URL(url, base).href; } catch (e) { return 'https://' + url; }
-        }
-
-        async function handlePlayClick(event) {
-            event.preventDefault();
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.platform) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-            const link = event.currentTarget;
-            const playIconContainer = link.querySelector('.play-icon');
-            if (!playIconContainer) return;
-            const originalIconHTML = playIconContainer.innerHTML;
-            playIconContainer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            link.style.pointerEvents = 'none';
-            const imdbId = link.dataset.imdbId;
-            const vidsrcUrl = `https://vidsrc-embed.ru/embed/movie/${imdbId}`;
-
-            if (isIOS) {
-                const newTab = window.open('', '_blank');
-                if (!newTab) {
-                    playIconContainer.innerHTML = '<i class="fa-solid fa-ban"></i>';
-                    setTimeout(() => { playIconContainer.innerHTML = originalIconHTML; link.style.pointerEvents = 'auto'; }, 2500);
-                    return; 
-                }
-                newTab.document.body.innerHTML = '<h1 style="font-family: sans-serif; text-align: center; margin-top: 50px;">Videobron zoeken...</h1>';
-                try {
-                    const winningUrl = await findVideoUrl(vidsrcUrl);
-                    newTab.document.write(`<meta http-equiv="refresh" content="0;url=${winningUrl}">`);
-                    newTab.document.close();
-                    playIconContainer.innerHTML = originalIconHTML;
-                    link.style.pointerEvents = 'auto';
-                } catch (error) {
-                    if (newTab) newTab.close();
-                    playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
-                    setTimeout(() => {
-                        playIconContainer.innerHTML = originalIconHTML;
-                        link.style.pointerEvents = 'auto';
-                    }, 2500);
-                }
-            } else {
-                try {
-                    const winningUrl = await findVideoUrl(vidsrcUrl);
-                    const a = document.createElement('a');
-                    a.href = winningUrl;
-                    a.target = '_blank';
-                    a.rel = 'noopener noreferrer';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-
-                    playIconContainer.innerHTML = originalIconHTML;
-                    link.style.pointerEvents = 'auto';
-                } catch (error) {
-                    playIconContainer.innerHTML = '<i class="fa-solid fa-video-slash"></i>';
-                    setTimeout(() => {
-                        playIconContainer.innerHTML = originalIconHTML;
-                        link.style.pointerEvents = 'auto';
-                    }, 2500);
-                }
-            }
-        }
-
-        async function findVideoUrl(vidsrcUrl) {
+    async function testApiKeyValidity(apiKey, statusFn) {
+        const tmdbApiUrl = `https://api.themoviedb.org/3/configuration?api_key=${apiKey}`;
+        try {
             const controller = new AbortController();
-            const signal = controller.signal;
-            let definitiveFailure = false;
-            const promises = CORS_PROXIES.map(async (proxyBuilder) => {
-                const proxyUrl = proxyBuilder(vidsrcUrl);
-                try {
-                    const response = await fetch(proxyUrl, { signal });
-                    if (!response.ok) throw new Error(`Proxy failed: ${response.status}`);
-                    const htmlContent = await response.text();
-                    if (htmlContent.includes('This media is unavailable at the moment.')) {
-                        definitiveFailure = true;
-                        controller.abort();
-                        throw new Error("Media is unavailable.");
-                    }
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(htmlContent, 'text/html');
-                    const iframe = doc.querySelector('iframe');
-                    if (!iframe) throw new Error("Iframe element not found");
-                    const rawSrc = iframe.getAttribute('src');
-                    if (!rawSrc) throw new Error("Iframe has no src attribute");
-                    const finalUrl = makeAbsoluteUrl(rawSrc, vidsrcUrl);
-                    if (!finalUrl) throw new Error("Could not normalize URL");
-                    return finalUrl;
-                } catch (error) {
-                    if (error.name !== 'AbortError') console.warn(`Proxy-poging mislukt:`, error.message);
-                    throw error;
+            const timeoutId = setTimeout(() => controller.abort(), apiKeyTestTimeout);
+            const response = await fetch(tmdbApiUrl, { method: 'GET', signal: controller.signal });
+            clearTimeout(timeoutId);
+            return response.ok;
+        } catch (error) { return false; }
+    }
+
+    async function processPage(pageNum) {
+        onStatusUpdate(`Pagina ${pageNum}: Scrapen via alle proxies...`);
+        const urlToFetch = `${BASE_URL}&page=${pageNum}`;
+        
+        try {
+            // Gebruik de generieke proxy functie
+            const html = await fetchTextViaProxies(urlToFetch);
+            const keysOnPage = [...new Set(html.match(API_KEY_REGEX) || [])];
+            const newKeys = keysOnPage.filter(key => !foundPotentialKeys.has(key));
+
+            if (newKeys.length > 0) {
+                onStatusUpdate(`Pagina ${pageNum}: ${newKeys.length} mogelijke keys gevonden. Testen...`);
+                newKeys.forEach(key => foundPotentialKeys.add(key));
+                for (let i = 0; i < newKeys.length; i += maxConcurrentKeyTests) {
+                    const batch = newKeys.slice(i, i + maxConcurrentKeyTests);
+                    const results = await Promise.all(batch.map(key => testApiKeyValidity(key, onStatusUpdate).then(isValid => ({ key, isValid }))));
+                    results.forEach(result => {
+                        if (result.isValid) {
+                            validApiKeys.push(result.key);
+                            onValidKeyFound(result.key, validApiKeys.length);
+                        }
+                    });
+                }
+            }
+            return html.includes('Load More Results') || html.includes('loadMoreResults');
+        } catch (error) {
+            onStatusUpdate(`Fout op pagina ${pageNum}: ${error.message}.`);
+            return false;
+        }
+    }
+
+    onStatusUpdate("Starten met zoeken naar API keys...");
+    let hasMore = true;
+    while (hasMore && currentPage <= maxPages) {
+        hasMore = await processPage(currentPage);
+        if (hasMore) currentPage++;
+    }
+    return validApiKeys;
+}
+
+// --- API Connection ---
+async function fetchFromApi(endpoint, params = {}) {
+    let apiKey = getApiKeyFromStorage();
+    if (!apiKey) throw new Error("Geen API key beschikbaar");
+
+    const urlParams = new URLSearchParams(params);
+    urlParams.append('api_key', apiKey);
+    urlParams.append('language', 'nl-NL');
+    urlParams.append('include_adult', 'false');
+
+    const url = `${API_BASE_URL}${endpoint}?${urlParams.toString()}`;
+
+    // 1. Probeer direct
+    try {
+        const response = await fetch(url);
+        if (response.status === 401 || response.status === 403) {
+            removeApiKeyFromStorage();
+            throw new Error("Ongeldige API sleutel");
+        }
+        if (!response.ok) throw new Error("API request failed");
+        return await response.json();
+    } catch (error) {
+        if (error.message === "Ongeldige API sleutel") throw error;
+        
+        // 2. Fallback: Gebruik de generieke proxy functie
+        console.warn("Direct fetch mislukt, probeer proxies...", error);
+        try {
+            const jsonText = await fetchTextViaProxies(url);
+            return JSON.parse(jsonText);
+        } catch (proxyError) {
+            throw new Error("Kan TMDB niet bereiken via direct of proxies.");
+        }
+    }
+}
+
+// --- View Management ---
+function resetToHomePage(event) {
+    if (event) event.preventDefault();
+    window.location.href = window.location.pathname;
+}
+
+function showSearchPage() {
+    resultsContainer.style.display = 'grid';
+    detailPage.style.display = 'none';
+}
+
+function showDetailPage() {
+    resultsContainer.style.display = 'none';
+    detailPage.style.display = 'block';
+    loader.style.display = 'none';
+}
+
+// --- Core Logic ---
+function startNewSearch(query) {
+    showSearchPage();
+    resultsContainer.innerHTML = '';
+    currentQuery = query;
+    currentPage = 1;
+    isLoading = false;
+    hasMorePages = true;
+    const newUrl = `?q=${encodeURIComponent(currentQuery)}`;
+    window.history.pushState({ query: currentQuery }, '', newUrl);
+    fetchAndDisplayContent();
+}
+
+async function fetchAndDisplayContent() {
+    if (isLoading || !hasMorePages) return;
+    isLoading = true;
+    loader.style.display = 'block';
+
+    try {
+        let data;
+        if (currentQuery) {
+            data = await fetchFromApi('search/multi', { query: currentQuery, page: currentPage });
+        } else {
+            data = await fetchFromApi('trending/all/week', { page: currentPage });
+        }
+
+        if (data && data.results && data.results.length > 0) {
+            displayContent(data.results);
+            currentPage++;
+            hasMorePages = currentPage <= data.total_pages;
+        } else {
+            hasMorePages = false;
+            if (currentPage === 1) resultsContainer.innerHTML = '<p class="message">Niets gevonden.</p>';
+        }
+    } catch (error) {
+        if (error.message === "Ongeldige API sleutel") handleMissingKey();
+        else {
+            console.error("Fout:", error);
+            resultsContainer.innerHTML = `<p class="message">${error.message}</p>`;
+        }
+        hasMorePages = false;
+    } finally {
+        isLoading = false;
+        loader.style.display = 'none';
+    }
+}
+
+function displayContent(items) {
+    items.forEach(item => {
+        if (!item.poster_path) return;
+        if (item.media_type === 'person') return;
+        resultsContainer.appendChild(createContentCard(item));
+    });
+}
+
+function createContentCard(item) {
+    const isTv = item.media_type === 'tv' || item.name;
+    const title = isTv ? item.name : item.title;
+    const date = isTv ? (item.first_air_date || '') : (item.release_date || '');
+    const year = date ? date.split('-')[0] : 'N/A';
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : '?';
+    
+    const card = document.createElement('div');
+    card.className = 'movie-card';
+    card.innerHTML = `
+    <a href="?id=${item.id}&type=${isTv ? 'tv' : 'movie'}">
+        <img src="${getImageUrl(item.poster_path)}" alt="${title}" loading="lazy">
+        <span class="type-badge">${isTv ? 'SERIE' : 'FILM'}</span>
+        <div class="movie-info">
+            <h3>${title}</h3>
+            <p class="movie-meta"><span>${year}</span><span>⭐${rating}</span></p>
+        </div>
+    </a>`;
+    return card;
+}
+
+async function fetchDetails(id, type) {
+    showDetailPage();
+    detailContent.innerHTML = '<p class="message">Gegevens laden...</p>';
+    suggestionsSection.innerHTML = '';
+    
+    try {
+        const data = await fetchFromApi(`${type}/${id}`, { append_to_response: 'external_ids,similar' });
+        displayDetailView(data, type);
+        
+        if (data.similar && data.similar.results.length > 0) {
+            suggestionsSection.innerHTML = '<h2>Soortgelijke titels</h2>';
+            const grid = document.createElement('div');
+            grid.id = 'suggestions-grid';
+            data.similar.results.slice(0, 10).forEach(item => {
+                if(item.poster_path) {
+                    item.media_type = type;
+                    grid.appendChild(createContentCard(item));
                 }
             });
+            suggestionsSection.appendChild(grid);
+        }
+    } catch (error) {
+        if (error.message === "Ongeldige API sleutel") handleMissingKey();
+        else detailContent.innerHTML = `<p class="message">${error.message}</p>`;
+    }
+}
+
+function displayDetailView(item, type) {
+    const isTv = type === 'tv';
+    const title = isTv ? item.name : item.title;
+    const date = isTv ? item.first_air_date : item.release_date;
+    const year = date ? date.split('-')[0] : 'N/A';
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+    const imdbId = item.external_ids ? item.external_ids.imdb_id : null;
+
+    let html = `
+    <div class="${isTv ? 'poster-container no-click' : 'poster-container'}" id="play-poster">
+        <img src="${getImageUrl(item.poster_path)}" alt="${title}">
+        ${!isTv ? '<div class="play-icon"><i class="fa-solid fa-play"></i></div>' : ''}
+    </div>
+    <div class="detail-info">
+        <h2>${title}</h2>
+        <div class="detail-meta">
+            <span>${year}</span>
+            <span>${isTv ? (item.number_of_seasons + ' Seizoenen') : ''}</span>
+            <a href="https://www.imdb.com/title/${imdbId}" target="_blank" class="rating"><span style="color: #f5c518;">⭐</span>${rating}</a>
+        </div>
+        <p class="description">${item.overview || 'Geen beschrijving beschikbaar.'}</p>
+        
+        ${isTv ? `<div id="tv-controls">
+            <select id="season-select"></select>
+            <div id="episodes-list"></div>
+        </div>` : ''}
+    </div>`;
+
+    detailContent.innerHTML = html;
+
+    if (isTv) {
+        setupTvLogic(item.id, item.seasons, imdbId);
+    } else if (imdbId) {
+        document.getElementById('play-poster').addEventListener('click', (e) => handlePlayClick(e, imdbId));
+        document.getElementById('play-poster').classList.remove('no-click');
+    }
+}
+
+function setupTvLogic(tmdbId, seasons, imdbId) {
+    const select = document.getElementById('season-select');
+    const validSeasons = seasons.filter(s => s.season_number > 0);
+    
+    validSeasons.forEach(season => {
+        const option = document.createElement('option');
+        option.value = season.season_number;
+        option.text = `Seizoen ${season.season_number}`;
+        select.appendChild(option);
+    });
+
+    if (validSeasons.length > 0) {
+        select.value = validSeasons[0].season_number;
+        loadEpisodes(tmdbId, validSeasons[0].season_number, imdbId);
+    }
+
+    select.addEventListener('change', (e) => {
+        loadEpisodes(tmdbId, e.target.value, imdbId);
+    });
+}
+
+async function loadEpisodes(tmdbId, seasonNum, imdbId) {
+    const list = document.getElementById('episodes-list');
+    list.innerHTML = '<p>Afleveringen laden...</p>';
+    
+    try {
+        const data = await fetchFromApi(`tv/${tmdbId}/season/${seasonNum}`);
+        list.innerHTML = '';
+        
+        data.episodes.forEach(ep => {
+            const div = document.createElement('div');
+            div.className = 'episode-item';
+            div.innerHTML = `
+                <img src="${getImageUrl(ep.still_path)}" alt="Aflevering ${ep.episode_number}">
+                <div class="episode-info">
+                    <div class="episode-title"><span class="episode-number">${ep.episode_number}.</span> ${ep.name}</div>
+                    <div class="episode-overview">${ep.overview || ''}</div>
+                </div>
+                <div style="margin-left:10px;"><i class="fa-solid fa-play-circle" style="font-size: 24px;"></i></div>
+            `;
+            div.addEventListener('click', (e) => handlePlayClick(e, imdbId, seasonNum, ep.episode_number));
+            list.appendChild(div);
+        });
+    } catch (e) {
+        list.innerHTML = '<p>Kon afleveringen niet laden.</p>';
+    }
+}
+
+// --- Player Logic ---
+async function handlePlayClick(event, imdbId, season = null, episode = null) {
+    event.preventDefault();
+    if (!imdbId) { 
+        showToast("Geen bron gevonden (IMDb ID ontbreekt)."); 
+        return; 
+    }
+
+    const isTv = season !== null && episode !== null;
+    let vidsrcUrl;
+    
+    if (isTv) {
+        vidsrcUrl = `https://vidsrc.net/embed/tv/${imdbId}/${season}/${episode}`;
+    } else {
+        vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}`;
+    }
+
+    // UI Feedback
+    let iconContainer;
+    let originalIconHTML;
+    
+    if (isTv) {
+        iconContainer = event.currentTarget.querySelector('.fa-play-circle');
+        if(iconContainer) {
+            originalIconHTML = 'fa-solid fa-play-circle'; 
+            iconContainer.className = 'fa-solid fa-spinner fa-spin';
+        }
+    } else {
+        iconContainer = document.querySelector('.play-icon');
+        if(iconContainer) {
+            originalIconHTML = iconContainer.innerHTML;
+            iconContainer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+    }
+
+    async function findVideoUrl(targetUrl) {
+        const controller = new AbortController();
+        const promises = PROXIES.map(async (proxyBuilder) => {
             try {
-                const winningUrl = await Promise.any(promises);
+                const proxyUrl = proxyBuilder(targetUrl);
+                const response = await fetch(proxyUrl, { signal: controller.signal });
+                if (!response.ok) throw new Error("Proxy error");
+                const html = await response.text();
+                
+                if (html.includes('unavailable')) throw new Error("Media unavailable");
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const iframe = doc.querySelector('iframe');
+                if (!iframe) throw new Error("No iframe");
+                
+                const src = iframe.getAttribute('src');
+                if (!src) throw new Error("No src");
+                
+                return makeAbsoluteUrl(src, targetUrl);
+            } catch (e) { throw e; }
+        });
+
+        // 3 seconden timeout voor de race
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => {
                 controller.abort();
-                return winningUrl;
-            } catch (error) {
-                const message = definitiveFailure ? "Video niet beschikbaar" : "Kon bron niet vinden";
-                console.error(message, error);
-                throw new Error(message);
-            }
+                reject(new Error("Timeout"));
+            }, 3000)
+        );
+
+        try {
+            const url = await Promise.race([Promise.any(promises), timeoutPromise]);
+            controller.abort(); // Cancel andere requests
+            return url;
+        } catch (e) { 
+            throw new Error("Video niet beschikbaar."); 
         }
+    }
+
+    try {
+        const winningUrl = await findVideoUrl(vidsrcUrl);
+        window.open(winningUrl, '_blank');
         
-        async function handleTranslateClick(event) {
-            event.preventDefault();
-            const descriptionElement = document.getElementById('movie-description');
-            const buttonElement = document.getElementById('translate-button');
-            const buttonTextElement = document.getElementById('translate-button-text');
-            let apiKey = getApiKeyFromStorage();
-            if (!apiKey) { buttonElement.style.display = 'none'; return; }
-            buttonElement.disabled = true;
+        if (isTv && iconContainer) iconContainer.className = originalIconHTML;
+        else if (iconContainer) iconContainer.innerHTML = originalIconHTML;
 
-            if (isTranslated) {
-                descriptionElement.innerText = originalDescription;
-                buttonTextElement.innerText = 'Vertaal';
-                isTranslated = false;
-                buttonElement.disabled = false;
-            } else {
-                buttonTextElement.innerText = 'Bezig...';
-                try {
-                    const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=${encodeURIComponent(originalDescription)}&target=nl&format=text`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    if (!response.ok) { throw new Error(data.error?.message || `HTTP ${response.status}`); }
-                    descriptionElement.innerText = data.data.translations[0].translatedText;
-                    buttonTextElement.innerText = 'Toon origineel';
-                    isTranslated = true;
-                } catch (error) {
-                    console.error('Translate error:', error.message);
-                    removeApiKeyFromStorage();
-                    buttonTextElement.innerText = 'Fout';
-                    console.log('De opgeslagen API-sleutel is ongeldig en wordt verwijderd. Er wordt een nieuwe gezocht.');
-                    setTimeout(() => { buttonElement.style.display = 'none'; }, 2000);
-                    scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => {
-                        setApiKeyInStorage(key);
-                        console.log('Nieuwe API-sleutel gevonden. Probeer opnieuw te vertalen.');
-                        buttonElement.style.display = 'inline-flex';
-                        buttonTextElement.innerText = 'Vertaal';
-                    }});
-                } finally {
-                    buttonElement.disabled = false;
-                }
-            }
-        }
-
-        async function scrapeAndValidateKeys(options = {}) {
-            if (isScraping) return;
-            isScraping = true;
-            console.log("Starten met scrapen van API sleutels...");
-            const {
-                maxPages = 5, maxKeys = 1, onStatusUpdate = (msg) => console.log(`[Scraper] ${msg}`),
-                onValidKeyFound = () => {}, proxyTimeout = 15000, apiKeyTestTimeout = 10000
-            } = options;
-            const BASE_URL = 'https://grep.app/search?regexp=true&q=%28transl.*AIzaSy%5BA-Za-z0-9_-%5D%7B33%7D%7CAIzaSy%5BA-Za-z0-9_-%5D%7B33%7D.*transl%29';
-            const API_KEY_REGEX = /AIzaSy[A-Za-z0-9_-]{33}/g;
-            let validApiKeys = [];
-            
-            async function fetchWithProxy(url) {
-                 const proxyUrl = CORS_PROXIES[1](url);
-                 const controller = new AbortController();
-                 const timeoutId = setTimeout(() => controller.abort(), proxyTimeout);
-                 const response = await fetch(proxyUrl, { signal: controller.signal });
-                 clearTimeout(timeoutId);
-                 if (!response.ok) throw new Error(`Proxy fetch failed: ${response.status}`);
-                 return await response.text();
-            }
-            async function testApiKeyValidity(apiKey) {
-                const translateApiUrl = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}&q=test&target=nl`;
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), apiKeyTestTimeout);
-                    const response = await fetch(translateApiUrl, { method: 'GET', signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    return response.ok;
-                } catch (error) { return false; }
-            }
-            try {
-                for (let pageNum = 1; pageNum <= maxPages && validApiKeys.length < maxKeys; pageNum++) {
-                    onStatusUpdate(`Fetching page ${pageNum}...`);
-                    const html = await fetchWithProxy(`${BASE_URL}&page=${pageNum}`);
-                    const keys = [...new Set(html.match(API_KEY_REGEX) || [])];
-                    if (keys.length === 0 && !html.includes('Load More Results')) break;
-                    for (const key of keys) {
-                        if (await testApiKeyValidity(key)) {
-                            validApiKeys.push(key);
-                            onValidKeyFound(key, validApiKeys.length);
-                            if (validApiKeys.length >= maxKeys) break;
-                        }
-                    }
-                }
-            } catch(e) { onStatusUpdate("Scraping failed: " + e.message); } finally { isScraping = false; }
-        }
+    } catch (error) {
+        showToast("Video niet beschikbaar of offline.");
         
-        // --- Event Listeners & Initialization ---
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const query = searchInput.value.trim();
-            if (query && query !== currentQuery) {
-                startNewSearch(query);
-            }
-        });
-        
-        function handleScroll() {
-            if (resultsContainer.style.display !== 'none' && !isLoading && hasMorePages) {
-                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
-                    fetchAndDisplayMovies();
-                }
-            }
-        }
-        
-        // AANGEPAST: De routeringslogica is in een aparte functie geplaatst voor hergebruik.
-        function handleRouteChange() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const imdbId = urlParams.get('imdb_id');
-            const movieId = urlParams.get('movie_id');
-            const query = urlParams.get('q');
-            
-            // De volgorde is belangrijk: imdb_id heeft voorrang.
-            if (imdbId) {
-                fetchMovieByImdbId(imdbId);
-            } else if (movieId) {
-                currentQuery = query;
-                fetchMovieDetails(movieId);
-            } else if (query) {
-                searchInput.value = query;
-                startNewSearch(query);
-            } else {
-                currentQuery = '';
-                searchInput.value = '';
-                showSearchPage();
-                fetchAndDisplayMovies();
-            }
+        if (isTv && iconContainer) {
+             iconContainer.className = 'fa-solid fa-circle-xmark';
+             iconContainer.style.color = '#E50914';
+        } else if (iconContainer) {
+             iconContainer.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#E50914"></i>';
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await testApiConnection();
-
-            if (!getApiKeyFromStorage()) {
-                scrapeAndValidateKeys({ maxKeys: 1, onValidKeyFound: (key) => setApiKeyInStorage(key) });
+        setTimeout(() => {
+            if (isTv && iconContainer) {
+                iconContainer.className = originalIconHTML;
+                iconContainer.style.color = '';
+            } else if (iconContainer) {
+                iconContainer.innerHTML = originalIconHTML;
             }
-            // Roep de centrale routeringsfunctie aan bij het laden van de pagina.
-            handleRouteChange();
-        });
+        }, 2000);
+    }
+}
 
-        window.addEventListener('scroll', handleScroll);
+// --- Initialization ---
+function handleMissingKey() {
+    resultsContainer.innerHTML = '';
+    scraperStatus.style.display = 'block';
+    loader.style.display = 'none';
+    
+    scrapeTmdbKeys({
+        maxKeys: 1,
+        onStatusUpdate: (msg) => { scraperStatus.innerText = msg; },
+        onValidKeyFound: (key) => {
+            setApiKeyInStorage(key);
+            scraperStatus.innerText = "Key gevonden! Pagina herladen...";
+            setTimeout(() => window.location.reload(), 1000);
+        }
+    });
+}
 
-        document.body.addEventListener('click', (e) => {
-            const anchor = e.target.closest('a[href*="?movie_id="]');
-            if (!anchor) return;
-            e.preventDefault();
-            const url = new URL(anchor.href);
-            const movieId = url.searchParams.get('movie_id');
-            const newUrl = `?movie_id=${movieId}` + (currentQuery ? `&q=${encodeURIComponent(currentQuery)}` : '');
-            window.history.pushState({ movieId, query: currentQuery }, '', newUrl);
-            fetchMovieDetails(movieId);
-        });
+function handleScroll() {
+    if (resultsContainer.style.display !== 'none' && !isLoading && hasMorePages) {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+            fetchAndDisplayContent();
+        }
+    }
+}
 
-        // AANGEPAST: De popstate listener roept nu ook de centrale routeringsfunctie aan.
-        window.addEventListener('popstate', (e) => {
-             handleRouteChange();
-        });
-    </script>
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!getApiKeyFromStorage()) {
+        handleMissingKey();
+    } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const id = urlParams.get('id');
+        const type = urlParams.get('type');
+        const query = urlParams.get('q');
 
+        if (id && type) {
+            currentQuery = query;
+            fetchDetails(id, type);
+        } else if (query) {
+            searchInput.value = query;
+            startNewSearch(query);
+        } else {
+            showSearchPage();
+            fetchAndDisplayContent();
+        }
+    }
+});
+
+searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (query) startNewSearch(query);
+});
+
+window.addEventListener('scroll', handleScroll);
+
+document.body.addEventListener('click', (e) => {
+    const anchor = e.target.closest('a[href*="?id="]');
+    if (!anchor) return;
+    e.preventDefault();
+    const url = new URL(anchor.href);
+    const id = url.searchParams.get('id');
+    const type = url.searchParams.get('type');
+    const newUrl = `?id=${id}&type=${type}` + (currentQuery ? `&q=${encodeURIComponent(currentQuery)}` : '');
+    window.history.pushState({ id, type, query: currentQuery }, '', newUrl);
+    fetchDetails(id, type);
+});
+
+window.addEventListener('popstate', (e) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    const type = urlParams.get('type');
+    if (id && type) fetchDetails(id, type);
+    else resetToHomePage();
+});
+</script>
 </body>
 </html>
