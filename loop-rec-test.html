@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- Viewport aangepast voor 'Notch' support (viewport-fit=cover) -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>loop•rec</title>
+
+<!-- PWA / Mobile Web App Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="loop•rec">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#121212">
+
+<!-- Ingebakken Icoon (Base64 SVG) voor iOS en Android -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFlMWUxZSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSIjZTUzOTM1Ii8+PHBhdGggZD0iTTE4NiwyNTZhNzAsNzAgMCAxLDAgMTQwLDBhNzAsNzAgMCAxLDAgLTE0MCwwIiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIwIi8+PC9zdmc+">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFlMWUxZSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSIjZTUzOTM1Ii8+PHBhdGggZD0iTTE4NiwyNTZhNzAsNzAgMCAxLDAgMTQwLDBhNzAsNzAgMCAxLDAgLTE0MCwwIiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIwIi8+PC9zdmc+">
+
+<!-- Het Manifest wordt via Javascript geïnjecteerd om single-file te blijven -->
+<link rel="manifest" id="my-manifest">
+
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+<style>
+:root {
+--bg-color: #121212;
+--primary-text-color: #e0e0e0;
+--secondary-text-color: #b3b3b3;
+--accent-color: #e53935;
+--accent-hover-color: #f44336;
+--surface-color: #1e1e1e;
+--panel-color: #252525;
+--modal-bg: rgba(0, 0, 0, 0.85);
+--success-color: #4caf50;
+--clip-color: #ff1744;
+--telegram-color: #0088cc;
+--warning-color: #ff9800;
+}
+
+html, body {
+height: 100dvh; 
+margin: 0;
+padding: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+background-color: var(--bg-color);
+color: var(--primary-text-color);
+overflow: hidden;
+-webkit-user-select: none;
+user-select: none;
+}
+
+.container {
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+align-items: center;
+height: 100%;
+padding-top: max(40px, env(safe-area-inset-top));
+padding-bottom: max(20px, env(safe-area-inset-bottom));
+padding-left: 20px;
+padding-right: 20px;
+box-sizing: border-box;
+gap: 20px;
+position: relative;
+z-index: 1;
+}
+
+.settings-btn {
+position: absolute;
+top: max(20px, env(safe-area-inset-top));
+right: 20px;
+background: none;
+border: none;
+cursor: pointer;
+color: var(--secondary-text-color);
+padding: 10px;
+transition: color 0.2s;
+z-index: 10;
+-webkit-tap-highlight-color: transparent;
+}
+
+.settings-btn:hover {
+color: var(--primary-text-color);
+}
+
+.settings-btn svg {
+width: 28px;
+height: 28px;
+fill: currentColor;
+}
+
+.header {
+text-align: center;
+position: relative;
+width: 100%;
+max-width: 600px;
+margin-top: 10px;
+flex-shrink: 0;
+}
+
+h1 {
+margin: 0;
+font-size: 2.8em;
+color: var(--primary-text-color);
+font-weight: bold;
+letter-spacing: -1px;
+}
+
+.dot {
+color: var(--accent-color);
+animation: blink 1.2s infinite;
+margin: 0 0.1em;
+display: inline-block;
+transform: translateY(0.1em);
+}
+
+@keyframes blink {
+0%, 100% { opacity: 1; }
+50% { opacity: 0; }
+}
+
+#status {
+color: var(--secondary-text-color);
+margin: 5px 0 0 0;
+height: auto;
+min-height: 1.2em;
+font-size: 0.9em;
+transition: opacity 0.5s ease;
+opacity: 1;
+}
+
+#status.fade-out {
+opacity: 0;
+}
+
+.visualizer-container {
+width: 100%;
+flex-grow: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+min-height: 100px;
+padding: 0;
+position: relative;
+}
+
+#visualizer {
+width: 100%;
+height: 100%;
+background-color: var(--surface-color);
+border-radius: 8px;
+}
+
+.controls {
+width: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
+flex-shrink: 0;
+margin-bottom: 20px;
+}
+
+#saveButton {
+background-color: var(--accent-color);
+color: white;
+border: none;
+border-radius: 50px;
+padding: 20px 30px;
+font-size: 1.3em;
+font-weight: bold;
+cursor: pointer;
+transition: background-color 0.2s, transform 0.1s;
+width: 100%;
+max-width: 300px;
+position: relative;
+overflow: hidden;
+-webkit-tap-highlight-color: transparent;
+box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+#saveButton:hover {
+background-color: var(--accent-hover-color);
+}
+
+#saveButton:active {
+transform: scale(0.96);
+}
+
+#saveButton:disabled {
+background-color: #535353;
+cursor: not-allowed;
+box-shadow: none;
+}
+
+.modal-overlay {
+display: none;
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: var(--modal-bg);
+z-index: 100;
+justify-content: center;
+align-items: flex-end;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+}
+
+@media (min-width: 600px) {
+.modal-overlay {
+align-items: center;
+}
+.modal-content {
+border-radius: 12px;
+margin-bottom: 0;
+max-height: 85vh;
+}
+}
+
+.modal-overlay.active {
+display: flex;
+}
+
+.modal-content {
+background-color: var(--surface-color);
+padding: 30px 20px;
+border-radius: 20px 20px 0 0;
+width: 100%;
+max-width: 500px;
+max-height: 90dvh;
+overflow-y: auto;
+box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+animation: slideUp 0.3s ease-out;
+-webkit-overflow-scrolling: touch;
+}
+
+@keyframes slideUp {
+from { transform: translateY(100%); }
+to { transform: translateY(0); }
+}
+
+.modal-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.modal-header h2 {
+margin: 0;
+font-size: 1.5em;
+}
+
+.close-btn {
+background: none;
+border: none;
+color: var(--secondary-text-color);
+font-size: 2em;
+cursor: pointer;
+padding: 0 10px;
+line-height: 1;
+}
+
+.setting-group {
+margin-bottom: 25px;
+}
+
+.setting-group label {
+display: block;
+margin-bottom: 8px;
+color: var(--secondary-text-color);
+font-size: 0.9em;
+}
+
+.setting-group select,
+.setting-group input[type="text"],
+.setting-group input[type="password"] {
+width: 100%;
+background-color: var(--bg-color);
+color: var(--primary-text-color);
+border: 1px solid #444;
+border-radius: 8px;
+padding: 12px;
+font-size: 16px;
+box-sizing: border-box;
+-webkit-appearance: none;
+appearance: none;
+}
+
+.setting-group select {
+background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b3b3b3%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+background-repeat: no-repeat;
+background-position: right 12px top 50%;
+background-size: 12px auto;
+padding-right: 30px;
+}
+
+.setting-group input[type="text"]:focus,
+.setting-group input[type="password"]:focus {
+border-color: var(--accent-color);
+outline: none;
+}
+
+.toggle-switch {
+position: relative;
+display: inline-block;
+width: 50px;
+height: 28px;
+float: right;
+}
+
+.toggle-switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+
+.slider {
+position: absolute;
+cursor: pointer;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: #444;
+transition: .4s;
+border-radius: 28px;
+}
+
+.slider:before {
+position: absolute;
+content: "";
+height: 20px;
+width: 20px;
+left: 4px;
+bottom: 4px;
+background-color: white;
+transition: .4s;
+border-radius: 50%;
+}
+
+input:checked + .slider {
+background-color: var(--accent-color);
+}
+
+input:checked + .slider:before {
+transform: translateX(22px);
+}
+
+.setting-group-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 8px;
+min-height: 30px;
+}
+.setting-group-header label {
+margin-bottom: 0;
+}
+
+
+.setting-group input[type="range"] {
+padding: 0;
+height: 4px;
+width: 100%;
+margin: 20px 0;
+-webkit-appearance: none;
+background: #444;
+border: none;
+}
+
+.setting-group input[type="range"]::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 28px;
+height: 28px;
+background: var(--accent-color);
+border-radius: 50%;
+cursor: pointer;
+box-shadow: 0 0 5px rgba(0,0,0,0.5);
+margin-top: -12px;
+}
+
+.setting-group input[type="range"]::-webkit-slider-runnable-track {
+height: 4px;
+background: #444;
+border-radius: 2px;
+}
+
+.range-value {
+float: right;
+color: var(--primary-text-color);
+}
+
+.hidden {
+display: none;
+}
+
+/* Telegram Card */
+.telegram-card {
+background-color: var(--panel-color);
+border-radius: 8px;
+margin-bottom: 20px;
+overflow: hidden;
+border: 1px solid #333;
+}
+
+.telegram-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 15px;
+cursor: pointer;
+background-color: rgba(255,255,255,0.03);
+-webkit-tap-highlight-color: rgba(255,255,255,0.05);
+}
+
+.telegram-header:active {
+background-color: rgba(255,255,255,0.08);
+}
+
+.tg-status-group {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.status-led {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background-color: #555;
+transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.status-led.connected { background-color: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+.status-led.connecting { background-color: var(--warning-color); }
+.status-led.error { background-color: var(--clip-color); }
+
+.tg-label {
+font-weight: 500;
+color: var(--primary-text-color);
+}
+
+.tg-sub {
+font-size: 0.8em;
+color: var(--secondary-text-color);
+margin-left: 5px;
+}
+
+.tg-toggle-icon {
+color: var(--secondary-text-color);
+transition: transform 0.3s;
+}
+
+.tg-toggle-icon.rotated {
+transform: rotate(90deg);
+}
+
+.telegram-inputs {
+padding: 0 15px 15px 15px;
+border-top: 1px solid #333;
+animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+from { opacity: 0; transform: translateY(-10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.telegram-note {
+font-size: 0.8em;
+color: #777;
+margin-top: 8px;
+line-height: 1.4;
+}
+
+.settings-divider {
+border: 0;
+border-top: 1px solid #333;
+margin: 30px 0 20px 0;
+}
+
+#downloadStandaloneButton {
+background-color: transparent;
+color: var(--secondary-text-color);
+border: 1px solid var(--secondary-text-color);
+border-radius: 6px;
+padding: 12px 20px;
+font-size: 0.9em;
+cursor: pointer;
+transition: background-color 0.2s, color 0.2s;
+width: 100%;
+display: block;
+}
+
+.flash-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background-color: var(--success-color);
+opacity: 0;
+pointer-events: none;
+z-index: 200;
+transition: opacity 0.5s ease-out;
+}
+
+.flash-overlay.flash {
+opacity: 0.3;
+transition: none;
+}
+
+.flash-overlay.telegram-success {
+background-color: var(--telegram-color);
+}
+</style>
+</head>
+<body>
+
+<div class="flash-overlay" id="flashOverlay"></div>
+
+<div class="container">
+<button id="settingsBtn" class="settings-btn" title="Settings">
+<svg viewBox="0 0 24 24">
+<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+</svg>
+</button>
+
+<div class="header">
+<h1>loop<span class="dot">•</span>rec</h1>
+<p id="status"></p>
+</div>
+
+<div class="visualizer-container">
+<canvas id="visualizer"></canvas>
+</div>
+
+<div class="controls">
+<button id="saveButton" disabled>Initializing...</button>
+</div>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>Settings</h2>
+<button class="close-btn" id="closeSettings">&times;</button>
+</div>
+
+<div class="setting-group">
+<label for="micSelect">Input Source</label>
+<select id="micSelect"></select>
+</div>
+
+<div class="setting-group">
+<div class="setting-group-header">
+<label for="smartBoostToggle">Smart Boost</label>
+<label class="toggle-switch">
+<input type="checkbox" id="smartBoostToggle">
+<span class="slider"></span>
+</label>
+</div>
+<div style="font-size: 0.8em; color: #777; line-height: 1.3;">
+Boosts quiet audio (+9dB) & limits loud peaks.
+</div>
+</div>
+
+<div class="setting-group">
+<label for="channelSelect">Channel Mode</label>
+<select id="channelSelect">
+<option value="ch1">Mono (Channel 1 / Left)</option>
+<option value="ch2">Mono (Channel 2 / Right)</option>
+<option value="stereo" selected>True Stereo (Raw)</option>
+</select>
+</div>
+
+<div class="setting-group">
+<label for="saveModeSelect">Save Mode</label>
+<select id="saveModeSelect">
+<option value="local" selected>Local Download</option>
+<option value="telegram">Upload to Telegram</option>
+<option value="both">Local + Telegram</option>
+</select>
+</div>
+
+<!-- Telegram Card -->
+<div class="telegram-card">
+<div class="telegram-header" id="tgHeader">
+<div class="tg-status-group">
+<div class="status-led" id="tgStatusLed"></div>
+<div>
+<span class="tg-label">Telegram</span>
+<span class="tg-sub" id="tgStatusText">Disconnected</span>
+</div>
+</div>
+<div class="tg-toggle-icon" id="tgToggleIcon">
+<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+<path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.49l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+</svg>
+</div>
+</div>
+
+<div id="tgInputs" class="telegram-inputs hidden">
+<div class="setting-group" style="margin-top: 15px;">
+<label for="telegramToken">Bot Token</label>
+<input type="password" id="telegramToken" placeholder="123456:ABC-DEF...">
+</div>
+<div class="setting-group">
+<label for="telegramChatId">Chat ID</label>
+<input type="text" id="telegramChatId" placeholder="-100123... or @name">
+</div>
+</div>
+</div>
+
+<div class="setting-group">
+<label for="bitrateSelect">Quality</label>
+<select id="bitrateSelect">
+<option value="128">128 kbps</option>
+<option value="192" selected>192 kbps (High)</option>
+<option value="320">320 kbps (Max)</option>
+</select>
+</div>
+
+<div class="setting-group">
+<label for="bufferRange">
+Buffer <span class="range-value" id="bufferValue">5 min</span>
+</label>
+<input type="range" id="bufferRange" min="1" max="20" value="5" step="1">
+</div>
+
+<div id="standalone-container">
+<hr class="settings-divider">
+<button id="downloadStandaloneButton">Download Standalone File</button>
+</div>
+</div>
+</div>
+
+<script>
+// --- PWA Manifest Injection (Single File Hack) ---
+(function() {
+const manifest = {
+"name": "loop•rec",
+"short_name": "loop•rec",
+"start_url": ".",
+"display": "standalone",
+"background_color": "#121212",
+"theme_color": "#121212",
+"orientation": "portrait",
+"icons": [
+{
+"src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzFlMWUxZSIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTUwIiBmaWxsPSIjZTUzOTM1Ii8+PHBhdGggZD0iTTE4NiwyNTZhNzAsNzAgMCAxLDAgMTQwLDBhNzAsNzAgMCAxLDAgLTE0MCwwIiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIwIi8+PC9zdmc+",
+"sizes": "512x512",
+"type": "image/svg+xml"
+}
+]
+};
+const stringManifest = JSON.stringify(manifest);
+const blob = new Blob([stringManifest], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+document.querySelector('#my-manifest').setAttribute('href', manifestURL);
+})();
+// --------------------------------------------------
+
+document.addEventListener('DOMContentLoaded', () => {
+const statusEl = document.getElementById('status');
+const saveButton = document.getElementById('saveButton');
+const canvas = document.getElementById('visualizer');
+const canvasCtx = canvas.getContext('2d');
+
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettingsBtn = document.getElementById('closeSettings');
+
+// Settings Elements
+const micSelect = document.getElementById('micSelect');
+const smartBoostToggle = document.getElementById('smartBoostToggle');
+const channelSelect = document.getElementById('channelSelect');
+const bitrateSelect = document.getElementById('bitrateSelect');
+const bufferRange = document.getElementById('bufferRange');
+const bufferValue = document.getElementById('bufferValue');
+const saveModeSelect = document.getElementById('saveModeSelect');
+
+// Telegram Elements
+const tgHeader = document.getElementById('tgHeader');
+const tgInputs = document.getElementById('tgInputs');
+const tgToggleIcon = document.getElementById('tgToggleIcon');
+const telegramTokenInput = document.getElementById('telegramToken');
+const telegramChatIdInput = document.getElementById('telegramChatId');
+const tgStatusLed = document.getElementById('tgStatusLed');
+const tgStatusText = document.getElementById('tgStatusText');
+
+const flashOverlay = document.getElementById('flashOverlay');
+
+let audioContext;
+let mediaStream;
+let sourceNode;
+let workletNode;
+let gainBoostNode;
+let limiterNode;
+let recordingStartTime;
+let buttonUpdateInterval;
+let pruneInterval;
+let soundAudioCtx;
+let gainNode;
+
+// Default config
+let config = {
+bufferMinutes: 5,
+bitrate: 192,
+deviceId: 'default',
+channelMode: 'stereo',
+saveMode: 'local',
+smartBoost: false,
+telegramToken: '',
+telegramChatId: '',
+deviceSettings: {} 
+};
+
+let mp3Encoder;
+let mp3Chunks = [];
+
+let visualizationData = [];
+let maxVisualPoints;
+const WORKLET_BUFFER_SIZE = 128;
+const VISUAL_DOWNSAMPLE_RATE = 25;
+let accumulatedMax = 0;
+let accumulateCount = 0;
+let isClipping = false;
+let clipTimer = null;
+let statusTimer = null;
+
+// Telegram Remote Control Vars
+let telegramPollingActive = false;
+let lastUpdateId = 0;
+let pollingAbortController = null;
+let tgDebounceTimer = null;
+
+// Load settings
+function loadSettings() {
+const saved = localStorage.getItem('looprec_settings');
+if (saved) {
+try {
+const parsed = JSON.parse(saved);
+config = { ...config, ...parsed };
+
+if (!config.deviceSettings) config.deviceSettings = {};
+
+bufferRange.value = config.bufferMinutes;
+bufferValue.textContent = `${config.bufferMinutes} min`;
+if (config.bitrate) bitrateSelect.value = config.bitrate;
+if (config.saveMode) saveModeSelect.value = config.saveMode;
+if (config.channelMode) channelSelect.value = config.channelMode;
+if (config.telegramToken) telegramTokenInput.value = config.telegramToken;
+if (config.telegramChatId) telegramChatIdInput.value = config.telegramChatId;
+
+if (config.telegramToken && config.telegramChatId) {
+startTelegramPolling();
+}
+
+} catch (e) {
+console.error("Failed to load settings", e);
+}
+}
+}
+
+function saveSettings() {
+localStorage.setItem('looprec_settings', JSON.stringify(config));
+}
+
+function saveAndRestartTelegram() {
+saveSettings();
+if (tgDebounceTimer) clearTimeout(tgDebounceTimer);
+tgDebounceTimer = setTimeout(() => {
+startTelegramPolling();
+}, 1000);
+}
+
+function showStatus(message, duration = 0) {
+if (statusTimer) clearTimeout(statusTimer);
+statusEl.classList.remove('fade-out');
+statusEl.textContent = message;
+
+if (duration > 0) {
+statusTimer = setTimeout(() => {
+statusEl.classList.add('fade-out');
+}, duration);
+}
+}
+
+document.addEventListener('keydown', (event) => {
+if (event.key === 'PageDown') {
+event.preventDefault();
+if (!saveButton.disabled && saveButton.textContent.includes('Save')) saveButton.click();
+}
+});
+
+const resumeAudio = () => {
+if (audioContext && audioContext.state === 'suspended') {
+audioContext.resume();
+}
+};
+document.addEventListener('click', resumeAudio);
+document.addEventListener('touchstart', resumeAudio); 
+
+settingsBtn.addEventListener('click', () => {
+settingsModal.classList.add('active');
+populateDeviceList();
+});
+
+closeSettingsBtn.addEventListener('click', () => {
+settingsModal.classList.remove('active');
+});
+
+settingsModal.addEventListener('click', (e) => {
+if (e.target === settingsModal) settingsModal.classList.remove('active');
+});
+
+micSelect.addEventListener('change', async () => {
+config.deviceId = micSelect.value;
+applySmartBoostForDevice(config.deviceId);
+saveSettings();
+await initAudio();
+});
+
+smartBoostToggle.addEventListener('change', async () => {
+config.smartBoost = smartBoostToggle.checked;
+if (config.deviceId) {
+if (!config.deviceSettings) config.deviceSettings = {};
+if (!config.deviceSettings[config.deviceId]) config.deviceSettings[config.deviceId] = {};
+config.deviceSettings[config.deviceId].smartBoost = config.smartBoost;
+}
+saveSettings();
+await initAudio();
+showStatus(config.smartBoost ? 'Smart Boost Active' : 'Smart Boost Disabled', 2000);
+});
+
+function applySmartBoostForDevice(deviceId) {
+if (config.deviceSettings && config.deviceSettings[deviceId] && config.deviceSettings[deviceId].smartBoost !== undefined) {
+config.smartBoost = config.deviceSettings[deviceId].smartBoost;
+} else {
+config.smartBoost = false;
+}
+smartBoostToggle.checked = config.smartBoost;
+}
+
+channelSelect.addEventListener('change', async () => {
+config.channelMode = channelSelect.value;
+saveSettings();
+await initAudio();
+});
+
+bitrateSelect.addEventListener('change', () => {
+config.bitrate = parseInt(bitrateSelect.value);
+saveSettings();
+showStatus('Bitrate changed. Buffer reset.', 3000);
+resetRecordingState();
+});
+
+bufferRange.addEventListener('input', () => {
+config.bufferMinutes = parseInt(bufferRange.value);
+saveSettings();
+bufferValue.textContent = `${config.bufferMinutes} min`;
+updateButtonText();
+recalcMaxVisualPoints();
+});
+
+saveModeSelect.addEventListener('change', () => {
+config.saveMode = saveModeSelect.value;
+saveSettings();
+});
+
+tgHeader.addEventListener('click', () => {
+tgInputs.classList.toggle('hidden');
+tgToggleIcon.classList.toggle('rotated');
+});
+
+telegramTokenInput.addEventListener('input', () => {
+config.telegramToken = telegramTokenInput.value.trim();
+saveAndRestartTelegram();
+});
+
+telegramChatIdInput.addEventListener('input', () => {
+config.telegramChatId = telegramChatIdInput.value.trim();
+saveAndRestartTelegram();
+});
+
+function resizeCanvas() {
+const container = document.querySelector('.visualizer-container');
+canvas.width = container.offsetWidth;
+canvas.height = container.offsetHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function recalcMaxVisualPoints() {
+if (!audioContext) return;
+const pointsPerSecond = (audioContext.sampleRate / WORKLET_BUFFER_SIZE) / VISUAL_DOWNSAMPLE_RATE;
+maxVisualPoints = Math.ceil(pointsPerSecond * (config.bufferMinutes * 60));
+}
+
+async function populateDeviceList() {
+try {
+const devices = await navigator.mediaDevices.enumerateDevices();
+const audioInputs = devices.filter(device => device.kind === 'audioinput');
+const currentSelection = config.deviceId;
+micSelect.innerHTML = '';
+audioInputs.forEach(device => {
+const option = document.createElement('option');
+option.value = device.deviceId;
+option.text = device.label || `Mic ${micSelect.length + 1}`;
+micSelect.appendChild(option);
+});
+if (Array.from(micSelect.options).some(opt => opt.value === currentSelection)) {
+micSelect.value = currentSelection;
+} else if (micSelect.options.length > 0) {
+micSelect.value = micSelect.options[0].value;
+config.deviceId = micSelect.value;
+}
+applySmartBoostForDevice(micSelect.value);
+} catch (err) {
+console.error('Error enumerating devices:', err);
+}
+}
+
+async function initAudio() {
+// Reset UI to clean state
+saveButton.disabled = true;
+saveButton.textContent = "Initializing...";
+saveButton.onclick = null; // Remove fallback listener if it exists
+saveButton.removeEventListener('click', saveRecordedAudio);
+
+try {
+if (mediaStream) {
+mediaStream.getTracks().forEach(track => track.stop());
+}
+
+// FIX: 'latency' removed from here (caused error)
+const constraints = {
+audio: {
+deviceId: config.deviceId && config.deviceId !== 'default' ? { exact: config.deviceId } : undefined,
+echoCancellation: false,
+noiseSuppression: false,
+autoGainControl: false,
+channelCount: 2
+}
+};
+
+// 1. Attempt to get stream (triggers permission prompt)
+mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+const track = mediaStream.getAudioTracks()[0];
+const settings = track.getSettings();
+
+// 2. Setup Audio Context
+// FIX: 'latencyHint: interactive' moved here (correct place)
+if (!audioContext) {
+audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+const workletCode = `
+class RecorderProcessor extends AudioWorkletProcessor {
+process(inputs, outputs, parameters) {
+const input = inputs[0];
+if (input && input.length > 0) {
+const channels = [];
+for(let i = 0; i < input.length; i++) {
+channels.push(input[i].slice());
+}
+this.port.postMessage(channels);
+}
+return true;
+}
+}
+registerProcessor('recorder-processor', RecorderProcessor);
+`;
+const workletBlob = new Blob([workletCode], { type: 'application/javascript' });
+const workletUrl = URL.createObjectURL(workletBlob);
+await audioContext.audioWorklet.addModule(workletUrl);
+}
+
+// 3. Attempt Resume (Important for some browsers)
+if (audioContext.state === 'suspended') {
+await audioContext.resume().catch(() => {}); 
+}
+
+// 4. Critical Check: Did browser block us?
+if (audioContext.state === 'suspended') {
+throw new Error('AUTOPLAY_LOCKED');
+}
+
+// Setup Nodes
+if (sourceNode) sourceNode.disconnect();
+if (gainBoostNode) gainBoostNode.disconnect();
+if (limiterNode) limiterNode.disconnect();
+if (workletNode) workletNode.disconnect();
+
+sourceNode = audioContext.createMediaStreamSource(mediaStream);
+workletNode = new AudioWorkletNode(audioContext, 'recorder-processor', {
+numberOfInputs: 1,
+numberOfOutputs: 1,
+outputChannelCount: [2],
+channelCount: 2,
+channelCountMode: 'explicit'
+});
+
+if (!gainNode) {
+gainNode = audioContext.createGain();
+gainNode.gain.value = 0;
+gainNode.connect(audioContext.destination);
+}
+
+if (config.smartBoost) {
+gainBoostNode = audioContext.createGain();
+gainBoostNode.gain.value = 2.8;
+limiterNode = audioContext.createDynamicsCompressor();
+limiterNode.threshold.value = -1.0;
+limiterNode.ratio.value = 20;
+sourceNode.connect(gainBoostNode);
+gainBoostNode.connect(limiterNode);
+limiterNode.connect(workletNode);
+} else {
+sourceNode.connect(workletNode);
+}
+
+const isStereo = config.channelMode === 'stereo';
+mp3Encoder = new lamejs.Mp3Encoder(isStereo ? 2 : 1, audioContext.sampleRate, config.bitrate);
+recalcMaxVisualPoints();
+
+workletNode.port.onmessage = (event) => {
+const channels = event.data;
+if (!channels || channels.length === 0) return;
+
+let dataToEncodeL, dataToEncodeR;
+let visualData;
+
+if (config.channelMode === 'stereo') {
+if (channels.length >= 2) {
+dataToEncodeL = channels[0];
+dataToEncodeR = channels[1];
+} else {
+dataToEncodeL = channels[0];
+dataToEncodeR = channels[0];
+}
+visualData = new Float32Array(dataToEncodeL.length);
+for(let i=0; i<dataToEncodeL.length; i++) {
+visualData[i] = (dataToEncodeL[i] + dataToEncodeR[i]) / 2;
+}
+} else if (config.channelMode === 'ch2') {
+visualData = (channels.length > 1) ? channels[1] : channels[0];
+dataToEncodeL = visualData;
+} else {
+visualData = channels[0];
+dataToEncodeL = visualData;
+}
+
+let localMax = 0;
+for (let i = 0; i < visualData.length; i++) {
+const abs = Math.abs(visualData[i]);
+if (abs > localMax) localMax = abs;
+}
+
+if (localMax > 0.95) {
+isClipping = true;
+if(clipTimer) clearTimeout(clipTimer);
+clipTimer = setTimeout(() => { isClipping = false; }, 300);
+}
+
+if (localMax > accumulatedMax) accumulatedMax = localMax;
+accumulateCount++;
+
+if (accumulateCount >= VISUAL_DOWNSAMPLE_RATE) {
+visualizationData.push(accumulatedMax);
+accumulatedMax = 0;
+accumulateCount = 0;
+if (visualizationData.length > maxVisualPoints) visualizationData.shift();
+}
+
+let mp3buf;
+const pcmLeft = convertFloat32ToInt16(dataToEncodeL);
+if (config.channelMode === 'stereo') {
+const pcmRight = convertFloat32ToInt16(dataToEncodeR);
+mp3buf = mp3Encoder.encodeBuffer(pcmLeft, pcmRight);
+} else {
+mp3buf = mp3Encoder.encodeBuffer(pcmLeft);
+}
+
+if (mp3buf.length > 0) {
+mp3Chunks.push({ data: mp3buf, timestamp: Date.now() });
+}
+};
+
+workletNode.connect(gainNode);
+
+// Success: Restore standard UI
+showStatus(`Recording...`, 3000);
+saveButton.disabled = false;
+saveButton.addEventListener('click', saveRecordedAudio);
+
+resetRecordingState();
+populateDeviceList();
+
+} catch (err) {
+// FALLBACK LOGIC
+if (err.message === 'AUTOPLAY_LOCKED' || err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+console.warn("Autoplay blocked, showing fallback button.");
+showStatus('Tap to start', 0);
+saveButton.disabled = false;
+saveButton.textContent = "Start Recording";
+saveButton.onclick = async () => {
+saveButton.onclick = null;
+saveButton.textContent = "Initializing...";
+if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+await audioContext.resume();
+await initAudio(); // Recursive call now that we have a gesture
+};
+} else {
+showStatus(`Error: ${err.message}`);
+console.error("Init Error:", err);
+saveButton.textContent = "Error";
+}
+}
+}
+
+function resetRecordingState() {
+mp3Chunks = [];
+visualizationData = [];
+accumulatedMax = 0;
+accumulateCount = 0;
+recordingStartTime = Date.now();
+
+if (audioContext) {
+const isStereo = config.channelMode === 'stereo';
+mp3Encoder = new lamejs.Mp3Encoder(isStereo ? 2 : 1, audioContext.sampleRate, config.bitrate);
+}
+
+if (buttonUpdateInterval) clearInterval(buttonUpdateInterval);
+buttonUpdateInterval = setInterval(updateButtonText, 1000);
+
+if (pruneInterval) clearInterval(pruneInterval);
+pruneInterval = setInterval(pruneChunks, 5000);
+updateButtonText();
+}
+
+function pruneChunks() {
+if (mp3Chunks.length === 0) return;
+const bufferMs = config.bufferMinutes * 60 * 1000;
+const cutoffTime = Date.now() - bufferMs - 10000;
+let spliceIndex = -1;
+for(let i=0; i<mp3Chunks.length; i++) {
+if (mp3Chunks[i].timestamp < cutoffTime) spliceIndex = i;
+else break;
+}
+if (spliceIndex > -1) mp3Chunks.splice(0, spliceIndex + 1);
+}
+
+function playSaveSound() {
+if (!soundAudioCtx) soundAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+if (soundAudioCtx.state === 'suspended') soundAudioCtx.resume();
+const now = soundAudioCtx.currentTime;
+const osc1 = soundAudioCtx.createOscillator();
+const gain1 = soundAudioCtx.createGain();
+osc1.connect(gain1);
+gain1.connect(soundAudioCtx.destination);
+osc1.type = 'sine';
+osc1.frequency.setValueAtTime(523.25, now);
+gain1.gain.setValueAtTime(0, now);
+gain1.gain.linearRampToValueAtTime(0.4, now + 0.01);
+gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+osc1.start(now);
+osc1.stop(now + 0.15);
+const osc2 = soundAudioCtx.createOscillator();
+const gain2 = soundAudioCtx.createGain();
+osc2.connect(gain2);
+gain2.connect(soundAudioCtx.destination);
+osc2.type = 'sine';
+osc2.frequency.setValueAtTime(783.99, now);
+gain2.gain.setValueAtTime(0, now + 0.1);
+gain2.gain.linearRampToValueAtTime(0.4, now + 0.11);
+gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+osc2.start(now + 0.1);
+osc2.stop(now + 0.3);
+flashOverlay.className = 'flash-overlay flash';
+if(config.saveMode === 'telegram') flashOverlay.classList.add('telegram-success');
+setTimeout(() => { flashOverlay.className = 'flash-overlay'; }, 500);
+}
+
+function convertFloat32ToInt16(buffer) {
+let l = buffer.length;
+const buf = new Int16Array(l);
+while (l--) {
+buf[l] = Math.min(1, Math.max(-1, buffer[l])) * 0x7FFF;
+}
+return buf;
+}
+
+let animationFrameId;
+function drawWaveform() {
+animationFrameId = requestAnimationFrame(drawWaveform);
+canvasCtx.fillStyle = '#1e1e1e';
+canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+if (isClipping) {
+canvasCtx.fillStyle = 'rgba(255, 23, 68, 0.2)';
+canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+canvasCtx.strokeStyle = '#ff1744';
+} else {
+canvasCtx.strokeStyle = '#b3b3b3';
+}
+canvasCtx.lineWidth = 2;
+canvasCtx.beginPath();
+const currentDataLength = visualizationData.length;
+const scale = Math.min(currentDataLength, maxVisualPoints || 1000);
+const sliceWidth = canvas.width / scale;
+let x = 0;
+const startPoint = Math.max(0, currentDataLength - (maxVisualPoints || 1000));
+for (let i = 0; i < scale; i++) {
+const item = visualizationData[startPoint + i];
+const v = Math.min(canvas.height, item * canvas.height * 2);
+const y = (canvas.height - v) / 2;
+canvasCtx.moveTo(x, y);
+canvasCtx.lineTo(x, y + v);
+x += sliceWidth;
+}
+canvasCtx.stroke();
+}
+
+function updateButtonText() {
+if (!recordingStartTime) return;
+const elapsedMs = Date.now() - recordingStartTime;
+const bufferMs = config.bufferMinutes * 60 * 1000;
+let actionText = "Save";
+if (config.saveMode === 'telegram') actionText = "Upload";
+if (config.saveMode === 'both') actionText = "Save & Upload";
+if (elapsedMs >= bufferMs) {
+saveButton.textContent = `${actionText} ${config.bufferMinutes} min`;
+} else {
+const elapsedSeconds = Math.floor(elapsedMs / 1000);
+const minutes = Math.floor(elapsedSeconds / 60);
+const seconds = elapsedSeconds % 60;
+const formattedTime = `${minutes}:${String(seconds).padStart(2, '0')}`;
+saveButton.textContent = `${actionText} (${formattedTime})`;
+}
+}
+
+async function saveRecordedAudio() {
+if (mp3Chunks.length === 0) {
+showStatus('No audio yet.', 2000);
+return;
+}
+const needsTelegram = config.saveMode === 'telegram' || config.saveMode === 'both';
+
+if (needsTelegram && (!config.telegramToken || !config.telegramChatId)) {
+showStatus('Missing Telegram Settings', 3000);
+settingsModal.classList.add('active');
+tgInputs.classList.remove('hidden');
+tgToggleIcon.classList.add('rotated');
+return;
+}
+
+playSaveSound();
+saveButton.disabled = true;
+const originalText = saveButton.textContent;
+saveButton.textContent = 'Processing...';
+
+const chunksToSave = [...mp3Chunks];
+const finalBufferToSave = mp3Encoder.flush();
+if (finalBufferToSave.length > 0) chunksToSave.push({ data: finalBufferToSave, timestamp: Date.now() });
+const saveInitiationTime = Date.now();
+
+// Reset
+const isStereo = config.channelMode === 'stereo';
+mp3Encoder = new lamejs.Mp3Encoder(isStereo ? 2 : 1, audioContext.sampleRate, config.bitrate);
+mp3Chunks = [];
+visualizationData = [];
+recordingStartTime = Date.now();
+updateButtonText();
+
+setTimeout(async () => {
+const bufferMs = config.bufferMinutes * 60 * 1000;
+const relevantMp3Data = chunksToSave.filter(chunk => saveInitiationTime - chunk.timestamp <= bufferMs).map(chunk => chunk.data);
+if (relevantMp3Data.length === 0) {
+showStatus('Buffer empty', 2000);
+saveButton.disabled = false;
+saveButton.textContent = originalText;
+return;
+}
+const mp3Blob = new Blob(relevantMp3Data, { type: 'audio/mpeg' });
+const today = new Date();
+const filename = `rec-${today.getHours()}${today.getMinutes()}-${config.channelMode}.mp3`;
+
+try {
+if (config.saveMode === 'local' || config.saveMode === 'both') downloadMp3(mp3Blob, filename);
+if (config.saveMode === 'telegram' || config.saveMode === 'both') {
+saveButton.textContent = 'Uploading...';
+await uploadToTelegram(mp3Blob, filename);
+}
+showStatus('Saved!', 2000);
+saveButton.textContent = 'Saved!';
+} catch (e) {
+console.error(e);
+showStatus('Error: ' + e.message);
+saveButton.textContent = 'Error';
+} finally {
+setTimeout(() => {
+saveButton.disabled = false;
+updateButtonText();
+}, 2000);
+}
+}, 50);
+}
+
+function downloadMp3(mp3Blob, filename) {
+const url = URL.createObjectURL(mp3Blob);
+const a = document.createElement('a');
+a.style.display = 'none';
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+setTimeout(() => {
+document.body.removeChild(a);
+window.URL.revokeObjectURL(url);
+}, 1500);
+}
+
+async function uploadToTelegram(blob, filename) {
+const formData = new FormData();
+let chatId = config.telegramChatId.trim();
+if (!chatId.startsWith('@') && !chatId.startsWith('-') && /^\d+$/.test(chatId)) chatId = '-100' + chatId;
+formData.append('chat_id', chatId);
+formData.append('audio', blob, filename);
+const url = `https://api.telegram.org/bot${config.telegramToken}/sendAudio`;
+const response = await fetch(url, { method: 'POST', body: formData });
+const result = await response.json();
+if (!result.ok) throw new Error(result.description || 'Upload Failed');
+return result;
+}
+
+function updateTgStatusUI(state) {
+tgStatusLed.className = 'status-led';
+if (state === 'connected') {
+tgStatusLed.classList.add('connected');
+tgStatusText.textContent = 'Connected';
+} else if (state === 'connecting') {
+tgStatusLed.classList.add('connecting');
+tgStatusText.textContent = 'Connecting...';
+} else {
+tgStatusLed.classList.add('error');
+tgStatusText.textContent = 'Disconnected';
+}
+}
+
+function stopTelegramPolling() {
+telegramPollingActive = false;
+if (pollingAbortController) {
+pollingAbortController.abort();
+pollingAbortController = null;
+}
+updateTgStatusUI('disconnected');
+}
+
+function startTelegramPolling() {
+stopTelegramPolling();
+if (!config.telegramToken || !config.telegramChatId) {
+updateTgStatusUI('disconnected');
+return;
+}
+telegramPollingActive = true;
+updateTgStatusUI('connecting');
+processTelegramUpdates();
+}
+
+async function processTelegramUpdates() {
+let offset = lastUpdateId + 1;
+while (telegramPollingActive) {
+try {
+pollingAbortController = new AbortController();
+const url = `https://api.telegram.org/bot${config.telegramToken}/getUpdates?offset=${offset}&timeout=30&allowed_updates=["message","channel_post"]`;
+
+const response = await fetch(url, { signal: pollingAbortController.signal });
+if (!response.ok) {
+if (response.status === 401 || response.status === 404) {
+updateTgStatusUI('error');
+telegramPollingActive = false;
+showStatus("Token Invalid");
+return;
+}
+await new Promise(r => setTimeout(r, 5000));
+continue;
+}
+
+const data = await response.json();
+if (data.ok) {
+updateTgStatusUI('connected');
+for (const update of data.result) {
+lastUpdateId = update.update_id;
+offset = lastUpdateId + 1;
+const msg = update.message || update.channel_post;
+if (!msg || !msg.text) continue;
+
+let isAllowed = false;
+let targetChatId = config.telegramChatId.trim();
+if (!targetChatId.startsWith('@') && !targetChatId.startsWith('-') && /^\d+$/.test(targetChatId)) targetChatId = '-100' + targetChatId;
+
+const senderId = String(msg.chat.id);
+if (targetChatId.startsWith('@')) {
+if(msg.chat.username && '@' + msg.chat.username === targetChatId) isAllowed = true;
+} else {
+if (senderId === targetChatId) isAllowed = true;
+}
+
+if (!isAllowed && msg.chat.type === 'private') {
+isAllowed = await checkMembership(targetChatId, msg.from.id);
+}
+
+if (isAllowed) {
+const text = msg.text.trim().toLowerCase();
+if (text === '/save' || text === 'save') {
+if (!saveButton.disabled) {
+showStatus("Remote Trigger!");
+saveRecordedAudio();
+}
+}
+}
+}
+}
+} catch (e) {
+if (e.name === 'AbortError') return;
+console.warn("Polling error", e);
+updateTgStatusUI('connecting');
+await new Promise(r => setTimeout(r, 5000));
+}
+}
+}
+
+async function checkMembership(chatId, userId) {
+try {
+const url = `https://api.telegram.org/bot${config.telegramToken}/getChatMember?chat_id=${chatId}&user_id=${userId}`;
+const response = await fetch(url);
+const data = await response.json();
+if (!data.ok) return false;
+const status = data.result.status;
+return ['creator', 'administrator', 'member'].includes(status);
+} catch (e) {
+return false;
+}
+}
+
+// Download Standalone Logic
+const downloadStandaloneButton = document.getElementById('downloadStandaloneButton');
+if (downloadStandaloneButton) {
+downloadStandaloneButton.addEventListener('click', async () => {
+const button = downloadStandaloneButton;
+button.textContent = 'Wait...';
+button.disabled = true;
+try {
+const lameJsResponse = await fetch('https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js');
+const lameJsCode = await lameJsResponse.text();
+let htmlContent = document.documentElement.outerHTML;
+
+// Replace external script with inline
+htmlContent = htmlContent.replace('<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"><\/script>', `<script>${lameJsCode}<\/script>`);
+// Remove download section
+htmlContent = htmlContent.replace(/<div id="standalone-container">[\s\S]*?<\/div>/, '');
+
+const blob = new Blob([htmlContent], { type: 'text/html' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = 'loop-rec-portable.html';
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+window.URL.revokeObjectURL(url);
+button.textContent = 'Downloaded!';
+} catch(e) { button.textContent = 'Error'; }
+setTimeout(()=> { button.textContent = 'Download Standalone File'; button.disabled=false; }, 2000);
+});
+}
+
+// Init
+loadSettings();
+drawWaveform();
+initAudio();
+
+});
+</script>
+</body>
+</html>
