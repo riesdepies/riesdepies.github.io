@@ -149,6 +149,33 @@ input:checked + .slider { background-color: var(--accent-primary); }
 input:focus + .slider { box-shadow: 0 0 1px var(--accent-primary); }
 input:checked + .slider:before { transform: translateX(22px); }
 
+/* Model Selectie Stijl */
+#model-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-container);
+    color: var(--color-text-primary);
+    font-size: 1em;
+    font-family: var(--font-family-sans);
+    margin-bottom: 24px;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+#model-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.4);
+}
+body.dark-mode #model-select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
 /* --- Responsive Design --- */
 @media (min-width: 901px) { html, body { height: auto; overflow: auto; } body { padding: 40px 20px; } #app-container { height: calc(100vh - 80px); max-height: 950px; border: 1px solid var(--border-color); } }
 @media (max-width: 900px) { #app-container { border-radius: 0; } #input-area { padding: 12px; } header { padding: 16px; } #close-fullscreen-btn { top: 15px; right: 15px; } }
@@ -187,6 +214,16 @@ input:checked + .slider:before { transform: translateX(22px); }
 <span class="slider"></span>
 </label>
 </div>
+
+<!-- AANGEPAST: Model Selectie toegevoegd -->
+<label for="model-select" id="model-label">AI Model</label>
+<select id="model-select">
+    <!-- Nano-Banana Pro: Gekoppeld aan Gemini 3 Pro (nieuwste) -->
+    <option value="gemini-3-pro-image-preview">Nano-Banana Pro (Gemini 3 Pro)</option>
+    <!-- Nano-Banana: Gekoppeld aan de legacy versie (zoals in originele code) -->
+    <option value="gemini-2.5-flash-image-preview">Nano-Banana (Gemini 2.5 Flash)</option>
+</select>
+
 <label for="api-key-input" id="settings-label">Google AI API Key</label>
 <div class="api-key-wrapper">
 <input type="password" id="api-key-input" placeholder="Paste your API key here">
@@ -207,13 +244,18 @@ input:checked + .slider:before { transform: translateX(22px); }
 <script>
 // --- TRANSLATIONS ---
 const translations = {
-en: { pageTitle: "Nano-Banana Interface", settingsTitle: "Settings", settingsBtnTitle: "Settings", darkModeLabel: "Dark Mode", settingsLabel: "Google AI API Key", apiKeyPlaceholder: "Paste your API key here", cancel: "Cancel", save: "Save", uploadLabelTitle: "Attach images", removeImgBtnTitle: "Remove image", sendBtnTitle: "Send", inputPlaceholder: "Ask a question or give a command...", copied: "(Copied!)", copyPrompt: "(Click to copy details)", clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.", welcome_base: "Welcome to Nano-Banana, an AI image generator/editor/analyzer chatbot, powered by Google.", welcome_nokey: "Please enter your Google AI API key in Settings.", apiKeySaved: "API key saved!", apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.", invalidApiKey: "Please enter a valid API key.", imgProcessError: "Sorry, I could not process your image(s).", genericError: "Oops! An error occurred.", emptyResponse: "I'm sorry, I couldn't generate a response.", emptyResponseFiltered: "The response was empty. This can happen if the request violates content policies. Please try rephrasing your prompt.", blockedResponse: "I cannot process this request. Reason:", finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.", finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.", finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.", finishReasonProhibited: "The response was blocked because it contained prohibited content.", imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*", showApiKeyTitle: "Show API Key", hideApiKeyTitle: "Hide API Key" },
-nl: { pageTitle: "Nano-Banana Interface", settingsTitle: "Instellingen", settingsBtnTitle: "Instellingen", darkModeLabel: "Donkere Modus", settingsLabel: "Google AI API Sleutel", apiKeyPlaceholder: "Plak hier je API sleutel", cancel: "Annuleren", save: "Opslaan", uploadLabelTitle: "Afbeeldingen bijvoegen", removeImgBtnTitle: "Verwijder afbeelding", sendBtnTitle: "Verzend", inputPlaceholder: "Stel een vraag of geef een commando...", copied: "(Gekopieerd!)", copyPrompt: "(Klik om details te kopiëren)", clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.", welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator, -editor en -analysator chatbot van Google.", welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.", apiKeySaved: "API sleutel opgeslagen!", apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).", invalidApiKey: "Voer een geldige API sleutel in.", imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.", genericError: "Oeps! Er is een fout opgetreden.", emptyResponse: "Sorry, ik kon geen antwoord genereren.", emptyResponseFiltered: "Het antwoord was leeg. Dit kan gebeuren als het verzoek de inhoudsregels schendt. Probeer je vraag anders te formuleren.", blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:", finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.", finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.", finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.", finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.", imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*", showApiKeyTitle: "Toon API Sleutel", hideApiKeyTitle: "Verberg API Sleutel" }
+en: { pageTitle: "Nano-Banana Interface", settingsTitle: "Settings", settingsBtnTitle: "Settings", darkModeLabel: "Dark Mode", modelLabel: "AI Model", settingsLabel: "Google AI API Key", apiKeyPlaceholder: "Paste your API key here", cancel: "Cancel", save: "Save", uploadLabelTitle: "Attach images", removeImgBtnTitle: "Remove image", sendBtnTitle: "Send", inputPlaceholder: "Ask a question or give a command...", copied: "(Copied!)", copyPrompt: "(Click to copy details)", clearChatConfirm: "Are you sure you want to clear the entire chat history? This action cannot be undone.", welcome_base: "Welcome to Nano-Banana, an AI image generator/editor/analyzer chatbot, powered by Google.", welcome_nokey: "Please enter your Google AI API key in Settings.", apiKeySaved: "Settings saved!", apiKeyNeeded: "Please set your API key in the settings menu (top right icon) first.", invalidApiKey: "Please enter a valid API key.", imgProcessError: "Sorry, I could not process your image(s).", genericError: "Oops! An error occurred.", emptyResponse: "I'm sorry, I couldn't generate a response.", emptyResponseFiltered: "The response was empty. This can happen if the request violates content policies. Please try rephrasing your prompt.", blockedResponse: "I cannot process this request. Reason:", finishReasonSafety: "The response was blocked because the content was considered unsafe. Please adjust your prompt.", finishReasonRecitation: "The response was blocked to avoid recitation of potentially copyrighted content. Please try rephrasing your request.", finishReasonOther: "The response could not be completed for an unspecified reason. Please try again.", finishReasonProhibited: "The response was blocked because it contained prohibited content.", imageBlocked: "\n\n*(Note: An image was generated but could not be displayed due to content restrictions.)*", showApiKeyTitle: "Show API Key", hideApiKeyTitle: "Hide API Key" },
+nl: { pageTitle: "Nano-Banana Interface", settingsTitle: "Instellingen", settingsBtnTitle: "Instellingen", darkModeLabel: "Donkere Modus", modelLabel: "AI Model", settingsLabel: "Google AI API Sleutel", apiKeyPlaceholder: "Plak hier je API sleutel", cancel: "Annuleren", save: "Opslaan", uploadLabelTitle: "Afbeeldingen bijvoegen", removeImgBtnTitle: "Verwijder afbeelding", sendBtnTitle: "Verzend", inputPlaceholder: "Stel een vraag of geef een commando...", copied: "(Gekopieerd!)", copyPrompt: "(Klik om details te kopiëren)", clearChatConfirm: "Weet je zeker dat je de hele chatgeschiedenis wilt wissen? Deze actie kan niet ongedaan worden gemaakt.", welcome_base: "Welkom bij Nano-Banana, een AI-beeldgenerator, -editor en -analysator chatbot van Google.", welcome_nokey: "Voer je Google AI API-sleutel in bij Instellingen.", apiKeySaved: "Instellingen opgeslagen!", apiKeyNeeded: "Stel alsjeblieft eerst je API sleutel in via het instellingenmenu (icoon rechtsboven).", invalidApiKey: "Voer een geldige API sleutel in.", imgProcessError: "Sorry, ik kon je afbeelding(en) niet verwerken.", genericError: "Oeps! Er is een fout opgetreden.", emptyResponse: "Sorry, ik kon geen antwoord genereren.", emptyResponseFiltered: "Het antwoord was leeg. Dit kan gebeuren als het verzoek de inhoudsregels schendt. Probeer je vraag anders te formuleren.", blockedResponse: "Ik kan dit verzoek niet verwerken. Reden:", finishReasonSafety: "Het antwoord is geblokkeerd omdat de inhoud als onveilig werd beschouwd. Pas je vraag aan.", finishReasonRecitation: "Het antwoord is geblokkeerd om herhaling van mogelijk auteursrechtelijk beschermde inhoud te voorkomen. Probeer je verzoek anders te formuleren.", finishReasonOther: "Het antwoord kon om een onbekende reden niet worden voltooid. Probeer het opnieuw.", finishReasonProhibited: "Het antwoord is geblokkeerd omdat het verboden inhoud bevatte.", imageBlocked: "\n\n*(Let op: er is een afbeelding gegenereerd, maar deze kon niet worden weergegeven vanwege inhoudsbeperkingen.)*", showApiKeyTitle: "Toon API Sleutel", hideApiKeyTitle: "Verberg API Sleutel" }
 };
 let T;
 
 // --- STATE & CONSTANTS ---
-const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent';
+// AANGEPAST: De URL wordt nu dynamisch gebouwd, dus API_URL is een base string geworden
+const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+// AANGEPAST: Default model is Nano-Banana Pro (Gemini 3 Pro)
+const DEFAULT_MODEL = 'gemini-3-pro-image-preview';
+let currentModel = DEFAULT_MODEL;
+
 const chatHistory = [];
 let apiKey = '';
 let currentFiles = [];
@@ -233,7 +275,7 @@ const D = getElements([
 'page-title', 'settings-btn', 'settings-modal', 'save-settings-btn', 'cancel-settings-btn',
 'api-key-input', 'chat-form', 'message-input', 'chat-container', 'image-input',
 'image-preview-container', 'image-preview-wrapper', 'fullscreen-modal', 'fullscreen-image',
-'close-fullscreen-btn', 'dark-mode-toggle', 'toggle-api-key-visibility', 'input-area'
+'close-fullscreen-btn', 'dark-mode-toggle', 'toggle-api-key-visibility', 'input-area', 'model-select'
 ]);
 
 // --- CORE FUNCTIONS ---
@@ -247,6 +289,7 @@ document.title = T.pageTitle;
 D.settingsBtn.title = T.settingsBtnTitle;
 document.getElementById('settings-title').textContent = T.settingsTitle;
 document.getElementById('dark-mode-label').textContent = T.darkModeLabel;
+document.getElementById('model-label').textContent = T.modelLabel;
 document.getElementById('settings-label').textContent = T.settingsLabel;
 D.apiKeyInput.placeholder = T.apiKeyPlaceholder;
 D.cancelSettingsBtn.textContent = T.cancel;
@@ -320,7 +363,10 @@ const loaderElement = showLoader();
 try {
 const apiHistory = chatHistory.map(({ role, parts }) => ({ role, parts }));
 
-const response = await fetch(`${API_URL}?key=${apiKey}`, {
+// AANGEPAST: Dynamische URL op basis van gekozen model
+const apiUrl = `${API_BASE_URL}${currentModel}:generateContent?key=${apiKey}`;
+
+const response = await fetch(apiUrl, {
 method: 'POST',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({ contents: apiHistory }),
@@ -370,9 +416,6 @@ updateLoader(loaderElement, T.emptyResponse, null, data);
 } catch (error) {
 console.error('Error calling API:', error);
 updateLoader(loaderElement, T.genericError, null, { error: error.toString() });
-} finally {
-// AANGEPAST: De regel die het laatste bericht uit de geschiedenis verwijderde bij een fout is hier verwijderd.
-// Hierdoor blijft het bericht bewerkbaar.
 }
 }
 
@@ -564,7 +607,14 @@ appendMessage('bot', { text: welcomeMessage });
 }
 });
 
-D.settingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'flex');
+// Settings Modal Openen
+D.settingsBtn.addEventListener('click', () => {
+    D.apiKeyInput.value = apiKey;
+    // Zet de selectbox op het huidige model (of default als nog niet geladen in UI)
+    D.modelSelect.value = currentModel;
+    D.settingsModal.style.display = 'flex';
+});
+
 D.cancelSettingsBtn.addEventListener('click', () => D.settingsModal.style.display = 'none');
 
 D.settingsModal.addEventListener('click', (e) => {
@@ -573,11 +623,18 @@ D.settingsModal.style.display = 'none';
 }
 });
 
+// AANGEPAST: Instellingen opslaan (Key + Model)
 D.saveSettingsBtn.addEventListener('click', () => {
 const newApiKey = D.apiKeyInput.value.trim();
+const selectedModel = D.modelSelect.value; // Haal geselecteerd model op
+
 if (newApiKey) {
 localStorage.setItem('nanoBananaApiKey', newApiKey);
+localStorage.setItem('nanoBananaModel', selectedModel); // Sla model op
+
 apiKey = newApiKey;
+currentModel = selectedModel; // Update actieve model variabele
+
 D.settingsModal.style.display = 'none';
 appendMessage('bot', { text: T.apiKeySaved });
 } else {
@@ -619,44 +676,32 @@ D.imagePreviewContainer.style.display = 'block';
 D.imageInput.value = '';
 });
 
-
-// AANGEPAST: Listener voor het starten van de bewerkingsmodus
 D.chatContainer.addEventListener('click', e => {
 const target = e.target;
-
-// Voorkom dat klikken op een klikbare afbeelding de bewerkingsmodus start
 if (target.classList.contains('clickable-image')) {
     openFullscreen(target.src);
     return;
 }
-// Voorkom dat klikken op een error-bubble de bewerkingsmodus start
-if (target.closest('.error-bubble')) {
-    return;
-}
+if (target.closest('.error-bubble')) return;
 
 const messageEl = e.target.closest('.user-message[data-history-index]');
 if (messageEl) {
-    // Alleen starten als we NIET al in bewerkingsmodus zijn
     if (editingMessageIndex === null) {
         const messageIndex = parseInt(messageEl.dataset.historyIndex, 10);
         if (!isNaN(messageIndex)) {
             startEditing(messageIndex);
-            // Voorkom dat deze klik de cancel-listener op 'body' triggert
             e.stopPropagation();
         }
     }
 }
 });
 
-// AANGEPAST: Aparte listener voor het annuleren van de bewerkingsmodus
 document.body.addEventListener('click', e => {
 if (editingMessageIndex === null) return;
-// Annuleer als de klik buiten het invoergebied is
 if (!D.inputArea.contains(e.target)) {
     cancelEditing();
 }
 });
-
 
 D.closeFullscreenBtn.addEventListener('click', closeFullscreen);
 D.fullscreenModal.addEventListener('click', e => { if (e.target === D.fullscreenModal) closeFullscreen(); });
@@ -669,6 +714,9 @@ closeFullscreen();
 
 document.addEventListener('DOMContentLoaded', () => {
 apiKey = localStorage.getItem('nanoBananaApiKey') || '';
+// AANGEPAST: Model laden uit storage, of default (Pro) gebruiken
+currentModel = localStorage.getItem('nanoBananaModel') || DEFAULT_MODEL;
+
 if (apiKey) D.apiKeyInput.value = apiKey;
 
 const savedTheme = localStorage.getItem('nanoBananaTheme') || 'light';
