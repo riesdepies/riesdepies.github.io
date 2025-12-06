@@ -936,10 +936,12 @@ if (googleSearchEnabled) {
 requestBody.tools = [{ "google_search": {} }];
 }
 
-response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}`, {
+// Append &alt=sse to usage Server-Sent Events stream, preventing JSON parsing errors on code blocks
+response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}&alt=sse`, {
 method: 'POST', headers: {'Content-Type': 'application/json'},
 body: JSON.stringify(requestBody)
 });
+
 if (!response.ok) {
 const errorText = await response.text(); currentApiKeyIndex++;
 if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
@@ -947,21 +949,32 @@ else { document.getElementById('loading-spinner').style.display = 'none'; logErr
 return;
 } else {
 const reader = response.body.getReader(); const decoder = new TextDecoder();
-let buffer = ''; let responseText = ''; let jsonStarted = false;
-let partialMessageElement = displayPartialMessage('', 'assistant');
+let buffer = ''; let responseText = '';
+let partialMessageElement = null; // Initialize as null to prevent empty bubble
 let allChunks = [];
+
 while (true) {
-const {value, done} = await reader.read(); if (done) break;
-const chunk = decoder.decode(value);
-for (const char of chunk) {
-buffer += char;
-if (char === '{' && !jsonStarted) { jsonStarted = true; buffer = '{';}
-if (char === '}' && jsonStarted) {
+const {value, done} = await reader.read();
+if (done) break;
+const chunk = decoder.decode(value, {stream: true});
+buffer += chunk;
+const lines = buffer.split('\n');
+buffer = lines.pop(); // Keep incomplete line in buffer
+
+for (let line of lines) {
+if (line.trim().startsWith('data:')) {
+const jsonStr = line.trim().substring(5).trim();
+if (jsonStr === '[DONE]') continue;
+if (!jsonStr) continue;
+
 try {
-const json = JSON.parse(buffer);
-allChunks.push(json); // Store full chunk
+const json = JSON.parse(jsonStr);
+allChunks.push(json); // Store full chunk for metadata
 const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 if (text) {
+if (!partialMessageElement) {
+partialMessageElement = displayPartialMessage('', 'assistant');
+}
 responseText += text;
 if(partialMessageElement) {
 const editableInPartial = partialMessageElement.querySelector('.editable');
@@ -969,14 +982,18 @@ if (editableInPartial) editableInPartial.innerHTML = marked.parse(responseText);
 Prism.highlightAllUnder(partialMessageElement);
 }
 }
-buffer = ''; jsonStarted = false;
-} catch (e) { /* Malformed JSON */ }
+} catch (e) {
+// Ignore malformed JSON lines in stream
 }
 }
 }
+}
+
+// Check for internet usage in metadata
 const usedInternet = allChunks.some(chunk =>
 chunk.candidates?.[0]?.groundingMetadata?.webSearchQueries?.length > 0
 );
+
 if(partialMessageElement) partialMessageElement.remove();
 conversationHistory.push({role: "assistant", content: responseText, usedInternet: usedInternet});
 modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": responseText}]});
@@ -1215,7 +1232,7 @@ const modelSelect = document.getElementById('model-select');
 const oldSelectedValue = modelSelect.value;
 modelSelect.innerHTML = '';
 const modelsByProvider = {
-gemini: ['gemini-2.0-flash', 'gemini-2.0-pro-exp', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-flash-lite-preview-06-17', 'gemini-2.5-pro-preview-05-06', 'gemini-2.5-pro', 'custom'],
+gemini: ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-pro-exp-02-05', 'gemini-2.0-flash-exp', 'custom'],
 openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom']
 };
 
