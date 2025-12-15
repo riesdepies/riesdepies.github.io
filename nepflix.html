@@ -881,7 +881,8 @@ throw new Error("Video niet beschikbaar.");
 
 try {
 const winningUrl = await findVideoUrl(vidsrcUrl);
-window.open(winningUrl, '_blank');
+// AANPASSING HIERONDER: Gebruik location.href i.p.v. window.open om in hetzelfde tabblad te blijven
+window.location.href = winningUrl;
 
 if (isTv && iconContainer) iconContainer.className = originalIconHTML;
 else if (iconContainer) iconContainer.innerHTML = originalIconHTML;
