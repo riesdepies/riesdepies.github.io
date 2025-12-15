@@ -1074,22 +1074,15 @@ finalGroundingMetadata = metadata;
 if (text) {
 fullText += text;
 
-// We do not parse logic here to avoid visual jitter, we just stream text
-// However, if <think> tags are present, we might want to hide them from the stream
-// For simplicity in this robust version, we stream everything and clean up at the end
-// Or better: filter <think> tags from the visual stream if possible, but that's complex
-// Let's stick to streaming text and then re-rendering with structure at the end.
 if (!partialMessageElement) {
 partialMessageElement = displayPartialMessage('', 'assistant');
 }
 
 const editableInPartial = partialMessageElement.querySelector('.editable');
 if (editableInPartial) {
-// Simple logic: if <think> exists, hide the whole block in stream or show raw
-// For now, show raw to indicate activity, clean up later
-editableInPartial.innerHTML = marked.parse(fullText);
+// Optimization: Just show text during streaming to avoid Prism lag
+editableInPartial.innerText = fullText;
 }
-Prism.highlightAllUnder(partialMessageElement);
 }
 } catch (e) {
 // Ignore malformed JSON lines in stream
@@ -1104,16 +1097,16 @@ let mainContent = fullText;
 const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/;
 const thinkMatch = fullText.match(thinkRegex);
 if (thinkMatch) {
-    // Check if the tag is inside a code block by counting preceding backticks
-    const matchIndex = thinkMatch.index;
-    const textBefore = fullText.substring(0, matchIndex);
-    const backticksBefore = (textBefore.match(/```/g) || []).length;
-    
-    // Even number of backticks means we are NOT inside a code block
-    if (backticksBefore % 2 === 0) {
-        reasoningContent = thinkMatch[1].trim();
-        mainContent = fullText.replace(thinkRegex, '').trim();
-    }
+// Check if the tag is inside a code block by counting preceding backticks
+const matchIndex = thinkMatch.index;
+const textBefore = fullText.substring(0, matchIndex);
+const backticksBefore = (textBefore.match(/```/g) || []).length;
+
+// Even number of backticks means we are NOT inside a code block
+if (backticksBefore % 2 === 0) {
+reasoningContent = thinkMatch[1].trim();
+mainContent = fullText.replace(thinkRegex, '').trim();
+}
 }
 
 // Check for internet usage in metadata
@@ -1138,17 +1131,22 @@ else if (provider === 'openai') {
 const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
 let partialMessageElement = null; let botResponse = '';
 try {
-botResponse = await chat.getBotResponse(userInput, (delta) => {
+// Pass googleSearchEnabled state to OpenAIChat
+botResponse = await chat.getBotResponse(userInput, googleSearchEnabled, (delta) => {
 if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
 botResponse += delta;
 if (partialMessageElement) {
 const editableInPartial = partialMessageElement.querySelector('.editable');
-if (editableInPartial) editableInPartial.innerHTML = marked.parse(botResponse);
-Prism.highlightAllUnder(partialMessageElement);
+if (editableInPartial) {
+// CRITICAL FIX: Do NOT use marked.parse or Prism.highlight here.
+// It causes freezing on large outputs. Just update text.
+editableInPartial.innerText = botResponse;
+}
 }
 });
 if (partialMessageElement) partialMessageElement.remove();
 conversationHistory.push({role: "assistant", content: botResponse});
+// Only highlight and markdown AFTER stream finishes
 displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
 } catch (error) {
@@ -1364,7 +1362,6 @@ contentSpan.classList.add('editable');
 if (sender === 'assistant') contentSpan.classList.add('content');
 contentSpan.innerHTML = initialContent;
 partialMessage.appendChild(contentSpan);
-chatOutput.appendChild(partialMessage);
 chatOutput.scrollTop = chatOutput.scrollHeight;
 return partialMessage;
 }
@@ -1432,7 +1429,7 @@ const oldSelectedValue = modelSelect.value;
 modelSelect.innerHTML = '';
 const modelsByProvider = {
 gemini: ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-pro-exp-02-05', 'gemini-2.0-flash-exp', 'custom'],
-openai: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom']
+openai: ['gpt-5.2', 'gpt-5.1', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom']
 };
 
 if (modelsByProvider[provider]) {
@@ -1461,11 +1458,26 @@ showTab('chat');
 class OpenAIChat {
 constructor(apiKey, model, systemPrompt) { this.apiKey = apiKey; this.model = model; this.systemPrompt = systemPrompt; }
 setApiKey(apiKey) { this.apiKey = apiKey; } setModel(model) { this.model = model; } setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; }
-async getBotResponse(userMessage, onDelta) {
+async getBotResponse(userMessage, webSearchEnabled, onDelta) {
 const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, usedInternet, groundingMetadata, ...rest } = entry; return rest; });
 const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
+
+const payload = {
+model: this.model,
+messages: messagesForAPI,
+stream: true
+};
+
+if (webSearchEnabled) {
+// OpenAI does not support "web_search" natively like Gemini in the standard API.
+// We disable it here to prevent the "Invalid value" error.
+console.warn("Web search disabled for OpenAI: The 'web_search' tool is not natively supported by the standard OpenAI Chat Completions API.");
+logToConsole("Warning: Native web search is not supported by standard OpenAI API. Request proceeding without search.");
+// payload.tools = [{ type: "web_search" }]; // REMOVED TO FIX ERROR
+}
+
 const url = "https://api.openai.com/v1/chat/completions";
-const response = await fetch(url, { method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey}, body: JSON.stringify({model: this.model, messages: messagesForAPI, stream: true})});
+const response = await fetch(url, { method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey}, body: JSON.stringify(payload)});
 if (!response.ok) { throw new Error(await response.text()); }
 let botResponse = '';
 await this.processEventStream(response.body.getReader(), (chunk) => {
@@ -1596,31 +1608,24 @@ function toggleGoogleSearch() {
 googleSearchEnabled = !googleSearchEnabled;
 localStorage.setItem('googleSearchEnabled', googleSearchEnabled);
 updateGoogleSearchToggleState();
-showToast(`Google Search tool ${googleSearchEnabled ? 'enabled' : 'disabled'}`);
+showToast(`Search tool ${googleSearchEnabled ? 'enabled' : 'disabled'}`);
 }
 
 function updateGoogleSearchToggleState() {
 const toggleButton = document.getElementById('google-search-toggle');
 if (googleSearchEnabled) {
 toggleButton.classList.add('active-tool');
-toggleButton.title = 'Disable Google Search tool';
+toggleButton.title = 'Disable Search tool';
 } else {
 toggleButton.classList.remove('active-tool');
-toggleButton.title = 'Enable Google Search tool';
+toggleButton.title = 'Enable Search tool';
 }
 }
 
 function updateGoogleSearchToggleVisibility() {
 const toggleButton = document.getElementById('google-search-toggle');
-const provider = document.getElementById('api-provider').value;
-const currentTab = document.querySelector('.tab.active');
-const isChatOrSettings = currentTab && (currentTab.onclick.toString().includes('chat') || currentTab.onclick.toString().includes('settings'));
-
-if (provider === 'gemini' && isChatOrSettings) {
+// Always show the search toggle now that OpenAI supports it (potentially)
 toggleButton.style.display = 'flex';
-} else {
-toggleButton.style.display = 'none';
-}
 }
 
 function showToast(message) {
