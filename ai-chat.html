@@ -1362,6 +1362,7 @@ contentSpan.classList.add('editable');
 if (sender === 'assistant') contentSpan.classList.add('content');
 contentSpan.innerHTML = initialContent;
 partialMessage.appendChild(contentSpan);
+chatOutput.appendChild(partialMessage); // <-- DEZE REGEL ONTBRAK
 chatOutput.scrollTop = chatOutput.scrollHeight;
 return partialMessage;
 }
