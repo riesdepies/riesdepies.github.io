@@ -1,4 +1,4 @@
-<html lang="en"><head>
+<html lang="en"><head><title>Code Execution</title></head><body>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat Interface</title>
@@ -488,8 +488,8 @@ bottom: 50px;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
-<body>
+
+
 <div id="app-container">
 <div id="chat-container">
 <div class="tabs">
@@ -1046,7 +1046,9 @@ const reader = response.body.getReader(); const decoder = new TextDecoder();
 let buffer = ''; let fullText = '';
 let partialMessageElement = null;
 let allChunks = [];
-let finalGroundingMetadata = null; 
+let finalGroundingMetadata = null;
+let lastRenderTime = 0; // Throttle for rendering
+
 const chatOutput = document.getElementById('chat-output');
 
 while (true) {
@@ -1055,7 +1057,7 @@ if (done) break;
 const chunk = decoder.decode(value, {stream: true});
 buffer += chunk;
 const lines = buffer.split('\n');
-buffer = lines.pop(); 
+buffer = lines.pop();
 
 for (let line of lines) {
 if (line.trim().startsWith('data:')) {
@@ -1081,10 +1083,14 @@ partialMessageElement = displayPartialMessage('', 'assistant');
 
 const editableInPartial = partialMessageElement.querySelector('.editable');
 if (editableInPartial) {
-// Optimization: Just show text during streaming to avoid Prism lag
-editableInPartial.innerText = fullText;
-// Auto-scroll to keep bottom visible during streaming
-chatOutput.scrollTop = chatOutput.scrollHeight;
+// Throttled live rendering logic
+const now = Date.now();
+if (now - lastRenderTime > 150) { // Render markdown at most every 150ms to prevent lag
+    editableInPartial.innerHTML = marked.parse(fullText, { breaks: true });
+    Prism.highlightAllUnder(editableInPartial);
+    lastRenderTime = now;
+}
+// Note: Auto-scroll removed during streaming as requested
 }
 }
 } catch (e) {
@@ -1127,17 +1133,20 @@ groundingMetadata: finalGroundingMetadata
 
 modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": fullText}]}); // Keep full text for context
 displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, usedInternet, finalGroundingMetadata);
+// Explicitly scroll to bottom after full message is rendered
+chatOutput.scrollTop = chatOutput.scrollHeight;
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
 }
 }
 else if (provider === 'openai') {
 const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
-let partialMessageElement = null; 
+let partialMessageElement = null;
 let botResponse = '';
 const chatOutput = document.getElementById('chat-output');
+let lastRenderTime = 0; // Throttle for rendering
 
 try {
-// We use the response from getBotResponse for the final content, 
+// We use the response from getBotResponse for the final content,
 // but we update the UI incrementally via the callback.
 botResponse = await chat.getBotResponse(userInput, googleSearchEnabled, (delta) => {
 if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
@@ -1145,11 +1154,14 @@ botResponse += delta; // Accumulate locally for the display callback
 if (partialMessageElement) {
 const editableInPartial = partialMessageElement.querySelector('.editable');
 if (editableInPartial) {
-// CRITICAL FIX: Do NOT use marked.parse or Prism.highlight here.
-// It causes freezing on large outputs. Just update text.
-editableInPartial.innerText = botResponse;
-// Auto-scroll to keep bottom visible during streaming
-chatOutput.scrollTop = chatOutput.scrollHeight;
+// Throttled live rendering logic
+const now = Date.now();
+if (now - lastRenderTime > 150) { // Render markdown at most every 150ms to prevent lag
+    editableInPartial.innerHTML = marked.parse(botResponse, { breaks: true });
+    Prism.highlightAllUnder(editableInPartial);
+    lastRenderTime = now;
+}
+// Note: Auto-scroll removed during streaming as requested
 }
 }
 });
@@ -1157,6 +1169,8 @@ if (partialMessageElement) partialMessageElement.remove();
 conversationHistory.push({role: "assistant", content: botResponse});
 // Only highlight and markdown AFTER stream finishes
 displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
+// Explicitly scroll to bottom after full message is rendered
+chatOutput.scrollTop = chatOutput.scrollHeight;
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
 } catch (error) {
 currentApiKeyIndex++;
@@ -1372,7 +1386,7 @@ if (sender === 'assistant') contentSpan.classList.add('content');
 contentSpan.innerHTML = initialContent;
 partialMessage.appendChild(contentSpan);
 chatOutput.appendChild(partialMessage); // This line is crucial for streaming visibility
-chatOutput.scrollTop = chatOutput.scrollHeight;
+// chatOutput.scrollTop = chatOutput.scrollHeight; // REMOVED FOR NO AUTO-SCROLL
 return partialMessage;
 }
 
