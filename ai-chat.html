@@ -1044,9 +1044,10 @@ return;
 } else {
 const reader = response.body.getReader(); const decoder = new TextDecoder();
 let buffer = ''; let fullText = '';
-let partialMessageElement = null; // Initialize as null to prevent empty bubble
+let partialMessageElement = null;
 let allChunks = [];
-let finalGroundingMetadata = null; // Store full metadata object
+let finalGroundingMetadata = null; 
+const chatOutput = document.getElementById('chat-output');
 
 while (true) {
 const {value, done} = await reader.read();
@@ -1054,7 +1055,7 @@ if (done) break;
 const chunk = decoder.decode(value, {stream: true});
 buffer += chunk;
 const lines = buffer.split('\n');
-buffer = lines.pop(); // Keep incomplete line in buffer
+buffer = lines.pop(); 
 
 for (let line of lines) {
 if (line.trim().startsWith('data:')) {
@@ -1064,7 +1065,7 @@ if (!jsonStr) continue;
 
 try {
 const json = JSON.parse(jsonStr);
-allChunks.push(json); // Store full chunk for metadata
+allChunks.push(json);
 const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 const metadata = json?.candidates?.[0]?.groundingMetadata;
 if (metadata) {
@@ -1082,6 +1083,8 @@ const editableInPartial = partialMessageElement.querySelector('.editable');
 if (editableInPartial) {
 // Optimization: Just show text during streaming to avoid Prism lag
 editableInPartial.innerText = fullText;
+// Auto-scroll to keep bottom visible during streaming
+chatOutput.scrollTop = chatOutput.scrollHeight;
 }
 }
 } catch (e) {
@@ -1129,18 +1132,24 @@ document.getElementById('loading-spinner').style.display = 'none'; saveFullConve
 }
 else if (provider === 'openai') {
 const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
-let partialMessageElement = null; let botResponse = '';
+let partialMessageElement = null; 
+let botResponse = '';
+const chatOutput = document.getElementById('chat-output');
+
 try {
-// Pass googleSearchEnabled state to OpenAIChat
+// We use the response from getBotResponse for the final content, 
+// but we update the UI incrementally via the callback.
 botResponse = await chat.getBotResponse(userInput, googleSearchEnabled, (delta) => {
 if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
-botResponse += delta;
+botResponse += delta; // Accumulate locally for the display callback
 if (partialMessageElement) {
 const editableInPartial = partialMessageElement.querySelector('.editable');
 if (editableInPartial) {
 // CRITICAL FIX: Do NOT use marked.parse or Prism.highlight here.
 // It causes freezing on large outputs. Just update text.
 editableInPartial.innerText = botResponse;
+// Auto-scroll to keep bottom visible during streaming
+chatOutput.scrollTop = chatOutput.scrollHeight;
 }
 }
 });
@@ -1362,7 +1371,7 @@ contentSpan.classList.add('editable');
 if (sender === 'assistant') contentSpan.classList.add('content');
 contentSpan.innerHTML = initialContent;
 partialMessage.appendChild(contentSpan);
-chatOutput.appendChild(partialMessage); // <-- DEZE REGEL ONTBRAK
+chatOutput.appendChild(partialMessage); // This line is crucial for streaming visibility
 chatOutput.scrollTop = chatOutput.scrollHeight;
 return partialMessage;
 }
@@ -1493,9 +1502,17 @@ while (true) {
 const result = await reader.read(); if (result.done) break;
 accumulated += decoder.decode(result.value, {stream: true});
 const lines = accumulated.split('\n'); accumulated = lines.pop();
-for (let line of lines) if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') delegate(line.slice(6));
+for (let line of lines) {
+// Fix: Use trim() to be more robust against data: vs data: (space)
+if (line.trim().startsWith('data:') && line.trim() !== 'data: [DONE]') {
+delegate(line.substring(line.indexOf(':') + 1).trim());
 }
-if (accumulated.startsWith('data: ') && accumulated.trim() !== 'data: [DONE]' && accumulated.length > 6) delegate(accumulated.slice(6));
+}
+}
+// Handle potential trailing line
+if (accumulated.trim().startsWith('data:') && accumulated.trim() !== 'data: [DONE]') {
+delegate(accumulated.substring(accumulated.indexOf(':') + 1).trim());
+}
 }
 }
 function logToConsole(message) { document.getElementById('console-output').textContent += `${message}\n`;}
