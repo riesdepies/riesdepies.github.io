@@ -2,7 +2,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat Interface</title>
-<link rel="icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20version%3D%221.1%22%20width%3D%22512px%22%20height%3D%22512px%22%20style%3D%22shape-rendering%3AgeometricPrecision%3B%20text-rendering%3AgeometricPrecision%3B%20image-rendering%3AoptimizeQuality%3B%20fill-rule%3Aevenodd%3B%20clip-rule%3Aevenodd%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A0.996%22%20fill%3D%22%232675e2%22%20d%3D%22M%20120.5%2C41.5%20C%20210.501%2C41.3333%20300.501%2C41.5%20390.5%2C42C%20424.735%2C45.692%20448.902%2C63.192%20463%2C94.5C%20466.101%2C102.569%20468.101%2C110.902%20469%2C119.5C%20469.971%2C184.191%20469.638%2C248.857%20468%2C313.5C%20459.274%2C352.226%20435.44%2C375.393%20396.5%2C383C%20345.5%2C383.333%20294.5%2C383.667%20243.5%2C384C%20216.5%2C411%20189.5%2C438%20162.5%2C465C%20150.769%2C472.03%20140.269%2C470.53%20131%2C460.5C%20129.561%2C458.725%20128.561%2C456.725%20128%2C454.5C%20127.5%2C430.836%20127.333%2C407.169%20127.5%2C383.5C%2085.1502%2C381.814%2057.4835%2C360.814%2044.5%2C320.5C%2043.2586%2C315.569%2042.4253%2C310.569%2042%2C305.5C%2041.3333%2C243.5%2041.3333%2C181.5%2042%2C119.5C%2046.0928%2C85.7511%2063.5928%2C61.9178%2094.5%2C48C%20103.066%2C44.86%20111.733%2C42.6934%20120.5%2C41.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20153.5%2C180.5%20C%20172.128%2C179.726%20184.628%2C188.059%20191%2C205.5C%20193.38%2C225.108%20185.213%2C237.942%20166.5%2C244C%20146.892%2C246.38%20134.059%2C238.214%20128%2C219.5C%20125.969%2C199.551%20134.469%2C186.551%20153.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20249.5%2C180.5%20C%20268.128%2C179.726%20280.628%2C188.059%20287%2C205.5C%20289.38%2C225.108%20281.213%2C237.942%20262.5%2C244C%20242.892%2C246.38%20230.059%2C238.214%20224%2C219.5C%20221.969%2C199.551%20230.469%2C186.551%20249.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20345.5%2C180.5%20C%20364.128%2C179.726%20376.628%2C188.059%20383%2C205.5C%20385.38%2C225.108%20377.213%2C237.942%20358.5%2C244C%20338.892%2C246.38%20326.059%2C238.214%20320%2C219.5C%20317.969%2C199.551%20326.469%2C186.551%20345.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3C%2Fsvg%3E">
+<link rel="icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20version%3D%221.1%22%20width%3D%22512px%22%20height%3D%22512px%22%20style%3D%22shape-rendering%3AgeometricPrecision%3B%20text-rendering%3AgeometricPrecision%3B%20image-rendering%3AoptimizeQuality%3B%20fill-rule%3Aevenodd%3B%20clip-rule%3Aevenodd%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A0.996%22%20fill%3D%22%232675e2%22%20d%3D%22M%20120.5%2C41.5%20C%20210.501%2C41.3333%20300.501%2C41.5%20390.5%2C42C%20424.735%2C45.692%20448.902%2C63.192%20463%2C94.5C%20466.101%2C102.569%20468.101%2C110.902%20469%2C119.5C%20469.971%2C184.191%20469.638%2C248.857%20468%2C313.5C%20459.274%2C352.226%20435.44%2C375.393%20396.5%2C383C%20345.5%2C383.333%20294.5%2C383.667%20243.5%2C384C%20216.5%2C411%20189.5%2C438%20162.5%2C465C%20150.769%2C472.03%20140.269%2C470.53%20131%2C460.5C%20129.561%2C458.725%20128.561%2C456.725%20128%2C454.5C%20127.5%2C430.836%20127.333%2C407.169%20127.5%2C383.5C%2085.1502%2C381.814%2057.4835%2C360.814%2044.5%2C320.5C%2043.2586%2C315.569%2042.4253%2C310.569%2042%2C305.5C%2041.3333%2C243.5%2041.3333%2C181.5%2042%2C119.5C%2046.0928%2C85.7511%2063.5928%2C61.9178%2094.5%2C48C%20103.066%2C44.86%20111.733%2C42.6934%20120.5%2C41.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20153.5%2C180.5%20C%20172.128%2C179.726%20184.628%2C188.059%20191%2C205.5C%20193.38%2C225.108%20185.213%2C237.942%20166.5%2C244C%20146.892%2C246.38%20134.059%2C238.214%20128%2C219.5C%20125.969%2C199.551%20134.469%2C186.551%20153.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20249.5%2C180.5%20C%20268.128%2C179.726%20280.628%2C188.059%20287%2C205.5C%20289.38%2C225.108%20281.213%2C237.942%20262.5%2C244C%20242.892%2C246.38%20230.059%2C238.214%20224%2C219.5C%20221.969%2C199.551%20230.469%2C186.551%20249.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20345.5%2C180.5%20C%20364.128%2C179.726%20376.628%2C188.059%20383%2C205.5C%20385.38%2C225.108%20377.213%2C237.942%20358.5%2C244C%20338.892%2C246.38%20326.059%2C238.214%20320%2C219.5C%20317.969%2C199.551%20326.469%2C186.551%20345.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3C/svg%3E">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <style>
 body {
@@ -288,49 +288,47 @@ cursor: not-allowed;
 display: flex;
 border-bottom: 1px solid #37383c;
 position: relative;
-align-items: center;
+align-items: stretch; /* Modified: Stretch to fill height */
+height: 48px; /* Modified: Fixed height */
 }
 .tab {
-padding: 10px 15px;
+padding: 0 15px; /* Modified: remove vertical padding */
 cursor: pointer;
 border-bottom: 2px solid transparent;
+display: flex; /* Modified: Flex for centering */
+align-items: center; /* Modified: Vertical center */
 }
 .tab.active {
 border-bottom: 2px solid #3578e5;
 }
-#swap-model-button, #google-search-toggle {
+#swap-model-button {
 background: none;
 border: none;
 color: #e0e0e0;
 cursor: pointer;
-padding: 8px;
+padding: 8px 15px;
 margin-left: 10px;
 display: flex;
 align-items: center;
 justify-content: center;
 border-radius: 4px;
+align-self: center; /* Modified: Center in stretched parent */
 }
-#swap-model-button:hover:not(:disabled),
-#google-search-toggle:hover:not(:disabled) {
+#swap-model-button:hover:not(:disabled) {
 color: #fff;
 background-color: #3a3b3f;
 }
-#swap-model-button:disabled,
-#google-search-toggle:disabled {
+#swap-model-button:disabled {
 color: #6c6c6c;
 cursor: not-allowed;
 }
-#swap-model-button svg,
-#google-search-toggle svg {
+#swap-model-button {
+color: #3578e5;
+font-weight: bold;
+}
+#swap-model-button svg {
 width: 20px;
 height: 20px;
-}
-#google-search-toggle.active-tool {
-background-color: #3578e5;
-color: white;
-}
-#google-search-toggle.active-tool:hover {
-background-color: #2a62bc;
 }
 #clear-chat-button-container {
 position: absolute;
@@ -497,7 +495,6 @@ bottom: 50px;
 <div class="tab" onclick="showTab('settings')">Settings</div>
 <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
 <button id="swap-model-button"></button>
-<button id="google-search-toggle"></button>
 <div id="clear-chat-button-container">
 <button id="clear-chat-button" title="Clear Chat">
 <!-- SVG will be injected by JavaScript -->
@@ -538,7 +535,13 @@ bottom: 50px;
 </div>
 </div>
 <label for="system-prompt">System Prompt:</label>
-<textarea id="system-prompt" rows="3" placeholder="Enter a system prompt" onchange="saveSettings()"></textarea>
+<textarea id="system-prompt" rows="9" placeholder="Enter a system prompt" onchange="saveSettings()"></textarea>
+
+<label>Tools:</label>
+<div class="settings-button-container">
+<button id="google-search-toggle" class="settings-button"></button>
+</div>
+
 <label>Developer Options:</label>
 <div class="settings-button-container">
 <button class="settings-button" id="toggle-console-button" onclick="toggleConsoleButton()">Enable Console</button>
@@ -825,7 +828,8 @@ systemPrompt = localStorage.getItem('systemPrompt') || "";
 document.getElementById('system-prompt').value = systemPrompt;
 consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
 document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
-document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none';
+// Modified: use flex instead of block
+document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none';
 let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
 document.getElementById('api-provider').value = lastUsedApiProvider;
 
@@ -838,7 +842,6 @@ document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvid
 selectedModel = document.getElementById('model-select').value;
 toggleCustomModelField();
 updateApiKeyVisibility();
-updateGoogleSearchToggleVisibility(); // New call
 updateCurrentModelFromUI(true); // Initialize current model on load
 });
 
@@ -852,6 +855,8 @@ const customInput = document.getElementById('custom-model-input');
 if (currentProvider === 'openai') customInput.value = customOpenAIModel;
 else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
 }
+
+updateSwapButtonVisibility();
 }
 
 function setDefaultModel(provider) {
@@ -890,26 +895,33 @@ document.getElementById('chat-output').style.display = 'none';
 document.getElementById('chat-input').style.display = 'none';
 document.getElementById('console-container').style.display = 'none';
 const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
-const swapModelButton = document.getElementById('swap-model-button');
 
 if (tabName === 'chat') {
 document.getElementById('chat-output').style.display = 'block';
 document.getElementById('chat-input').style.display = 'flex';
 document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
 clearChatButtonContainer.style.display = 'block';
-swapModelButton.style.visibility = 'visible';
 } else if (tabName === 'settings') {
 document.getElementById('settings-container').style.display = 'block';
 document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
 clearChatButtonContainer.style.display = 'none';
-swapModelButton.style.visibility = 'visible';
 } else if (tabName === 'console') {
 document.getElementById('console-container').style.display = 'block';
 document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
 clearChatButtonContainer.style.display = 'none';
+}
+updateSwapButtonVisibility();
+}
+
+function updateSwapButtonVisibility() {
+const swapModelButton = document.getElementById('swap-model-button');
+const isChatTab = document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.contains('active');
+
+if (isChatTab && !consoleEnabled) {
+swapModelButton.style.visibility = 'visible';
+} else {
 swapModelButton.style.visibility = 'hidden';
 }
-updateGoogleSearchToggleVisibility();
 }
 
 function saveSettings() {
@@ -937,9 +949,15 @@ localStorage.setItem('lastUsedApiProvider', currentProvider);
 selectedModel = selectedModelValue;
 toggleCustomModelField();
 updateApiKeyVisibility();
-updateGoogleSearchToggleVisibility();
 }
-function toggleConsoleButton() { consoleEnabled = !consoleEnabled; localStorage.setItem('consoleEnabled', consoleEnabled); updateConsoleButtonText(); document.getElementById('console-tab').style.display = consoleEnabled ? 'block' : 'none'; }
+function toggleConsoleButton() {
+consoleEnabled = !consoleEnabled;
+localStorage.setItem('consoleEnabled', consoleEnabled);
+updateConsoleButtonText();
+// Modified: use flex instead of block
+document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none';
+updateSwapButtonVisibility();
+}
 function updateConsoleButtonText() { document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';}
 function logErrorToConsole(message) {
 const consoleOutput = document.getElementById('console-output'); consoleOutput.textContent += `${message}\n`;
@@ -1086,9 +1104,9 @@ if (editableInPartial) {
 // Throttled live rendering logic
 const now = Date.now();
 if (now - lastRenderTime > 150) { // Render markdown at most every 150ms to prevent lag
-    editableInPartial.innerHTML = marked.parse(fullText, { breaks: true });
-    Prism.highlightAllUnder(editableInPartial);
-    lastRenderTime = now;
+editableInPartial.innerHTML = marked.parse(fullText, { breaks: true });
+Prism.highlightAllUnder(editableInPartial);
+lastRenderTime = now;
 }
 // Note: Auto-scroll removed during streaming as requested
 }
@@ -1157,9 +1175,9 @@ if (editableInPartial) {
 // Throttled live rendering logic
 const now = Date.now();
 if (now - lastRenderTime > 150) { // Render markdown at most every 150ms to prevent lag
-    editableInPartial.innerHTML = marked.parse(botResponse, { breaks: true });
-    Prism.highlightAllUnder(editableInPartial);
-    lastRenderTime = now;
+editableInPartial.innerHTML = marked.parse(botResponse, { breaks: true });
+Prism.highlightAllUnder(editableInPartial);
+lastRenderTime = now;
 }
 // Note: Auto-scroll removed during streaming as requested
 }
@@ -1472,7 +1490,6 @@ setDefaultModel(provider);
 }
 selectedModel = modelSelect.value;
 toggleCustomModelField();
-updateGoogleSearchToggleVisibility(); // New call
 }
 
 function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px';}
@@ -1556,7 +1573,6 @@ function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️
 // --- Model Swap Functions ---
 
 function initializeModelSwap() {
-document.getElementById('swap-model-button').innerHTML = ICONS.swap;
 document.getElementById('swap-model-button').onclick = swapModels;
 previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
 updateSwapButtonState();
@@ -1584,14 +1600,13 @@ updateSwapButtonState();
 
 function updateSwapButtonState() {
 const swapButton = document.getElementById('swap-model-button');
-if (previousModel && previousModel.model) {
+if (currentModel && currentModel.model) {
+swapButton.textContent = currentModel.model;
 swapButton.style.display = 'flex';
-swapButton.disabled = false;
-swapButton.title = `Swap to ${previousModel.model} (${previousModel.provider})`;
+swapButton.disabled = !previousModel;
+swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${currentModel.model}`;
 } else {
 swapButton.style.display = 'none';
-swapButton.disabled = true;
-swapButton.title = 'No previous model to swap with';
 }
 }
 
@@ -1619,7 +1634,6 @@ document.getElementById('custom-model-input').value = currentModel.model;
 toggleCustomModelField();
 updateApiKeyVisibility();
 updateSwapButtonState();
-updateGoogleSearchToggleVisibility();
 
 // Explicitly save settings to update localStorage for things like lastUsedModels
 saveSettings();
@@ -1631,7 +1645,6 @@ showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
 
 function initializeGoogleSearchToggle() {
 const toggleButton = document.getElementById('google-search-toggle');
-toggleButton.innerHTML = ICONS.globe;
 toggleButton.onclick = toggleGoogleSearch;
 updateGoogleSearchToggleState();
 }
@@ -1640,24 +1653,20 @@ function toggleGoogleSearch() {
 googleSearchEnabled = !googleSearchEnabled;
 localStorage.setItem('googleSearchEnabled', googleSearchEnabled);
 updateGoogleSearchToggleState();
-showToast(`Search tool ${googleSearchEnabled ? 'enabled' : 'disabled'}`);
+showToast(`Internet access ${googleSearchEnabled ? 'enabled' : 'disabled'}`);
 }
 
 function updateGoogleSearchToggleState() {
 const toggleButton = document.getElementById('google-search-toggle');
+// Removed icon and active-tool class logic for simpler button style
+toggleButton.textContent = `Internet Access: ${googleSearchEnabled ? 'ON' : 'OFF'}`;
 if (googleSearchEnabled) {
-toggleButton.classList.add('active-tool');
+// toggleButton.classList.add('active-tool'); // Removed to avoid blue color
 toggleButton.title = 'Disable Search tool';
 } else {
-toggleButton.classList.remove('active-tool');
+// toggleButton.classList.remove('active-tool');
 toggleButton.title = 'Enable Search tool';
 }
-}
-
-function updateGoogleSearchToggleVisibility() {
-const toggleButton = document.getElementById('google-search-toggle');
-// Always show the search toggle now that OpenAI supports it (potentially)
-toggleButton.style.display = 'flex';
 }
 
 function showToast(message) {
