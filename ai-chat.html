@@ -318,6 +318,7 @@ align-items: center;
 justify-content: center;
 border-radius: 4px;
 align-self: center;
+user-select: none;
 }
 #swap-model-button:hover:not(:disabled) {
 color: #fff;
@@ -505,6 +506,44 @@ opacity: 1;
 visibility: visible;
 bottom: 50px;
 }
+/* Model History Dropdown */
+#model-history-dropdown {
+position: absolute;
+background-color: #2b2c2f;
+border: 1px solid #444549;
+border-radius: 5px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+z-index: 2000;
+display: none;
+width: 220px;
+overflow: hidden;
+}
+.history-item {
+padding: 10px 15px;
+border-bottom: 1px solid #37383c;
+cursor: pointer;
+transition: background-color 0.2s;
+display: flex;
+flex-direction: column;
+}
+.history-item:last-child {
+border-bottom: none;
+}
+.history-item:hover {
+background-color: #3578e5;
+}
+.history-item-model {
+font-weight: bold;
+font-size: 0.95em;
+color: #fff;
+display: block;
+}
+.history-item-provider {
+font-size: 0.75em;
+color: #bbb;
+display: block;
+margin-top: 2px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -579,6 +618,7 @@ bottom: 50px;
 </div>
 </div>
 </div>
+<div id="model-history-dropdown"></div>
 <div id="toast-notification"></div>
 <script>
 let apiKeys = {
@@ -618,6 +658,10 @@ let currentAbortController = null;
 let isGenerating = false;
 let stopPressTimer = null;
 const LONG_PRESS_DURATION = 600;
+
+// Model History Variables
+let recentModels = JSON.parse(localStorage.getItem('recentModels') || '[]');
+let ignoreNextClick = false;
 
 const ICONS = {
 trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
@@ -670,17 +714,17 @@ updateClearChatButtonIcon();
 
 const sendButton = document.getElementById('send-button');
 const startStopHold = (e) => {
-    if (!isGenerating) return;
-    stopPressTimer = setTimeout(() => {
-        stopGeneration();
-        stopPressTimer = null;
-    }, LONG_PRESS_DURATION);
+if (!isGenerating) return;
+stopPressTimer = setTimeout(() => {
+stopGeneration();
+stopPressTimer = null;
+}, LONG_PRESS_DURATION);
 };
 const cancelStopHold = (e) => {
-    if (stopPressTimer) {
-        clearTimeout(stopPressTimer);
-        stopPressTimer = null;
-    }
+if (stopPressTimer) {
+clearTimeout(stopPressTimer);
+stopPressTimer = null;
+}
 };
 
 sendButton.addEventListener('mousedown', startStopHold);
@@ -688,6 +732,15 @@ sendButton.addEventListener('touchstart', startStopHold);
 sendButton.addEventListener('mouseup', cancelStopHold);
 sendButton.addEventListener('mouseleave', cancelStopHold);
 sendButton.addEventListener('touchend', cancelStopHold);
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function(e) {
+const dropdown = document.getElementById('model-history-dropdown');
+const swapButton = document.getElementById('swap-model-button');
+if (dropdown.style.display === 'block' && !dropdown.contains(e.target) && !swapButton.contains(e.target)) {
+dropdown.style.display = 'none';
+}
+});
 });
 
 
@@ -1053,6 +1106,13 @@ localStorage.setItem('lastUsedApiProvider', currentProvider);
 selectedModel = selectedModelValue;
 toggleCustomModelField();
 updateApiKeyVisibility();
+
+// Update model history
+let actualModelName = selectedModelValue;
+if (selectedModelValue === 'custom') {
+    actualModelName = document.getElementById('custom-model-input').value;
+}
+updateModelHistory(currentProvider, actualModelName);
 }
 function toggleConsoleButton() {
 consoleEnabled = !consoleEnabled;
@@ -1075,9 +1135,9 @@ function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data
 
 function handleSendButtonClick() {
 if (isGenerating) {
-    showToast("Hold the stop button to cancel the generation.");
+showToast("Hold the stop button to cancel the generation.");
 } else {
-    sendMessage();
+sendMessage();
 }
 }
 
@@ -1619,8 +1679,8 @@ if (lines <= 1 || block.parentElement.querySelector('.copy-code')) return;
 block.parentElement.style.position = 'relative';
 
 block.parentElement.addEventListener('click', (e) => {
-    if (e.target.closest('button')) return;
-    block.parentElement.classList.toggle('code-buttons-hidden');
+if (e.target.closest('button')) return;
+block.parentElement.classList.toggle('code-buttons-hidden');
 });
 
 const attachButtons = (isTop) => {
@@ -1693,8 +1753,8 @@ button.className = className;
 button.innerHTML = svgHtml;
 button.title = title;
 button.addEventListener('click', (e) => {
-    e.stopPropagation();
-    clickHandler();
+e.stopPropagation();
+clickHandler();
 });
 return button;
 }
@@ -1848,7 +1908,34 @@ function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️
 
 
 function initializeModelSwap() {
-document.getElementById('swap-model-button').onclick = swapModels;
+const swapButton = document.getElementById('swap-model-button');
+swapButton.addEventListener('click', (e) => {
+    if (ignoreNextClick) {
+        ignoreNextClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+    }
+    swapModels();
+});
+
+let longPressTimer;
+const LONG_PRESS_MS = 600;
+
+const startPress = (e) => {
+    longPressTimer = setTimeout(() => {
+        showHistoryDropdown();
+        ignoreNextClick = true;
+    }, LONG_PRESS_MS);
+};
+const cancelPress = () => { clearTimeout(longPressTimer); };
+
+swapButton.addEventListener('mousedown', startPress);
+swapButton.addEventListener('touchstart', startPress);
+swapButton.addEventListener('mouseup', cancelPress);
+swapButton.addEventListener('mouseleave', cancelPress);
+swapButton.addEventListener('touchend', cancelPress);
+
 previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
 updateSwapButtonState();
 }
@@ -1924,6 +2011,54 @@ saveSettings();
 showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
 }
 
+function updateModelHistory(provider, modelName) {
+if (!provider || !modelName) return;
+recentModels = recentModels.filter(m => !(m.provider === provider && m.model === modelName));
+recentModels.unshift({ provider, model: modelName });
+if (recentModels.length > 5) recentModels.pop();
+localStorage.setItem('recentModels', JSON.stringify(recentModels));
+}
+
+function showHistoryDropdown() {
+if (recentModels.length === 0) {
+showToast("No history available yet.");
+return;
+}
+const dropdown = document.getElementById('model-history-dropdown');
+const btn = document.getElementById('swap-model-button');
+const rect = btn.getBoundingClientRect();
+
+dropdown.innerHTML = '';
+recentModels.forEach(item => {
+const div = document.createElement('div');
+div.className = 'history-item';
+div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${item.provider === 'openai' ? 'OpenAI' : 'Google'}</span>`;
+div.onclick = () => switchToHistoryModel(item.provider, item.model);
+dropdown.appendChild(div);
+});
+
+dropdown.style.top = (rect.bottom + 5) + 'px';
+dropdown.style.left = rect.left + 'px';
+dropdown.style.display = 'block';
+}
+
+async function switchToHistoryModel(provider, model) {
+document.getElementById('model-history-dropdown').style.display = 'none';
+document.getElementById('api-provider').value = provider;
+await updateModelOptions();
+const modelSelect = document.getElementById('model-select');
+
+if (Array.from(modelSelect.options).some(opt => opt.value === model)) {
+modelSelect.value = model;
+} else {
+modelSelect.value = 'custom';
+document.getElementById('custom-model-input').value = model;
+}
+toggleCustomModelField();
+updateApiKeyVisibility();
+saveSettings();
+}
+
 
 function showToast(message) {
 const toast = document.getElementById('toast-notification');
@@ -1934,4 +2069,4 @@ setTimeout(() => {
 toast.classList.remove('show');
 }, 2500);
 }
-</script></body></html>```
+</script></body></html>
