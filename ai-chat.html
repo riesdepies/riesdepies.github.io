@@ -1070,7 +1070,7 @@ const swapModelButton = document.getElementById('swap-model-button');
 const isChatTab = document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.contains('active');
 
 
-if (isChatTab) {
+if (isChatTab && !consoleEnabled) {
 swapModelButton.style.visibility = 'visible';
 } else {
 swapModelButton.style.visibility = 'hidden';
@@ -1386,6 +1386,7 @@ modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text":
 displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, usedInternet, finalGroundingMetadata);
 chatOutput.scrollTop = chatOutput.scrollHeight;
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+playNotificationSound();
 }
 }
 else if (provider === 'openai') {
@@ -1417,6 +1418,7 @@ conversationHistory.push({role: "assistant", content: botResponse});
 displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
 chatOutput.scrollTop = chatOutput.scrollHeight;
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+playNotificationSound();
 } catch (error) {
 if (error.name === 'AbortError') throw error;
 currentApiKeyIndex++;
@@ -2068,5 +2070,23 @@ toast.classList.add('show');
 setTimeout(() => {
 toast.classList.remove('show');
 }, 2500);
+}
+
+function playNotificationSound() {
+    if (!document.hidden) return;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, now);
+    gainNode.gain.setValueAtTime(0.5, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+    oscillator.start();
+    oscillator.stop(now + 0.5);
 }
 </script></body></html>
