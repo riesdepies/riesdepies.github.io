@@ -2074,19 +2074,19 @@ toast.classList.remove('show');
 
 function playNotificationSound() {
     if (!document.hidden) return;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    const playSimple = (c, f, t, d, v) => {
+        const o = c.createOscillator();
+        const g = c.createGain();
+        o.type = t;
+        o.frequency.setValueAtTime(f, c.currentTime);
+        g.gain.setValueAtTime(v, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + d);
+        o.connect(g).connect(c.destination);
+        o.start(); o.stop(c.currentTime + d);
+    };
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    const now = audioCtx.currentTime;
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, now);
-    gainNode.gain.setValueAtTime(0.5, now);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-    oscillator.start();
-    oscillator.stop(now + 0.5);
+    playSimple(ctx, 1100, 'triangle', 0.08, 0.8);
 }
 </script></body></html>
