@@ -26,7 +26,6 @@ display: flex;
 flex-direction: column;
 background-color: #2b2c2f;
 height: 100%;
-position: relative;
 }
 #settings-container {
 width: 100%;
@@ -319,7 +318,6 @@ align-items: center;
 justify-content: center;
 border-radius: 4px;
 align-self: center;
-user-select: none;
 }
 #swap-model-button:hover:not(:disabled) {
 color: #fff;
@@ -507,37 +505,6 @@ opacity: 1;
 visibility: visible;
 bottom: 50px;
 }
-
-/* Model History Dropdown Styling */
-#model-history-dropdown {
-    display: none;
-    position: absolute;
-    background-color: #333438;
-    border: 1px solid #444549;
-    border-radius: 5px;
-    z-index: 2000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    padding: 5px 0;
-    min-width: 180px;
-}
-.history-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 0.9em;
-    color: #eee;
-    display: flex;
-    flex-direction: column;
-}
-.history-item:hover {
-    background-color: #424347;
-}
-.history-item .history-provider {
-    font-size: 0.75em;
-    color: #3578e5;
-    text-transform: uppercase;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -553,7 +520,6 @@ bottom: 50px;
 
 <div id="app-container">
 <div id="chat-container">
-<div id="model-history-dropdown"></div>
 <div class="tabs">
 <div class="tab active" onclick="showTab('chat')">Chat</div>
 <div class="tab" onclick="showTab('settings')">Settings</div>
@@ -1882,41 +1848,9 @@ function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️
 
 
 function initializeModelSwap() {
-    const swapButton = document.getElementById('swap-model-button');
-    let isLongPress = false;
-    let swapLongPressTimer = null;
-
-    const startHold = (e) => {
-        isLongPress = false;
-        swapLongPressTimer = setTimeout(() => {
-            isLongPress = true;
-            showModelHistoryDropdown(e);
-        }, 600);
-    };
-
-    const endHold = () => {
-        if (swapLongPressTimer) {
-            clearTimeout(swapLongPressTimer);
-            swapLongPressTimer = null;
-        }
-    };
-
-    swapButton.addEventListener('mousedown', startHold);
-    swapButton.addEventListener('touchstart', startHold);
-    swapButton.addEventListener('mouseup', endHold);
-    swapButton.addEventListener('mouseleave', endHold);
-    swapButton.addEventListener('touchend', endHold);
-
-    swapButton.onclick = (e) => {
-        if (isLongPress) {
-            isLongPress = false;
-            return;
-        }
-        swapModels();
-    };
-
-    previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
-    updateSwapButtonState();
+document.getElementById('swap-model-button').onclick = swapModels;
+previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
+updateSwapButtonState();
 }
 
 
@@ -1940,9 +1874,6 @@ localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
 currentModel = newModel;
 localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
 updateSwapButtonState();
-if (currentModel && currentModel.model) {
-    updateModelHistory(currentModel.provider, currentModel.model);
-}
 }
 
 
@@ -1990,7 +1921,7 @@ toggleCustomModelField();
 updateApiKeyVisibility();
 updateSwapButtonState();
 saveSettings();
-showToast(`Swapped to ${currentModel.provider === 'gemini' ? 'Google' : 'OpenAI'} / ${currentModel.model}`);
+showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
 }
 
 
@@ -2003,71 +1934,4 @@ setTimeout(() => {
 toast.classList.remove('show');
 }, 2500);
 }
-
-// New helper functions for Model History
-function updateModelHistory(provider, model) {
-    if (!model) return;
-    let history = JSON.parse(localStorage.getItem('modelHistory') || '[]');
-    const newEntry = { provider, model };
-    history = history.filter(item => !(item.provider === provider && item.model === model));
-    history.unshift(newEntry);
-    history = history.slice(0, 5);
-    localStorage.setItem('modelHistory', JSON.stringify(history));
-}
-
-function showModelHistoryDropdown(e) {
-    const history = JSON.parse(localStorage.getItem('modelHistory') || '[]');
-    const dropdown = document.getElementById('model-history-dropdown');
-    if (history.length === 0) {
-        showToast("No model history available yet.");
-        return;
-    }
-    dropdown.innerHTML = '';
-    history.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        // Map 'gemini' to 'Google' for display consistency
-        const displayProvider = item.provider === 'gemini' ? 'Google' : (item.provider === 'openai' ? 'OpenAI' : item.provider);
-        div.innerHTML = `<span class="history-provider">${displayProvider}</span><span>${item.model}</span>`;
-        div.onclick = (event) => {
-            event.stopPropagation();
-            selectModelFromHistory(item.provider, item.model);
-        };
-        dropdown.appendChild(div);
-    });
-
-    const rect = document.getElementById('swap-model-button').getBoundingClientRect();
-    dropdown.style.top = (rect.bottom + window.scrollY) + 'px';
-    dropdown.style.left = rect.left + 'px';
-    dropdown.style.display = 'block';
-
-    const closeDropdown = (ev) => {
-        if (!dropdown.contains(ev.target) && ev.target.id !== 'swap-model-button') {
-            dropdown.style.display = 'none';
-            document.removeEventListener('click', closeDropdown);
-        }
-    };
-    setTimeout(() => document.addEventListener('click', closeDropdown), 10);
-}
-
-async function selectModelFromHistory(provider, model) {
-    const apiProviderSelect = document.getElementById('api-provider');
-    const modelSelect = document.getElementById('model-select');
-    
-    apiProviderSelect.value = provider;
-    await updateModelOptions();
-
-    if (Array.from(modelSelect.options).some(opt => opt.value === model)) {
-        modelSelect.value = model;
-    } else {
-        modelSelect.value = 'custom';
-        document.getElementById('custom-model-input').value = model;
-    }
-
-    toggleCustomModelField();
-    updateApiKeyVisibility();
-    saveSettings(); 
-    document.getElementById('model-history-dropdown').style.display = 'none';
-    showToast(`Swapped to ${model}`);
-}
-</script></body></html>
+</script></body></html>```
