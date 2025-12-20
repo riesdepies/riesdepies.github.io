@@ -571,7 +571,7 @@ margin-top: 2px;
 </div>
 <div id="chat-output"></div>
 <div id="chat-input">
-<textarea id="user-input" placeholder="Type your message..." oninput="handleUserInput()" onkeydown="handleEnter(event)"></textarea>
+<textarea id="user-input" placeholder="Type your message..." oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false"></textarea>
 <button id="send-button" onclick="handleSendButtonClick()" disabled="" title="Send Message">
 <svg id="send-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
 </button>
@@ -595,11 +595,11 @@ margin-top: 2px;
 <div id="api-key-fields">
 <div class="api-key-container" id="openai-api-key-container">
 <label for="api-key-openai">OpenAI API Key(s):</label>
-<textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()"></textarea>
+<textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
 </div>
 <div class="api-key-container" id="gemini-api-key-container">
 <label for="api-key-gemini">Google API Key(s):</label>
-<textarea id="api-key-gemini" rows="3" placeholder="Enter your Google API key(s)" onchange="saveSettings()"></textarea>
+<textarea id="api-key-gemini" rows="3" placeholder="Enter your Google API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
 </div>
 </div>
 <label for="system-prompt">System Prompt:</label>
