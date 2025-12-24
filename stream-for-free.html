@@ -14,121 +14,148 @@
             margin: 0;
             background-color: #f4f4f9;
         }
-        .search-container {
+        .search-container, .message-container {
             text-align: center;
             max-width: 400px;
             width: 100%;
             background: #ffffff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: none; /* Hidden by default; shown when adblocker is detected */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none; /* Beiden standaard uit */
         }
         .message-container {
-            text-align: center;
-            max-width: 400px;
-            width: 100%;
-            padding: 20px;
-            border-radius: 8px;
-            background: #ffcccb;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: #ffeded;
+            border: 1px solid #ffcccb;
         }
         .search-box {
             display: flex;
-            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
         input[type="text"] {
-            width: calc(100% - 100px);
-            padding: 10px;
+            flex-grow: 1;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px 0 0 4px;
-            font-size: 16px;
+            outline: none;
         }
         button {
-            width: 80px;
-            padding: 10px;
+            padding: 12px 20px;
             background-color: #007bff;
-            color: #ffffff;
+            color: white;
             border: none;
             border-radius: 0 4px 4px 0;
             cursor: pointer;
-            font-size: 16px;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .checkbox-container {
-            text-align: left;
-        }
-        .hidden {
-            display: none;
-        }
+        button:hover { background-color: #0056b3; }
+        .checkbox-container { text-align: left; font-size: 14px; }
+        
+        /* Bait classes: Deze worden door uBlock/Brave direct aangevallen */
+        .ad-label { color: #888; font-size: 10px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <div class="search-container" id="adblock">
+
+    <!-- UI voor wanneer AdBlock AAN staat -->
+    <div class="search-container" id="content-allowed">
         <h1>Stream for Free!</h1>
         <form id="searchForm">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Type a movie or TV show.." required>
+                <input type="text" id="searchInput" placeholder="Search movie or show..." required>
                 <button type="submit">Search</button>
             </div>
             <div class="checkbox-container">
                 <input type="checkbox" id="englishOnly">
-                <label for="englishOnly">English only</label>
+                <label for="englishOnly">English results only</label>
             </div>
         </form>
     </div>
 
-    <div class="message-container hidden" id="no-adblock">
-        <h1>Please install an ad blocker first!</h1>
-        <p><a href="https://ublockorigin.com/" target="_blank">uBlock Origin</a></p>
-        <p><a href="https://brave.com/" target="_blank">Brave Browser</a></p>
+    <!-- UI voor wanneer AdBlock UIT staat -->
+    <div class="message-container" id="content-blocked">
+        <h2 style="color: #cc0000;">Ad Blocker Required</h2>
+        <p>Streaming sites are full of malicious ads. Please enable an ad blocker to continue safely.</p>
+        <p><strong>Recommended:</strong> <a href="https://ublockorigin.com/" target="_blank">uBlock Origin</a></p>
+        <button onclick="window.location.reload()" style="background: #666; border-radius: 4px; margin-top: 10px;">I've enabled it, check again</button>
     </div>
 
     <script>
-        window.addEventListener('load', function() {
-            var testImg = document.createElement('img');
-            testImg.src = 'https://pagead2.googlesyndication.com/pagead/imgad?id=CICAgKDbTB6AgQEQARgBM';
-            testImg.onerror = function() {
-                // Ad blocker detected
-                document.getElementById('adblock').style.display = 'block';
-            };
-            testImg.onload = function() {
-                // No ad blocker detected
-                document.getElementById('no-adblock').classList.remove('hidden');
-            };
-            testImg.style.display = 'none';
-            document.body.appendChild(testImg);
-        });
+        async function detectAdBlocker() {
+            let isBlocked = false;
 
-        document.addEventListener('DOMContentLoaded', function() {
+            // TEST 1: Bait element met agressieve ad-klasses
+            const bait = document.createElement('div');
+            bait.className = 'pub_300x250 adsbox ad-unit ad-zone text-ad-links';
+            bait.style.cssText = 'position: absolute; top: -1000px; left: -1000px; width: 1px; height: 1px;';
+            document.body.appendChild(bait);
+            
+            // Wacht kort zodat uBlock/Brave de DOM kunnen scannen
+            await new Promise(r => setTimeout(r, 100));
+
+            const windowStyle = window.getComputedStyle(bait);
+            if (
+                windowStyle.getPropertyValue('display') === 'none' || 
+                windowStyle.getPropertyValue('visibility') === 'hidden' || 
+                bait.offsetParent === null || 
+                bait.offsetHeight === 0
+            ) {
+                isBlocked = true;
+            }
+            document.body.removeChild(bait);
+
+            if (isBlocked) return true;
+
+            // TEST 2: Netwerk fetch naar een bekende ad-server
+            // We gebruiken een echte URL van Google Ads.
+            try {
+                const testRequest = new Request('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                await fetch(testRequest);
+            } catch (error) {
+                // Als de fetch faalt (TypeError), blokkeert de browser de verbinding.
+                isBlocked = true;
+            }
+
+            return isBlocked;
+        }
+
+        async function runCheck() {
+            const hasBlocker = await detectAdBlocker();
+            
+            const allowedUI = document.getElementById('content-allowed');
+            const blockedUI = document.getElementById('content-blocked');
+
+            if (hasBlocker) {
+                allowedUI.style.display = 'block';
+                blockedUI.style.display = 'none';
+            } else {
+                allowedUI.style.display = 'none';
+                blockedUI.style.display = 'block';
+            }
+        }
+
+        // Start de detectie
+        runCheck();
+
+        // Zoekfunctie
+        document.addEventListener('DOMContentLoaded', () => {
             const searchForm = document.getElementById('searchForm');
-            const searchInput = document.getElementById('searchInput');
-            const englishOnlyCheckbox = document.getElementById('englishOnly');
+            const englishOnly = document.getElementById('englishOnly');
+            
+            englishOnly.checked = localStorage.getItem('enOnly') === 'true';
 
-            // Load preference from local storage
-            const isEnglishOnly = localStorage.getItem('englishOnly') === 'true';
-            englishOnlyCheckbox.checked = isEnglishOnly;
-
-            searchForm.addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                // Get search query
-                const query = searchInput.value.trim();
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = document.getElementById('searchInput').value.trim();
                 if (!query) return;
-                
-                // Build the search URL
-                let searchUrl = `https://yandex.com/search/?text=${encodeURIComponent(query)}+watch+free+online`;
-                if (englishOnlyCheckbox.checked) {
-                    searchUrl += '&lang=en';
-                }
-                
-                // Save preference to local storage
-                localStorage.setItem('englishOnly', englishOnlyCheckbox.checked);
 
-                // Redirect to Yandex search
-                window.location.href = searchUrl;
+                let url = `https://yandex.com/search/?text=${encodeURIComponent(query)}+watch+free+online`;
+                if (englishOnly.checked) url += '&lang=en';
+                
+                localStorage.setItem('enOnly', englishOnly.checked);
+                window.location.href = url;
             });
         });
     </script>
