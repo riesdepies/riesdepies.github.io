@@ -743,7 +743,7 @@ stopPressTimer = null;
 } else {
 stopPressTimer = setTimeout(() => {
 longPressTriggered = true;
-startListening(true); // PTT
+startListening(false); // Long-press: start but do NOT auto-send
 }, LONG_PRESS_DURATION);
 }
 };
@@ -1074,7 +1074,7 @@ const sendButton = document.getElementById("send-button");
 const userInput = document.getElementById('user-input');
 if (userInput.value.trim() === "") {
 sendButton.innerHTML = ICONS.mic;
-sendButton.title = "Speak (Hold for PTT)";
+sendButton.title = "Speak (Hold for manual input)";
 sendButton.disabled = false;
 } else {
 sendButton.innerHTML = ICONS.send;
@@ -1192,7 +1192,7 @@ showToast("Hold the stop button to cancel the generation.");
 const userInput = document.getElementById('user-input');
 if (userInput.value.trim() === "") {
 if (isListening) stopListening();
-else startListening(false);
+else startListening(true); // Short click: start and auto-send
 } else {
 sendMessage();
 }
