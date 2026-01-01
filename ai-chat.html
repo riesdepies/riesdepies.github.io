@@ -572,7 +572,7 @@ margin-top: 2px;
 <div id="chat-output"></div>
 <div id="chat-input">
 <textarea id="user-input" placeholder="Type your message..." oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false"></textarea>
-<button id="send-button" onclick="handleSendButtonClick()" disabled="" title="Send Message">
+<button id="send-button" onclick="handleSendButtonClick()" title="Send Message">
 <svg id="send-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
 </button>
 <div class="spinner" id="loading-spinner">
@@ -663,10 +663,19 @@ const LONG_PRESS_DURATION = 600;
 let recentModels = JSON.parse(localStorage.getItem('recentModels') || '[]');
 let ignoreNextClick = false;
 
+// Speech Recognition Variables
+let recognition = null;
+let autoSendPTT = false;
+let isListening = false;
+let longPressTriggered = false;
+let speechTextBeforeStart = "";
+let pttGraceTimeout = null;
+
 const ICONS = {
 trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
 restore: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"></path></svg>`,
 send: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>`,
+mic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`,
 stop: `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"></rect></svg>`,
 save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`,
 swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`,
@@ -681,6 +690,7 @@ play: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></s
 
 document.addEventListener("DOMContentLoaded", function () {
 initializeModelSwap();
+initializeSpeechRecognition();
 loadSettings();
 initializeClearChatButton();
 handlePageLoadConversation();
@@ -714,16 +724,41 @@ updateClearChatButtonIcon();
 
 const sendButton = document.getElementById('send-button');
 const startStopHold = (e) => {
-if (!isGenerating) return;
+longPressTriggered = false;
+const userInput = document.getElementById('user-input');
+
+if (isGenerating) {
 stopPressTimer = setTimeout(() => {
 stopGeneration();
+longPressTriggered = true;
 stopPressTimer = null;
 }, LONG_PRESS_DURATION);
+} else if (userInput.value.trim() !== "") {
+stopPressTimer = setTimeout(() => {
+userInput.value = "";
+handleUserInput();
+longPressTriggered = true;
+stopPressTimer = null;
+}, LONG_PRESS_DURATION);
+} else {
+stopPressTimer = setTimeout(() => {
+longPressTriggered = true;
+startListening(true); // PTT
+}, LONG_PRESS_DURATION);
+}
 };
+
 const cancelStopHold = (e) => {
 if (stopPressTimer) {
 clearTimeout(stopPressTimer);
 stopPressTimer = null;
+}
+if (isListening && autoSendPTT && longPressTriggered) {
+// Grace period to prevent cutting off the last word
+if (pttGraceTimeout) clearTimeout(pttGraceTimeout);
+pttGraceTimeout = setTimeout(() => {
+stopListening();
+}, 800);
 }
 };
 
@@ -741,6 +776,8 @@ if (dropdown.style.display === 'block' && !dropdown.contains(e.target) && !swapB
 dropdown.style.display = 'none';
 }
 });
+
+toggleSendButton();
 });
 
 
@@ -1033,7 +1070,17 @@ return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filte
 
 function toggleSendButton() {
 if (isGenerating) return;
-document.getElementById("send-button").disabled = document.getElementById('user-input').value.trim() === "";
+const sendButton = document.getElementById("send-button");
+const userInput = document.getElementById('user-input');
+if (userInput.value.trim() === "") {
+sendButton.innerHTML = ICONS.mic;
+sendButton.title = "Speak (Hold for PTT)";
+sendButton.disabled = false;
+} else {
+sendButton.innerHTML = ICONS.send;
+sendButton.title = "Send Message (Hold to Clear)";
+sendButton.disabled = false;
+}
 }
 
 
@@ -1110,7 +1157,7 @@ updateApiKeyVisibility();
 // Update model history
 let actualModelName = selectedModelValue;
 if (selectedModelValue === 'custom') {
-    actualModelName = document.getElementById('custom-model-input').value;
+actualModelName = document.getElementById('custom-model-input').value;
 }
 updateModelHistory(currentProvider, actualModelName);
 }
@@ -1134,10 +1181,21 @@ function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data
 
 
 function handleSendButtonClick() {
+if (longPressTriggered) {
+longPressTriggered = false;
+return;
+}
+
 if (isGenerating) {
 showToast("Hold the stop button to cancel the generation.");
 } else {
+const userInput = document.getElementById('user-input');
+if (userInput.value.trim() === "") {
+if (isListening) stopListening();
+else startListening(false);
+} else {
 sendMessage();
+}
 }
 }
 
@@ -1162,10 +1220,8 @@ sendButton.style.backgroundColor = "#3578e5";
 sendButton.innerHTML = ICONS.stop;
 } else {
 sendButton.style.backgroundColor = "#3578e5";
-sendButton.innerHTML = ICONS.send;
-sendButton.title = "Send Message";
-document.getElementById('loading-spinner').style.display = 'none';
 toggleSendButton();
+document.getElementById('loading-spinner').style.display = 'none';
 }
 }
 
@@ -1726,22 +1782,22 @@ let filename = 'code-snippet.txt';
 const isUserscript = code.includes('// ==UserScript==');
 
 if (isUserscript) {
-    const nameMatch = code.match(/\/\/\s*@name\s+(.+)/i);
-    const versionMatch = code.match(/\/\/\s*@version\s+(.+)/i);
-    const scriptName = nameMatch ? nameMatch[1].trim() : 'script';
-    const scriptVersion = versionMatch ? versionMatch[1].trim() : '';
-    filename = (scriptName + (scriptVersion ? ' v' + scriptVersion : '') + '.user.js').trim();
+const nameMatch = code.match(/\/\/\s*@name\s+(.+)/i);
+const versionMatch = code.match(/\/\/\s*@version\s+(.+)/i);
+const scriptName = nameMatch ? nameMatch[1].trim() : 'script';
+const scriptVersion = versionMatch ? versionMatch[1].trim() : '';
+filename = (scriptName + (scriptVersion ? ' v' + scriptVersion : '') + '.user.js').trim();
 } else if (isHtml) {
-    const titleMatch = code.match(/<title>(.*?)<\/title>/i);
-    const title = titleMatch ? titleMatch[1].trim() : 'index';
-    filename = title + '.html';
+const titleMatch = code.match(/<title>(.*?)<\/title>/i);
+const title = titleMatch ? titleMatch[1].trim() : 'index';
+filename = title + '.html';
 } else {
-    const langMatch = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
-    if (langMatch) {
-        const extMap = { 'javascript': 'js', 'python': 'py', 'java': 'java', 'css': 'css', 'json': 'json' };
-        const lang = langMatch.replace('language-', '');
-        filename = `snippet.${extMap[lang] || lang}`;
-    }
+const langMatch = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
+if (langMatch) {
+const extMap = { 'javascript': 'js', 'python': 'py', 'java': 'java', 'css': 'css', 'json': 'json' };
+const lang = langMatch.replace('language-', '');
+filename = `snippet.${extMap[lang] || lang}`;
+}
 }
 
 const blob = new Blob([code], { type: 'text/plain' });
@@ -1919,23 +1975,23 @@ function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️
 function initializeModelSwap() {
 const swapButton = document.getElementById('swap-model-button');
 swapButton.addEventListener('click', (e) => {
-    if (ignoreNextClick) {
-        ignoreNextClick = false;
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-    }
-    swapModels();
+if (ignoreNextClick) {
+ignoreNextClick = false;
+e.preventDefault();
+e.stopPropagation();
+return;
+}
+swapModels();
 });
 
 let longPressTimer;
 const LONG_PRESS_MS = 600;
 
 const startPress = (e) => {
-    longPressTimer = setTimeout(() => {
-        showHistoryDropdown();
-        ignoreNextClick = true;
-    }, LONG_PRESS_MS);
+longPressTimer = setTimeout(() => {
+showHistoryDropdown();
+ignoreNextClick = true;
+}, LONG_PRESS_MS);
 };
 const cancelPress = () => { clearTimeout(longPressTimer); };
 
@@ -2080,21 +2136,85 @@ toast.classList.remove('show');
 }
 
 function playNotificationSound() {
-    if (!document.hidden) return;
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    const playSimple = (c, f, t, d, v) => {
-        const o = c.createOscillator();
-        const g = c.createGain();
-        o.type = t;
-        o.frequency.setValueAtTime(f, c.currentTime);
-        g.gain.setValueAtTime(v, c.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + d);
-        o.connect(g).connect(c.destination);
-        o.start(); o.stop(c.currentTime + d);
-    };
+if (!document.hidden) return;
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // Gain set to 1.2 for a louder sound
-    playSimple(ctx, 1100, 'triangle', 0.08, 1.2);
+const playSimple = (c, f, t, d, v) => {
+const o = c.createOscillator();
+const g = c.createGain();
+o.type = t;
+o.frequency.setValueAtTime(f, c.currentTime);
+g.gain.setValueAtTime(v, c.currentTime);
+g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + d);
+o.connect(g).connect(c.destination);
+o.start(); o.stop(c.currentTime + d);
+};
+
+// Gain set to 1.2 for a louder sound
+playSimple(ctx, 1100, 'triangle', 0.08, 1.2);
+}
+
+function initializeSpeechRecognition() {
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+recognition = new SpeechRecognition();
+recognition.lang = 'nl-NL, en-US';
+recognition.interimResults = true;
+recognition.continuous = true;
+
+recognition.onstart = () => {
+isListening = true;
+document.getElementById('send-button').style.backgroundColor = '#d9534f';
+speechTextBeforeStart = document.getElementById('user-input').value;
+};
+
+recognition.onresult = (event) => {
+const userInput = document.getElementById('user-input');
+let finalTranscript = '';
+let interimTranscript = '';
+
+for (let i = event.resultIndex; i < event.results.length; ++i) {
+if (event.results[i].isFinal) {
+finalTranscript += event.results[i][0].transcript;
+} else {
+interimTranscript += event.results[i][0].transcript;
+}
+}
+const currentText = (speechTextBeforeStart + (speechTextBeforeStart.trim() ? ' ' : '') + finalTranscript).trim();
+userInput.value = currentText + (interimTranscript ? (currentText ? ' ' : '') + interimTranscript : '');
+handleUserInput();
+};
+
+recognition.onerror = (event) => {
+if (event.error !== 'no-speech') {
+console.error("Speech Recognition Error", event.error);
+isListening = false;
+autoSendPTT = false;
+toggleSendButton();
+}
+};
+
+recognition.onend = () => {
+isListening = false;
+document.getElementById('send-button').style.backgroundColor = '#3578e5';
+toggleSendButton();
+if (autoSendPTT) {
+sendMessage();
+autoSendPTT = false;
+}
+};
+}
+}
+
+function startListening(isPTT = false) {
+if (!recognition || isListening) return;
+if (pttGraceTimeout) clearTimeout(pttGraceTimeout);
+autoSendPTT = isPTT;
+recognition.start();
+}
+
+function stopListening() {
+if (!recognition || !isListening) return;
+recognition.stop();
 }
 </script></body></html>
