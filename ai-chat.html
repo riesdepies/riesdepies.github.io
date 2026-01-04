@@ -1776,21 +1776,21 @@ attachButtons(true);
 function downloadCode(codeBlock) {
 const code = codeBlock.textContent;
 const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup');
+const isJs = codeBlock.classList.contains('language-javascript');
+const hasUserscriptHeader = code.includes('// ==UserScript==');
 let filename = 'code-snippet.txt';
 
-// Check if it's a Userscript
-const isUserscript = code.includes('// ==UserScript==');
-
-if (isUserscript) {
+// Logic ensuring mutual exclusivity between Userscripts and HTML
+if (isHtml) {
+const titleMatch = code.match(/<title>(.*?)<\/title>/i);
+const title = titleMatch ? titleMatch[1].trim() : 'index';
+filename = title + '.html';
+} else if (hasUserscriptHeader && (isJs || !Array.from(codeBlock.classList).some(c => c.startsWith('language-')))) {
 const nameMatch = code.match(/\/\/\s*@name\s+(.+)/i);
 const versionMatch = code.match(/\/\/\s*@version\s+(.+)/i);
 const scriptName = nameMatch ? nameMatch[1].trim() : 'script';
 const scriptVersion = versionMatch ? versionMatch[1].trim() : '';
 filename = (scriptName + (scriptVersion ? ' v' + scriptVersion : '') + '.user.js').trim();
-} else if (isHtml) {
-const titleMatch = code.match(/<title>(.*?)<\/title>/i);
-const title = titleMatch ? titleMatch[1].trim() : 'index';
-filename = title + '.html';
 } else {
 const langMatch = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
 if (langMatch) {
@@ -2217,4 +2217,4 @@ function stopListening() {
 if (!recognition || !isListening) return;
 recognition.stop();
 }
-</script></body></html>
+</script></body><div style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.75); color: rgb(255, 255, 255); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-family: sans-serif; z-index: 1000000; display: none; pointer-events: none; transition: opacity 0.2s ease 0s;"></div></html>
