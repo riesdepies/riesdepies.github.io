@@ -5,85 +5,545 @@
 <link rel="icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20version%3D%221.1%22%20width%3D%22512px%22%20height%3D%22512px%22%20style%3D%22shape-rendering%3AgeometricPrecision%3B%20text-rendering%3AgeometricPrecision%3B%20image-rendering%3AoptimizeQuality%3B%20fill-rule%3Aevenodd%3B%20clip-rule%3Aevenodd%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A0.996%22%20fill%3D%22%232675e2%22%20d%3D%22M%20120.5%2C41.5%20C%20210.501%2C41.3333%20300.501%2C41.5%20390.5%2C42C%20424.735%2C45.692%20448.902%2C63.192%20463%2C94.5C%20466.101%2C102.569%20468.101%2C110.902%20469%2C119.5C%20469.971%2C184.191%20469.638%2C248.857%20468%2C313.5C%20459.274%2C352.226%20435.44%2C375.393%20396.5%2C383C%20345.5%2C383.333%20294.5%2C383.667%20243.5%2C384C%20216.5%2C411%20189.5%2C438%20162.5%2C465C%20150.769%2C472.03%20140.269%2C470.53%20131%2C460.5C%20129.561%2C458.725%20128.561%2C456.725%20128%2C454.5C%20127.5%2C430.836%20127.333%2C407.169%20127.5%2C383.5C%2085.1502%2C381.814%2057.4835%2C360.814%2044.5%2C320.5C%2043.2586%2C315.569%2042.4253%2C310.569%2042%2C305.5C%2041.3333%2C243.5%2041.3333%2C181.5%2042%2C119.5C%2046.0928%2C85.7511%2063.5928%2C61.9178%2094.5%2C48C%20103.066%2C44.86%20111.733%2C42.6934%20120.5%2C41.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20153.5%2C180.5%20C%20172.128%2C179.726%20184.628%2C188.059%20191%2C205.5C%20193.38%2C225.108%20185.213%2C237.942%20166.5%2C244C%20146.892%2C246.38%20134.059%2C238.214%20128%2C219.5C%20125.969%2C199.551%20134.469%2C186.551%20153.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20249.5%2C180.5%20C%20268.128%2C179.726%20280.628%2C188.059%20287%2C205.5C%20289.38%2C225.108%20281.213%2C237.942%20262.5%2C244C%20242.892%2C246.38%20230.059%2C238.214%20224%2C219.5C%20221.969%2C199.551%20230.469%2C186.551%20249.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3Cg%3E%3Cpath%20style%3D%22opacity%3A1%22%20fill%3D%22%23ebe9e9%22%20d%3D%22M%20345.5%2C180.5%20C%20364.128%2C179.726%20376.628%2C188.059%20383%2C205.5C%20385.38%2C225.108%20377.213%2C237.942%20358.5%2C244C%20338.892%2C246.38%20326.059%2C238.214%20320%2C219.5C%20317.969%2C199.551%20326.469%2C186.551%20345.5%2C180.5%20Z%22%2F%3E%3C%2Fg%3E%20%3C/svg%3E">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
 <style>
-body { font-family: sans-serif; margin: 0; background-color: #202124; color: #eee; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-#app-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-#chat-container { display: flex; flex-direction: column; background-color: #2b2c2f; height: 100%; }
-#settings-container { width: 100%; background-color: #2b2c2f; padding: 20px; display: none; box-sizing: border-box; overflow-y: auto; }
-#settings-container label { display: block; margin-bottom: 5px; }
-#settings-container textarea, #settings-container select, #settings-container input[type="text"] { width: 100%; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; box-sizing: border-box; margin-bottom: 15px; }
-#chat-output { padding: 15px; flex: 1; overflow-y: auto; position: relative; }
-.message { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 8px; padding: 10px; border-radius: 15px; position: relative; min-height: 1.2em; max-width: 90%; box-sizing: border-box; word-wrap: break-word; width: fit-content; border: 1px solid transparent; cursor: pointer; }
-.message.user { background-color: #424347; align-self: flex-end; border-top-right-radius: 0; margin-left: auto; text-align: left; }
-.message.assistant { background-color: #3578e5; align-self: flex-start; border-top-left-radius: 0; text-align: left; cursor: default; }
-.message.assistant.has-internet-indicator { padding-bottom: 35px; }
-.message.editing { border: 1px dashed white; }
-.reasoning-container { background-color: #2a62bc; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; cursor: pointer; width: 100%; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.1); }
-.reasoning-content { font-size: 0.9em; margin-top: 8px; color: #e0e0e0; font-style: italic; }
-.reasoning-container-header { font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-.reasoning-container-title { display: flex; align-items: center; gap: 6px; }
-.reasoning-container-icon { width: 14px; height: 14px; transform: rotate(0deg); transition: transform 0.2s ease-in-out; }
-.reasoning-container.collapsed .reasoning-container-icon { transform: rotate(-90deg); }
-.reasoning-container.collapsed .reasoning-content { display: none; }
-.grounding-wrapper { position: absolute; bottom: 5px; right: 8px; display: flex; justify-content: flex-end; z-index: 10; }
-.internet-indicator { opacity: 0.8; display: flex; align-items: center; cursor: pointer; padding: 2px; border-radius: 4px; transition: background-color 0.2s; }
-.internet-indicator:hover { background-color: rgba(255,255,255,0.2); opacity: 1; }
-.internet-indicator svg { width: 16px; height: 16px; fill: #fff; }
-.grounding-details { margin-top: 10px; background-color: #2b2c2f; border-radius: 8px; padding: 10px; font-size: 0.85em; width: 100%; box-sizing: border-box; border: 1px solid #444; display: block; }
-.grounding-details.collapsed { display: none; }
-.grounding-section-title { font-weight: 600; margin-bottom: 5px; color: #aaa; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }
-.grounding-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-.search-query-tag { background-color: #424347; padding: 3px 8px; border-radius: 12px; color: #ddd; font-size: 0.9em; }
-.grounding-sources-list { list-style: none; padding: 0; margin: 0; }
-.grounding-sources-list li { margin-bottom: 4px; counter-increment: source-counter; display: flex; gap: 5px; }
-.grounding-sources-list li::before { content: counter(source-counter) "."; color: #888; min-width: 15px; }
-.source-link { color: #64b5f6; text-decoration: none; word-break: break-all; }
-.source-link:hover { text-decoration: underline; }
-.editable { width: 100%; display: block; min-height: 1.2em; }
-.editable[contenteditable="true"] { cursor: text; }
-.editable:focus { outline: none; }
-#chat-input { flex-shrink: 0; display: flex; padding: 15px; border-top: 1px solid #37383c; background-color: #2b2c2f; box-sizing: border-box; position: relative; align-items: flex-end; }
-#chat-input textarea { flex-grow: 1; padding: 10px; background-color: #333438; color: #eee; border: 1px solid #444549; border-radius: 5px; margin-right: 10px; resize: vertical; min-height: 20px; line-height: 1.5; overflow-y: auto; box-sizing: border-box; }
-#chat-input button#send-button { padding: 0; background-color: #3578e5; color: white; border: none; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; }
-#chat-input button#send-button svg { width: 20px; height: 20px; }
-#chat-input button:disabled { background-color: #666; cursor: not-allowed; }
-.tabs { display: flex; border-bottom: 1px solid #37383c; position: relative; align-items: center; height: 48px; flex-shrink: 0; }
-.tab { padding: 0 15px; cursor: pointer; border-bottom: 2px solid transparent; display: flex; align-items: center; height: 100%; box-sizing: border-box; }
-.tab.active { border-bottom: 2px solid #3578e5; }
-#swap-model-button { background: none; border: none; color: #3578e5; font-weight: bold; cursor: pointer; padding: 8px 15px; margin-left: 10px; display: flex; align-items: center; justify-content: center; border-radius: 4px; align-self: center; user-select: none; }
-#swap-model-button:hover:not(:disabled) { color: #fff; background-color: #3a3b3f; }
-#swap-model-button:disabled { color: #6c6c6c; cursor: not-allowed; }
-#swap-model-button svg { width: 20px; height: 20px; }
-#clear-chat-button-container { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
-#clear-chat-button { background: none; border: none; color: #e0e0e0; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; }
-#clear-chat-button:hover { color: #fff; }
-#clear-chat-button:disabled { color: #6c6c6c; cursor: not-allowed; }
-#clear-chat-button svg { width: 24px; height: 24px; }
-pre[class*="language-"] { background: #2e2f33; border-radius: 3px; font-size: 0.875em; margin: 0; padding: 10px; position: relative; overflow-x: auto; max-width: 100%; box-sizing: border-box; }
-.message span.content, .message span.editable { width: 100%; overflow-x: hidden; text-align: left; display: block; }
-.message pre { width: 100%; position: relative; }
-.spinner { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.spinner div { width: 12px; height: 12px; border-radius: 50%; background: #3578e5; animation: spin 1s infinite ease-in-out; margin: 0 5px; }
-.spinner div:nth-child(2) { animation-delay: 0.1s; }
-.spinner div:nth-child(3) { animation-delay: 0.2s; }
-@keyframes spin { 0% { transform: scale(1); } 50% { transform: scale(0.5); } 100% { transform: scale(1); } }
-.copy-code, .download-code, .run-code, .settings-button { background-color: #3578e5; color: white; border: none; border-radius: 5px; padding: 5px; cursor: pointer; margin: 5px; position: absolute; outline: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
-.copy-code svg, .download-code svg, .run-code svg { width: 18px; height: 18px; }
-.code-buttons-hidden .copy-code, .code-buttons-hidden .download-code, .code-buttons-hidden .run-code { display: none !important; }
-.console-copy-code { top: 10px; right: 10px; background-color: #3578e5; color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.875em; position: absolute; outline: none; }
-.message p { margin: 0; }
-.message p+p { margin-top: 1em; }
-.settings-button { background-color: #333438; color: #eee; border: 1px solid #444549; margin: 0; position: static; margin-bottom: 15px; width: auto; height: auto; padding: 5px 10px; }
-.settings-button-container { display: flex; align-items: center; justify-content: space-between; }
-.hidden { display: none !important; }
-.api-key-container { display: none; }
-#toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #3578e5; color: white; padding: 12px 22px; border-radius: 8px; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s, bottom 0.3s; font-size: 0.9em; }
-#toast-notification.show { opacity: 1; visibility: visible; bottom: 50px; }
-#model-history-dropdown { position: absolute; background-color: #2b2c2f; border: 1px solid #444549; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 2000; display: none; width: 220px; overflow: hidden; }
-.history-item { padding: 10px 15px; border-bottom: 1px solid #37383c; cursor: pointer; transition: background-color 0.2s; display: flex; flex-direction: column; }
-.history-item:last-child { border-bottom: none; }
-.history-item:hover { background-color: #3578e5; }
-.history-item-model { font-weight: bold; font-size: 0.95em; color: #fff; display: block; }
-.history-item-provider { font-size: 0.75em; color: #bbb; display: block; margin-top: 2px; }
+body {
+font-family: sans-serif;
+margin: 0;
+background-color: #202124;
+color: #eee;
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+#app-container {
+flex: 1;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+#chat-container {
+display: flex;
+flex-direction: column;
+background-color: #2b2c2f;
+height: 100%;
+}
+#settings-container {
+width: 100%;
+background-color: #2b2c2f;
+padding: 20px;
+display: none;
+box-sizing: border-box;
+overflow-y: auto;
+}
+#settings-container label {
+display: block;
+margin-bottom: 5px;
+}
+#settings-container textarea,
+#settings-container select,
+#settings-container input[type="text"] {
+width: 100%;
+padding: 10px;
+background-color: #333438;
+color: #eee;
+border: 1px solid #444549;
+border-radius: 5px;
+box-sizing: border-box;
+margin-bottom: 15px;
+}
+#chat-output {
+padding: 15px;
+flex: 1;
+overflow-y: auto;
+position: relative;
+}
+.message {
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+margin-bottom: 8px;
+padding: 10px;
+border-radius: 15px;
+position: relative;
+min-height: 1.2em;
+max-width: 90%;
+box-sizing: border-box;
+word-wrap: break-word;
+width: fit-content;
+border: 1px solid transparent;
+cursor: pointer;
+}
+.message.user {
+background-color: #424347;
+align-self: flex-end;
+border-top-right-radius: 0;
+margin-left: auto;
+text-align: left;
+}
+.message.assistant {
+background-color: #3578e5;
+align-self: flex-start;
+border-top-left-radius: 0;
+text-align: left;
+cursor: default;
+}
+.message.assistant.has-internet-indicator {
+padding-bottom: 35px;
+}
+.message.editing {
+border: 1px dashed white;
+}
+/* Reasoning Container Styling */
+.reasoning-container {
+background-color: #2a62bc;
+border-radius: 8px;
+padding: 8px 12px;
+margin-bottom: 10px;
+cursor: pointer;
+width: 100%;
+box-sizing: border-box;
+border: 1px solid rgba(255,255,255,0.1);
+}
+.reasoning-content {
+font-size: 0.9em;
+margin-top: 8px;
+color: #e0e0e0;
+font-style: italic;
+}
+.reasoning-container-header {
+font-size: 0.9em;
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-weight: 600;
+}
+.reasoning-container-title {
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.reasoning-container-icon {
+width: 14px;
+height: 14px;
+transform: rotate(0deg);
+transition: transform 0.2s ease-in-out;
+}
+.reasoning-icon-svg {
+width: 16px;
+height: 16px;
+fill: currentColor;
+}
+.reasoning-container.collapsed .reasoning-container-icon {
+transform: rotate(-90deg);
+}
+.reasoning-container.collapsed .reasoning-content {
+display: none;
+}
+
+
+/* Grounding / Internet Source Styling */
+.grounding-wrapper {
+position: absolute;
+bottom: 5px;
+right: 8px;
+display: flex;
+justify-content: flex-end;
+z-index: 10;
+}
+.internet-indicator {
+opacity: 0.8;
+display: flex;
+align-items: center;
+cursor: pointer;
+padding: 2px;
+border-radius: 4px;
+transition: background-color 0.2s;
+}
+.internet-indicator:hover {
+background-color: rgba(255,255,255,0.2);
+opacity: 1;
+}
+.internet-indicator svg {
+width: 16px;
+height: 16px;
+fill: #fff;
+}
+.grounding-details {
+margin-top: 10px;
+background-color: #2b2c2f;
+border-radius: 8px;
+padding: 10px;
+font-size: 0.85em;
+width: 100%;
+box-sizing: border-box;
+border: 1px solid #444;
+display: block;
+}
+.grounding-details.collapsed {
+display: none;
+}
+.grounding-section-title {
+font-weight: 600;
+margin-bottom: 5px;
+color: #aaa;
+font-size: 0.9em;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+.grounding-chips {
+display: flex;
+flex-wrap: wrap;
+gap: 5px;
+margin-bottom: 10px;
+}
+.search-query-tag {
+background-color: #424347;
+padding: 3px 8px;
+border-radius: 12px;
+color: #ddd;
+font-size: 0.9em;
+}
+.grounding-sources-list {
+list-style: none;
+padding: 0;
+margin: 0;
+}
+.grounding-sources-list li {
+margin-bottom: 4px;
+counter-increment: source-counter;
+display: flex;
+gap: 5px;
+}
+.grounding-sources-list li::before {
+content: counter(source-counter) ".";
+color: #888;
+min-width: 15px;
+}
+.source-link {
+color: #64b5f6;
+text-decoration: none;
+word-break: break-all;
+}
+.source-link:hover {
+text-decoration: underline;
+}
+
+
+.editable {
+width: 100%;
+display: block;
+min-height: 1.2em;
+}
+.editable[contenteditable="true"] {
+cursor: text;
+}
+.editable:focus {
+outline: none;
+}
+#chat-input {
+flex-shrink: 0;
+display: flex;
+padding: 15px;
+border-top: 1px solid #37383c;
+background-color: #2b2c2f;
+box-sizing: border-box;
+position: relative;
+align-items: flex-end;
+}
+#chat-input textarea {
+flex-grow: 1;
+padding: 10px;
+background-color: #333438;
+color: #eee;
+border: 1px solid #444549;
+border-radius: 5px;
+margin-right: 10px;
+resize: vertical;
+min-height: 20px;
+line-height: 1.5;
+overflow-y: auto;
+box-sizing: border-box;
+}
+#chat-input button#send-button {
+padding: 0;
+background-color: #3578e5;
+color: white;
+border: none;
+border-radius: 5px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+flex-shrink: 0;
+box-sizing: border-box;
+}
+#chat-input button#send-button svg {
+width: 20px;
+height: 20px;
+}
+#chat-input button:disabled {
+background-color: #666;
+cursor: not-allowed;
+}
+.tabs {
+display: flex;
+border-bottom: 1px solid #37383c;
+position: relative;
+align-items: center;
+height: 48px;
+flex-shrink: 0;
+}
+.tab {
+padding: 0 15px;
+cursor: pointer;
+border-bottom: 2px solid transparent;
+display: flex;
+align-items: center;
+height: 100%;
+box-sizing: border-box;
+}
+.tab.active {
+border-bottom: 2px solid #3578e5;
+}
+#swap-model-button {
+background: none;
+border: none;
+color: #3578e5;
+font-weight: bold;
+cursor: pointer;
+padding: 8px 15px;
+margin-left: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 4px;
+align-self: center;
+user-select: none;
+}
+#swap-model-button:hover:not(:disabled) {
+color: #fff;
+background-color: #3a3b3f;
+}
+#swap-model-button:disabled {
+color: #6c6c6c;
+cursor: not-allowed;
+}
+#swap-model-button svg {
+width: 20px;
+height: 20px;
+}
+#clear-chat-button-container {
+position: absolute;
+right: 10px;
+top: 50%;
+transform: translateY(-50%);
+}
+#clear-chat-button {
+background: none;
+border: none;
+color: #e0e0e0;
+cursor: pointer;
+padding: 5px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+#clear-chat-button:hover {
+color: #fff;
+}
+#clear-chat-button:disabled {
+color: #6c6c6c;
+cursor: not-allowed;
+}
+#clear-chat-button svg {
+width: 24px;
+height: 24px;
+}
+pre[class*="language-"] {
+background: #2e2f33;
+border-radius: 3px;
+font-size: 0.875em;
+margin: 0;
+padding: 10px;
+position: relative;
+overflow-x: auto;
+max-width: 100%;
+box-sizing: border-box;
+}
+.message span.content, .message span.editable {
+width: 100%;
+overflow-x: hidden;
+text-align: left;
+display: block;
+}
+.message pre {
+width: 100%;
+position: relative;
+}
+.spinner {
+display: none;
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+.spinner div {
+width: 12px;
+height: 12px;
+border-radius: 50%;
+background: #3578e5;
+animation: spin 1s infinite ease-in-out;
+margin: 0 5px;
+}
+.spinner div:nth-child(2) {
+animation-delay: 0.1s;
+}
+.spinner div:nth-child(3) {
+animation-delay: 0.2s;
+}
+@keyframes spin {
+0% {
+transform: scale(1);
+}
+50% {
+transform: scale(0.5);
+}
+100% {
+transform: scale(1);
+}
+}
+.copy-code,
+.download-code,
+.run-code,
+.settings-button {
+background-color: #3578e5;
+color: white;
+border: none;
+border-radius: 5px;
+padding: 5px;
+cursor: pointer;
+margin: 5px;
+position: absolute;
+outline: none;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 28px;
+height: 28px;
+}
+.copy-code svg, .download-code svg, .run-code svg {
+width: 18px;
+height: 18px;
+}
+
+.code-buttons-hidden .copy-code,
+.code-buttons-hidden .download-code,
+.code-buttons-hidden .run-code {
+display: none !important;
+}
+
+.console-copy-code {
+top: 10px;
+right: 10px;
+background-color: #3578e5;
+color: white;
+border: none;
+border-radius: 5px;
+padding: 5px 10px;
+cursor: pointer;
+font-size: 0.875em;
+position: absolute;
+outline: none;
+}
+.message p {
+margin: 0;
+}
+.message p+p {
+margin-top: 1em;
+}
+.settings-button {
+background-color: #333438;
+color: #eee;
+border: 1px solid #444549;
+margin: 0;
+position: static;
+margin-bottom: 15px;
+width: auto;
+height: auto;
+padding: 5px 10px;
+}
+.settings-button:focus {
+outline: none;
+}
+.settings-button-container {
+display: flex;
+align-items: center;
+justify-content: space-between;
+}
+.hidden {
+display: none !important;
+}
+.api-key-container {
+display: none;
+}
+#toast-notification {
+position: fixed;
+bottom: 30px;
+left: 50%;
+transform: translateX(-50%);
+background-color: #3578e5;
+color: white;
+padding: 12px 22px;
+border-radius: 8px;
+z-index: 1000;
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.3s, visibility 0.3s, bottom 0.3s;
+font-size: 0.9em;
+}
+#toast-notification.show {
+opacity: 1;
+visibility: visible;
+bottom: 50px;
+}
+/* Model History Dropdown */
+#model-history-dropdown {
+position: absolute;
+background-color: #2b2c2f;
+border: 1px solid #444549;
+border-radius: 5px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+z-index: 2000;
+display: none;
+width: 220px;
+overflow: hidden;
+}
+.history-item {
+padding: 10px 15px;
+border-bottom: 1px solid #37383c;
+cursor: pointer;
+transition: background-color 0.2s;
+display: flex;
+flex-direction: column;
+}
+.history-item:last-child {
+border-bottom: none;
+}
+.history-item:hover {
+background-color: #3578e5;
+}
+.history-item-model {
+font-weight: bold;
+font-size: 0.95em;
+color: #fff;
+display: block;
+}
+.history-item-provider {
+font-size: 0.75em;
+color: #bbb;
+display: block;
+margin-top: 2px;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
@@ -94,6 +554,9 @@ pre[class*="language-"] { background: #2e2f33; border-radius: 3px; font-size: 0.
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+
+
+
 <div id="app-container">
 <div id="chat-container">
 <div class="tabs">
@@ -101,46 +564,112 @@ pre[class*="language-"] { background: #2e2f33; border-radius: 3px; font-size: 0.
 <div class="tab" onclick="showTab('settings')">Settings</div>
 <div class="tab" onclick="showTab('console')" id="console-tab" style="display:none;">Console</div>
 <button id="swap-model-button"></button>
-<div id="clear-chat-button-container"><button id="clear-chat-button" title="Clear Chat"></button></div>
+<div id="clear-chat-button-container">
+<button id="clear-chat-button" title="Clear Chat">
+</button>
+</div>
 </div>
 <div id="chat-output"></div>
 <div id="chat-input">
 <textarea id="user-input" placeholder="Type your message..." oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false"></textarea>
-<button id="send-button" onclick="handleSendButtonClick()" title="Send Message"><svg id="send-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button>
-<div class="spinner" id="loading-spinner"><div></div><div></div><div></div></div>
+<button id="send-button" onclick="handleSendButtonClick()" title="Send Message">
+<svg id="send-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+</button>
+<div class="spinner" id="loading-spinner">
+<div></div>
+<div></div>
+<div></div>
+</div>
 </div>
 <div id="settings-container">
 <label for="api-provider">API Provider:</label>
-<select id="api-provider" onchange="updateModelOptions(); saveSettings();"><option value="openai">OpenAI</option><option value="gemini">Google</option></select>
-<label for="model-select">Model:</label><select id="model-select" onchange="toggleCustomModelField(); saveSettings();"></select>
+<select id="api-provider" onchange="updateModelOptions(); saveSettings();">
+<option value="openai">OpenAI</option>
+<option value="gemini">Google</option>
+</select>
+<label for="model-select">Model:</label>
+<select id="model-select" onchange="toggleCustomModelField(); saveSettings();">
+</select>
 <label for="custom-model-input" id="custom-model-label" class="hidden">Custom model:</label>
 <input type="text" id="custom-model-input" class="hidden" placeholder="Enter custom model name" onchange="saveSettings()">
 <div id="api-key-fields">
-<div class="api-key-container" id="openai-api-key-container"><label for="api-key-openai">OpenAI API Key(s):</label><textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea></div>
-<div class="api-key-container" id="gemini-api-key-container"><label for="api-key-gemini">Google API Key(s):</label><textarea id="api-key-gemini" rows="3" placeholder="Enter your Google API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea></div>
+<div class="api-key-container" id="openai-api-key-container">
+<label for="api-key-openai">OpenAI API Key(s):</label>
+<textarea id="api-key-openai" rows="3" placeholder="Enter your OpenAI API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
 </div>
-<label for="system-prompt">System Prompt:</label><textarea id="system-prompt" rows="9" placeholder="Enter a system prompt" onchange="saveSettings()"></textarea>
+<div class="api-key-container" id="gemini-api-key-container">
+<label for="api-key-gemini">Google API Key(s):</label>
+<textarea id="api-key-gemini" rows="3" placeholder="Enter your Google API key(s)" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
+</div>
+</div>
+<label for="system-prompt">System Prompt:</label>
+<textarea id="system-prompt" rows="9" placeholder="Enter a system prompt" onchange="saveSettings()"></textarea>
+
+
 <label>Developer Options:</label>
-<div class="settings-button-container"><button class="settings-button" id="toggle-console-button" onclick="toggleConsoleButton()">Enable Console</button><button class="settings-button" onclick="copySource(this)">Copy Source</button></div>
+<div class="settings-button-container">
+<button class="settings-button" id="toggle-console-button" onclick="toggleConsoleButton()">Enable Console</button>
+<button class="settings-button" onclick="copySource(this)">Copy Source</button>
 </div>
-<div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;"><pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre><button class="console-copy-code">Copy</button></div>
+</div>
+<div id="console-container" style="display:none; background-color: #2e2f33; color: #eee; height: 100%; padding: 15px; position: relative;">
+<pre id="console-output" style="white-space: pre-wrap; overflow-y: auto; height: calc(100% - 40px);"></pre>
+<button class="console-copy-code">Copy</button>
+</div>
 </div>
 </div>
 <div id="model-history-dropdown"></div>
 <div id="toast-notification"></div>
-
 <script>
-let apiKeys = { gemini: [], openai: [] };
-let currentApiKeyIndex = 0, systemPrompt = localStorage.getItem('systemPrompt') || "", conversationHistory = [], editIndex = null;
-let consoleEnabled = localStorage.getItem('consoleEnabled') === "true", selectedModel = localStorage.getItem('selectedModel'), lastUsedModels = JSON.parse(localStorage.getItem('lastUsedModels') || '{}');
-let customGeminiModel = localStorage.getItem('customGeminiModel') || "", customOpenAIModel = localStorage.getItem('customOpenAIModel') || "", initialHTML = document.documentElement.outerHTML;
-const CHAT_CONVERSATION_KEY = 'chatInterfaceConversation', CHAT_CLEARED_STATE_KEY = 'chatInterfaceClearedState';
-let chatClearedState = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true', currentModel = null, previousModel = null;
-const CURRENT_MODEL_KEY = 'chatInterfaceCurrentModel', PREVIOUS_MODEL_KEY = 'chatInterfacePreviousModel';
-let googleSearchEnabled = true, currentAbortController = null, isGenerating = false, stopPressTimer = null;
+let apiKeys = {
+gemini: [],
+openai: []
+};
+let currentApiKeyIndex = 0;
+let systemPrompt = localStorage.getItem('systemPrompt') || "";
+let conversationHistory = [];
+let modelSpecificConversationHistory = {
+gemini: []
+};
+let editIndex = null;
+let consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
+let selectedModel = localStorage.getItem('selectedModel');
+let lastUsedModels = JSON.parse(localStorage.getItem('lastUsedModels') || '{}');
+let customGeminiModel = localStorage.getItem('customGeminiModel') || "";
+let customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
+let initialHTML = document.documentElement.outerHTML;
+
+
+const CHAT_CONVERSATION_KEY = 'chatInterfaceConversation';
+const CHAT_CLEARED_STATE_KEY = 'chatInterfaceClearedState';
+let chatClearedState = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
+
+
+// Model Swap Variables
+let currentModel = null;
+let previousModel = null;
+const CURRENT_MODEL_KEY = 'chatInterfaceCurrentModel';
+const PREVIOUS_MODEL_KEY = 'chatInterfacePreviousModel';
+
+
+// Google Search Tool Variable
+let googleSearchEnabled = true; // Hardcoded to true
+let currentAbortController = null;
+let isGenerating = false;
+let stopPressTimer = null;
 const LONG_PRESS_DURATION = 600;
-let recentModels = JSON.parse(localStorage.getItem('recentModels') || '[]'), ignoreNextClick = false;
-let recognition = null, autoSendPTT = false, isListening = false, longPressTriggered = false, speechTextBeforeStart = "", pttGraceTimeout = null;
+
+// Model History Variables
+let recentModels = JSON.parse(localStorage.getItem('recentModels') || '[]');
+let ignoreNextClick = false;
+
+// Speech Recognition Variables
+let recognition = null;
+let autoSendPTT = false;
+let isListening = false;
+let longPressTriggered = false;
+let speechTextBeforeStart = "";
+let pttGraceTimeout = null;
 
 const ICONS = {
 trash: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>`,
@@ -149,6 +678,7 @@ send: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01
 mic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`,
 stop: `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"></rect></svg>`,
 save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`,
+swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`,
 globe: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`,
 brain: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M10.29 3.86L10.29 3.86C8.86 4.3 7.6 5.23 6.72 6.48C5.83 7.73 5.4 9.23 5.51 10.74C5.17 10.82 4.85 10.96 4.56 11.16C4.05 11.51 3.65 11.99 3.39 12.56C3.12 13.13 3.01 13.76 3.07 14.38C3.14 15.01 3.38 15.6 3.77 16.1C4.16 16.6 4.68 16.98 5.27 17.2C5.07 18.66 5.43 20.15 6.32 21.36C7.2 22.56 8.52 23.33 10 23.5L10 23.5C10.73 23.58 11.47 23.49 12.16 23.23C12.85 22.97 13.48 22.54 13.98 21.99C14.48 21.43 14.83 20.76 15 20.03C15.17 19.3 15.16 18.55 14.97 17.82C15.82 17.63 16.6 17.18 17.19 16.53C17.78 15.88 18.15 15.06 18.25 14.19C18.35 13.32 18.18 12.44 17.76 11.67C17.33 10.89 16.68 10.26 15.88 9.87C15.93 8.32 15.42 6.81 14.45 5.61C13.48 4.41 12.13 3.61 10.65 3.32C10.53 3.3 10.41 3.28 10.29 3.28V3.86ZM12 5.5C13.38 5.5 14.5 6.62 14.5 8H13V9.5H14.5C14.5 10.88 13.38 12 12 12C10.62 12 9.5 10.88 9.5 9.5H11V8H9.5C9.5 6.62 10.62 5.5 12 5.5ZM7.5 12.5C8.33 12.5 9 13.17 9 14H7.5V15.5H9C9 16.33 8.33 17 7.5 17C6.67 17 6 16.33 6 15.5H7.5V14H6C6 13.17 6.67 12.5 7.5 12.5ZM16.5 12.5C17.33 12.5 18 13.17 18 14H16.5V15.5H18C18 16.33 17.33 17 16.5 17C15.67 17 15 16.33 15 15.5H16.5V14H15C15 13.17 15.67 12.5 16.5 12.5ZM12 15C12.83 15 13.5 15.67 13.5 16.5H12V18H13.5C13.5 18.83 12.83 19.5 12 19.5C11.17 19.5 10.5 18.83 10.5 18H12V16.5H10.5C10.5 15.67 11.17 15 12 15Z" /></svg>`,
 copy: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`,
@@ -157,280 +687,1534 @@ download: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H
 play: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`
 };
 
+
 document.addEventListener("DOMContentLoaded", function () {
-initializeModelSwap(); initializeSpeechRecognition(); loadSettings(); initializeClearChatButton(); handlePageLoadConversation();
-document.querySelector('.console-copy-code').addEventListener('click', () => { copyToClipboard(document.getElementById('console-output').textContent, document.querySelector('.console-copy-code')); });
-updateConsoleButtonText(); adjustTextareaAndButtonHeight();
+initializeModelSwap();
+initializeSpeechRecognition();
+loadSettings();
+initializeClearChatButton();
+handlePageLoadConversation();
+
+
+const consoleCopyButton = document.querySelector('.console-copy-code');
+consoleCopyButton.addEventListener('click', () => {
+copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
+});
+updateConsoleButtonText();
+adjustTextareaAndButtonHeight();
+
+
 const chatOutputDiv = document.getElementById('chat-output');
 chatOutputDiv.addEventListener('click', (event) => {
 if (event.target === chatOutputDiv && editIndex !== null) {
-const activeEditable = document.querySelector(`.message[data-index="${editIndex}"] .editable`);
-if (activeEditable) activeEditable.blur();
-else { const cur = document.querySelector(`.message.editing`); if(cur) cur.classList.remove('editing'); editIndex = null; updateClearChatButtonIcon(); }
+const activeEditableMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+const activeEditableSpan = activeEditableMessageDiv ? activeEditableMessageDiv.querySelector('.editable') : null;
+
+
+if (activeEditableSpan) {
+activeEditableSpan.blur();
+} else if (editIndex !== null) {
+const currentEditingMsgDiv = document.querySelector(`.message.editing`);
+if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+}
 }
 });
+
 const sendButton = document.getElementById('send-button');
-const startHold = (e) => {
-longPressTriggered = false; const userInput = document.getElementById('user-input');
-if (isGenerating) stopPressTimer = setTimeout(() => { stopGeneration(); longPressTriggered = true; stopPressTimer = null; }, LONG_PRESS_DURATION);
-else if (userInput.value.trim() !== "") stopPressTimer = setTimeout(() => { userInput.value = ""; handleUserInput(); longPressTriggered = true; stopPressTimer = null; }, LONG_PRESS_DURATION);
-else stopPressTimer = setTimeout(() => { longPressTriggered = true; startListening(false); }, LONG_PRESS_DURATION);
+const startStopHold = (e) => {
+longPressTriggered = false;
+const userInput = document.getElementById('user-input');
+
+if (isGenerating) {
+stopPressTimer = setTimeout(() => {
+stopGeneration();
+longPressTriggered = true;
+stopPressTimer = null;
+}, LONG_PRESS_DURATION);
+} else if (userInput.value.trim() !== "") {
+stopPressTimer = setTimeout(() => {
+userInput.value = "";
+handleUserInput();
+longPressTriggered = true;
+stopPressTimer = null;
+}, LONG_PRESS_DURATION);
+} else {
+stopPressTimer = setTimeout(() => {
+longPressTriggered = true;
+startListening(false); // Long-press: start but do NOT auto-send
+}, LONG_PRESS_DURATION);
+}
 };
-const cancelHold = (e) => { if (stopPressTimer) { clearTimeout(stopPressTimer); stopPressTimer = null; } if (isListening && autoSendPTT && longPressTriggered) { if (pttGraceTimeout) clearTimeout(pttGraceTimeout); pttGraceTimeout = setTimeout(() => { stopListening(); }, 800); } };
-sendButton.addEventListener('mousedown', startHold); sendButton.addEventListener('touchstart', startHold); sendButton.addEventListener('mouseup', cancelHold); sendButton.addEventListener('mouseleave', cancelHold); sendButton.addEventListener('touchend', cancelHold);
-window.addEventListener('click', function(e) { const d = document.getElementById('model-history-dropdown'), s = document.getElementById('swap-model-button'); if (d.style.display === 'block' && !d.contains(e.target) && !s.contains(e.target)) d.style.display = 'none'; });
+
+const cancelStopHold = (e) => {
+if (stopPressTimer) {
+clearTimeout(stopPressTimer);
+stopPressTimer = null;
+}
+if (isListening && autoSendPTT && longPressTriggered) {
+// Grace period to prevent cutting off the last word
+if (pttGraceTimeout) clearTimeout(pttGraceTimeout);
+pttGraceTimeout = setTimeout(() => {
+stopListening();
+}, 800);
+}
+};
+
+sendButton.addEventListener('mousedown', startStopHold);
+sendButton.addEventListener('touchstart', startStopHold);
+sendButton.addEventListener('mouseup', cancelStopHold);
+sendButton.addEventListener('mouseleave', cancelStopHold);
+sendButton.addEventListener('touchend', cancelStopHold);
+
+// Close dropdown when clicking outside
+window.addEventListener('click', function(e) {
+const dropdown = document.getElementById('model-history-dropdown');
+const swapButton = document.getElementById('swap-model-button');
+if (dropdown.style.display === 'block' && !dropdown.contains(e.target) && !swapButton.contains(e.target)) {
+dropdown.style.display = 'none';
+}
+});
+
 toggleSendButton();
 });
 
+
 let resizeRAF = null;
-function handleUserInput() { toggleSendButton(); if (resizeRAF) cancelAnimationFrame(resizeRAF); resizeRAF = requestAnimationFrame(() => { adjustTextareaAndButtonHeight(); }); }
+function handleUserInput() {
+toggleSendButton();
+if (resizeRAF) cancelAnimationFrame(resizeRAF);
+resizeRAF = requestAnimationFrame(() => {
+adjustTextareaAndButtonHeight();
+});
+}
+
+
 function adjustTextareaAndButtonHeight() {
-const u = document.getElementById('user-input'), s = document.getElementById('send-button'), c = getComputedStyle(u);
-const lh = parseFloat(c.lineHeight), pt = parseFloat(c.paddingTop), pb = parseFloat(c.paddingBottom), bt = parseFloat(c.borderTopWidth), bb = parseFloat(c.borderBottomWidth);
-const sl = isNaN(lh) ? (parseFloat(c.fontSize) * 1.5 || 20) : lh, h1 = sl + pt + pb + bt + bb, max = (2 * sl) + pt + pb + bt + bb;
-u.style.height = 'auto'; let calc = u.scrollHeight + bt + bb, target = Math.max(parseFloat(c.minHeight)||0, Math.min(calc, max));
-u.style.height = target + 'px'; s.style.height = u.offsetHeight + 'px'; s.style.width = u.offsetHeight + 'px';
-}
-function saveFullConversation() { localStorage.setItem(CHAT_CONVERSATION_KEY, JSON.stringify({conversationHistory: conversationHistory})); }
-function loadFullConversation() {
-const saved = localStorage.getItem(CHAT_CONVERSATION_KEY);
-if (saved) { try { const parsed = JSON.parse(saved); conversationHistory = parsed.conversationHistory || []; redrawMessages(); return true; } catch (e) { localStorage.removeItem(CHAT_CONVERSATION_KEY); conversationHistory = []; return false; } } return false;
-}
-function initializeClearChatButton() { const b = document.getElementById('clear-chat-button'); b.addEventListener('click', handleClearChatClick); updateClearChatButtonIcon(); }
-function updateClearChatButtonIcon() {
-const b = document.getElementById('clear-chat-button');
-if (editIndex !== null && conversationHistory[editIndex]) {
-const r = conversationHistory[editIndex].role; b.innerHTML = (r === 'user') ? ICONS.send : ICONS.save; b.title = (r === 'user') ? "Send Edit" : "Save Edit"; b.disabled = false;
-Object.assign(b.style, {backgroundColor: '#3578e5', borderRadius: '5px', padding: '8px', color: 'white'}); const svg = b.querySelector('svg'); if (svg) { svg.setAttribute('width', '20'); svg.setAttribute('height', '20'); }
+const userInputArea = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
+const computedStyle = getComputedStyle(userInputArea);
+
+
+const lineHeight = parseFloat(computedStyle.lineHeight);
+const paddingTop = parseFloat(computedStyle.paddingTop);
+const paddingBottom = parseFloat(computedStyle.paddingBottom);
+const borderTopWidth = parseFloat(computedStyle.borderTopWidth);
+const borderBottomWidth = parseFloat(computedStyle.borderBottomWidth);
+
+
+const singleLineTextHeight = isNaN(lineHeight) ? (parseFloat(computedStyle.fontSize) * 1.5 || 20) : lineHeight;
+const heightForOneLine = singleLineTextHeight + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+
+
+const maxLines = 2;
+const maxAllowedHeight = (maxLines * singleLineTextHeight) + paddingTop + paddingBottom + borderTopWidth + borderBottomWidth;
+
+
+userInputArea.style.height = 'auto';
+let newCalculatedHeight = userInputArea.scrollHeight + borderTopWidth + borderBottomWidth;
+
+
+let targetHeight;
+
+
+if (newCalculatedHeight > maxAllowedHeight) {
+targetHeight = maxAllowedHeight;
+} else if (newCalculatedHeight < heightForOneLine) {
+targetHeight = heightForOneLine;
 } else {
-Object.assign(b.style, {backgroundColor: 'transparent', padding: '5px', color: '#e0e0e0', borderRadius: ''}); b.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash; b.title = chatClearedState ? "Restore Chat" : "Clear Chat"; b.disabled = (!chatClearedState && conversationHistory.length === 0);
-const svg = b.querySelector('svg'); if (svg) { svg.setAttribute('width', '20'); svg.setAttribute('height', '20'); }
+targetHeight = newCalculatedHeight;
+}
+
+
+const cssMinHeight = parseFloat(computedStyle.minHeight) || 0;
+if (targetHeight < cssMinHeight) {
+targetHeight = cssMinHeight;
+}
+
+
+userInputArea.style.height = targetHeight + 'px';
+const finalButtonDimension = userInputArea.offsetHeight + 'px';
+sendButton.style.height = finalButtonDimension;
+sendButton.style.width = finalButtonDimension;
+}
+
+
+
+
+function saveFullConversation() {
+const conversationData = {
+conversationHistory: conversationHistory,
+modelSpecificConversationHistory: modelSpecificConversationHistory
+};
+localStorage.setItem(CHAT_CONVERSATION_KEY, JSON.stringify(conversationData));
+}
+
+
+function loadFullConversation() {
+const savedData = localStorage.getItem(CHAT_CONVERSATION_KEY);
+if (savedData) {
+try {
+const parsedData = JSON.parse(savedData);
+conversationHistory = parsedData.conversationHistory || [];
+modelSpecificConversationHistory = parsedData.modelSpecificConversationHistory || { gemini: [] };
+if (typeof modelSpecificConversationHistory.gemini === 'undefined') modelSpecificConversationHistory.gemini = [];
+redrawMessages();
+return true;
+} catch (e) {
+console.error("Error parsing saved conversation:", e);
+localStorage.removeItem(CHAT_CONVERSATION_KEY);
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+return false;
 }
 }
+return false;
+}
+
+
+function initializeClearChatButton() {
+const button = document.getElementById('clear-chat-button');
+button.addEventListener('click', handleClearChatClick);
+updateClearChatButtonIcon();
+}
+
+
+function updateClearChatButtonIcon() {
+const button = document.getElementById('clear-chat-button');
+if (editIndex !== null && conversationHistory[editIndex]) {
+const currentEditingRole = conversationHistory[editIndex].role;
+button.innerHTML = (currentEditingRole === 'user') ? ICONS.send : ICONS.save;
+button.title = (currentEditingRole === 'user') ? "Send Edit" : "Save Edit";
+button.disabled = false;
+Object.assign(button.style, {backgroundColor: '#3578e5', borderRadius: '5px', padding: '8px', color: 'white'});
+const newSvgIcon = button.querySelector('svg');
+if (newSvgIcon) { newSvgIcon.setAttribute('width', '20'); newSvgIcon.setAttribute('height', '20'); }
+} else {
+Object.assign(button.style, {backgroundColor: 'transparent', padding: '5px', color: '#e0e0e0', borderRadius: ''});
+button.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash;
+button.title = chatClearedState ? "Restore Chat" : "Clear Chat";
+button.disabled = (!chatClearedState && conversationHistory.length === 0);
+const currentSvgIcon = button.querySelector('svg');
+if (currentSvgIcon) { currentSvgIcon.setAttribute('width', '20'); currentSvgIcon.setAttribute('height', '20'); }
+}
+}
+
+
 function handleClearChatClick() {
 if (editIndex !== null) {
-const idx = editIndex, div = document.querySelector(`.message[data-index="${idx}"]`), span = div ? div.querySelector('.editable') : null;
-if (span && conversationHistory[idx]) {
-const txt = span.innerText, role = conversationHistory[idx].role; span.setAttribute('contenteditable', 'false'); if(div) div.classList.remove('editing');
-if (role === 'user') { document.getElementById('user-input').value = txt; sendMessage(); }
-else { conversationHistory[idx].content = txt.trim(); saveFullConversation(); span.innerHTML = marked.parse(txt.trim(), { breaks: true }); Prism.highlightAllUnder(div); editIndex = null; updateClearChatButtonIcon(); }
-} else { const editing = document.querySelector(`.message.editing`); if(editing) editing.classList.remove('editing'); editIndex = null; updateClearChatButtonIcon(); } return;
-}
-if (chatClearedState) { if (loadFullConversation()) { chatClearedState = false; localStorage.removeItem(CHAT_CLEARED_STATE_KEY); } else { document.getElementById('chat-output').innerHTML = ''; conversationHistory = []; chatClearedState = false; localStorage.removeItem(CHAT_CLEARED_STATE_KEY); } }
-else { saveFullConversation(); document.getElementById('chat-output').innerHTML = ''; chatClearedState = true; localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true'); } updateClearChatButtonIcon();
-}
-function handlePageLoadConversation() {
-const saved = localStorage.getItem(CHAT_CONVERSATION_KEY) !== null, cleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
-if (saved && cleared) { document.getElementById('chat-output').innerHTML = ''; conversationHistory = []; chatClearedState = true; }
-else { document.getElementById('chat-output').innerHTML = ''; conversationHistory = []; chatClearedState = false; localStorage.removeItem(CHAT_CLEARED_STATE_KEY); } updateClearChatButtonIcon();
-}
-function loadSettings() {
-apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini'); apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
-document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n'); document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
-systemPrompt = localStorage.getItem('systemPrompt') || ""; document.getElementById('system-prompt').value = systemPrompt;
-consoleEnabled = localStorage.getItem('consoleEnabled') === "true"; document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console'; document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none';
-let prov = localStorage.getItem('lastUsedApiProvider') || "openai"; document.getElementById('api-provider').value = prov;
-updateModelOptions().then(() => { if (!lastUsedModels[prov] || !Array.from(document.getElementById('model-select').options).some(o => o.value === lastUsedModels[prov])) setDefaultModel(prov); else document.getElementById('model-select').value = lastUsedModels[prov]; selectedModel = document.getElementById('model-select').value; toggleCustomModelField(); updateApiKeyVisibility(); updateCurrentModelFromUI(true); });
-customOpenAIModel = localStorage.getItem('customOpenAIModel') || ""; customGeminiModel = localStorage.getItem('customGeminiModel') || ""; updateSwapButtonVisibility();
-}
-function setDefaultModel(provider) {
-const sel = document.getElementById('model-select'); const defaults = { gemini: 'gemini-2.0-flash', openai: 'gpt-4o' }; let def = defaults[provider] || "custom";
-if (!lastUsedModels) lastUsedModels = {}; lastUsedModels[provider] = def; localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
-if (Array.from(sel.options).some(o => o.value === def)) sel.value = def; else if (sel.options.length > 0) { const valid = Array.from(sel.options).find(o => o.value !== 'custom'); sel.value = valid ? valid.value : sel.options[0].value; } selectedModel = sel.value;
-}
-marked.setOptions({gfm: true, breaks: true, headerIds: false});
-function parseApiKeys(input, provider) { let regex = (provider === 'openai') ? /^sk-[a-zA-Z0-9]{48}$/gm : /AIzaSy[A-Za-z0-9_-]{33}/g; return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filter(k => k); }
-function toggleSendButton() {
-if (isGenerating) return; const b = document.getElementById("send-button"), u = document.getElementById('user-input');
-if (u.value.trim() === "") { b.innerHTML = ICONS.mic; b.title = "Speak (Hold for manual input)"; b.disabled = false; }
-else { b.innerHTML = ICONS.send; b.title = "Send Message (Hold to Clear)"; b.disabled = false; }
-}
-function showTab(tabName) {
-document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); document.getElementById('settings-container').style.display = 'none'; document.getElementById('chat-output').style.display = 'none'; document.getElementById('chat-input').style.display = 'none'; document.getElementById('console-container').style.display = 'none';
-const clear = document.getElementById('clear-chat-button-container');
-if (tabName === 'chat') { document.getElementById('chat-output').style.display = 'block'; document.getElementById('chat-input').style.display = 'flex'; document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active'); clear.style.display = 'block'; }
-else if (tabName === 'settings') { document.getElementById('settings-container').style.display = 'block'; document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active'); clear.style.display = 'none'; }
-else if (tabName === 'console') { document.getElementById('console-container').style.display = 'block'; document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active'); clear.style.none = 'none'; } updateSwapButtonVisibility();
-}
-function updateSwapButtonVisibility() { const b = document.getElementById('swap-model-button'), isChat = document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.contains('active'); b.style.visibility = (isChat && !consoleEnabled) ? 'visible' : 'hidden'; }
-function saveSettings() {
-updateCurrentModelFromUI(false); apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini'); apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
-localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n')); localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n')); systemPrompt = document.getElementById('system-prompt').value; localStorage.setItem('systemPrompt', systemPrompt);
-let prov = document.getElementById('api-provider').value, sel = document.getElementById('model-select').value;
-if (sel === 'custom') { const val = document.getElementById('custom-model-input').value; if (prov === 'openai') { customOpenAIModel = val; localStorage.setItem('customOpenAIModel', val); } else if (prov === 'gemini') { customGeminiModel = val; localStorage.setItem('customGeminiModel', val); } }
-if (!lastUsedModels) lastUsedModels = {}; lastUsedModels[prov] = sel; localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels)); localStorage.setItem('lastUsedApiProvider', prov);
-selectedModel = sel; toggleCustomModelField(); updateApiKeyVisibility(); updateModelHistory(prov, (sel === 'custom' ? document.getElementById('custom-model-input').value : sel));
-}
-function toggleConsoleButton() { consoleEnabled = !consoleEnabled; localStorage.setItem('consoleEnabled', consoleEnabled); updateConsoleButtonText(); document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none'; updateSwapButtonVisibility(); }
-function updateConsoleButtonText() { document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';}
-function logErrorToConsole(m) { document.getElementById('console-output').textContent += `${m}\n`; let chat = document.getElementById('chat-output'), err = document.createElement('div'); err.classList.add('message', 'assistant'); err.style.backgroundColor = '#d9534f'; err.innerHTML = `<span class="content">${escapeHtml(String(m).substring(0,200))}... (Check console)</span>`; chat.appendChild(err); chat.scrollTop = chat.scrollHeight; }
-function handleSendButtonClick() { if (longPressTriggered) { longPressTriggered = false; return; } if (isGenerating) showToast("Hold the stop button to cancel the generation."); else { const u = document.getElementById('user-input'); if (u.value.trim() === "") { if (isListening) stopListening(); else startListening(true); } else sendMessage(); } }
-function stopGeneration() { if (currentAbortController) { currentAbortController.abort(); showToast("Generation stopped."); } setGeneratingState(false); }
-function setGeneratingState(gen) { isGenerating = gen; const b = document.getElementById('send-button'); if (gen) { b.disabled = false; b.title = "Stop Generation"; b.style.backgroundColor = "#3578e5"; b.innerHTML = ICONS.stop; } else { b.style.backgroundColor = "#3578e5"; toggleSendButton(); document.getElementById('loading-spinner').style.display = 'none'; } }
-async function sendMessage() {
-let u = document.getElementById('user-input').value; systemPrompt = document.getElementById('system-prompt').value;
-if (chatClearedState && editIndex === null) { conversationHistory = []; chatClearedState = false; localStorage.removeItem(CHAT_CLEARED_STATE_KEY); }
-const keys = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== ''), trim = u.trim();
-if (trim !== "" && keys) {
-const prov = document.getElementById('api-provider').value; document.getElementById('loading-spinner').style.display = 'flex'; let inputApi;
-if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') { conversationHistory[editIndex].content = trim; conversationHistory = conversationHistory.slice(0, editIndex + 1); inputApi = trim; editIndex = null; redrawMessages(); }
-else { conversationHistory.push({role: "user", content: trim}); inputApi = trim; displayMessage(trim, 'user', conversationHistory.length - 1, true); }
-document.getElementById('user-input').value = ''; handleUserInput();
-try { currentAbortController = new AbortController(); setGeneratingState(true); await tryNextApiKey(inputApi, prov); }
-catch (error) { if (error.name === 'AbortError') logToConsole("Generation stopped."); else logErrorToConsole(error.message); } finally { setGeneratingState(false); }
-} else if (trim === "" && editIndex === null) { document.getElementById('loading-spinner').style.display = 'none'; toggleSendButton(); }
-else if (!keys) { document.getElementById('loading-spinner').style.display = 'none'; alert("Please enter API key(s)."); showTab('settings'); if (editIndex !== null) editIndex = null; } updateClearChatButtonIcon();
-}
-async function tryNextApiKey(input, provider) {
-const sel = document.getElementById('model-select').value, arr = apiKeys[provider].filter(k => k.trim() !== '');
-if (arr.length === 0) { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`No API keys for ${provider}.`); currentApiKeyIndex = 0; return; }
-if (currentApiKeyIndex < arr.length) {
-const key = arr[currentApiKeyIndex], mod = sel === 'custom' ? document.getElementById('custom-model-input').value : sel;
-try {
-if (provider === 'gemini') {
-let contents = conversationHistory.slice(0, -1).map(h => ({"role": h.role === "user" ? "user" : "model", "parts": [{"text": h.content }]}));
-contents.push({"role": "user", "parts": [{"text": input}]});
-let body = {"systemInstruction": {"parts": [{"text": systemPrompt}]}, "contents": contents}; if (googleSearchEnabled) body.tools = [{"google_search": {}}];
-const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${mod}:streamGenerateContent?key=${key}&alt=sse`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body), signal: currentAbortController.signal });
-if (!res.ok) { const txt = await res.text(); currentApiKeyIndex++; if (currentApiKeyIndex < arr.length) await tryNextApiKey(input, provider); else { logErrorToConsole(`Gemini API Error: ${txt}`); currentApiKeyIndex = 0;} return; }
-const reader = res.body.getReader(), decoder = new TextDecoder(); let buf = '', full = '', partial = null, meta = null, last = 0;
-while (true) {
-const {value, done} = await reader.read(); if (done) break; buf += decoder.decode(value, {stream: true}); const lines = buf.split('\n'); buf = lines.pop();
-for (let line of lines) { if (line.trim().startsWith('data:')) { const jsonStr = line.trim().substring(5).trim(); if (jsonStr === '[DONE]' || !jsonStr) continue;
-try { const json = JSON.parse(jsonStr); if (json?.candidates?.[0]?.groundingMetadata) meta = json.candidates[0].groundingMetadata; const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-if (text) { full += text; if (!partial) partial = displayPartialMessage('', 'assistant'); const edit = partial.querySelector('.editable'); const now = Date.now(); if (edit && now - last > 150) { edit.innerHTML = marked.parse(full, { breaks: true }); Prism.highlightAllUnder(partial); last = now; } } } catch (e) {} } }
-}
-let reasoning = null, main = full, think = full.match(/<think>([\s\S]*?)(?:<\/think>|$)/);
-if (think && (full.substring(0, think.index).match(/```/g) || []).length % 2 === 0) { reasoning = think[1].trim(); main = full.replace(/<think>[\s\S]*?(?:<\/think>|$)/, '').trim(); }
-if(partial) partial.remove(); conversationHistory.push({role: "assistant", content: main, reasoning: reasoning, usedInternet: !!meta, groundingMetadata: meta}); displayMessage(main, 'assistant', conversationHistory.length - 1, false, reasoning, !!meta, meta); playNotificationSound();
-} else if (provider === 'openai') {
-const chat = new OpenAIChat(key, mod, systemPrompt); let partial = null, bot = '', last = 0;
-try {
-bot = await chat.getBotResponse(input, googleSearchEnabled, (delta) => {
-if (!partial) partial = displayPartialMessage('', 'assistant'); bot += delta; const edit = partial.querySelector('.editable'); const now = Date.now(); if (edit && now - last > 150) { edit.innerHTML = marked.parse(bot, { breaks: true }); Prism.highlightAllUnder(partial); last = now; }
-}, currentAbortController.signal);
-if (partial) partial.remove(); conversationHistory.push({role: "assistant", content: bot}); displayMessage(bot, 'assistant', conversationHistory.length - 1); playNotificationSound();
-} catch (e) { if (e.name === 'AbortError') throw e; currentApiKeyIndex++; if (currentApiKeyIndex < arr.length) await tryNextApiKey(input, provider); else { logErrorToConsole(`OpenAI Error: ${e.message}`); currentApiKeyIndex = 0; } return; }
-} currentApiKeyIndex = 0;
-} catch (e) { if (e.name === 'AbortError') throw e; currentApiKeyIndex++; if (currentApiKeyIndex < arr.length) await tryNextApiKey(input, provider); else { logErrorToConsole(`API Error: ${e.message}`); currentApiKeyIndex = 0;} }
-} else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`All ${provider} keys exhausted.`); currentApiKeyIndex = 0; } updateClearChatButtonIcon(); saveFullConversation();
-}
-function escapeHtml(u) { const d = document.createElement('div'); d.textContent = u; return d.innerHTML; }
-function displayMessage(m, s, idx, input = false, reasoning = null, internet = false, meta = null) {
-let chat = document.getElementById('chat-output'), div = document.createElement('div'); div.classList.add('message', s); div.setAttribute('data-index', idx);
-if (s === 'assistant' && reasoning) {
-const rDiv = document.createElement('div'); rDiv.className = 'reasoning-container collapsed'; rDiv.onclick = function(e) { e.stopPropagation(); this.classList.toggle('collapsed'); };
-rDiv.innerHTML = `<div class="reasoning-container-header"><span class="reasoning-container-title">${ICONS.brain} Reasoning</span><svg class="reasoning-container-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div><div class="reasoning-content">${marked.parse(reasoning, { breaks: true })}</div>`; div.appendChild(rDiv);
-}
-const edit = document.createElement('span'); edit.classList.add('editable'); edit.setAttribute('tabindex', '0'); edit.innerHTML = s === 'user' ? escapeHtml(m).replace(/\n/g, '<br>') : marked.parse(m, { breaks: true }); div.appendChild(edit);
-div.addEventListener('click', function(e) {
-if (s !== 'user' || e.target.closest('a, button, pre, .reasoning-container, .internet-indicator, .grounding-details')) return;
-const i = parseInt(div.dataset.index); if (editIndex !== null && editIndex !== i) { const p = document.querySelector(`.message[data-index="${editIndex}"] .editable`); if (p) p.blur(); }
-if (edit.getAttribute('contenteditable') !== 'true') { edit.setAttribute('contenteditable', 'true'); editIndex = i; div.classList.add('editing'); updateClearChatButtonIcon(); edit.focus(); }
-});
-edit.addEventListener('blur', (e) => { setTimeout(() => { const i = parseInt(div.dataset.index); if (editIndex === i && document.activeElement !== document.getElementById('clear-chat-button')) { if (conversationHistory[i] && conversationHistory[i].content.trim() !== e.target.innerText.trim()) { conversationHistory[i].content = e.target.innerText.trim(); edit.innerHTML = s === 'assistant' ? marked.parse(conversationHistory[i].content, { breaks: true }) : escapeHtml(conversationHistory[i].content).replace(/\n/g, '<br>'); saveFullConversation(); } edit.setAttribute('contenteditable', 'false'); div.classList.remove('editing'); editIndex = null; updateClearChatButtonIcon(); } }, 50); });
-if (s === 'assistant' && internet && meta) { div.classList.add('has-internet-indicator'); div.appendChild(createGroundingElement(meta)); }
-chat.appendChild(div); chat.scrollTop = chat.scrollHeight; Prism.highlightAllUnder(div); addRunAndCopyButtonsToCodeBlocks(div);
-}
-function createGroundingElement(meta) {
-const c = document.createElement('div'); c.style = "position:absolute; bottom:5px; right:8px; width:100%; display:flex; flex-direction:column; align-items:flex-end;";
-const w = document.createElement('div'); w.className = 'grounding-wrapper'; w.innerHTML = `<div class="internet-indicator" onclick="event.stopPropagation(); this.parentElement.nextElementSibling.classList.toggle('collapsed');">${ICONS.globe}</div>`;
-const d = document.createElement('div'); d.className = 'grounding-details collapsed'; let h = '';
-if (meta.webSearchQueries?.length) h += `<div class="grounding-section-title">Queries</div><div class="grounding-chips">` + meta.webSearchQueries.map(q => `<span class="search-query-tag">${escapeHtml(q)}</span>`).join('') + `</div>`;
-if (meta.groundingChunks?.length) h += `<div class="grounding-section-title">Sources</div><ul class="grounding-sources-list">` + meta.groundingChunks.filter(c => c.web).map(c => `<li><a href="${c.web.uri}" target="_blank" class="source-link">${escapeHtml(c.web.title || c.web.uri)}</a></li>`).join('') + `</ul>`;
-d.innerHTML = h || '<div style="color:#888;">No details.</div>'; c.appendChild(d); c.appendChild(w); return c;
-}
-function displayPartialMessage(c, s) { const p = document.createElement('div'); p.classList.add('message', s, 'partial'); const e = document.createElement('span'); e.classList.add('editable', 'content'); e.innerHTML = c; p.appendChild(e); document.getElementById('chat-output').appendChild(p); return p; }
-function addRunAndCopyButtonsToCodeBlocks(p) {
-p.querySelectorAll('pre code').forEach((b) => {
-const c = b.textContent.trim(), l = c.split('\n').length; if (l <= 1 || b.parentElement.querySelector('.copy-code')) return;
-b.parentElement.style.position = 'relative'; b.parentElement.addEventListener('click', (e) => { if (!e.target.closest('button')) b.parentElement.classList.toggle('code-buttons-hidden'); });
-const att = (t) => {
-const cp = createButton('copy-code', ICONS.copy, () => copyToClipboard(c, cp), "Copy"), r = createButton('run-code', ICONS.play, () => runCodeInNewTab(b), "Run"), d = createButton('download-code', ICONS.download, () => downloadCode(b), "Download");
-[r, cp, d].forEach((btn, i) => { btn.style.position = 'absolute'; btn.style[t ? 'top' : 'bottom'] = '5px'; btn.style.right = (5 + (i * 40)) + 'px'; b.parentElement.appendChild(btn); });
-}; att(false); if (l > 20) att(true);
-});
-}
-function downloadCode(b) {
-const c = b.textContent; let f = 'snippet.txt', isH = b.classList.contains('language-html') || b.classList.contains('language-markup');
-if (isH) f = (c.match(/<title>(.*?)<\/title>/i)?.[1].trim() || 'index') + '.html'; else if (c.includes('// ==UserScript==')) f = (c.match(/\/\/\s*@name\s+(.+)/i)?.[1].trim() || 'script') + '.user.js';
-const bl = new Blob([c], { type: 'text/plain' }), u = URL.createObjectURL(bl), a = document.createElement('a'); a.href = u; a.download = f; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u);
-}
-function createButton(c, s, h, t) { const b = document.createElement('button'); b.className = c; b.innerHTML = s; b.title = t; b.addEventListener('click', (e) => { e.stopPropagation(); h(); }); return b; }
-function copySource(b) { copyToClipboard(initialHTML, b); }
-function copyToClipboard(t, b) { const old = b.innerHTML; navigator.clipboard.writeText(t).then(() => { b.innerHTML = (b.classList.contains('settings-button') || b.classList.contains('console-copy-code')) ? 'Copied!' : ICONS.checkmark; setTimeout(() => { b.innerHTML = old; }, 1500); }); }
-function runCodeInNewTab(b) {
-const c = b.textContent, w = window.open('', '_blank'); if (w) { w.document.open(); if (b.classList.contains('language-html') || b.classList.contains('language-markup')) w.document.write('<!DOCTYPE html><html><body>' + c + '</body></html>'); else w.document.write('<!DOCTYPE html><html><body><pre>' + escapeHtml(c) + '</pre></body></html>'); w.document.close(); }
-}
-function redrawMessages() { document.getElementById('chat-output').innerHTML = ''; conversationHistory.forEach((e, i) => displayMessage(e.content, e.role, i, e.role === 'user', e.reasoning, e.usedInternet, e.groundingMetadata)); }
-async function updateModelOptions() {
-const p = document.getElementById('api-provider').value, s = document.getElementById('model-select'), old = s.value; s.innerHTML = '';
-const m = { gemini: ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-pro-exp-02-05', 'gemini-2.0-flash-exp', 'custom'], openai: ['gpt-5.2', 'gpt-5.1', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom'] };
-m[p]?.forEach(mo => s.add(new Option(mo, mo))); const saved = lastUsedModels[p];
-if (saved && Array.from(s.options).some(o => o.value === saved)) s.value = saved; else if (old && Array.from(s.options).some(o => o.value === old) && p === localStorage.getItem('lastUsedApiProvider')) s.value = old; else setDefaultModel(p);
-selectedModel = s.value; toggleCustomModelField();
-}
-function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px'; }
-window.addEventListener('resize', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); }); window.addEventListener('load', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); }); showTab('chat');
+const currentEditingIndex = editIndex;
+const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
+const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
 
-class OpenAIChat {
-constructor(k, m, s) { this.apiKey = k; this.model = m; this.systemPrompt = s; }
-async getBotResponse(u, w, d, s) {
-const h = conversationHistory.slice(0, -1).map(e => ({ role: e.role, content: e.content }));
-const res = await fetch("https://api.openai.com/v1/chat/completions", { method: "POST", headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey}, body: JSON.stringify({ model: this.model, messages: [{role: 'system', content: this.systemPrompt}, ...h, {role: 'user', content: u}], stream: true }), signal: s });
-if (!res.ok) throw new Error(await res.text()); let bot = '', reader = res.body.getReader(), decoder = new TextDecoder(), acc = '';
+
+if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
+const newText = editableMessageSpan.innerText;
+const originalRole = conversationHistory[currentEditingIndex].role;
+
+
+editableMessageSpan.setAttribute('contenteditable', 'false');
+if(messageDiv) messageDiv.classList.remove('editing');
+
+
+if (originalRole === 'user') {
+document.getElementById('user-input').value = newText;
+sendMessage();
+} else {
+conversationHistory[currentEditingIndex].content = newText.trim();
+saveFullConversation();
+editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
+Prism.highlightAllUnder(editableMessageSpan.closest('.message'));
+editIndex = null;
+updateClearChatButtonIcon();
+document.getElementById('loading-spinner').style.display = 'none';
+}
+} else {
+const stillEditingDiv = document.querySelector(`.message.editing`);
+if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
+const stillEditableSpan = stillEditingDiv ? stillEditingDiv.querySelector('.editable[contenteditable="true"]') : null;
+if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
+editIndex = null;
+updateClearChatButtonIcon();
+}
+return;
+}
+
+
+if (chatClearedState) {
+if (loadFullConversation()) {
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+} else {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+}
+} else {
+saveFullConversation();
+document.getElementById('chat-output').innerHTML = '';
+chatClearedState = true;
+localStorage.setItem(CHAT_CLEARED_STATE_KEY, 'true');
+}
+updateClearChatButtonIcon();
+}
+
+
+
+
+function handlePageLoadConversation() {
+const hasSavedConversation = localStorage.getItem(CHAT_CONVERSATION_KEY) !== null;
+const userExplicitlyCleared = localStorage.getItem(CHAT_CLEARED_STATE_KEY) === 'true';
+
+
+if (hasSavedConversation) {
+if (userExplicitlyCleared) {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+chatClearedState = true;
+} else {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+chatClearedState = true;
+}
+} else {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+}
+updateClearChatButtonIcon();
+}
+
+
+
+
+function loadSettings() {
+apiKeys.gemini = parseApiKeys(localStorage.getItem('apiKeyGemini') || "", 'gemini');
+apiKeys.openai = parseApiKeys(localStorage.getItem('apiKeyOpenAI') || "", 'openai');
+document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
+document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+systemPrompt = localStorage.getItem('systemPrompt') || "";
+document.getElementById('system-prompt').value = systemPrompt;
+consoleEnabled = localStorage.getItem('consoleEnabled') === "true";
+document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
+document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none';
+let lastUsedApiProvider = localStorage.getItem('lastUsedApiProvider') || "openai";
+document.getElementById('api-provider').value = lastUsedApiProvider;
+
+
+updateModelOptions().then(() => {
+if (!lastUsedModels[lastUsedApiProvider] || !Array.from(document.getElementById('model-select').options).some(opt => opt.value === lastUsedModels[lastUsedApiProvider])) {
+setDefaultModel(lastUsedApiProvider);
+} else {
+document.getElementById('model-select').value = lastUsedModels[lastUsedApiProvider];
+}
+selectedModel = document.getElementById('model-select').value;
+toggleCustomModelField();
+updateApiKeyVisibility();
+updateCurrentModelFromUI(true);
+});
+
+
+customOpenAIModel = localStorage.getItem('customOpenAIModel') || "";
+customGeminiModel = localStorage.getItem('customGeminiModel') || "";
+
+
+const currentProvider = document.getElementById('api-provider').value;
+const currentModelSelect = document.getElementById('model-select');
+if (currentModelSelect.value === 'custom') {
+const customInput = document.getElementById('custom-model-input');
+if (currentProvider === 'openai') customInput.value = customOpenAIModel;
+else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
+}
+
+
+updateSwapButtonVisibility();
+}
+
+
+function setDefaultModel(provider) {
+const modelSelect = document.getElementById('model-select');
+let defaultModel = "";
+const providerDefaultModels = {
+gemini: 'gemini-2.0-flash', openai: 'gpt-4o'
+};
+defaultModel = providerDefaultModels[provider] || "custom";
+if (!lastUsedModels) lastUsedModels = {};
+lastUsedModels[provider] = defaultModel;
+localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+if (Array.from(modelSelect.options).some(option => option.value === defaultModel)) modelSelect.value = defaultModel;
+else if (modelSelect.options.length > 0) {
+const firstValidOption = Array.from(modelSelect.options).find(opt => opt.value !== 'custom');
+modelSelect.value = firstValidOption ? firstValidOption.value : (modelSelect.options[0] ? modelSelect.options[0].value : '');
+}
+selectedModel = modelSelect.value;
+}
+
+
+marked.setOptions({gfm: true, breaks: true, headerIds: false});
+function parseApiKeys(input, provider) {
+let regex;
+if (provider === 'openai') { regex = /^sk-[a-zA-Z0-9]{48}$/gm; }
+else if (provider === 'gemini') { regex = /AIzaSy[A-Za-z0-9_-]{33}/g; }
+else { return []; }
+return [...new Set((input.match(regex) || []))].join('\n\n').split('\n\n').filter(k => k);
+}
+
+
+function toggleSendButton() {
+if (isGenerating) return;
+const sendButton = document.getElementById("send-button");
+const userInput = document.getElementById('user-input');
+if (userInput.value.trim() === "") {
+sendButton.innerHTML = ICONS.mic;
+sendButton.title = "Speak (Hold for manual input)";
+sendButton.disabled = false;
+} else {
+sendButton.innerHTML = ICONS.send;
+sendButton.title = "Send Message (Hold to Clear)";
+sendButton.disabled = false;
+}
+}
+
+
+function showTab(tabName) {
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(tab => tab.classList.remove('active'));
+document.getElementById('settings-container').style.display = 'none';
+document.getElementById('chat-output').style.display = 'none';
+document.getElementById('chat-input').style.display = 'none';
+document.getElementById('console-container').style.display = 'none';
+const clearChatButtonContainer = document.getElementById('clear-chat-button-container');
+
+
+if (tabName === 'chat') {
+document.getElementById('chat-output').style.display = 'block';
+document.getElementById('chat-input').style.display = 'flex';
+document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.add('active');
+clearChatButtonContainer.style.display = 'block';
+} else if (tabName === 'settings') {
+document.getElementById('settings-container').style.display = 'block';
+document.querySelector('.tab[onclick="showTab(\'settings\')"]').classList.add('active');
+clearChatButtonContainer.style.display = 'none';
+} else if (tabName === 'console') {
+document.getElementById('console-container').style.display = 'block';
+document.querySelector('.tab[onclick="showTab(\'console\')"]').classList.add('active');
+clearChatButtonContainer.style.none = 'none';
+}
+updateSwapButtonVisibility();
+}
+
+
+function updateSwapButtonVisibility() {
+const swapModelButton = document.getElementById('swap-model-button');
+const isChatTab = document.querySelector('.tab[onclick="showTab(\'chat\')"]').classList.contains('active');
+
+
+if (isChatTab && !consoleEnabled) {
+swapModelButton.style.visibility = 'visible';
+} else {
+swapModelButton.style.visibility = 'hidden';
+}
+}
+
+
+function saveSettings() {
+updateCurrentModelFromUI(false);
+
+
+apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
+apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+localStorage.setItem('apiKeyGemini', apiKeys.gemini.join('\n\n'));
+localStorage.setItem('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
+
+
+systemPrompt = document.getElementById('system-prompt').value;
+localStorage.setItem('systemPrompt', systemPrompt);
+
+
+let currentProvider = document.getElementById('api-provider').value;
+let selectedModelValue = document.getElementById('model-select').value;
+if (selectedModelValue === 'custom') {
+const customModelInputValue = document.getElementById('custom-model-input').value;
+if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; localStorage.setItem('customOpenAIModel', customOpenAIModel); }
+else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; localStorage.setItem('customGeminiModel', customGeminiModel); }
+}
+if (!lastUsedModels) lastUsedModels = {};
+lastUsedModels[currentProvider] = selectedModelValue;
+localStorage.setItem('lastUsedModels', JSON.stringify(lastUsedModels));
+localStorage.setItem('lastUsedApiProvider', currentProvider);
+selectedModel = selectedModelValue;
+toggleCustomModelField();
+updateApiKeyVisibility();
+
+// Update model history
+let actualModelName = selectedModelValue;
+if (selectedModelValue === 'custom') {
+actualModelName = document.getElementById('custom-model-input').value;
+}
+updateModelHistory(currentProvider, actualModelName);
+}
+function toggleConsoleButton() {
+consoleEnabled = !consoleEnabled;
+localStorage.setItem('consoleEnabled', consoleEnabled);
+updateConsoleButtonText();
+document.getElementById('console-tab').style.display = consoleEnabled ? 'flex' : 'none';
+updateSwapButtonVisibility();
+}
+function updateConsoleButtonText() { document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';}
+function logErrorToConsole(message) {
+const consoleOutput = document.getElementById('console-output'); consoleOutput.textContent += `${message}\n`;
+let chatOutput = document.getElementById('chat-output'); let errorMessageDiv = document.createElement('div');
+errorMessageDiv.classList.add('message', 'assistant'); errorMessageDiv.style.backgroundColor = '#d9534f';
+errorMessageDiv.innerHTML = `<span class="content">${escapeHtml(String(message).substring(0,200))}... (Check console)</span>`;
+chatOutput.appendChild(errorMessageDiv); chatOutput.scrollTop = chatOutput.scrollHeight;
+}
+function shortenMessage(text) { const safeText = String(text); const words = safeText.split(" "); if (words.length > 6) { return `${words.slice(0, 3).join(" ")} ... ${words.slice(-3).join(" ")}`; } return safeText; }
+function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data)); logToConsole(JSON.stringify(dataCopy, null, 2)); }
+
+
+function handleSendButtonClick() {
+if (longPressTriggered) {
+longPressTriggered = false;
+return;
+}
+
+if (isGenerating) {
+showToast("Hold the stop button to cancel the generation.");
+} else {
+const userInput = document.getElementById('user-input');
+if (userInput.value.trim() === "") {
+if (isListening) stopListening();
+else startListening(true); // Short click: start and auto-send
+} else {
+sendMessage();
+}
+}
+}
+
+
+function stopGeneration() {
+if (currentAbortController) {
+currentAbortController.abort();
+showToast("Generation stopped.");
+}
+setGeneratingState(false);
+}
+
+
+function setGeneratingState(generating) {
+isGenerating = generating;
+const sendButton = document.getElementById('send-button');
+
+if (generating) {
+sendButton.disabled = false;
+sendButton.title = "Stop Generation";
+sendButton.style.backgroundColor = "#3578e5";
+sendButton.innerHTML = ICONS.stop;
+} else {
+sendButton.style.backgroundColor = "#3578e5";
+toggleSendButton();
+document.getElementById('loading-spinner').style.display = 'none';
+}
+}
+
+
+async function sendMessage() {
+let userInputFromField = document.getElementById('user-input').value;
+systemPrompt = document.getElementById('system-prompt').value;
+
+
+if (chatClearedState && editIndex === null) {
+conversationHistory = [];
+modelSpecificConversationHistory = { gemini: [] };
+chatClearedState = false;
+localStorage.removeItem(CHAT_CLEARED_STATE_KEY);
+}
+
+
+const apiKeysPresent = Object.values(apiKeys).some(arr => arr.length > 0 && arr[0] !== '');
+const trimmedUserInput = userInputFromField.trim();
+
+
+if (trimmedUserInput !== "" && apiKeysPresent) {
+const provider = document.getElementById('api-provider').value;
+document.getElementById('loading-spinner').style.display = 'flex';
+let userInputForApi;
+
+
+if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') {
+conversationHistory[editIndex].content = trimmedUserInput;
+conversationHistory = conversationHistory.slice(0, editIndex + 1);
+const numModelSpecificTurnsToKeep = Math.floor(editIndex / 2);
+if (modelSpecificConversationHistory.gemini) modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, numModelSpecificTurnsToKeep * 2);
+
+
+userInputForApi = trimmedUserInput;
+editIndex = null;
+redrawMessages();
+} else {
+conversationHistory.push({role: "user", content: trimmedUserInput});
+userInputForApi = trimmedUserInput;
+displayMessage(trimmedUserInput, 'user', conversationHistory.length - 1, true);
+}
+
+
+document.getElementById('user-input').value = '';
+handleUserInput();
+
+
+try {
+currentAbortController = new AbortController();
+setGeneratingState(true);
+await tryNextApiKey(userInputForApi, provider);
+}
+catch (error) {
+if (error.name === 'AbortError') {
+logToConsole("Generation stopped by user.");
+} else {
+logErrorToConsole(error.message);
+}
+} finally {
+setGeneratingState(false);
+}
+} else if (trimmedUserInput === "" && editIndex === null) {
+document.getElementById('loading-spinner').style.display = 'none'; toggleSendButton();
+} else if (!apiKeysPresent) {
+document.getElementById('loading-spinner').style.display = 'none'; alert("Please enter your API key(s) in the Settings."); showTab('settings');
+if (editIndex !== null) editIndex = null;
+}
+updateClearChatButtonIcon();
+}
+
+
+async function tryNextApiKey(userInput, provider) {
+const currentModelSelected = document.getElementById('model-select').value;
+const apiKeyArray = apiKeys[provider].filter(key => key.trim() !== '');
+
+
+if (apiKeyArray.length === 0) {
+document.getElementById('loading-spinner').style.display = 'none';
+logErrorToConsole(`No valid API keys configured for ${provider}. Please add them in Settings.`);
+currentApiKeyIndex = 0; updateClearChatButtonIcon(); return;
+}
+
+
+if (currentApiKeyIndex < apiKeyArray.length) {
+const apiKey = apiKeyArray[currentApiKeyIndex];
+const modelToUse = currentModelSelected === 'custom' ? document.getElementById('custom-model-input').value : currentModelSelected;
+try {
+let response;
+if (provider === 'gemini') {
+let geminiApiContents = [];
+for(let i=0; i < conversationHistory.length -1; i++) {
+geminiApiContents.push({"role": conversationHistory[i].role === "user" ? "user" : "model", "parts": [{"text": conversationHistory[i].content }]});
+}
+geminiApiContents.push({ "role": "user", "parts": [{"text": userInput}]});
+
+
+let requestBody = {
+"systemInstruction": { "parts": [{"text": systemPrompt }] },
+"contents": geminiApiContents
+};
+
+
+if (googleSearchEnabled) {
+requestBody.tools = [{ "google_search": {} }];
+}
+
+
+response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}&alt=sse`, {
+method: 'POST', headers: {'Content-Type': 'application/json'},
+body: JSON.stringify(requestBody),
+signal: currentAbortController.signal
+});
+
+
+if (!response.ok) {
+const errorText = await response.text(); currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Gemini API Error: ${errorText}`); currentApiKeyIndex = 0;}
+return;
+} else {
+const reader = response.body.getReader(); const decoder = new TextDecoder();
+let buffer = ''; let fullText = '';
+let partialMessageElement = null;
+let allChunks = [];
+let finalGroundingMetadata = null;
+let lastRenderTime = 0;
+
+
+const chatOutput = document.getElementById('chat-output');
+
+
 while (true) {
-const {done, value} = await reader.read(); if (done) break; acc += decoder.decode(value, {stream: true}); const lines = acc.split('\n'); acc = lines.pop();
-for (let line of lines) { if (line.trim().startsWith('data:') && line.trim() !== 'data: [DONE]') { const json = JSON.parse(line.substring(5).trim()); if (json.choices[0].delta.content) { const del = json.choices[0].delta.content; bot += del; if (d) d(del); } } }
-} return bot;
+const {value, done} = await reader.read();
+if (done) break;
+const chunk = decoder.decode(value, {stream: true});
+buffer += chunk;
+const lines = buffer.split('\n');
+buffer = lines.pop();
+
+
+for (let line of lines) {
+if (line.trim().startsWith('data:')) {
+const jsonStr = line.trim().substring(5).trim();
+if (jsonStr === '[DONE]') continue;
+if (!jsonStr) continue;
+
+
+try {
+const json = JSON.parse(jsonStr);
+allChunks.push(json);
+const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+const metadata = json?.candidates?.[0]?.groundingMetadata;
+if (metadata) {
+finalGroundingMetadata = metadata;
+}
+
+
+if (text) {
+fullText += text;
+
+
+if (!partialMessageElement) {
+partialMessageElement = displayPartialMessage('', 'assistant');
+}
+
+
+const editableInPartial = partialMessageElement.querySelector('.editable');
+if (editableInPartial) {
+const now = Date.now();
+if (now - lastRenderTime > 150) {
+editableInPartial.innerHTML = marked.parse(fullText, { breaks: true });
+Prism.highlightAllUnder(editableInPartial);
+lastRenderTime = now;
 }
 }
-function logToConsole(m) { document.getElementById('console-output').textContent += `${m}\n`; }
-function handleEnter(e) { if (e.key === 'Enter' && !e.shiftKey && !/Android/.test(navigator.userAgent)) { e.preventDefault(); handleSendButtonClick(); } }
+}
+} catch (e) {
+}
+}
+}
+}
+
+
+let reasoningContent = null;
+let mainContent = fullText;
+const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/;
+const thinkMatch = fullText.match(thinkRegex);
+if (thinkMatch) {
+const matchIndex = thinkMatch.index;
+const textBefore = fullText.substring(0, matchIndex);
+const backticksBefore = (textBefore.match(/```/g) || []).length;
+
+
+if (backticksBefore % 2 === 0) {
+reasoningContent = thinkMatch[1].trim();
+mainContent = fullText.replace(thinkRegex, '').trim();
+}
+}
+
+
+const usedInternet = finalGroundingMetadata !== null;
+
+
+if(partialMessageElement) partialMessageElement.remove();
+
+
+conversationHistory.push({
+role: "assistant",
+content: mainContent,
+reasoning: reasoningContent,
+usedInternet: usedInternet,
+groundingMetadata: finalGroundingMetadata
+});
+
+
+modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": fullText}]});
+displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, usedInternet, finalGroundingMetadata);
+chatOutput.scrollTop = chatOutput.scrollHeight;
+document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+playNotificationSound();
+}
+}
+else if (provider === 'openai') {
+const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
+let partialMessageElement = null;
+let botResponse = '';
+const chatOutput = document.getElementById('chat-output');
+let lastRenderTime = 0;
+
+
+try {
+botResponse = await chat.getBotResponse(userInput, googleSearchEnabled, (delta) => {
+if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
+botResponse += delta;
+if (partialMessageElement) {
+const editableInPartial = partialMessageElement.querySelector('.editable');
+if (editableInPartial) {
+const now = Date.now();
+if (now - lastRenderTime > 150) {
+editableInPartial.innerHTML = marked.parse(botResponse, { breaks: true });
+Prism.highlightAllUnder(editableInPartial);
+lastRenderTime = now;
+}
+}
+}
+}, currentAbortController.signal);
+if (partialMessageElement) partialMessageElement.remove();
+conversationHistory.push({role: "assistant", content: botResponse});
+displayMessage(botResponse, 'assistant', conversationHistory.length - 1);
+chatOutput.scrollTop = chatOutput.scrollHeight;
+document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
+playNotificationSound();
+} catch (error) {
+if (error.name === 'AbortError') throw error;
+currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`OpenAI API Error: ${error.message || error}`); currentApiKeyIndex = 0; }
+return;
+}
+}
+currentApiKeyIndex = 0;
+} catch (error) {
+if (error.name === 'AbortError') throw error;
+currentApiKeyIndex++;
+if (currentApiKeyIndex < apiKeyArray.length) await tryNextApiKey(userInput, provider);
+else { document.getElementById('loading-spinner').style.display = 'none'; logErrorToConsole(`Unhandled API Error for ${provider}: ${error.message || String(error)}`); currentApiKeyIndex = 0;}
+return;
+}
+} else {
+document.getElementById('loading-spinner').style.display = 'none';
+logErrorToConsole(`All ${provider.toUpperCase()} API keys exhausted. Check Settings.`);
+currentApiKeyIndex = 0;
+}
+updateClearChatButtonIcon();
+}
+
+
+function escapeHtml(unsafe) { const div = document.createElement('div'); div.textContent = unsafe; return div.innerHTML; }
+
+
+function displayMessage(message, sender, index, isUserInput = false, reasoning = null, usedInternet = false, groundingMetadata = null) {
+let chatOutput = document.getElementById('chat-output');
+let newMessageDiv = document.createElement('div');
+newMessageDiv.classList.add('message', sender);
+newMessageDiv.setAttribute('data-index', index);
+
+
+if (sender === 'assistant' && reasoning) {
+const reasoningDiv = document.createElement('div');
+reasoningDiv.className = 'reasoning-container collapsed';
+reasoningDiv.onclick = function(e) { e.stopPropagation(); toggleReasoning(this); };
+reasoningDiv.innerHTML = `
+<div class="reasoning-container-header">
+<span class="reasoning-container-title">${ICONS.brain} Reasoning</span>
+<svg class="reasoning-container-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="6 9 12 15 18 9"></polyline>
+</svg>
+</div>
+<div class="reasoning-content">${marked.parse(reasoning, { breaks: true })}</div>`;
+newMessageDiv.appendChild(reasoningDiv);
+}
+
+
+const editableSpan = document.createElement('span');
+editableSpan.classList.add('editable');
+editableSpan.setAttribute('tabindex', '0');
+
+
+if (sender === 'user') {
+editableSpan.innerHTML = escapeHtml(message).replace(/\n/g, '<br>');
+} else {
+editableSpan.innerHTML = marked.parse(message, { breaks: true });
+}
+newMessageDiv.appendChild(editableSpan);
+
+
+newMessageDiv.addEventListener('click', function(event) {
+if (sender !== 'user') return;
+if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .download-code, .internet-indicator, .grounding-details')) return;
+
+
+const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
+const currentEditableSpan = newMessageDiv.querySelector('.editable');
+
+
+if (editIndex !== null && editIndex !== messageIndexOfThisMessage) {
+const otherMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+const otherEditableSpan = otherMsgDiv ? otherMsgDiv.querySelector('.editable') : null;
+if (otherEditableSpan && otherEditableSpan.getAttribute('contenteditable') === 'true') {
+otherEditableSpan.blur();
+}
+}
+
+
+if (currentEditableSpan.getAttribute('contenteditable') !== 'true') {
+currentEditableSpan.setAttribute('contenteditable', 'true');
+editIndex = messageIndexOfThisMessage;
+newMessageDiv.classList.add('editing');
+updateClearChatButtonIcon();
+currentEditableSpan.focus();
+}
+});
+
+
+editableSpan.addEventListener('focus', (e) => {
+const messageDiv = e.target.closest('.message');
+if (messageDiv && e.target.getAttribute('contenteditable') === 'true') {
+const focusedIndex = parseInt(messageDiv.dataset.index);
+if (editIndex !== focusedIndex && editIndex !== null) {
+const prevEditingMsgDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+if (prevEditingMsgDiv) prevEditingMsgDiv.classList.remove('editing');
+}
+editIndex = focusedIndex;
+messageDiv.classList.add('editing');
+updateClearChatButtonIcon();
+}
+});
+
+
+editableSpan.addEventListener('blur', (e) => {
+const messageDiv = e.target.closest('.message');
+if (!messageDiv) return;
+
+
+setTimeout(() => {
+if (editIndex === null) {
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+return;
+}
+const blurredIndex = parseInt(messageDiv.dataset.index);
+const saveSendButton = document.getElementById('clear-chat-button');
+const focusWentToButton = document.activeElement === saveSendButton || saveSendButton.contains(document.activeElement);
+
+
+if (editIndex === blurredIndex && !focusWentToButton) {
+const newText = e.target.innerText;
+if (conversationHistory[blurredIndex] && conversationHistory[blurredIndex].content.trim() !== newText.trim()) {
+conversationHistory[blurredIndex].content = newText.trim();
+if (conversationHistory[blurredIndex].role === 'assistant') {
+editableSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
+} else {
+editableSpan.innerHTML = escapeHtml(newText.trim()).replace(/\n/g, '<br>');
+}
+saveFullConversation();
+}
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+} else if (editIndex !== blurredIndex) {
+e.target.setAttribute('contenteditable', 'false');
+messageDiv.classList.remove('editing');
+}
+}, 50);
+});
+
+
+if (sender === 'assistant' && usedInternet && groundingMetadata) {
+newMessageDiv.classList.add('has-internet-indicator');
+const groundingHTML = createGroundingElement(groundingMetadata);
+newMessageDiv.appendChild(groundingHTML);
+}
+
+
+chatOutput.appendChild(newMessageDiv);
+if (chatOutput.lastChild === newMessageDiv) {
+chatOutput.scrollTop = chatOutput.scrollHeight;
+}
+Prism.highlightAllUnder(newMessageDiv);
+addRunAndCopyButtonsToCodeBlocks(newMessageDiv);
+}
+
+
+function createGroundingElement(metadata) {
+const container = document.createElement('div');
+container.style.position = 'absolute';
+container.style.bottom = '5px';
+container.style.right = '8px';
+container.style.width = '100%';
+container.style.display = 'flex';
+container.style.flexDirection = 'column';
+container.style.alignItems = 'flex-end';
+
+
+const wrapper = document.createElement('div');
+wrapper.className = 'grounding-wrapper';
+wrapper.innerHTML = `<div class="internet-indicator" title="Show Search Details" onclick="toggleGrounding(this)">${ICONS.globe}</div>`;
+container.appendChild(wrapper);
+
+
+const detailsDiv = document.createElement('div');
+detailsDiv.className = 'grounding-details collapsed';
+
+
+let contentHTML = '';
+
+
+if (metadata.webSearchQueries && metadata.webSearchQueries.length > 0) {
+const validQueries = metadata.webSearchQueries.filter(q => q && typeof q === 'string' && q.trim().length > 0);
+
+
+if (validQueries.length > 0) {
+contentHTML += `<div class="grounding-section-title">Search Queries</div><div class="grounding-chips">`;
+validQueries.forEach(query => {
+contentHTML += `<span class="search-query-tag">${escapeHtml(query)}</span>`;
+});
+contentHTML += `</div>`;
+}
+}
+
+
+if (metadata.groundingChunks && metadata.groundingChunks.length > 0) {
+contentHTML += `<div class="grounding-section-title">Sources</div><ul class="grounding-sources-list">`;
+metadata.groundingChunks.forEach(chunk => {
+if (chunk.web) {
+contentHTML += `<li><a href="${chunk.web.uri}" target="_blank" class="source-link">${escapeHtml(chunk.web.title || chunk.web.uri)}</a></li>`;
+}
+});
+contentHTML += `</ul>`;
+}
+
+
+if (!contentHTML) {
+contentHTML = '<div style="color:#888; font-style:italic;">No detailed search metadata available.</div>';
+}
+
+
+detailsDiv.innerHTML = contentHTML;
+const fragment = document.createDocumentFragment();
+fragment.appendChild(detailsDiv);
+fragment.appendChild(wrapper);
+return fragment;
+}
+
+
+function displayPartialMessage(initialContent, sender) {
+let chatOutput = document.getElementById('chat-output');
+let partialMessage = document.createElement('div');
+partialMessage.classList.add('message', sender, 'partial');
+const contentSpan = document.createElement('span');
+contentSpan.classList.add('editable');
+if (sender === 'assistant') contentSpan.classList.add('content');
+contentSpan.innerHTML = initialContent;
+partialMessage.appendChild(contentSpan);
+chatOutput.appendChild(partialMessage);
+return partialMessage;
+}
+
+
+function toggleReasoning(element) { element.classList.toggle('collapsed'); }
+
+
+function toggleGrounding(element) {
+const messageDiv = element.closest('.message');
+const detailsDiv = messageDiv.querySelector('.grounding-details');
+if (detailsDiv) {
+detailsDiv.classList.toggle('collapsed');
+}
+}
+
+
+function addRunAndCopyButtonsToCodeBlocks(parentElement) {
+parentElement.querySelectorAll('pre code').forEach((block) => {
+const codeContent = block.textContent.trim();
+const lines = codeContent.split('\n').length;
+
+
+if (lines <= 1 || block.parentElement.querySelector('.copy-code')) return;
+
+
+block.parentElement.style.position = 'relative';
+
+block.parentElement.addEventListener('click', (e) => {
+if (e.target.closest('button')) return;
+block.parentElement.classList.toggle('code-buttons-hidden');
+});
+
+const attachButtons = (isTop) => {
+const copyBtn = createButton('copy-code', ICONS.copy, () => copyToClipboard(codeContent, copyBtn), "Copy Code");
+const runBtn = createButton('run-code', ICONS.play, () => runCodeInNewTab(block), "Run Code");
+const dlBtn = createButton('download-code', ICONS.download, () => downloadCode(block), "Download Code");
+
+
+[runBtn, copyBtn, dlBtn].forEach((button, i) => {
+button.style.position = 'absolute';
+if (isTop) button.style.top = '5px';
+else button.style.bottom = '5px';
+button.style.right = (5 + (i * 40)) + 'px';
+});
+
+
+block.parentElement.appendChild(dlBtn);
+block.parentElement.appendChild(copyBtn);
+block.parentElement.appendChild(runBtn);
+};
+
+
+// Altijd onderaan
+attachButtons(false);
+
+
+// Ook bovenaan als er meer dan 20 regels zijn
+if (lines > 20) {
+attachButtons(true);
+}
+});
+}
+
+
+function downloadCode(codeBlock) {
+const code = codeBlock.textContent;
+const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup');
+const isJs = codeBlock.classList.contains('language-javascript');
+const hasUserscriptHeader = code.includes('// ==UserScript==');
+let filename = 'code-snippet.txt';
+
+// Logic ensuring mutual exclusivity between Userscripts and HTML
+if (isHtml) {
+const titleMatch = code.match(/<title>(.*?)<\/title>/i);
+const title = titleMatch ? titleMatch[1].trim() : 'index';
+filename = title + '.html';
+} else if (hasUserscriptHeader && (isJs || !Array.from(codeBlock.classList).some(c => c.startsWith('language-')))) {
+const nameMatch = code.match(/\/\/\s*@name\s+(.+)/i);
+const versionMatch = code.match(/\/\/\s*@version\s+(.+)/i);
+const scriptName = nameMatch ? nameMatch[1].trim() : 'script';
+const scriptVersion = versionMatch ? versionMatch[1].trim() : '';
+filename = (scriptName + (scriptVersion ? ' v' + scriptVersion : '') + '.user.js').trim();
+} else {
+const langMatch = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
+if (langMatch) {
+const extMap = { 'javascript': 'js', 'python': 'py', 'java': 'java', 'css': 'css', 'json': 'json' };
+const lang = langMatch.replace('language-', '');
+filename = `snippet.${extMap[lang] || lang}`;
+}
+}
+
+const blob = new Blob([code], { type: 'text/plain' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = filename;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+}
+
+
+function createButton(className, svgHtml, clickHandler, title) {
+const button = document.createElement('button');
+button.className = className;
+button.innerHTML = svgHtml;
+button.title = title;
+button.addEventListener('click', (e) => {
+e.stopPropagation();
+clickHandler();
+});
+return button;
+}
+
+
+function copySource(button) { copyToClipboard(initialHTML, button); }
+function copyToClipboard(text, button) {
+const originalHtml = button.innerHTML;
+navigator.clipboard.writeText(text).then(() => {
+button.innerHTML = (button.classList.contains('settings-button') || button.classList.contains('console-copy-code')) ? 'Copied!' : ICONS.checkmark;
+setTimeout(() => { button.innerHTML = originalHtml; }, 1500);
+}).catch(err => { console.error("Could not copy text: ", err); });
+}
+
+
+function runCodeInNewTab(codeBlock) {
+const code = codeBlock.textContent; const newWindow = window.open('', '_blank');
+if (newWindow) {
+newWindow.document.open();
+const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup') || codeBlock.classList.contains('language-xml') || codeBlock.classList.contains('language-svg');
+if (isHtml) { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Execution</title></head><body>'); newWindow.document.write(code); newWindow.document.write('</body></html>'); }
+else { newWindow.document.write('<!DOCTYPE html><html><head><title>Code Preview</title></head><body><pre>' + escapeHtml(code) + '</pre></body></html>');}
+newWindow.document.close();
+} else { alert('Failed to open a new tab. Please check your browser\'s pop-up blocker settings.'); }
+}
+
+
+function redrawMessages() {
+document.getElementById('chat-output').innerHTML = '';
+conversationHistory.forEach((entry, i) => {
+displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning, entry.usedInternet, entry.groundingMetadata);
+});
+if (editIndex !== null) {
+const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"] .editable`);
+if(editingMessageDiv && editingMessageDiv.closest('.message').classList.contains('editing')) {
+} else {
+const currentEditingMsgDiv = document.querySelector(`.message.editing`);
+if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
+editIndex = null;
+updateClearChatButtonIcon();
+}
+}
+}
+
+
+async function updateModelOptions() {
+const provider = document.getElementById('api-provider').value;
+const modelSelect = document.getElementById('model-select');
+const oldSelectedValue = modelSelect.value;
+modelSelect.innerHTML = '';
+const modelsByProvider = {
+gemini: ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-pro-exp-02-05', 'gemini-2.0-flash-exp', 'custom'],
+openai: ['gpt-5.2', 'gpt-5.1', 'gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'custom']
+};
+
+
+if (modelsByProvider[provider]) {
+modelsByProvider[provider].forEach(model => {
+modelSelect.add(new Option(model, model));
+});
+}
+
+
+const savedModelForProvider = lastUsedModels && lastUsedModels[provider];
+if (savedModelForProvider && Array.from(modelSelect.options).some(opt => opt.value === savedModelForProvider)) {
+modelSelect.value = savedModelForProvider;
+} else if (oldSelectedValue && Array.from(modelSelect.options).some(opt => opt.value === oldSelectedValue) && provider === localStorage.getItem('lastUsedApiProvider')) {
+modelSelect.value = oldSelectedValue;
+} else {
+setDefaultModel(provider);
+}
+selectedModel = modelSelect.value;
+toggleCustomModelField();
+}
+
+
+function adjustChatHeight() { document.getElementById('chat-container').style.height = window.innerHeight + 'px';}
+window.addEventListener('resize', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); });
+window.addEventListener('load', () => { adjustChatHeight(); adjustTextareaAndButtonHeight(); });
+showTab('chat');
+class OpenAIChat {
+constructor(apiKey, model, systemPrompt) { this.apiKey = apiKey; this.model = model; this.systemPrompt = systemPrompt; }
+setApiKey(apiKey) { this.apiKey = apiKey; } setModel(model) { this.model = model; } setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; }
+async getBotResponse(userMessage, webSearchEnabled, onDelta, signal) {
+const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, usedInternet, groundingMetadata, ...rest } = entry; return rest; });
+const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
+
+
+const payload = {
+model: this.model,
+messages: messagesForAPI,
+stream: true
+};
+
+
+const url = "https://api.openai.com/v1/chat/completions";
+const response = await fetch(url, {
+method: "POST",
+headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
+body: JSON.stringify(payload),
+signal: signal
+});
+if (!response.ok) { throw new Error(await response.text()); }
+let botResponse = '';
+await this.processEventStream(response.body.getReader(), (chunk) => {
+const data = JSON.parse(chunk);
+if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) { const delta = data.choices[0].delta.content; botResponse += delta; if (onDelta) onDelta(delta);}
+});
+return botResponse;
+}
+async processEventStream(reader, delegate) {
+const decoder = new TextDecoder(); let accumulated = '';
+while (true) {
+const result = await reader.read(); if (result.done) break;
+accumulated += decoder.decode(result.value, {stream: true});
+const lines = accumulated.split('\n'); accumulated = lines.pop();
+for (let line of lines) {
+if (line.trim().startsWith('data:') && line.trim() !== 'data: [DONE]') {
+delegate(line.substring(line.indexOf(':') + 1).trim());
+}
+}
+}
+if (accumulated.trim().startsWith('data:') && accumulated.trim() !== 'data: [DONE]') {
+delegate(accumulated.substring(accumulated.indexOf(':') + 1).trim());
+}
+}
+}
+function logToConsole(message) { document.getElementById('console-output').textContent += `${message}\n`;}
+function handleEnter(event) { if (event.key === 'Enter' && !event.shiftKey && !/Android/.test(navigator.userAgent)) { event.preventDefault(); handleSendButtonClick();}}
 function toggleCustomModelField() {
-const s = document.getElementById('model-select'), l = document.getElementById('custom-model-label'), i = document.getElementById('custom-model-input'), p = document.getElementById('api-provider').value;
-if (s.value === 'custom') { l.classList.remove('hidden'); i.classList.remove('hidden'); i.value = p === 'openai' ? customOpenAIModel : customGeminiModel; } else { l.classList.add('hidden'); i.classList.add('hidden'); }
+const modelSelect = document.getElementById('model-select');
+const customModelLabel = document.getElementById('custom-model-label');
+const customModelInput = document.getElementById('custom-model-input');
+const provider = document.getElementById('api-provider').value;
+if (modelSelect.value === 'custom') {
+customModelLabel.classList.remove('hidden'); customModelInput.classList.remove('hidden');
+if (provider === 'openai') customModelInput.value = customOpenAIModel;
+else if (provider === 'gemini') customModelInput.value = customGeminiModel;
+else customModelInput.value = '';
+} else {
+customModelLabel.classList.add('hidden'); customModelInput.classList.add('hidden');
 }
-function updateApiKeyVisibility() { const p = document.getElementById('api-provider').value; document.querySelectorAll('.api-key-container').forEach(c => c.style.display = 'none'); const t = document.getElementById(`${p}-api-key-container`); if (t) t.style.display = 'block'; }
+}
+function updateApiKeyVisibility() {
+const provider = document.getElementById('api-provider').value;
+document.querySelectorAll('.api-key-container').forEach(container => { container.style.display = 'none';});
+const targetContainer = document.getElementById(`${provider}-api-key-container`);
+if (targetContainer) targetContainer.style.display = 'block';
+}
+function getEmojiNumber(num) { const emojiNumbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']; return emojiNumbers[num - 1] || `[${num}]`;}
+
+
 function initializeModelSwap() {
-const b = document.getElementById('swap-model-button'); b.addEventListener('click', (e) => { if (!ignoreNextClick) swapModels(); ignoreNextClick = false; });
-const start = () => { stopPressTimer = setTimeout(() => { showHistoryDropdown(); ignoreNextClick = true; }, LONG_PRESS_DURATION); }; const cancel = () => { clearTimeout(stopPressTimer); };
-b.addEventListener('mousedown', start); b.addEventListener('touchstart', start); b.addEventListener('mouseup', cancel); b.addEventListener('touchend', cancel);
-previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY)); updateSwapButtonState();
+const swapButton = document.getElementById('swap-model-button');
+swapButton.addEventListener('click', (e) => {
+if (ignoreNextClick) {
+ignoreNextClick = false;
+e.preventDefault();
+e.stopPropagation();
+return;
 }
-function updateCurrentModelFromUI(init = false) {
-const p = document.getElementById('api-provider').value; let m = document.getElementById('model-select').value; if (m === 'custom') m = document.getElementById('custom-model-input').value;
-const n = { provider: p, model: m }; if (!init && JSON.stringify(n) !== JSON.stringify(currentModel)) { if (currentModel) { previousModel = currentModel; localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel)); } }
-currentModel = n; localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel)); updateSwapButtonState();
+swapModels();
+});
+
+let longPressTimer;
+const LONG_PRESS_MS = 600;
+
+const startPress = (e) => {
+longPressTimer = setTimeout(() => {
+showHistoryDropdown();
+ignoreNextClick = true;
+}, LONG_PRESS_MS);
+};
+const cancelPress = () => { clearTimeout(longPressTimer); };
+
+swapButton.addEventListener('mousedown', startPress);
+swapButton.addEventListener('touchstart', startPress);
+swapButton.addEventListener('mouseup', cancelPress);
+swapButton.addEventListener('mouseleave', cancelPress);
+swapButton.addEventListener('touchend', cancelPress);
+
+previousModel = JSON.parse(localStorage.getItem(PREVIOUS_MODEL_KEY));
+updateSwapButtonState();
 }
+
+
+function updateCurrentModelFromUI(isInitialLoad = false) {
+const provider = document.getElementById('api-provider').value;
+let model = document.getElementById('model-select').value;
+if (model === 'custom') {
+model = document.getElementById('custom-model-input').value;
+}
+const newModel = { provider, model };
+
+
+if (!isInitialLoad && JSON.stringify(newModel) !== JSON.stringify(currentModel)) {
+if (currentModel) {
+previousModel = currentModel;
+localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
+}
+}
+
+
+currentModel = newModel;
+localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
+updateSwapButtonState();
+}
+
+
 function updateSwapButtonState() {
-const b = document.getElementById('swap-model-button'); if (currentModel?.model) { b.textContent = currentModel.model; b.style.display = 'flex'; b.disabled = !previousModel; b.title = previousModel ? `Swap to ${previousModel.model}` : `Current: ${currentModel.model}`; } else b.style.display = 'none';
+const swapButton = document.getElementById('swap-model-button');
+if (currentModel && currentModel.model) {
+swapButton.textContent = currentModel.model;
+swapButton.style.display = 'flex';
+swapButton.disabled = !previousModel;
+swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${currentModel.model}`;
+} else {
+swapButton.style.display = 'none';
 }
+}
+
+
 async function swapModels() {
-if (!previousModel) return; [currentModel, previousModel] = [previousModel, currentModel];
-localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel)); localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
-document.getElementById('api-provider').value = currentModel.provider; await updateModelOptions();
-const s = document.getElementById('model-select'); if (Array.from(s.options).some(o => o.value === currentModel.model)) s.value = currentModel.model; else { s.value = 'custom'; document.getElementById('custom-model-input').value = currentModel.model; }
-toggleCustomModelField(); updateApiKeyVisibility(); updateSwapButtonState(); saveSettings(); showToast(`Swapped to ${currentModel.model}`);
+if (!previousModel) return;
+
+
+[currentModel, previousModel] = [previousModel, currentModel];
+
+
+localStorage.setItem(CURRENT_MODEL_KEY, JSON.stringify(currentModel));
+localStorage.setItem(PREVIOUS_MODEL_KEY, JSON.stringify(previousModel));
+
+
+const apiProviderSelect = document.getElementById('api-provider');
+const modelSelect = document.getElementById('model-select');
+
+
+apiProviderSelect.value = currentModel.provider;
+await updateModelOptions();
+
+
+if (Array.from(modelSelect.options).some(opt => opt.value === currentModel.model)) {
+modelSelect.value = currentModel.model;
+} else {
+modelSelect.value = 'custom';
+document.getElementById('custom-model-input').value = currentModel.model;
 }
-function updateModelHistory(p, m) { recentModels = recentModels.filter(mo => !(mo.provider === p && mo.model === m)); recentModels.unshift({ provider: p, model: m }); if (recentModels.length > 5) recentModels.pop(); localStorage.setItem('recentModels', JSON.stringify(recentModels)); }
+
+
+toggleCustomModelField();
+updateApiKeyVisibility();
+updateSwapButtonState();
+saveSettings();
+showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
+}
+
+function updateModelHistory(provider, modelName) {
+if (!provider || !modelName) return;
+recentModels = recentModels.filter(m => !(m.provider === provider && m.model === modelName));
+recentModels.unshift({ provider, model: modelName });
+if (recentModels.length > 5) recentModels.pop();
+localStorage.setItem('recentModels', JSON.stringify(recentModels));
+}
+
 function showHistoryDropdown() {
-if (!recentModels.length) return showToast("No history."); const d = document.getElementById('model-history-dropdown'), r = document.getElementById('swap-model-button').getBoundingClientRect();
-d.innerHTML = recentModels.map(i => `<div class="history-item" onclick="switchToHistoryModel('${i.provider}', '${i.model}')"><span class="history-item-model">${escapeHtml(i.model)}</span><span class="history-item-provider">${i.provider}</span></div>`).join('');
-d.style.top = (r.bottom + 5) + 'px'; d.style.left = r.left + 'px'; d.style.display = 'block';
+if (recentModels.length === 0) {
+showToast("No history available yet.");
+return;
 }
-async function switchToHistoryModel(p, m) { document.getElementById('model-history-dropdown').style.display = 'none'; document.getElementById('api-provider').value = p; await updateModelOptions(); const s = document.getElementById('model-select'); if (Array.from(s.options).some(o => o.value === m)) s.value = m; else { s.value = 'custom'; document.getElementById('custom-model-input').value = m; } saveSettings(); }
-function showToast(m) { const t = document.getElementById('toast-notification'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-function playNotificationSound() { if (!document.hidden) { const ctx = new (window.AudioContext || window.webkitAudioContext)(), o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(1100, ctx.currentTime); g.gain.setValueAtTime(1.2, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08); o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.08); } }
+const dropdown = document.getElementById('model-history-dropdown');
+const btn = document.getElementById('swap-model-button');
+const rect = btn.getBoundingClientRect();
+
+dropdown.innerHTML = '';
+recentModels.forEach(item => {
+const div = document.createElement('div');
+div.className = 'history-item';
+div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${item.provider === 'openai' ? 'OpenAI' : 'Google'}</span>`;
+div.onclick = () => switchToHistoryModel(item.provider, item.model);
+dropdown.appendChild(div);
+});
+
+dropdown.style.top = (rect.bottom + 5) + 'px';
+dropdown.style.left = rect.left + 'px';
+dropdown.style.display = 'block';
+}
+
+async function switchToHistoryModel(provider, model) {
+document.getElementById('model-history-dropdown').style.display = 'none';
+document.getElementById('api-provider').value = provider;
+await updateModelOptions();
+const modelSelect = document.getElementById('model-select');
+
+if (Array.from(modelSelect.options).some(opt => opt.value === model)) {
+modelSelect.value = model;
+} else {
+modelSelect.value = 'custom';
+document.getElementById('custom-model-input').value = model;
+}
+toggleCustomModelField();
+updateApiKeyVisibility();
+saveSettings();
+}
+
+
+function showToast(message) {
+const toast = document.getElementById('toast-notification');
+if (!toast) return;
+toast.textContent = message;
+toast.classList.add('show');
+setTimeout(() => {
+toast.classList.remove('show');
+}, 2500);
+}
+
+function playNotificationSound() {
+if (!document.hidden) return;
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+const playSimple = (c, f, t, d, v) => {
+const o = c.createOscillator();
+const g = c.createGain();
+o.type = t;
+o.frequency.setValueAtTime(f, c.currentTime);
+g.gain.setValueAtTime(v, c.currentTime);
+g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + d);
+o.connect(g).connect(c.destination);
+o.start(); o.stop(c.currentTime + d);
+};
+
+// Gain set to 1.2 for a louder sound
+playSimple(ctx, 1100, 'triangle', 0.08, 1.2);
+}
+
 function initializeSpeechRecognition() {
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SR) {
-recognition = new SR(); recognition.lang = 'nl-NL, en-US'; recognition.interimResults = true; recognition.continuous = true;
-recognition.onstart = () => { isListening = true; document.getElementById('send-button').style.backgroundColor = '#d9534f'; speechTextBeforeStart = document.getElementById('user-input').value; };
-recognition.onresult = (e) => { let f = '', i = ''; for (let j = e.resultIndex; j < e.results.length; ++j) { if (e.results[j].isFinal) f += e.results[j][0].transcript; else i += e.results[j][0].transcript; } const cur = (speechTextBeforeStart + (speechTextBeforeStart.trim() ? ' ' : '') + f).trim(); document.getElementById('user-input').value = cur + (i ? (cur ? ' ' : '') + i : ''); handleUserInput(); };
-recognition.onend = () => { isListening = false; document.getElementById('send-button').style.backgroundColor = '#3578e5'; toggleSendButton(); if (autoSendPTT) { sendMessage(); autoSendPTT = false; } };
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+recognition = new SpeechRecognition();
+recognition.lang = 'nl-NL, en-US';
+recognition.interimResults = true;
+recognition.continuous = true;
+
+recognition.onstart = () => {
+isListening = true;
+document.getElementById('send-button').style.backgroundColor = '#d9534f';
+speechTextBeforeStart = document.getElementById('user-input').value;
+};
+
+recognition.onresult = (event) => {
+const userInput = document.getElementById('user-input');
+let finalTranscript = '';
+let interimTranscript = '';
+
+for (let i = event.resultIndex; i < event.results.length; ++i) {
+if (event.results[i].isFinal) {
+finalTranscript += event.results[i][0].transcript;
+} else {
+interimTranscript += event.results[i][0].transcript;
 }
 }
-function startListening(ptt = false) { if (recognition && !isListening) { if (pttGraceTimeout) clearTimeout(pttGraceTimeout); autoSendPTT = ptt; recognition.start(); } }
-function stopListening() { if (recognition && isListening) recognition.stop(); }
-</script></body></html>
+const currentText = (speechTextBeforeStart + (speechTextBeforeStart.trim() ? ' ' : '') + finalTranscript).trim();
+userInput.value = currentText + (interimTranscript ? (currentText ? ' ' : '') + interimTranscript : '');
+handleUserInput();
+};
+
+recognition.onerror = (event) => {
+if (event.error !== 'no-speech') {
+console.error("Speech Recognition Error", event.error);
+isListening = false;
+autoSendPTT = false;
+toggleSendButton();
+}
+};
+
+recognition.onend = () => {
+isListening = false;
+document.getElementById('send-button').style.backgroundColor = '#3578e5';
+toggleSendButton();
+if (autoSendPTT) {
+sendMessage();
+autoSendPTT = false;
+}
+};
+}
+}
+
+function startListening(isPTT = false) {
+if (!recognition || isListening) return;
+if (pttGraceTimeout) clearTimeout(pttGraceTimeout);
+autoSendPTT = isPTT;
+recognition.start();
+}
+
+function stopListening() {
+if (!recognition || !isListening) return;
+recognition.stop();
+}
+</script></body><div style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.75); color: rgb(255, 255, 255); padding: 8px 16px; border-radius: 20px; font-size: 14px; font-family: sans-serif; z-index: 1000000; display: none; pointer-events: none; transition: opacity 0.2s ease 0s;"></div></html>
