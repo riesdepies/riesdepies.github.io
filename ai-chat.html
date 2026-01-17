@@ -793,7 +793,8 @@ if (window.visualViewport) {
         appContainer.style.height = vv.height + 'px';
         appContainer.style.top = vv.offsetTop + 'px';
         const chatOutput = document.getElementById('chat-output');
-        if (chatOutput) chatOutput.scrollTop = chatOutput.scrollHeight;
+        // Alleen scrollen naar beneden als er GEEN bericht wordt bewerkt om verspringen tijdens typen te voorkomen
+        if (chatOutput && editIndex === null) chatOutput.scrollTop = chatOutput.scrollHeight;
     };
     window.visualViewport.addEventListener('resize', adjustToViewport);
     window.visualViewport.addEventListener('scroll', adjustToViewport);
@@ -1207,52 +1208,6 @@ chatOutput.appendChild(errorMessageDiv); chatOutput.scrollTop = chatOutput.scrol
 }
 function shortenMessage(text) { const safeText = String(text); const words = safeText.split(" "); if (words.length > 6) { return `${words.slice(0, 3).join(" ")} ... ${words.slice(-3).join(" ")}`; } return safeText; }
 function logJsonResponse(data) { const dataCopy = JSON.parse(JSON.stringify(data)); logToConsole(JSON.stringify(dataCopy, null, 2)); }
-
-
-function handleSendButtonClick() {
-if (longPressTriggered) {
-longPressTriggered = false;
-return;
-}
-
-if (isGenerating) {
-showToast("Hold the stop button to cancel the generation.");
-} else {
-const userInput = document.getElementById('user-input');
-if (userInput.value.trim() === "") {
-if (isListening) stopListening();
-else startListening(true); // Short click: start and auto-send
-} else {
-sendMessage();
-}
-}
-}
-
-
-function stopGeneration() {
-if (currentAbortController) {
-currentAbortController.abort();
-showToast("Generation stopped.");
-}
-setGeneratingState(false);
-}
-
-
-function setGeneratingState(generating) {
-isGenerating = generating;
-const sendButton = document.getElementById('send-button');
-
-if (generating) {
-sendButton.disabled = false;
-sendButton.title = "Stop Generation";
-sendButton.style.backgroundColor = "#3578e5";
-sendButton.innerHTML = ICONS.stop;
-} else {
-sendButton.style.backgroundColor = "#3578e5";
-toggleSendButton();
-document.getElementById('loading-spinner').style.display = 'none';
-}
-}
 
 
 async function sendMessage() {
@@ -1809,7 +1764,6 @@ const isJs = codeBlock.classList.contains('language-javascript');
 const hasUserscriptHeader = code.includes('// ==UserScript==');
 let filename = 'code-snippet.txt';
 
-// Logic ensuring mutual exclusivity between Userscripts and HTML
 if (isHtml) {
 const titleMatch = code.match(/<title>(.*?)<\/title>/i);
 const title = titleMatch ? titleMatch[1].trim() : 'index';
@@ -2183,7 +2137,6 @@ o.connect(g).connect(c.destination);
 o.start(); o.stop(c.currentTime + d);
 };
 
-// Gain set to 1.2 for a louder sound
 playSimple(ctx, 1100, 'triangle', 0.08, 1.2);
 }
 
@@ -2249,5 +2202,48 @@ recognition.start();
 function stopListening() {
 if (!recognition || !isListening) return;
 recognition.stop();
+}
+
+function handleSendButtonClick() {
+if (longPressTriggered) {
+longPressTriggered = false;
+return;
+}
+
+if (isGenerating) {
+showToast("Hold the stop button to cancel the generation.");
+} else {
+const userInput = document.getElementById('user-input');
+if (userInput.value.trim() === "") {
+if (isListening) stopListening();
+else startListening(true); // Short click: start and auto-send
+} else {
+sendMessage();
+}
+}
+}
+
+function stopGeneration() {
+if (currentAbortController) {
+currentAbortController.abort();
+showToast("Generation stopped.");
+}
+setGeneratingState(false);
+}
+
+function setGeneratingState(generating) {
+isGenerating = generating;
+const sendButton = document.getElementById('send-button');
+
+if (generating) {
+sendButton.disabled = false;
+sendButton.title = "Stop Generation";
+sendButton.style.backgroundColor = "#3578e5";
+sendButton.innerHTML = ICONS.stop;
+} else {
+sendButton.style.backgroundColor = "#3578e5";
+toggleSendButton();
+document.getElementById('loading-spinner').style.display = 'none';
+}
 }
 </script></body></html>
