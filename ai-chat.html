@@ -793,7 +793,6 @@ if (window.visualViewport) {
         appContainer.style.height = vv.height + 'px';
         appContainer.style.top = vv.offsetTop + 'px';
         const chatOutput = document.getElementById('chat-output');
-        if (chatOutput) chatOutput.scrollTop = chatOutput.scrollHeight;
     };
     window.visualViewport.addEventListener('resize', adjustToViewport);
     window.visualViewport.addEventListener('scroll', adjustToViewport);
@@ -802,7 +801,7 @@ if (window.visualViewport) {
 
 // Prevent body-level scrolling for mobile "gap" protection
 document.addEventListener('touchmove', (e) => {
-    if (!e.target.closest('#chat-output, #settings-container, #console-output')) {
+    if (!e.target.closest('#chat-output, #settings-container, #console-output, #user-input')) {
         e.preventDefault();
     }
 }, { passive: false });
