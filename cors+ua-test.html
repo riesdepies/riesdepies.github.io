@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS & UA Tester v1.1</title>
+    <style>
+        body { font-family: sans-serif; background-color: #0f172a; color: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 600px; background: #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        h2 { margin-top: 0; color: #3b82f6; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .section { margin-bottom: 20px; }
+        .label { font-size: 11px; color: #94a3b8; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        
+        /* UA Box */
+        .ua-box { background: #0f172a; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; font-family: monospace; font-size: 13px; word-break: break-all; color: #34d399; }
+        
+        /* Input & Buttons */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input { flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #475569; background: #334155; color: white; font-size: 14px; outline: none; }
+        input:focus { border-color: #3b82f6; }
+        button { padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2563eb; }
+        
+        .quick-links { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tag { background: #334155; padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; border: 1px solid #475569; transition: 0.2s; }
+        .tag:hover { background: #475569; border-color: #3b82f6; }
+
+        /* Output */
+        .status { padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; display: none; font-size: 14px; }
+        .success { background: #064e3b; color: #6ee7b7; display: block; }
+        .error { background: #7f1d1d; color: #fca5a5; display: block; }
+        .output-box { background: #0f172a; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; overflow-x: auto; border: 1px solid #334155; max-height: 250px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>TV App Tester v1.1</h2>
+    
+    <!-- User Agent Sectie -->
+    <div class="section">
+        <div class="label">Huidige User Agent:</div>
+        <div id="uaDisplay" class="ua-box">Detecteren...</div>
+    </div>
+
+    <!-- CORS Test Sectie -->
+    <div class="section" style="border-top: 1px solid #334155; padding-top: 20px;">
+        <div class="label">CORS Bypass Test (Echte test = Google/Bing):</div>
+        <div class="quick-links">
+            <div class="tag" onclick="setURL('https://www.google.com')">Google (Strict CORS)</div>
+            <div class="tag" onclick="setURL('https://www.bing.com')">Bing (Strict CORS)</div>
+            <div class="tag" onclick="setURL('https://jsonplaceholder.typicode.com/posts/1')">JSONPlaceholder (Altijd OK)</div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="urlInput" placeholder="Voer API of Website URL in...">
+            <button onclick="testCORS()">START TEST</button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="label">Response Headers:</div>
+        <div id="headerOutput" class="output-box" style="margin-bottom:10px; height: 80px; color: #94a3b8;">Geen data...</div>
+
+        <div class="label">Response Content Preview:</div>
+        <div id="bodyOutput" class="output-box" style="color: #cbd5e1;">Wachten op test...</div>
+    </div>
+</div>
+
+<script>
+    // Toon de User Agent direct bij laden
+    document.getElementById('uaDisplay').textContent = navigator.userAgent;
+
+    function setURL(url) {
+        document.getElementById('urlInput').value = url;
+    }
+
+    async function testCORS() {
+        const url = document.getElementById('urlInput').value;
+        const statusDiv = document.getElementById('status');
+        const headerDiv = document.getElementById('headerOutput');
+        const bodyDiv = document.getElementById('bodyOutput');
+
+        if (!url) return;
+
+        statusDiv.className = 'status';
+        statusDiv.textContent = "Verzoek versturen via App Proxy...";
+        statusDiv.style.display = 'block';
+        headerDiv.textContent = "Laden...";
+        bodyDiv.textContent = "Laden...";
+
+        try {
+            const response = await fetch(url);
+            
+            // Headers verzamelen
+            const headers = {};
+            response.headers.forEach((val, key) => { headers[key] = val; });
+            headerDiv.textContent = JSON.stringify(headers, null, 2);
+            
+            statusDiv.classList.add('success');
+            statusDiv.textContent = `SUCCES: Verbinding geslaagd (${response.status})`;
+
+            const text = await response.text();
+            bodyDiv.textContent = text.substring(0, 5000); // Toon eerste 5k tekens
+
+        } catch (error) {
+            statusDiv.classList.add('error');
+            statusDiv.textContent = "FOUT: CORS blokkade of Netwerkfout.";
+            headerDiv.textContent = "Geen headers.";
+            bodyDiv.textContent = error.toString() + "\n\nTip: Test dit in de gebouwde APK v8.4. In een gewone browser zal Google ALTIJD falen.";
+        }
+    }
+</script>
+
+</body>
+</html>
