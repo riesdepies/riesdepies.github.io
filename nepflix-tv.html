@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TMDB Media Browser</title>
+<style>
+/* CSS */
+body {
+margin: 0;
+padding: 0;
+background-color: #121212;
+color: white;
+font-family: Arial, sans-serif;
+overflow: hidden;
+display: flex;
+user-select: none;
+-webkit-user-select: none;
+-webkit-touch-callout: none;
+-webkit-tap-highlight-color: transparent;
+cursor: none;
+}
+
+* {
+outline: none !important;
+-webkit-spatial-navigation: disabled;
+}
+
+/* Sidebar Styling */
+.sidebar {
+width: 70px;
+height: 100vh;
+background-color: #000;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+padding-top: 20px;
+gap: 10px;
+z-index: 2000;
+transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+overflow: hidden;
+flex-shrink: 0;
+}
+
+.sidebar.expanded {
+width: 200px;
+}
+
+.sidebar-item {
+width: 100%;
+height: 60px;
+display: flex;
+align-items: center;
+padding-left: 23px;
+box-sizing: border-box;
+transition: all 0.2s;
+position: relative;
+}
+
+.sidebar-item svg {
+width: 24px;
+height: 24px;
+fill: #444; /* Default gedimd */
+flex-shrink: 0;
+transition: fill 0.2s;
+}
+
+.sidebar-item span {
+margin-left: 20px;
+color: #444; /* Default gedimd */
+white-space: nowrap;
+opacity: 0;
+transition: opacity 0.2s, color 0.2s;
+font-weight: bold;
+}
+
+.sidebar.expanded span {
+opacity: 1;
+}
+
+/* 1. Actieve Status (Geselecteerde tab) */
+.sidebar-item.active-section svg {
+fill: white;
+}
+.sidebar-item.active-section span {
+color: white;
+}
+
+/* 2. Navigatie Focus (Rood streepje) */
+.sidebar-item.focused::before {
+content: "";
+position: absolute;
+left: 0;
+top: 15%;
+height: 70%;
+width: 4px;
+background-color: #ff0000;
+border-radius: 0 4px 4px 0;
+box-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+z-index: 5;
+}
+
+/* Hoofdcontainer */
+.main-content {
+flex-grow: 1;
+height: 100vh;
+overflow-y: auto;
+position: relative;
+padding: 20px;
+box-sizing: border-box;
+-ms-overflow-style: none;
+scrollbar-width: none;
+}
+
+.main-content::-webkit-scrollbar {
+display: none;
+}
+
+.section-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+
+.section-title {
+font-size: 24px;
+text-transform: uppercase;
+letter-spacing: 2px;
+}
+
+#status-indicator {
+font-size: 10px;
+color: #555;
+}
+
+.grid-container {
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 15px;
+padding-bottom: 200px;
+}
+
+@media (max-width: 480px) {
+.grid-container {
+grid-template-columns: repeat(3, 1fr);
+}
+}
+
+/* Poster Styling */
+.poster {
+aspect-ratio: 2 / 3;
+background-color: #222;
+border: 3px solid transparent;
+border-radius: 8px;
+position: relative;
+overflow: hidden;
+transition: all 0.2s ease;
+animation: posterFadeIn 0.4s ease forwards;
+opacity: 0;
+}
+
+@keyframes posterFadeIn {
+from { opacity: 0; transform: translateY(15px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.poster img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+/* Alleen active als focus in grid is */
+.poster.active {
+border-color: #ff0000;
+transform: scale(1.05);
+z-index: 10;
+box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+
+.poster-info {
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+background: linear-gradient(transparent, rgba(0,0,0,0.9));
+padding: 10px;
+font-size: 10px;
+display: none;
+}
+
+.poster.active .poster-info {
+display: block;
+}
+
+#loader {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+<div class="sidebar-item" data-name="Search">
+<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+<span>SEARCH</span>
+</div>
+<div class="sidebar-item" data-name="Movies">
+<svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+<span>MOVIES</span>
+</div>
+<div class="sidebar-item" data-name="Series">
+<svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+<span>SERIES</span>
+</div>
+<div class="sidebar-item" data-name="Settings">
+<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+<span>SETTINGS</span>
+</div>
+<div class="sidebar-item" data-name="Exit">
+<svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+<span>EXIT</span>
+</div>
+</div>
+
+<div class="main-content" id="scrollContainer">
+<div class="section-header">
+<div class="section-title" id="activeTitle">Movies</div>
+<div id="status-indicator">Initializing...</div>
+</div>
+<div id="loader">Wachten op API sleutel...</div>
+<div class="grid-container" id="posterGrid"></div>
+</div>
+
+<script>
+/** TMDB API Key Scraper Module **/
+const TmdbScraper = (function() {
+async function fetchDirect(targetUrl) {
+try {
+const response = await fetch(targetUrl);
+if (!response.ok) throw new Error("Fetch failed");
+return await response.text();
+} catch (e) { throw e; }
+}
+async function testKey(key) {
+if (!key || key.length !== 32) return false;
+try {
+const res = await fetch(`https://api.themoviedb.org/3/configuration?api_key=${key}`);
+return res.ok;
+} catch { return false; }
+}
+return {
+testKey: testKey,
+findKey: async function(onProgress = null) {
+const regex = /[a-f0-9]{32}/g;
+const query = "%28tmdb.*%5Ba-f0-9%5D%7B32%7D%7C%5Ba-f0-9%5D%7B32%7D.*tmdb%29";
+if (onProgress) onProgress("Searching for API Key...");
+try {
+for (let page = 1; page <= 2; page++) {
+const apiUrl = `https://grep.app/api/search?q=${query}&regexp=true&page=${page}`;
+const data = JSON.parse(await fetchDirect(apiUrl));
+const hits = data.hits?.hits || [];
+const keys = hits.flatMap(h => h.content.snippet.match(regex) || []);
+for (let key of [...new Set(keys)]) { if (await testKey(key)) return key; }
+}
+} catch (e) {}
+for (let page = 1; page <= 3; page++) {
+try {
+const searchUrl = `https://grep.app/search?regexp=true&q=${query}&page=${page}`;
+const html = await fetchDirect(searchUrl);
+const keys = html.match(regex) || [];
+for (let key of [...new Set(keys)]) { if (await testKey(key)) return key; }
+} catch (e) { continue; }
+}
+throw new Error("No keys found.");
+}
+};
+})();
+
+// App Logic
+const grid = document.getElementById('posterGrid');
+const sidebar = document.getElementById('sidebar');
+const activeTitle = document.getElementById('activeTitle');
+const statusInd = document.getElementById('status-indicator');
+const loader = document.getElementById('loader');
+
+let apiKey = "";
+let currentArea = 'grid'; // 'sidebar' of 'grid'
+let gridIndex = 0;
+let sidebarIndex = 1;
+let currentSection = 'Movies';
+let mediaData = [];
+
+async function fetchMedia(section) {
+if (!apiKey) return [];
+let endpoint = section === 'Series' ? 'tv/popular' : 'movie/popular';
+if (section === 'Search') endpoint = 'trending/all/day';
+try {
+const res = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${apiKey}&language=nl-NL`);
+const data = await res.json();
+return data.results || [];
+} catch (e) { return []; }
+}
+
+async function renderGrid(sectionName) {
+grid.innerHTML = '';
+loader.style.display = 'block';
+if (sectionName === 'Settings' || sectionName === 'Exit') {
+loader.style.display = 'none';
+grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">Sectie: ${sectionName}</div>`;
+return;
+}
+mediaData = await fetchMedia(sectionName);
+loader.style.display = 'none';
+if (mediaData.length === 0) {
+grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">Geen data gevonden...</div>`;
+return;
+}
+mediaData.forEach((item, i) => {
+const div = document.createElement('div');
+div.className = 'poster';
+div.style.animationDelay = (i * 0.03) + 's';
+const imgPath = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : 'https://via.placeholder.com/300x450?text=Geen+Poster';
+div.innerHTML = `<img src="${imgPath}" alt="poster"><div class="poster-info"><strong>${item.title || item.name}</strong><br>${(item.release_date || item.first_air_date || "").substring(0,4)}</div>`;
+grid.appendChild(div);
+});
+updateUI();
+}
+
+function getColumnCount() {
+return window.getComputedStyle(grid).getPropertyValue('grid-template-columns').split(' ').length || 1;
+}
+
+function updateUI() {
+const sidebarItems = document.querySelectorAll('.sidebar-item');
+const posters = document.querySelectorAll('.poster');
+
+// Reset sidebar classes
+sidebarItems.forEach((s, idx) => {
+s.classList.remove('focused', 'active-section');
+// Markeer de sectie die momenteel geladen is
+if (s.getAttribute('data-name') === currentSection) {
+s.classList.add('active-section');
+}
+});
+
+if (currentArea === 'sidebar') {
+sidebar.classList.add('expanded');
+// Toon het rode streepje op de huidige navigatiepositie
+sidebarItems[sidebarIndex].classList.add('focused');
+// Verwijder focus van grid
+posters.forEach(p => p.classList.remove('active'));
+} else {
+sidebar.classList.remove('expanded');
+// Grid focus
+posters.forEach(p => p.classList.remove('active'));
+if (posters[gridIndex]) {
+posters[gridIndex].classList.add('active');
+posters[gridIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+}
+}
+
+function move(direction) {
+const columns = getColumnCount();
+const posters = document.querySelectorAll('.poster');
+const sidebarItems = document.querySelectorAll('.sidebar-item');
+
+if (currentArea === 'grid') {
+switch(direction) {
+case 'up': if (gridIndex >= columns) gridIndex -= columns; break;
+case 'down': if (gridIndex + columns < posters.length) gridIndex += columns; break;
+case 'left': if (gridIndex % columns === 0) currentArea = 'sidebar'; else gridIndex -= 1; break;
+case 'right': if (gridIndex % columns < columns - 1 && gridIndex + 1 < posters.length) gridIndex += 1; break;
+case 'select': if(mediaData[gridIndex]) alert('Beschrijving: ' + (mediaData[gridIndex].overview || "Geen data")); break;
+}
+} else {
+switch(direction) {
+case 'up': if (sidebarIndex > 0) sidebarIndex -= 1; break;
+case 'down': if (sidebarIndex < sidebarItems.length - 1) sidebarIndex += 1; break;
+case 'right': if (mediaData.length > 0) currentArea = 'grid'; break;
+case 'select':
+currentSection = sidebarItems[sidebarIndex].getAttribute('data-name');
+activeTitle.innerText = currentSection;
+renderGrid(currentSection);
+currentArea = 'grid';
+gridIndex = 0;
+break;
+}
+}
+updateUI();
+}
+
+(async function init() {
+try {
+const cachedKey = localStorage.getItem('tmdb_api_key');
+if (cachedKey && await TmdbScraper.testKey(cachedKey)) {
+apiKey = cachedKey;
+statusInd.innerText = "API Ready (Cached)";
+} else {
+apiKey = await TmdbScraper.findKey(msg => statusInd.innerText = msg);
+localStorage.setItem('tmdb_api_key', apiKey);
+statusInd.innerText = "API Ready";
+}
+renderGrid('Movies');
+} catch (e) {
+statusInd.innerText = "API Error";
+loader.innerText = "Geen API gevonden.";
+}
+})();
+
+document.addEventListener('keydown', (e) => {
+const keys = { 
+'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right', 
+'Enter': 'select', 'Escape': 'back', 'Backspace': 'back' 
+};
+if (keys[e.key]) {
+e.preventDefault();
+if (keys[e.key] === 'back' && currentArea === 'grid') {
+currentArea = 'sidebar';
+updateUI();
+} else if (keys[e.key] !== 'back') {
+move(keys[e.key]);
+}
+}
+});
+</script>
+</body>
+</html>
