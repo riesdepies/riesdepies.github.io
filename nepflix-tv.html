@@ -60,14 +60,14 @@ position: relative;
 .sidebar-item svg {
 width: 24px;
 height: 24px;
-fill: #444; /* Default gedimd */
+fill: #444;
 flex-shrink: 0;
 transition: fill 0.2s;
 }
 
 .sidebar-item span {
 margin-left: 20px;
-color: #444; /* Default gedimd */
+color: #444;
 white-space: nowrap;
 opacity: 0;
 transition: opacity 0.2s, color 0.2s;
@@ -78,7 +78,6 @@ font-weight: bold;
 opacity: 1;
 }
 
-/* 1. Actieve Status (Geselecteerde tab) */
 .sidebar-item.active-section svg {
 fill: white;
 }
@@ -86,7 +85,6 @@ fill: white;
 color: white;
 }
 
-/* 2. Navigatie Focus (Rood streepje) */
 .sidebar-item.focused::before {
 content: "";
 position: absolute;
@@ -134,6 +132,68 @@ font-size: 10px;
 color: #555;
 }
 
+/* Search Bar Styling */
+.search-container {
+display: none;
+align-items: center;
+gap: 15px;
+margin-bottom: 25px;
+width: 100%;
+}
+
+.mic-btn {
+width: 50px;
+height: 50px;
+background-color: #fff;
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+border: 3px solid transparent;
+transition: all 0.2s;
+flex-shrink: 0;
+}
+
+.mic-btn svg {
+width: 24px;
+height: 24px;
+fill: #000;
+}
+
+.mic-btn.active-focus {
+border-color: #ff0000;
+box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+transform: scale(1.1);
+}
+
+.mic-btn.recording {
+background-color: #ff0000;
+animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+70% { box-shadow: 0 0 0 15px rgba(255, 0, 0, 0); }
+100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+
+.search-input {
+flex-grow: 1;
+background-color: #222;
+border: 3px solid transparent;
+border-radius: 8px;
+padding: 12px 20px;
+color: white;
+font-size: 18px;
+transition: all 0.2s;
+}
+
+.search-input.active-focus {
+border-color: #ff0000;
+background-color: #333;
+}
+
+/* Grid Styling */
 .grid-container {
 display: grid;
 grid-template-columns: repeat(5, 1fr);
@@ -147,7 +207,6 @@ grid-template-columns: repeat(3, 1fr);
 }
 }
 
-/* Poster Styling */
 .poster {
 aspect-ratio: 2 / 3;
 background-color: #222;
@@ -171,7 +230,6 @@ height: 100%;
 object-fit: cover;
 }
 
-/* Alleen active als focus in grid is */
 .poster.active {
 border-color: #ff0000;
 transform: scale(1.05);
@@ -201,6 +259,32 @@ left: 50%;
 transform: translate(-50%, -50%);
 text-align: center;
 }
+
+/* Settings Styling */
+.settings-view {
+padding: 20px;
+background: #1a1a1a;
+border-radius: 12px;
+margin-top: 20px;
+}
+.settings-item {
+margin-bottom: 20px;
+padding: 15px;
+border: 2px solid transparent;
+border-radius: 8px;
+}
+.settings-item.active-focus {
+border-color: #ff0000;
+background: #252525;
+}
+.btn-clear {
+background: #ff0000;
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 4px;
+font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -208,23 +292,23 @@ text-align: center;
 <div class="sidebar" id="sidebar">
 <div class="sidebar-item" data-name="Search">
 <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-<span>SEARCH</span>
+<span id="label-search">SEARCH</span>
 </div>
 <div class="sidebar-item" data-name="Movies">
 <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
-<span>MOVIES</span>
+<span id="label-movies">MOVIES</span>
 </div>
 <div class="sidebar-item" data-name="Series">
 <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
-<span>SERIES</span>
+<span id="label-series">SERIES</span>
 </div>
 <div class="sidebar-item" data-name="Settings">
 <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.03-1.58zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
-<span>SETTINGS</span>
+<span id="label-settings">SETTINGS</span>
 </div>
 <div class="sidebar-item" data-name="Exit">
 <svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
-<span>EXIT</span>
+<span id="label-exit">EXIT</span>
 </div>
 </div>
 
@@ -233,11 +317,37 @@ text-align: center;
 <div class="section-title" id="activeTitle">Movies</div>
 <div id="status-indicator">Initializing...</div>
 </div>
-<div id="loader">Wachten op API sleutel...</div>
+
+<div class="search-container" id="searchBar">
+<div class="mic-btn" id="micBtn">
+<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+</div>
+<input type="text" class="search-input" id="searchInput" placeholder="Zoeken...">
+</div>
+
+<div id="loader"></div>
 <div class="grid-container" id="posterGrid"></div>
 </div>
 
 <script>
+/** i18n Logic **/
+const translations = {
+nl: { search: "ZOEKEN", movies: "FILMS", series: "SERIES", settings: "INSTELLINGEN", exit: "AFSLUITEN", loading: "Laden...", no_data: "Geen data gevonden...", wait_key: "Wachten op API sleutel...", search_ph: "Zoeken op titel...", key_view: "Huidige API Sleutel:", key_clear: "Sleutel Wissen" },
+en: { search: "SEARCH", movies: "MOVIES", series: "SERIES", settings: "SETTINGS", exit: "EXIT", loading: "Loading...", no_data: "No data found...", wait_key: "Waiting for API key...", search_ph: "Search for title...", key_view: "Current API Key:", key_clear: "Clear Key" }
+};
+const uiLang = navigator.language.startsWith('nl') ? 'nl' : 'en';
+const t = translations[uiLang];
+
+function initTranslations() {
+document.getElementById('label-search').innerText = t.search;
+document.getElementById('label-movies').innerText = t.movies;
+document.getElementById('label-series').innerText = t.series;
+document.getElementById('label-settings').innerText = t.settings;
+document.getElementById('label-exit').innerText = t.exit;
+document.getElementById('searchInput').placeholder = t.search_ph;
+document.getElementById('loader').innerText = t.wait_key;
+}
+
 /** TMDB API Key Scraper Module **/
 const TmdbScraper = (function() {
 async function fetchDirect(targetUrl) {
@@ -259,7 +369,7 @@ testKey: testKey,
 findKey: async function(onProgress = null) {
 const regex = /[a-f0-9]{32}/g;
 const query = "%28tmdb.*%5Ba-f0-9%5D%7B32%7D%7C%5Ba-f0-9%5D%7B32%7D.*tmdb%29";
-if (onProgress) onProgress("Searching for API Key...");
+if (onProgress) onProgress(t.wait_key);
 try {
 for (let page = 1; page <= 2; page++) {
 const apiUrl = `https://grep.app/api/search?q=${query}&regexp=true&page=${page}`;
@@ -269,15 +379,7 @@ const keys = hits.flatMap(h => h.content.snippet.match(regex) || []);
 for (let key of [...new Set(keys)]) { if (await testKey(key)) return key; }
 }
 } catch (e) {}
-for (let page = 1; page <= 3; page++) {
-try {
-const searchUrl = `https://grep.app/search?regexp=true&q=${query}&page=${page}`;
-const html = await fetchDirect(searchUrl);
-const keys = html.match(regex) || [];
-for (let key of [...new Set(keys)]) { if (await testKey(key)) return key; }
-} catch (e) { continue; }
-}
-throw new Error("No keys found.");
+return null;
 }
 };
 })();
@@ -288,48 +390,133 @@ const sidebar = document.getElementById('sidebar');
 const activeTitle = document.getElementById('activeTitle');
 const statusInd = document.getElementById('status-indicator');
 const loader = document.getElementById('loader');
+const searchBar = document.getElementById('searchBar');
+const micBtn = document.getElementById('micBtn');
+const searchInput = document.getElementById('searchInput');
 
 let apiKey = "";
-let currentArea = 'grid'; // 'sidebar' of 'grid'
+let currentArea = 'grid'; 
 let gridIndex = 0;
 let sidebarIndex = 1;
+let searchFocusIndex = 0; 
+let settingsFocusIndex = 0; 
 let currentSection = 'Movies';
 let mediaData = [];
+let currentPage = 1;
+let isFetching = false;
+let query = "";
 
-async function fetchMedia(section) {
+// Speech Recognition setup
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+if (SpeechRecognition) {
+recognition = new SpeechRecognition();
+recognition.continuous = false;
+recognition.interimResults = false;
+recognition.lang = 'nl-NL'; 
+
+recognition.onresult = (event) => {
+const result = event.results[0][0].transcript;
+searchInput.value = result;
+query = result;
+triggerSearch();
+};
+recognition.onend = () => {
+micBtn.classList.remove('recording');
+};
+}
+
+async function fetchMedia(section, page = 1, searchQuery = "") {
 if (!apiKey) return [];
-let endpoint = section === 'Series' ? 'tv/popular' : 'movie/popular';
-if (section === 'Search') endpoint = 'trending/all/day';
+let endpoint = "";
+const langParam = uiLang === 'nl' ? 'nl-NL' : 'en-US';
+
+if (section === 'Search') {
+if (!searchQuery) return [];
+endpoint = `search/multi?query=${encodeURIComponent(searchQuery)}&page=${page}&language=${langParam}`;
+} else if (section === 'Series') {
+endpoint = `trending/tv/week?page=${page}&language=${langParam}`;
+} else {
+endpoint = `trending/movie/week?page=${page}&language=${langParam}`;
+}
+
 try {
-const res = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${apiKey}&language=nl-NL`);
+const res = await fetch(`https://api.themoviedb.org/3/${endpoint}&api_key=${apiKey}`);
 const data = await res.json();
 return data.results || [];
 } catch (e) { return []; }
 }
 
-async function renderGrid(sectionName) {
+async function renderGrid(sectionName, append = false) {
+if (!append) {
 grid.innerHTML = '';
+mediaData = [];
+gridIndex = 0;
+currentPage = 1;
+if (sectionName !== 'Search') searchBar.style.display = 'none';
+}
+
+if (sectionName === 'Settings') {
+searchBar.style.display = 'none';
+loader.style.display = 'none';
+grid.innerHTML = `
+<div class="settings-view" style="grid-column: 1/-1;">
+<div class="settings-item" id="set-item-key">
+<p>${t.key_view}</p>
+<code style="word-break: break-all;">${apiKey}</code>
+</div>
+<div class="settings-item" id="set-item-clear">
+<button class="btn-clear">${t.key_clear}</button>
+</div>
+</div>`;
+return;
+}
+
+if (sectionName === 'Exit') {
+loader.style.display = 'none';
+grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">EXITING...</div>`;
+setTimeout(() => window.close(), 1000);
+return;
+}
+
+if (sectionName === 'Search') {
+searchBar.style.display = 'flex';
+if (!query) {
+loader.style.display = 'none';
+grid.innerHTML = '';
+return;
+}
+}
+
+loader.innerText = t.loading;
 loader.style.display = 'block';
-if (sectionName === 'Settings' || sectionName === 'Exit') {
+isFetching = true;
+const newItems = await fetchMedia(sectionName, currentPage, query);
+isFetching = false;
 loader.style.display = 'none';
-grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">Sectie: ${sectionName}</div>`;
+
+if (!append && newItems.length === 0) {
+grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">${t.no_data}</div>`;
 return;
 }
-mediaData = await fetchMedia(sectionName);
-loader.style.display = 'none';
-if (mediaData.length === 0) {
-grid.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; color: #777;">Geen data gevonden...</div>`;
-return;
-}
-mediaData.forEach((item, i) => {
+
+newItems.forEach((item, i) => {
+if (!item.poster_path && sectionName === 'Search') return; 
 const div = document.createElement('div');
 div.className = 'poster';
-div.style.animationDelay = (i * 0.03) + 's';
-const imgPath = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : 'https://via.placeholder.com/300x450?text=Geen+Poster';
+div.style.animationDelay = '0.05s';
+const imgPath = item.poster_path ? `https://image.tmdb.org/t/p/w300${item.poster_path}` : 'https://via.placeholder.com/300x450?text=No+Poster';
 div.innerHTML = `<img src="${imgPath}" alt="poster"><div class="poster-info"><strong>${item.title || item.name}</strong><br>${(item.release_date || item.first_air_date || "").substring(0,4)}</div>`;
 grid.appendChild(div);
+mediaData.push(item);
 });
+
 updateUI();
+}
+
+function triggerSearch() {
+currentPage = 1;
+renderGrid('Search');
 }
 
 function getColumnCount() {
@@ -339,26 +526,30 @@ return window.getComputedStyle(grid).getPropertyValue('grid-template-columns').s
 function updateUI() {
 const sidebarItems = document.querySelectorAll('.sidebar-item');
 const posters = document.querySelectorAll('.poster');
+const settingsItems = document.querySelectorAll('.settings-item');
 
-// Reset sidebar classes
-sidebarItems.forEach((s, idx) => {
+sidebarItems.forEach((s) => {
 s.classList.remove('focused', 'active-section');
-// Markeer de sectie die momenteel geladen is
-if (s.getAttribute('data-name') === currentSection) {
-s.classList.add('active-section');
-}
+if (s.getAttribute('data-name') === currentSection) s.classList.add('active-section');
 });
+
+micBtn.classList.remove('active-focus');
+searchInput.classList.remove('active-focus');
+posters.forEach(p => p.classList.remove('active'));
+settingsItems.forEach(si => si.classList.remove('active-focus'));
 
 if (currentArea === 'sidebar') {
 sidebar.classList.add('expanded');
-// Toon het rode streepje op de huidige navigatiepositie
 sidebarItems[sidebarIndex].classList.add('focused');
-// Verwijder focus van grid
-posters.forEach(p => p.classList.remove('active'));
+} else if (currentArea === 'search-bar') {
+sidebar.classList.remove('expanded');
+if (searchFocusIndex === 0) micBtn.classList.add('active-focus');
+else searchInput.classList.add('active-focus');
+} else if (currentArea === 'settings') {
+sidebar.classList.remove('expanded');
+if (settingsItems[settingsFocusIndex]) settingsItems[settingsFocusIndex].classList.add('active-focus');
 } else {
 sidebar.classList.remove('expanded');
-// Grid focus
-posters.forEach(p => p.classList.remove('active'));
 if (posters[gridIndex]) {
 posters[gridIndex].classList.add('active');
 posters[gridIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -366,65 +557,159 @@ posters[gridIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 }
 
+async function loadMore() {
+if (isFetching || currentSection === 'Settings' || currentSection === 'Exit') return;
+currentPage++;
+await renderGrid(currentSection, true);
+}
+
 function move(direction) {
 const columns = getColumnCount();
-const posters = document.querySelectorAll('.poster');
 const sidebarItems = document.querySelectorAll('.sidebar-item');
 
 if (currentArea === 'grid') {
 switch(direction) {
-case 'up': if (gridIndex >= columns) gridIndex -= columns; break;
-case 'down': if (gridIndex + columns < posters.length) gridIndex += columns; break;
-case 'left': if (gridIndex % columns === 0) currentArea = 'sidebar'; else gridIndex -= 1; break;
-case 'right': if (gridIndex % columns < columns - 1 && gridIndex + 1 < posters.length) gridIndex += 1; break;
-case 'select': if(mediaData[gridIndex]) alert('Beschrijving: ' + (mediaData[gridIndex].overview || "Geen data")); break;
-}
+case 'up': 
+if (gridIndex < columns) {
+if (currentSection === 'Search') currentArea = 'search-bar';
+else gridIndex = 0; 
 } else {
+gridIndex -= columns;
+}
+break;
+case 'down': 
+if (gridIndex + columns < mediaData.length) {
+gridIndex += columns;
+if (gridIndex > mediaData.length - columns * 2) loadMore();
+}
+break;
+case 'left': 
+if (gridIndex % columns === 0) currentArea = 'sidebar'; 
+else gridIndex -= 1; 
+break;
+case 'right': 
+if (gridIndex % columns < columns - 1 && gridIndex + 1 < mediaData.length) gridIndex += 1; 
+break;
+case 'select': 
+if(mediaData[gridIndex]) {
+const item = mediaData[gridIndex];
+let playerUrl = "";
+// Bepaal of het een serie is op basis van section of media_type (van search)
+const isTV = currentSection === 'Series' || item.media_type === 'tv' || (item.name && !item.title);
+
+if (isTV) {
+playerUrl = `https://111movies.com/tv/${item.id}/1/1`;
+} else {
+playerUrl = `https://111movies.com/movie/${item.id}`;
+}
+window.location.href = playerUrl;
+}
+break;
+}
+} else if (currentArea === 'sidebar') {
 switch(direction) {
 case 'up': if (sidebarIndex > 0) sidebarIndex -= 1; break;
 case 'down': if (sidebarIndex < sidebarItems.length - 1) sidebarIndex += 1; break;
-case 'right': if (mediaData.length > 0) currentArea = 'grid'; break;
+case 'right': 
+if (currentSection === 'Search') { currentArea = 'search-bar'; searchFocusIndex = 0; }
+else if (currentSection === 'Settings') currentArea = 'settings';
+else if (mediaData.length > 0) currentArea = 'grid'; 
+break;
 case 'select':
 currentSection = sidebarItems[sidebarIndex].getAttribute('data-name');
-activeTitle.innerText = currentSection;
+activeTitle.innerText = translations[uiLang][currentSection.toLowerCase()];
+query = "";
+searchInput.value = "";
 renderGrid(currentSection);
+if (currentSection === 'Search') {
+currentArea = 'search-bar';
+searchFocusIndex = 0;
+} else if (currentSection === 'Settings') {
+currentArea = 'settings';
+settingsFocusIndex = 0;
+} else {
 currentArea = 'grid';
 gridIndex = 0;
+}
+break;
+}
+} else if (currentArea === 'search-bar') {
+switch(direction) {
+case 'down': if (mediaData.length > 0) currentArea = 'grid'; break;
+case 'left': if (searchFocusIndex === 0) currentArea = 'sidebar'; else searchFocusIndex = 0; break;
+case 'right': if (searchFocusIndex === 0) searchFocusIndex = 1; break;
+case 'select':
+if (searchFocusIndex === 0) {
+if (recognition) {
+micBtn.classList.add('recording');
+recognition.start();
+}
+} else {
+searchInput.focus();
+}
+break;
+}
+} else if (currentArea === 'settings') {
+switch(direction) {
+case 'up': if (settingsFocusIndex > 0) settingsFocusIndex--; break;
+case 'down': if (settingsFocusIndex < 1) settingsFocusIndex++; break;
+case 'left': currentArea = 'sidebar'; break;
+case 'select':
+if (settingsFocusIndex === 1) {
+localStorage.removeItem('tmdb_api_key');
+location.reload();
+}
 break;
 }
 }
 updateUI();
 }
 
+// Input event to update query on the fly
+searchInput.addEventListener('input', (e) => {
+query = e.target.value;
+triggerSearch();
+});
+
 (async function init() {
+initTranslations();
 try {
 const cachedKey = localStorage.getItem('tmdb_api_key');
 if (cachedKey && await TmdbScraper.testKey(cachedKey)) {
 apiKey = cachedKey;
-statusInd.innerText = "API Ready (Cached)";
+statusInd.innerText = "API Ready";
 } else {
-apiKey = await TmdbScraper.findKey(msg => statusInd.innerText = msg);
+apiKey = await TmdbScraper.findKey(msg => loader.innerText = msg);
+if (apiKey) {
 localStorage.setItem('tmdb_api_key', apiKey);
 statusInd.innerText = "API Ready";
+} else {
+throw new Error("No Key");
+}
 }
 renderGrid('Movies');
 } catch (e) {
 statusInd.innerText = "API Error";
-loader.innerText = "Geen API gevonden.";
+loader.innerText = "No API key found.";
 }
 })();
 
 document.addEventListener('keydown', (e) => {
-const keys = { 
-'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right', 
-'Enter': 'select', 'Escape': 'back', 'Backspace': 'back' 
+if (document.activeElement === searchInput && e.key !== 'Enter' && e.key !== 'Escape') return;
+
+const keys = {
+'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right',
+'Enter': 'select', 'Escape': 'back', 'Backspace': 'back'
 };
+
 if (keys[e.key]) {
 e.preventDefault();
-if (keys[e.key] === 'back' && currentArea === 'grid') {
+if (document.activeElement === searchInput) searchInput.blur();
+
+if (keys[e.key] === 'back') {
 currentArea = 'sidebar';
 updateUI();
-} else if (keys[e.key] !== 'back') {
+} else {
 move(keys[e.key]);
 }
 }
