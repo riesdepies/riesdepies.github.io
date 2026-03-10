@@ -94,9 +94,6 @@ border-top-left-radius: 0;
 text-align: left;
 cursor: default;
 }
-.message.assistant.has-internet-indicator {
-padding-bottom: 35px;
-}
 .message.editing {
 border: 1px dashed white;
 }
@@ -146,95 +143,6 @@ transform: rotate(-90deg);
 .reasoning-container.collapsed .reasoning-content {
 display: none;
 }
-
-
-/* Grounding / Internet Source Styling */
-.grounding-wrapper {
-position: absolute;
-bottom: 5px;
-right: 8px;
-display: flex;
-justify-content: flex-end;
-z-index: 10;
-}
-.internet-indicator {
-opacity: 0.8;
-display: flex;
-align-items: center;
-cursor: pointer;
-padding: 2px;
-border-radius: 4px;
-transition: background-color 0.2s;
-}
-.internet-indicator:hover {
-background-color: rgba(255,255,255,0.2);
-opacity: 1;
-}
-.internet-indicator svg {
-width: 16px;
-height: 16px;
-fill: #fff;
-}
-.grounding-details {
-margin-top: 10px;
-background-color: #2b2c2f;
-border-radius: 8px;
-padding: 10px;
-font-size: 0.85em;
-width: 100%;
-box-sizing: border-box;
-border: 1px solid #444;
-display: block;
-}
-.grounding-details.collapsed {
-display: none;
-}
-.grounding-section-title {
-font-weight: 600;
-margin-bottom: 5px;
-color: #aaa;
-font-size: 0.9em;
-text-transform: uppercase;
-letter-spacing: 0.5px;
-}
-.grounding-chips {
-display: flex;
-flex-wrap: wrap;
-gap: 5px;
-margin-bottom: 10px;
-}
-.search-query-tag {
-background-color: #424347;
-padding: 3px 8px;
-border-radius: 12px;
-color: #ddd;
-font-size: 0.9em;
-}
-.grounding-sources-list {
-list-style: none;
-padding: 0;
-margin: 0;
-}
-.grounding-sources-list li {
-margin-bottom: 4px;
-counter-increment: source-counter;
-display: flex;
-gap: 5px;
-}
-.grounding-sources-list li::before {
-content: counter(source-counter) ".";
-color: #888;
-min-width: 15px;
-}
-.source-link {
-color: #64b5f6;
-text-decoration: none;
-word-break: break-all;
-}
-.source-link:hover {
-text-decoration: underline;
-}
-
 
 .editable {
 width: 100%;
@@ -658,8 +566,6 @@ const CURRENT_MODEL_KEY = 'chatInterfaceCurrentModel';
 const PREVIOUS_MODEL_KEY = 'chatInterfacePreviousModel';
 
 
-// Google Search Tool Variable
-let googleSearchEnabled = true; // Hardcoded to true
 let currentAbortController = null;
 let isGenerating = false;
 let stopPressTimer = null;
@@ -685,7 +591,6 @@ mic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34
 stop: `<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"></rect></svg>`,
 save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`,
 swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`,
-globe: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`,
 brain: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M10.29 3.86L10.29 3.86C8.86 4.3 7.6 5.23 6.72 6.48C5.83 7.73 5.4 9.23 5.51 10.74C5.17 10.82 4.85 10.96 4.56 11.16C4.05 11.51 3.65 11.99 3.39 12.56C3.12 13.13 3.01 13.76 3.07 14.38C3.14 15.01 3.38 15.6 3.77 16.1C4.16 16.6 4.68 16.98 5.27 17.2C5.07 18.66 5.43 20.15 6.32 21.36C7.2 22.56 8.52 23.33 10 23.5L10 23.5C10.73 23.58 11.47 23.49 12.16 23.23C12.85 22.97 13.48 22.54 13.98 21.99C14.48 21.43 14.83 20.76 15 20.03C15.17 19.3 15.16 18.55 14.97 17.82C15.82 17.63 16.6 17.18 17.19 16.53C17.78 15.88 18.15 15.06 18.25 14.19C18.35 13.32 18.18 12.44 17.76 11.67C17.33 10.89 16.68 10.26 15.88 9.87C15.93 8.32 15.42 6.81 14.45 5.61C13.48 4.41 12.13 3.61 10.65 3.32C10.53 3.3 10.41 3.28 10.29 3.28V3.86ZM12 5.5C13.38 5.5 14.5 6.62 14.5 8H13V9.5H14.5C14.5 10.88 13.38 12 12 12C10.62 12 9.5 10.88 9.5 9.5H11V8H9.5C9.5 6.62 10.62 5.5 12 5.5ZM7.5 12.5C8.33 12.5 9 13.17 9 14H7.5V15.5H9C9 16.33 8.33 17 7.5 17C6.67 17 6 16.33 6 15.5H7.5V14H6C6 13.17 6.67 12.5 7.5 12.5ZM16.5 12.5C17.33 12.5 18 13.17 18 14H16.5V15.5H18C18 16.33 17.33 17 16.5 17C15.67 17 15 16.33 15 15.5H16.5V14H15C15 13.17 15.67 12.5 16.5 12.5ZM12 15C12.83 15 13.5 15.67 13.5 16.5H12V18H13.5C13.5 18.83 12.83 19.5 12 19.5C11.17 19.5 10.5 18.83 10.5 18H12V16.5H10.5C10.5 15.67 11.17 15 12 15Z" /></svg>`,
 copy: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`,
 checkmark: `<svg viewBox="0 0 24 24" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`,
@@ -1353,11 +1258,6 @@ let requestBody = {
 };
 
 
-if (googleSearchEnabled) {
-requestBody.tools = [{ "google_search": {} }];
-}
-
-
 response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}&alt=sse`, {
 method: 'POST', headers: {'Content-Type': 'application/json'},
 body: JSON.stringify(requestBody),
@@ -1375,7 +1275,6 @@ const reader = response.body.getReader(); const decoder = new TextDecoder();
 let buffer = ''; let fullText = '';
 let partialMessageElement = null;
 let allChunks = [];
-let finalGroundingMetadata = null;
 let lastRenderTime = 0;
 
 
@@ -1402,11 +1301,6 @@ try {
 const json = JSON.parse(jsonStr);
 allChunks.push(json);
 const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-const metadata = json?.candidates?.[0]?.groundingMetadata;
-if (metadata) {
-finalGroundingMetadata = metadata;
-}
-
 
 if (text) {
 fullText += text;
@@ -1451,23 +1345,18 @@ mainContent = fullText.replace(thinkRegex, '').trim();
 }
 
 
-const usedInternet = finalGroundingMetadata !== null;
-
-
 if(partialMessageElement) partialMessageElement.remove();
 
 
 conversationHistory.push({
 role: "assistant",
 content: mainContent,
-reasoning: reasoningContent,
-usedInternet: usedInternet,
-groundingMetadata: finalGroundingMetadata
+reasoning: reasoningContent
 });
 
 
 modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": fullText}]});
-displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, usedInternet, finalGroundingMetadata);
+displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent);
 chatOutput.scrollTop = chatOutput.scrollHeight;
 document.getElementById('loading-spinner').style.display = 'none'; saveFullConversation();
 playNotificationSound();
@@ -1482,7 +1371,7 @@ let lastRenderTime = 0;
 
 
 try {
-botResponse = await chat.getBotResponse(userInput, googleSearchEnabled, (delta) => {
+botResponse = await chat.getBotResponse(userInput, (delta) => {
 if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
 botResponse += delta;
 if (partialMessageElement) {
@@ -1531,7 +1420,7 @@ updateClearChatButtonIcon();
 function escapeHtml(unsafe) { const div = document.createElement('div'); div.textContent = unsafe; return div.innerHTML; }
 
 
-function displayMessage(message, sender, index, isUserInput = false, reasoning = null, usedInternet = false, groundingMetadata = null) {
+function displayMessage(message, sender, index, isUserInput = false, reasoning = null) {
 let chatOutput = document.getElementById('chat-output');
 let newMessageDiv = document.createElement('div');
 newMessageDiv.classList.add('message', sender);
@@ -1545,7 +1434,7 @@ reasoningDiv.onclick = function(e) { e.stopPropagation(); toggleReasoning(this);
 reasoningDiv.innerHTML = `
 <div class="reasoning-container-header">
 <span class="reasoning-container-title">${ICONS.brain} Reasoning</span>
-<svg class="reasoning-container-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<svg class="reasoning-container-icon" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <polyline points="6 9 12 15 18 9"></polyline>
 </svg>
 </div>
@@ -1569,7 +1458,7 @@ newMessageDiv.appendChild(editableSpan);
 
 newMessageDiv.addEventListener('click', function(event) {
 if (sender !== 'user') return;
-if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .download-code, .internet-indicator, .grounding-details')) return;
+if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .download-code')) return;
 
 
 const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
@@ -1648,82 +1537,12 @@ messageDiv.classList.remove('editing');
 }, 50);
 });
 
-
-if (sender === 'assistant' && usedInternet && groundingMetadata) {
-newMessageDiv.classList.add('has-internet-indicator');
-const groundingHTML = createGroundingElement(groundingMetadata);
-newMessageDiv.appendChild(groundingHTML);
-}
-
-
 chatOutput.appendChild(newMessageDiv);
 if (chatOutput.lastChild === newMessageDiv) {
 chatOutput.scrollTop = chatOutput.scrollHeight;
 }
 Prism.highlightAllUnder(newMessageDiv);
 addRunAndCopyButtonsToCodeBlocks(newMessageDiv);
-}
-
-
-function createGroundingElement(metadata) {
-const container = document.createElement('div');
-container.style.position = 'absolute';
-container.style.bottom = '5px';
-container.style.right = '8px';
-container.style.width = '100%';
-container.style.display = 'flex';
-container.style.flexDirection = 'column';
-container.style.alignItems = 'flex-end';
-
-
-const wrapper = document.createElement('div');
-wrapper.className = 'grounding-wrapper';
-wrapper.innerHTML = `<div class="internet-indicator" title="Show Search Details" onclick="toggleGrounding(this)">${ICONS.globe}</div>`;
-container.appendChild(wrapper);
-
-
-const detailsDiv = document.createElement('div');
-detailsDiv.className = 'grounding-details collapsed';
-
-
-let contentHTML = '';
-
-
-if (metadata.webSearchQueries && metadata.webSearchQueries.length > 0) {
-const validQueries = metadata.webSearchQueries.filter(q => q && typeof q === 'string' && q.trim().length > 0);
-
-
-if (validQueries.length > 0) {
-contentHTML += `<div class="grounding-section-title">Search Queries</div><div class="grounding-chips">`;
-validQueries.forEach(query => {
-contentHTML += `<span class="search-query-tag">${escapeHtml(query)}</span>`;
-});
-contentHTML += `</div>`;
-}
-}
-
-
-if (metadata.groundingChunks && metadata.groundingChunks.length > 0) {
-contentHTML += `<div class="grounding-section-title">Sources</div><ul class="grounding-sources-list">`;
-metadata.groundingChunks.forEach(chunk => {
-if (chunk.web) {
-contentHTML += `<li><a href="${chunk.web.uri}" target="_blank" class="source-link">${escapeHtml(chunk.web.title || chunk.web.uri)}</a></li>`;
-}
-});
-contentHTML += `</ul>`;
-}
-
-
-if (!contentHTML) {
-contentHTML = '<div style="color:#888; font-style:italic;">No detailed search metadata available.</div>';
-}
-
-
-detailsDiv.innerHTML = contentHTML;
-const fragment = document.createDocumentFragment();
-fragment.appendChild(detailsDiv);
-fragment.appendChild(wrapper);
-return fragment;
 }
 
 
@@ -1742,16 +1561,6 @@ return partialMessage;
 
 
 function toggleReasoning(element) { element.classList.toggle('collapsed'); }
-
-
-function toggleGrounding(element) {
-const messageDiv = element.closest('.message');
-const detailsDiv = messageDiv.querySelector('.grounding-details');
-if (detailsDiv) {
-detailsDiv.classList.toggle('collapsed');
-}
-}
-
 
 function addRunAndCopyButtonsToCodeBlocks(parentElement) {
 parentElement.querySelectorAll('pre code').forEach((block) => {
@@ -1878,7 +1687,7 @@ newWindow.document.close();
 function redrawMessages() {
 document.getElementById('chat-output').innerHTML = '';
 conversationHistory.forEach((entry, i) => {
-displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning, entry.usedInternet, entry.groundingMetadata);
+displayMessage(entry.content, entry.role, i, entry.role === 'user', entry.reasoning);
 });
 if (editIndex !== null) {
 const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"] .editable`);
@@ -1935,8 +1744,8 @@ showTab('chat');
 class OpenAIChat {
 constructor(apiKey, model, systemPrompt) { this.apiKey = apiKey; this.model = model; this.systemPrompt = systemPrompt; }
 setApiKey(apiKey) { this.apiKey = apiKey; } setModel(model) { this.model = model; } setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; }
-async getBotResponse(userMessage, webSearchEnabled, onDelta, signal) {
-const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, usedInternet, groundingMetadata, ...rest } = entry; return rest; });
+async getBotResponse(userMessage, onDelta, signal) {
+const historyForApi = conversationHistory.slice(0, conversationHistory.length -1).map(entry => { const { reasoning, ...rest } = entry; return rest; });
 const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
 
 
@@ -1947,7 +1756,7 @@ stream: true
 };
 
 
-const url = "https://api.openai.com/v1/chat/completions";
+const url = "[https://api.openai.com/v1/chat/completions](https://api.openai.com/v1/chat/completions)";
 const response = await fetch(url, {
 method: "POST",
 headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
