@@ -842,9 +842,9 @@ const isTv = season !== null && episode !== null;
 let vidsrcUrl;
 
 if (isTv) {
-vidsrcUrl = `https://vidsrc.net/embed/tv/${imdbId}/${season}/${episode}`;
+vidsrcUrl = `https://vidsrc.net/embed/tv/${imdbId}/${season}/${episode}?ds_lang=nl`;
 } else {
-vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}`;
+vidsrcUrl = `https://vidsrc.net/embed/movie/${imdbId}?ds_lang=nl`;
 }
 
 let iconContainer;
@@ -864,72 +864,11 @@ iconContainer.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 }
 }
 
-async function findVideoUrl(targetUrl) {
-const controller = new AbortController();
-const promises = PROXIES.map(async (proxyBuilder) => {
-try {
-const proxyUrl = proxyBuilder(targetUrl);
-const response = await fetch(proxyUrl, { signal: controller.signal });
-if (!response.ok) throw new Error("Proxy error");
-const html = await response.text();
-
-if (html.includes('unavailable')) throw new Error("Media unavailable");
-
-const parser = new DOMParser();
-const doc = parser.parseFromString(html, 'text/html');
-const iframe = doc.querySelector('iframe');
-if (!iframe) throw new Error("No iframe");
-
-const src = iframe.getAttribute('src');
-if (!src) throw new Error("No src");
-
-return makeAbsoluteUrl(src, targetUrl);
-} catch (e) { throw e; }
-});
-
-const timeoutPromise = new Promise((_, reject) =>
-setTimeout(() => {
-controller.abort();
-reject(new Error("Timeout"));
-}, 3000)
-);
-
-try {
-const url = await Promise.race([Promise.any(promises), timeoutPromise]);
-controller.abort();
-return url;
-} catch (e) {
-throw new Error("Video niet beschikbaar.");
-}
-}
-
-try {
-const winningUrl = await findVideoUrl(vidsrcUrl);
-// AANPASSING HIERONDER: Gebruik location.href i.p.v. window.open om in hetzelfde tabblad te blijven
-window.location.href = winningUrl;
+// Open vidsrc direct in een nieuw tabblad
+window.open(vidsrcUrl, '_blank');
 
 if (isTv && iconContainer) iconContainer.className = originalIconHTML;
 else if (iconContainer) iconContainer.innerHTML = originalIconHTML;
-
-} catch (error) {
-showToast("Video niet beschikbaar of offline.");
-
-if (isTv && iconContainer) {
-iconContainer.className = 'fa-solid fa-circle-xmark';
-iconContainer.style.color = '#E50914';
-} else if (iconContainer) {
-iconContainer.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#E50914"></i>';
-}
-
-setTimeout(() => {
-if (isTv && iconContainer) {
-iconContainer.className = originalIconHTML;
-iconContainer.style.color = '';
-} else if (iconContainer) {
-iconContainer.innerHTML = originalIconHTML;
-}
-}, 2000);
-}
 }
 
 // --- Initialization ---
