@@ -1326,6 +1326,16 @@ lastRenderTime = now;
 }
 }
 }
+if (buffer.trim().startsWith('data:')) {
+const jsonStr = buffer.trim().substring(5).trim();
+if (jsonStr !== '[DONE]' && jsonStr) {
+try {
+const json = JSON.parse(jsonStr);
+const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+if (text) fullText += text;
+} catch (e) {}
+}
+}
 
 
 let reasoningContent = null;
