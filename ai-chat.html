@@ -1784,7 +1784,7 @@ delegate(line.substring(line.indexOf(':') + 1).trim());
 }
 }
 if (accumulated.trim().startsWith('data:') && accumulated.trim() !== 'data: [DONE]') {
-delegate(accumulated.substring(accumulated.substring(line.indexOf(':') + 1).trim()));
+delegate(accumulated.substring(accumulated.indexOf(':') + 1).trim());
 }
 }
 }
