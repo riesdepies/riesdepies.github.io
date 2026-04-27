@@ -1218,14 +1218,21 @@ const doc = new DOMParser().parseFromString(html, 'text/html');
 const tags = Array.from(doc.querySelectorAll('.meta .tag'));
 const paras = doc.querySelectorAll('.description p');
 
-const spotifyIframe = doc.querySelector('.spotify iframe');
+const spotifyIframe = doc.querySelector('.spotify iframe, figure.wp-block-embed.is-provider-spotify iframe, iframe[src*="open.spotify.com"]');
 let spotifyUri = null;
 if (spotifyIframe) {
 const src = spotifyIframe.getAttribute('src');
 if (src) {
-const match = src.match(/(spotify:(?:artist|album|track):[^&?]+)/);
-if (match && match[1]) {
-spotifyUri = match[1];
+// Probeer oud URI-formaat: spotify:artist:ID
+const uriMatch = src.match(/(spotify:(?:artist|album|track):[^&?]+)/);
+if (uriMatch && uriMatch[1]) {
+spotifyUri = uriMatch[1];
+} else {
+// Nieuw URL-formaat: https://open.spotify.com/embed/artist/ID
+const urlMatch = src.match(/open\.spotify\.com\/embed\/(artist|album|track)\/([^?&]+)/);
+if (urlMatch) {
+spotifyUri = `spotify:${urlMatch[1]}:${urlMatch[2]}`;
+}
 }
 }
 }
