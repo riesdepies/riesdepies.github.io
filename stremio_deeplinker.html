@@ -10,6 +10,13 @@
         .stremio-purple { background-color: #8151d1; }
         .stremio-purple:hover { background-color: #6b3fb5; }
         input, select { background-color: #1e1b2e !important; border: 1px solid #3d375e !important; color: white !important; }
+        .copy-btn {
+            border: 2px solid #8151d1; color: #a78bfa; background-color: transparent;
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background-color: #8151d1; color: white;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -36,7 +43,7 @@
                 <input type="text" id="imdb" placeholder="tt1234567 of volledige link" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
             </div>
 
-            <!-- Series Fields (Hidden by default) -->
+            <!-- Series Fields -->
             <div id="series-fields" class="hidden flex space-x-4">
                 <div class="flex-1">
                     <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Seizoen</label>
@@ -59,18 +66,20 @@
                 <button onclick="openStremio()" class="w-full stremio-purple py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg">
                     Open in Stremio
                 </button>
-                <button onclick="copyDeeplink()" id="copyBtn" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-xl font-semibold text-sm transition-all">
-                    📋 Deeplink kopiëren
+                <button onclick="copyDeeplink()" id="copyBtn" class="w-full copy-btn py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2">
+                    <svg id="copyIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span id="copyText">Deeplink kopiëren</span>
                 </button>
             </div>
         </div>
 
         <p id="error" class="mt-4 text-red-400 text-sm text-center hidden italic"></p>
-        <p id="success" class="mt-2 text-green-400 text-sm text-center hidden italic"></p>
     </div>
 
     <script>
-        // ---- Basisinstellingen ----
+        // DOM elementen
         const fields = {
             type: document.getElementById('type'),
             imdb: document.getElementById('imdb'),
@@ -79,11 +88,12 @@
             episode: document.getElementById('episode'),
             seriesFields: document.getElementById('series-fields'),
             error: document.getElementById('error'),
-            success: document.getElementById('success'),
-            copyBtn: document.getElementById('copyBtn')
+            copyBtn: document.getElementById('copyBtn'),
+            copyText: document.getElementById('copyText'),
+            copyIcon: document.getElementById('copyIcon')
         };
 
-        // ---- Onthouden van ingevoerde gegevens (localStorage) ----
+        // ---- Gegevens onthouden (localStorage) ----
         function saveData() {
             const data = {
                 type: fields.type.value,
@@ -105,12 +115,11 @@
                     if (data.stream) fields.stream.value = data.stream;
                     if (data.season) fields.season.value = data.season;
                     if (data.episode) fields.episode.value = data.episode;
-                } catch (e) { /* negeer corrupte data */ }
+                } catch (e) {}
             }
-            toggleSeriesFields(); // pas UI aan op basis van opgeslagen type
+            toggleSeriesFields();
         }
 
-        // Sla op bij elke wijziging
         ['type', 'imdb', 'stream', 'season', 'episode'].forEach(id => {
             document.getElementById(id).addEventListener('input', saveData);
             document.getElementById(id).addEventListener('change', saveData);
@@ -129,11 +138,14 @@
             return match ? match[0] : null;
         }
 
-        // ---- Base64-codering voor de stream-URL (veilig voor alle URL's) ----
-        function base64EncodeUrl(url) {
-            // encodeURIComponent geeft UTF-8 bytes, btoa werkt op Latin1.
-            // Daarom eerst naar bytes converteren.
-            return btoa(unescape(encodeURIComponent(url)));
+        // ---- Base64url-codering (veilig voor URL's) ----
+        function base64urlEncode(str) {
+            // Converteer naar UTF-8 bytes, dan base64, vervang URL-onveilige tekens
+            const base64 = btoa(unescape(encodeURIComponent(str)));
+            return base64
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, ''); // padding verwijderen
         }
 
         // ---- Deeplink genereren ----
@@ -152,30 +164,25 @@
                 finalId = `${imdbId}:${s}:${e}`;
             }
 
-            const encodedStream = base64EncodeUrl(streamUrl);
+            const encodedStream = base64urlEncode(streamUrl);
             return `stremio://player/${encodedStream}/${type}/${finalId}`;
         }
 
         // ---- Openen in Stremio ----
         function openStremio() {
             fields.error.classList.add('hidden');
-            fields.success.classList.add('hidden');
-
             const deeplink = generateDeeplink();
             if (!deeplink) {
                 fields.error.innerText = "Zorg voor een geldig IMDb ID en Stream URL.";
                 fields.error.classList.remove('hidden');
                 return;
             }
-
             window.location.href = deeplink;
         }
 
-        // ---- Deeplink kopiëren naar klembord ----
+        // ---- Kopiëren met visuele feedback ----
         function copyDeeplink() {
             fields.error.classList.add('hidden');
-            fields.success.classList.add('hidden');
-
             const deeplink = generateDeeplink();
             if (!deeplink) {
                 fields.error.innerText = "Vul eerst alle velden correct in.";
@@ -184,24 +191,31 @@
             }
 
             navigator.clipboard.writeText(deeplink).then(() => {
-                fields.success.innerText = "Deeplink gekopieerd!";
-                fields.success.classList.remove('hidden');
-                setTimeout(() => fields.success.classList.add('hidden'), 3000);
+                showCopiedFeedback();
             }).catch(() => {
-                // Fallback voor oudere browsers
+                // Fallback
                 const textArea = document.createElement('textarea');
                 textArea.value = deeplink;
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                fields.success.innerText = "Deeplink gekopieerd!";
-                fields.success.classList.remove('hidden');
-                setTimeout(() => fields.success.classList.add('hidden'), 3000);
+                showCopiedFeedback();
             });
         }
 
-        // ---- Start: laad opgeslagen data ----
+        function showCopiedFeedback() {
+            // Verander knoptekst en icoon tijdelijk
+            fields.copyText.textContent = 'Gekopieerd!';
+            fields.copyIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />'; // vinkje
+
+            setTimeout(() => {
+                fields.copyText.textContent = 'Deeplink kopiëren';
+                fields.copyIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />';
+            }, 2500);
+        }
+
+        // ---- Pagina laden ----
         loadData();
     </script>
 </body>
