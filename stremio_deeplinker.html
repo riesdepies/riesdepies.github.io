@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stremio Deep Link Generator</title>
+    <title>Stremio Link Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f0d19; color: white; font-family: sans-serif; }
+        body { background-color: #0f0d19; color: white; }
         .stremio-purple { background-color: #8151d1; }
         .stremio-purple:hover { background-color: #6b3fb5; }
-        input, select { 
-            background-color: #1e1b2e !important; 
-            border: 1px solid #3d375e !important; 
-            color: white !important; 
-        }
-        input::placeholder { color: #6b7280; }
+        input, select { background-color: #1e1b2e !important; border: 1px solid #3d375e !important; color: white !important; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-md bg-[#161424] p-8 rounded-2xl shadow-2xl border border-gray-800">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold mb-2 text-white">Stremio Linker</h1>
-            <p class="text-gray-400 text-sm">Open externe streams direct in de Stremio player met de juiste metadata.</p>
+            <h1 class="text-2xl font-bold mb-2">Stremio Linker</h1>
+            <p class="text-gray-400 text-sm">Genereer een deeplink met metadata voor de juiste ondertitels.</p>
         </div>
 
-        <div class="space-y-5">
+        <div class="space-y-4">
             <!-- Media Type -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Type Content</label>
-                <select id="type" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all" onchange="toggleSeriesFields()">
+                <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Type</label>
+                <select id="type" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500" onchange="toggleSeriesFields()">
                     <option value="movie">Film</option>
                     <option value="series">Serie</option>
                 </select>
@@ -38,41 +33,34 @@
             <!-- IMDb ID or URL -->
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">IMDb ID of URL</label>
-                <input type="text" id="imdb" placeholder="tt1234567 of imdb.com/title/..." class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                <input type="text" id="imdb" placeholder="tt1234567 of volledige link" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
             </div>
 
             <!-- Series Fields (Hidden by default) -->
             <div id="series-fields" class="hidden flex space-x-4">
                 <div class="flex-1">
                     <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Seizoen</label>
-                    <input type="number" id="season" value="1" min="1" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="number" id="season" value="1" class="w-full p-3 rounded-lg outline-none">
                 </div>
                 <div class="flex-1">
                     <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Aflevering</label>
-                    <input type="number" id="episode" value="1" min="1" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
+                    <input type="number" id="episode" value="1" class="w-full p-3 rounded-lg outline-none">
                 </div>
             </div>
 
             <!-- Stream URL -->
             <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Stream URL (Directe video link)</label>
-                <input type="text" id="stream" placeholder="https://site.com/video.mp4" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">Stream URL (Video link)</label>
+                <input type="text" id="stream" placeholder="https://site.com/video.mp4" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
             </div>
 
             <!-- Action Button -->
-            <div class="pt-2">
-                <button onclick="openStremio()" class="w-full stremio-purple py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg flex items-center justify-center">
-                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    Open in Stremio
-                </button>
-            </div>
+            <button onclick="openStremio()" class="w-full stremio-purple py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg">
+                Open in Stremio
+            </button>
         </div>
 
         <p id="error" class="mt-4 text-red-400 text-sm text-center hidden italic"></p>
-        
-        <div class="mt-8 pt-6 border-t border-gray-800 text-center">
-            <p class="text-[10px] text-gray-600 uppercase tracking-widest">Werkt op Android, iOS en Desktop</p>
-        </div>
     </div>
 
     <script>
@@ -98,32 +86,29 @@
             const imdbId = extractImdbId(imdbInput);
 
             if (!imdbId || !streamUrl) {
-                errorElement.innerText = "Voer een geldig IMDb ID en een Stream URL in.";
+                errorElement.innerText = "Zorg voor een geldig IMDb ID en Stream URL.";
                 errorElement.classList.remove('hidden');
                 return;
             }
 
-            // Voor Stremio Player routing zijn 4 elementen essentieel:
-            // 1. De (encoded) Stream URL
-            // 2. Het type (movie/series)
-            // 3. De Meta ID (het overkoepelende IMDb ID)
-            // 4. De Video ID (het specifieke ID, bij series inclusief S en E)
-
-            let videoId = imdbId;
+            // Stremio Player URL format:
+            // stremio://player/<stream_url>/<type>/<imdb_id>
+            // Voor series moet de id vaak in formaat tt1234567:1:1 (id:season:episode)
+            
+            let finalId = imdbId;
             if (type === 'series') {
                 const s = document.getElementById('season').value || 1;
                 const e = document.getElementById('episode').value || 1;
-                videoId = `${imdbId}:${s}:${e}`;
+                finalId = `${imdbId}:${s}:${e}`;
             }
 
-            // Dubbele encoding kan nodig zijn voor complexe URL's met query parameters
+            // De stream URL moet dubbel-encoded zijn voor sommige Android intents, 
+            // maar standaard URL encoding werkt meestal direct.
             const encodedStream = encodeURIComponent(streamUrl);
+            const deeplink = `stremio://player/${encodedStream}/${type}/${finalId}`;
 
-            // De HTTPS 'Shell' link is de meest stabiele methode voor Android Intent handling
-            const appLink = `https://app.strem.io/shell-v4/#/player/${encodedStream}/${type}/${imdbId}/${videoId}`;
-
-            // Redirect naar de app
-            window.location.href = appLink;
+            // Probeer de app te openen
+            window.location.href = deeplink;
         }
     </script>
 </body>
