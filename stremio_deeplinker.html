@@ -30,7 +30,7 @@
                 </select>
             </div>
 
-            <!-- IMDb ID or URL -->
+            <!-- IMDb ID of URL -->
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider mb-1 text-gray-500">IMDb ID of URL</label>
                 <input type="text" id="imdb" placeholder="tt1234567 of volledige link" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
@@ -54,62 +54,155 @@
                 <input type="text" id="stream" placeholder="https://site.com/video.mp4" class="w-full p-3 rounded-lg outline-none focus:ring-2 focus:ring-purple-500">
             </div>
 
-            <!-- Action Button -->
-            <button onclick="openStremio()" class="w-full stremio-purple py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg">
-                Open in Stremio
-            </button>
+            <!-- Knoppen -->
+            <div class="space-y-3">
+                <button onclick="openStremio()" class="w-full stremio-purple py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg">
+                    Open in Stremio
+                </button>
+                <button onclick="copyDeeplink()" id="copyBtn" class="w-full bg-gray-700 hover:bg-gray-600 py-3 rounded-xl font-semibold text-sm transition-all">
+                    📋 Deeplink kopiëren
+                </button>
+            </div>
         </div>
 
         <p id="error" class="mt-4 text-red-400 text-sm text-center hidden italic"></p>
+        <p id="success" class="mt-2 text-green-400 text-sm text-center hidden italic"></p>
     </div>
 
     <script>
-        function toggleSeriesFields() {
-            const type = document.getElementById('type').value;
-            const fields = document.getElementById('series-fields');
-            fields.classList.toggle('hidden', type !== 'series');
+        // ---- Basisinstellingen ----
+        const fields = {
+            type: document.getElementById('type'),
+            imdb: document.getElementById('imdb'),
+            stream: document.getElementById('stream'),
+            season: document.getElementById('season'),
+            episode: document.getElementById('episode'),
+            seriesFields: document.getElementById('series-fields'),
+            error: document.getElementById('error'),
+            success: document.getElementById('success'),
+            copyBtn: document.getElementById('copyBtn')
+        };
+
+        // ---- Onthouden van ingevoerde gegevens (localStorage) ----
+        function saveData() {
+            const data = {
+                type: fields.type.value,
+                imdb: fields.imdb.value,
+                stream: fields.stream.value,
+                season: fields.season.value,
+                episode: fields.episode.value
+            };
+            localStorage.setItem('stremioLinker', JSON.stringify(data));
         }
 
+        function loadData() {
+            const saved = localStorage.getItem('stremioLinker');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.type) fields.type.value = data.type;
+                    if (data.imdb) fields.imdb.value = data.imdb;
+                    if (data.stream) fields.stream.value = data.stream;
+                    if (data.season) fields.season.value = data.season;
+                    if (data.episode) fields.episode.value = data.episode;
+                } catch (e) { /* negeer corrupte data */ }
+            }
+            toggleSeriesFields(); // pas UI aan op basis van opgeslagen type
+        }
+
+        // Sla op bij elke wijziging
+        ['type', 'imdb', 'stream', 'season', 'episode'].forEach(id => {
+            document.getElementById(id).addEventListener('input', saveData);
+            document.getElementById(id).addEventListener('change', saveData);
+        });
+
+        // ---- Serievelden tonen/verbergen ----
+        function toggleSeriesFields() {
+            const show = fields.type.value === 'series';
+            fields.seriesFields.classList.toggle('hidden', !show);
+            saveData();
+        }
+
+        // ---- IMDb ID extraheren ----
         function extractImdbId(input) {
             const match = input.match(/tt\d+/);
             return match ? match[0] : null;
         }
 
-        function openStremio() {
-            const type = document.getElementById('type').value;
-            const imdbInput = document.getElementById('imdb').value;
-            const streamUrl = document.getElementById('stream').value;
-            const errorElement = document.getElementById('error');
-            
-            errorElement.classList.add('hidden');
+        // ---- Base64-codering voor de stream-URL (veilig voor alle URL's) ----
+        function base64EncodeUrl(url) {
+            // encodeURIComponent geeft UTF-8 bytes, btoa werkt op Latin1.
+            // Daarom eerst naar bytes converteren.
+            return btoa(unescape(encodeURIComponent(url)));
+        }
+
+        // ---- Deeplink genereren ----
+        function generateDeeplink() {
+            const type = fields.type.value;
+            const imdbInput = fields.imdb.value;
+            const streamUrl = fields.stream.value.trim();
 
             const imdbId = extractImdbId(imdbInput);
+            if (!imdbId || !streamUrl) return null;
 
-            if (!imdbId || !streamUrl) {
-                errorElement.innerText = "Zorg voor een geldig IMDb ID en Stream URL.";
-                errorElement.classList.remove('hidden');
-                return;
-            }
-
-            // Stremio Player URL format:
-            // stremio://player/<stream_url>/<type>/<imdb_id>
-            // Voor series moet de id vaak in formaat tt1234567:1:1 (id:season:episode)
-            
             let finalId = imdbId;
             if (type === 'series') {
-                const s = document.getElementById('season').value || 1;
-                const e = document.getElementById('episode').value || 1;
+                const s = fields.season.value || 1;
+                const e = fields.episode.value || 1;
                 finalId = `${imdbId}:${s}:${e}`;
             }
 
-            // De stream URL moet dubbel-encoded zijn voor sommige Android intents, 
-            // maar standaard URL encoding werkt meestal direct.
-            const encodedStream = encodeURIComponent(streamUrl);
-            const deeplink = `stremio://player/${encodedStream}/${type}/${finalId}`;
+            const encodedStream = base64EncodeUrl(streamUrl);
+            return `stremio://player/${encodedStream}/${type}/${finalId}`;
+        }
 
-            // Probeer de app te openen
+        // ---- Openen in Stremio ----
+        function openStremio() {
+            fields.error.classList.add('hidden');
+            fields.success.classList.add('hidden');
+
+            const deeplink = generateDeeplink();
+            if (!deeplink) {
+                fields.error.innerText = "Zorg voor een geldig IMDb ID en Stream URL.";
+                fields.error.classList.remove('hidden');
+                return;
+            }
+
             window.location.href = deeplink;
         }
+
+        // ---- Deeplink kopiëren naar klembord ----
+        function copyDeeplink() {
+            fields.error.classList.add('hidden');
+            fields.success.classList.add('hidden');
+
+            const deeplink = generateDeeplink();
+            if (!deeplink) {
+                fields.error.innerText = "Vul eerst alle velden correct in.";
+                fields.error.classList.remove('hidden');
+                return;
+            }
+
+            navigator.clipboard.writeText(deeplink).then(() => {
+                fields.success.innerText = "Deeplink gekopieerd!";
+                fields.success.classList.remove('hidden');
+                setTimeout(() => fields.success.classList.add('hidden'), 3000);
+            }).catch(() => {
+                // Fallback voor oudere browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = deeplink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                fields.success.innerText = "Deeplink gekopieerd!";
+                fields.success.classList.remove('hidden');
+                setTimeout(() => fields.success.classList.add('hidden'), 3000);
+            });
+        }
+
+        // ---- Start: laad opgeslagen data ----
+        loadData();
     </script>
 </body>
 </html>
