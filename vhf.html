@@ -1364,7 +1364,7 @@ settingsModalOverlay = document.getElementById('settingsModalOverlay'),
 closeModalBtn = document.getElementById('closeModalBtn'),
 clearCacheBtn = document.getElementById('clearCacheBtn'),
 shareFavoritesBtn = document.getElementById('shareFavoritesBtn'),
-darkModeCheckbox = document.getElementById('darkModeCheckbox');  // aangepast ID
+darkModeCheckbox = document.getElementById('darkModeCheckbox');
 
 const playlistToggleBtn = document.getElementById('playlistToggleBtn'),
 playlistInfoModal = document.getElementById('playlistInfoModal'),
@@ -1395,7 +1395,7 @@ let generatedPlaylistText = "";
 // Status Slider Variabelen
 let statusInterval = null;
 let liveStatusInterval = null;
-let currentStatusItemIndex = 0; // 0=Count, 1=Countdown
+let currentStatusItemIndex = 0;
 let isMessaging = false;
 let isAnimatingStatus = false;
 let toastQueue = [];
@@ -1473,7 +1473,6 @@ function setStoredString(keySuffix, value) {
 localStorage.setItem(PREFIX + keySuffix, value);
 }
 
-// Dark Mode synchronisatie met systeeminstellingen
 let isDarkMode = getStoredJSON(PREFIX + 'isDarkMode', null);
 if (isDarkMode === null) {
   isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -2069,6 +2068,29 @@ controlBarGroup.classList.remove('hidden');
 lastScrollY = 0;
 }
 
+function forceShowCountStatus() {
+  // Stop de rotatie onmiddellijk
+  clearInterval(statusInterval);
+  // Eventueel lopende toast-afhandeling annuleren
+  if (toastTimeout) {
+    clearTimeout(toastTimeout);
+    toastTimeout = null;
+  }
+  // Wachtrij legen en terug naar gewone modus
+  toastQueue = [];
+  isMessaging = false;
+  
+  // Zet de slider meteen op de count-tekst, zonder animatie
+  statusSlider.style.transition = 'none';
+  statusSlot1.textContent = statusTexts.count;
+  statusSlider.style.transform = 'translateY(0px)';
+  statusSlider.offsetHeight; // force reflow
+  
+  // Volgende automatische wissel wordt dan de countdown
+  currentStatusItemIndex = 0;
+  statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
+}
+
 function applyFiltersAndSort(options = {}) {
 hideError();
 const originalSearchTerm = searchFieldElement.value;
@@ -2195,6 +2217,7 @@ card.style.order = index;
 });
 
 updateArtistCount(visibleCount);
+forceShowCountStatus();  // <-- toon meteen het aantal, stop nachtjes slapen
 
 if (!options.preserveScroll) {
 scrollToArtistListTop();
@@ -2269,14 +2292,12 @@ statusSlot1.textContent = textToShow;
 }
 }
 
-// Verbeterde showToast logica voor directe respons
 let toastTimeout = null;
 function showToast(message) {
   if (isMessaging) {
-    // Onderbreek huidige toast
     clearTimeout(toastTimeout);
     toastQueue = [message];
-    processToastQueue(true); 
+    processToastQueue(true);
   } else {
     toastQueue.push(message);
     processToastQueue();
@@ -2295,14 +2316,12 @@ clearInterval(statusInterval);
 const message = toastQueue.shift();
 await transitionStatus(message);
 
-// Verkort de duur naar 1400ms (samen met 600ms animatie = 2 sec)
 toastTimeout = setTimeout(async () => {
-  // Bepaal welke normale tekst moet worden getoond
   const normalText = currentStatusItemIndex === 0 ? statusTexts.count : statusTexts.countdown;
-  await transitionStatus(normalText); // schuift terug naar normale tekst
+  await transitionStatus(normalText);
   isMessaging = false;
   startStatusAlternation();
-  processToastQueue(); // eventuele volgende toast
+  processToastQueue();
 }, 1400);
 }
 
@@ -2882,7 +2901,6 @@ let generatedLines = [];
 
 for (let i = 0; i < names.length; i += ITUNES_BATCH_SIZE) {
 const batch = names.slice(i, i + ITUNES_BATCH_SIZE);
-// Haal alle tracks in deze batch tegelijk op, maar behoud de batchvolgorde
 const batchResults = await Promise.all(batch.map(async (name) => {
   const tracks = await fetchItunesTopTracks(name, trackLimit);
   progress++;
@@ -2892,7 +2910,6 @@ const batchResults = await Promise.all(batch.map(async (name) => {
   return { name, tracks: tracks || [] };
 }));
 
-// Voeg de resultaten toe in de volgorde van de batch (dus de volgorde op scherm)
 for (const { name, tracks } of batchResults) {
   tracks.forEach(track => generatedLines.push(`${name} - ${track}`));
 }
