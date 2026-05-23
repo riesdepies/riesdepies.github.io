@@ -469,7 +469,7 @@ flex-direction: column;
 gap: 6px;
 }
 
-.spotify-open-button {
+.spotify-open-button, .spotify-edit-button {
 display: inline-flex;
 align-items: center;
 justify-content: center;
@@ -484,10 +484,10 @@ text-decoration: none;
 transition: background-color 0.2s;
 flex-shrink: 0;
 }
-.spotify-open-button:hover {
+.spotify-open-button:hover, .spotify-edit-button:hover {
 background-color: #67c989;
 }
-.spotify-open-button i {
+.spotify-open-button i, .spotify-edit-button i {
 font-size: 14px;
 }
 
@@ -1518,6 +1518,11 @@ const year = getFestivalYear(month);
 return new Date(year, month, day, 0, 0, 0);
 }
 
+// Hulpmiddel om unieke sleutel te genereren voor opslaan van handmatige spotify links
+function getManualSpotifyKey(artistName) {
+return PREFIX + 'manual_spotify_' + artistName.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
 function showError(msg){
 errorMessageElement.textContent = msg;
 errorMessageElement.style.display = 'block';
@@ -1817,8 +1822,14 @@ card.dataset.youtubeTitles = normalizeForSearch(info.youtubeLinks.map(link => li
 card.dataset.youtubeTitles = '';
 }
 
-if (info.spotifyUri) {
-card.dataset.spotifyUri = info.spotifyUri;
+// Haal handmatige link op uit localStorage indien aanwezig
+const manualSpotifyUri = localStorage.getItem(getManualSpotifyKey(artist.name));
+const activeSpotifyUri = manualSpotifyUri || info.spotifyUri;
+const hasSpotify = !!activeSpotifyUri;
+const noCrawledSpotify = !info.spotifyUri;
+
+if (activeSpotifyUri) {
+card.dataset.spotifyUri = activeSpotifyUri;
 }
 
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
@@ -1856,8 +1867,6 @@ dagNaam = dagen[date.getDay()];
 
 const isFav = favorites.includes(artist.name);
 
-let actionControlsHtml = '';
-if (info.spotifyUri) {
 const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
 
 let youtubeSearchUrl;
@@ -1872,15 +1881,43 @@ youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearch
 youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
 }
 
-actionControlsHtml = `
-<div class="action-buttons-wrapper">
-<a href="${info.spotifyUri}" class="spotify-open-button" title="Open in Spotify">
+let actionControlsHtml = `<div class="action-buttons-wrapper">`;
+
+// 1. Edit knop (alleen als er géén automatische/gecrawlde Spotify link is)
+if (noCrawledSpotify) {
+actionControlsHtml += `
+<button class="spotify-edit-button" data-name="${artist.name}" title="Handmatig Spotify ID invoeren">
+<i class="fa-solid fa-pen"></i>
+</button>`;
+}
+
+// 2. Open Spotify app knop (als er een Spotify link bekend is via crawl of handmatige invoer)
+if (hasSpotify) {
+actionControlsHtml += `
+<a href="${activeSpotifyUri}" class="spotify-open-button" title="Open in Spotify">
 <i class="fa-solid fa-up-right-from-square"></i>
-</a>
-<div class="stacked-buttons-column">
-<button class="spotify-play-button" data-spotify-uri="${info.spotifyUri}">
+</a>`;
+}
+
+// 3. Kolom met gestapelde zoek-/previewknoppen
+actionControlsHtml += `<div class="stacked-buttons-column">`;
+
+if (hasSpotify) {
+// Bekende Spotify-link -> toon Preview knop
+actionControlsHtml += `
+<button class="spotify-play-button" data-spotify-uri="${activeSpotifyUri}">
 <i class="fa-brands fa-spotify"></i> Preview
-</button>
+</button>`;
+} else {
+// Geen Spotify-link -> toon Spotify Zoekknop
+const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(artist.name)}`;
+actionControlsHtml += `
+<a href="${spotifySearchUrl}" class="spotify-play-button" target="_blank" rel="noopener noreferrer" style="background-color: #54c07b;">
+<i class="fa-solid fa-magnifying-glass"></i> Zoek..
+</a>`;
+}
+
+actionControlsHtml += `
 <a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
 <i class="fa-brands fa-google"></i> Zoek..
 </a>
@@ -1889,7 +1926,6 @@ actionControlsHtml = `
 </a>
 </div>
 </div>`;
-}
 
 let youtubeLinksHtml = '';
 if (info.youtubeLinks && info.youtubeLinks.length > 0) {
@@ -2406,7 +2442,7 @@ function clearLocalStorageData(){
 if(!confirm('Weet je zeker dat je alle data (behalve favorieten en voorkeuren) wilt resetten? Dit kan nodig zijn na website updates.'))
 return;
 for(const key of Object.keys(localStorage)){
-if(key.startsWith(PREFIX + 'artist_info_') || key === ALL_ARTISTS_DATA_CACHE_KEY || key === ALL_ARTISTS_DATA_TIMESTAMP_KEY){
+if(key.startsWith(PREFIX + 'artist_info_') || key === ALL_ARTISTS_DATA_CACHE_KEY || key === ALL_ARTISTS_DATA_TIMESTAMP_KEY || key.startsWith(PREFIX + 'manual_spotify_')){
 localStorage.removeItem(key);
 }
 }
@@ -2767,6 +2803,35 @@ applyFiltersAndSort();
 artistListElement.addEventListener('click', e=>{
 const favIcon = e.target.closest('.favorite-icon');
 if(favIcon) toggleFavoriteOnCard(favIcon.dataset.name);
+
+// Handmatige Spotify link invoeren/wijzigen via Edit-knop
+const editButton = e.target.closest('.spotify-edit-button');
+if (editButton) {
+const artistName = editButton.dataset.name;
+const storageKey = getManualSpotifyKey(artistName);
+const currentVal = localStorage.getItem(storageKey) || '';
+const input = prompt(`Voer de Spotify URL of URI in voor ${artistName}:`, currentVal);
+if (input !== null) {
+const trimmed = input.trim();
+if (trimmed === '') {
+localStorage.removeItem(storageKey);
+showToast('Spotify link verwijderd');
+} else {
+let uri = trimmed;
+if (trimmed.includes('open.spotify.com')) {
+const match = trimmed.match(/open\.spotify\.com\/(artist|album|track)\/([a-zA-Z0-9]+)/);
+if (match) {
+uri = `spotify:${match[1]}:${match[2]}`;
+}
+}
+localStorage.setItem(storageKey, uri);
+showToast('Spotify link opgeslagen!');
+}
+renderAllArtistCardsOnce();
+setupImageLazyLoader();
+applyFiltersAndSort({ preserveScroll: true });
+}
+}
 
 const spotifyButton = e.target.closest('.spotify-play-button');
 if (spotifyButton) {
