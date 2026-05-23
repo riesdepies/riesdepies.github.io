@@ -1275,7 +1275,7 @@ Playlist generator
 </div>
 <div class="modal-content">
 <p style="margin-top:0;font-size:0.95em;">
-Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van je actieve filters) met de populairste nummers van deze artiesten volgens Apple Music.
+Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van je actieve filters) met de populairste nummers van deze artiesten volgens Apple Music of Spotify.
 </p>
 
 <div class="setting-group">
@@ -1858,7 +1858,7 @@ let dagNaam = '';
 if (dagNum) {
 const monthName = info.datum.split(' ')[1]?.toLowerCase();
 const festMonth = DUTCH_MONTH_MAP[monthName] ?? 6;
-const festYear = getFestivalYear(festMonth);
+const festYear = getFestivalYear(monthName ? DUTCH_MONTH_MAP[monthName] : 6);
 const date = new Date(festYear, festMonth, parseInt(dagNum, 10));
 if (!isNaN(date.getTime())) {
 dagNaam = dagen[date.getDay()];
@@ -2916,21 +2916,153 @@ applyFiltersAndSort({ preserveScroll: true });
 });
 }
 
-function getVisibleArtistNames() {
+function getVisibleArtists() {
 return Array.from(artistListElement.children)
 .filter(card => card.style.display !== 'none')
 .sort((a, b) => (parseInt(a.style.order) || 0) - (parseInt(b.style.order) || 0))
-.map(card => card.dataset.rawName);
+.map(card => {
+  return {
+    name: card.dataset.rawName,
+    spotifyUri: card.dataset.spotifyUri || null
+  };
+});
 }
 
-async function fetchItunesTopTracks(artistName, limit) {
+// Hulpfunctie om Spotify ID & type te isoleren
+function getSpotifyEntityInfo(uriOrUrl) {
+if (!uriOrUrl) return null;
+if (uriOrUrl.startsWith('spotify:')) {
+const parts = uriOrUrl.split(':');
+if (parts.length >= 3) {
+return { type: parts[1], id: parts[2] };
+}
+}
+const match = uriOrUrl.match(/open\.spotify\.com\/(artist|album|track)\/([a-zA-Z0-9]+)/);
+if (match) {
+return { type: match[1], id: match[2] };
+}
+return null;
+}
+
+// Recursieve JSON parser voor diverse Spotify Embed response formaten
+function findTracksInObject(obj) {
+if (!obj || typeof obj !== 'object') return null;
+if (Array.isArray(obj)) {
+if (obj.length > 0 && (obj[0].type === 'track' || (obj[0].uri && obj[0].uri.includes('spotify:track:')))) {
+return obj;
+}
+for (let item of obj) {
+const found = findTracksInObject(item);
+if (found) return found;
+}
+} else {
+for (let key in obj) {
+if (Object.prototype.hasOwnProperty.call(obj, key)) {
+if (key === 'tracks' && Array.isArray(obj[key])) {
+return obj[key];
+}
+const found = findTracksInObject(obj[key]);
+if (found) return found;
+}
+}
+}
+return null;
+}
+
+// Directe Spotify top tracks scrapen uit Spotify Embed
+async function fetchSpotifyEmbedTopTracks(spotifyUriOrUrl, artistName, limit) {
+const info = getSpotifyEntityInfo(spotifyUriOrUrl);
+if (!info) return null;
+
+if (info.type !== 'artist' && info.type !== 'album') {
+if (info.type === 'track') {
+return [{ name: artistName, url: `https://open.spotify.com/track/${info.id}` }];
+}
+return null;
+}
+
+const embedUrl = `https://open.spotify.com/embed/${info.type}/${info.id}`;
 try {
-const url = `https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&media=music&entity=song&attribute=artistTerm&limit=5&country=nl`;
+const res = await fetchWithProxyFallback(embedUrl);
+if (!res.ok) return null;
+const html = await res.text();
+const doc = new DOMParser().parseFromString(html, 'text/html');
+
+let tracks = [];
+const stateScript = doc.getElementById('initial-state');
+if (stateScript) {
+try {
+const decoded = decodeURIComponent(escape(atob(stateScript.textContent.trim())));
+const state = JSON.parse(decoded);
+const rawTracks = findTracksInObject(state);
+if (Array.isArray(rawTracks)) {
+tracks = rawTracks.slice(0, limit).map(t => {
+const trackId = t.id || (t.uri ? t.uri.split(':').pop() : '');
+return {
+name: t.name || 'Onbekend nummer',
+url: `https://open.spotify.com/track/${trackId}`
+};
+});
+}
+} catch (e) {
+console.error("Error parsing initial-state JSON for " + artistName, e);
+}
+}
+
+// Fallback: via Regex zoeken naar track-links in de HTML broncode
+if (tracks.length === 0) {
+const trackRegex = /https:\/\/open\.spotify\.com\/track\/([a-zA-Z0-9]+)/g;
+let match;
+const matchedIds = [];
+while ((match = trackRegex.exec(html)) !== null) {
+matchedIds.push(match[1]);
+}
+const uniqueIds = [...new Set(matchedIds)].slice(0, limit);
+tracks = uniqueIds.map((id, index) => ({
+name: `Top Track ${index + 1}`,
+url: `https://open.spotify.com/track/${id}`
+}));
+}
+
+return tracks.length > 0 ? tracks : null;
+} catch (err) {
+console.error("Error scraping Spotify embed for " + artistName, err);
+return null;
+}
+}
+
+function isArtistNameMatch(expected, actual) {
+const exp = normalizeForSearch(expected);
+const act = normalizeForSearch(actual);
+const clean = (s) => s.replace(/[^a-z0-9]/g, '');
+const cleanExp = clean(exp);
+const cleanAct = clean(act);
+return cleanAct.includes(cleanExp) || cleanExp.includes(cleanAct);
+}
+
+// iTunes search met strenge naamverificatie & zwarte lijst voor covers en tributes
+async function fetchItunesTopTracksCleaned(artistName, limit) {
+try {
+const url = `https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&media=music&entity=song&attribute=artistTerm&limit=15&country=nl`;
 const res = await fetch(url);
 if (!res.ok) return null;
 const data = await res.json();
 if (data.results && data.results.length > 0) {
-return data.results.slice(0, limit).map(t => t.trackName);
+const forbiddenWords = ['tribute', 'cover', 'karaoke', 'originally performed', 'instrumental', 'originally by', 'made famous by'];
+const filtered = data.results.filter(track => {
+const artistMatch = isArtistNameMatch(artistName, track.artistName);
+if (!artistMatch) return false;
+
+const trackNameLower = (track.trackName || '').toLowerCase();
+const albumNameLower = (track.collectionName || '').toLowerCase();
+
+const hasForbidden = forbiddenWords.some(word => 
+trackNameLower.includes(word) || albumNameLower.includes(word)
+);
+return !hasForbidden;
+});
+
+return filtered.slice(0, limit).map(t => t.trackName);
 }
 return null;
 } catch (e) { return null; }
@@ -2947,9 +3079,9 @@ generatedPlaylistText = "";
 
 async function handleGeneratePlaylist() {
 const trackLimit = parseInt(trackCountSelect.value, 10) || 3;
-const names = getVisibleArtistNames();
+const artists = getVisibleArtists();
 
-if (names.length === 0) {
+if (artists.length === 0) {
 showToast('Geen artiesten zichtbaar voor playlist.');
 return;
 }
@@ -2959,27 +3091,53 @@ generatorProgress.style.display = 'block';
 generatorActions.style.display = 'none';
 generatedTextArea.style.display = 'none';
 generatorProgressFill.style.width = '0%';
-generatorProgressText.textContent = `Tracks ophalen (0/${names.length})...`;
+generatorProgressText.textContent = `Tracks ophalen (0/${artists.length})...`;
 
 let progress = 0;
 let generatedLines = [];
 
-for (let i = 0; i < names.length; i += ITUNES_BATCH_SIZE) {
-const batch = names.slice(i, i + ITUNES_BATCH_SIZE);
-const batchResults = await Promise.all(batch.map(async (name) => {
-  const tracks = await fetchItunesTopTracks(name, trackLimit);
+for (let i = 0; i < artists.length; i += ITUNES_BATCH_SIZE) {
+const batch = artists.slice(i, i + ITUNES_BATCH_SIZE);
+const batchResults = await Promise.all(batch.map(async (art) => {
+  let tracks = null;
+  
+  // 1. Probeer eerst rechtstreeks via Spotify Embed te scrapen
+  if (art.spotifyUri) {
+    tracks = await fetchSpotifyEmbedTopTracks(art.spotifyUri, art.name, trackLimit);
+  }
+  
+  // 2. Fallback: iTunes API met strenge opschoning
+  if (!tracks || tracks.length === 0) {
+    const itunesTracks = await fetchItunesTopTracksCleaned(art.name, trackLimit);
+    if (itunesTracks && itunesTracks.length > 0) {
+      tracks = itunesTracks.map(trackName => ({
+        name: trackName,
+        url: null
+      }));
+    }
+  }
+
   progress++;
-  const pct = Math.round((progress / names.length) * 100);
+  const pct = Math.round((progress / artists.length) * 100);
   generatorProgressFill.style.width = pct + '%';
-  generatorProgressText.textContent = `Tracks ophalen (${progress}/${names.length})...`;
-  return { name, tracks: tracks || [] };
+  generatorProgressText.textContent = `Tracks ophalen (${progress}/${artists.length})...`;
+  
+  return { name: art.name, tracks: tracks || [] };
 }));
 
 for (const { name, tracks } of batchResults) {
-  tracks.forEach(track => generatedLines.push(`${name} - ${track}`));
+  tracks.forEach(track => {
+    if (track.url) {
+      // Directe Spotify links die TuneMyMusic 100% foutloos matcht
+      generatedLines.push(`${name} - ${track.name} - ${track.url}`);
+    } else {
+      // Fallback opgeschoonde iTunes text regel
+      generatedLines.push(`${name} - ${track.name}`);
+    }
+  });
 }
 
-if (i + ITUNES_BATCH_SIZE < names.length) {
+if (i + ITUNES_BATCH_SIZE < artists.length) {
 await new Promise(resolve => setTimeout(resolve, ITUNES_BATCH_DELAY_MS));
 }
 }
