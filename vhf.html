@@ -1275,7 +1275,7 @@ Playlist generator
 </div>
 <div class="modal-content">
 <p style="margin-top:0;font-size:0.95em;">
-Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van je actieve filters) met de populairste nummers van deze artiesten volgens Apple Music of Spotify.
+Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van je actieve filters) met de populairste nummers van deze artiesten volgens Apple Music.
 </p>
 
 <div class="setting-group">
@@ -1321,9 +1321,7 @@ Klik op de knop om de lijst te kopiëren en TuneMyMusic te openen. Plak de lijst
 
 <script>
 (function(){
-const CORS_PROXY_PRIMARY = 'https://api.codetabs.com/v1/proxy?quest=',
-CORS_PROXY_FALLBACK = 'https://corsproxy.io/?',
-BASE_URL = 'https://valkhoffestival.nl',
+const BASE_URL = 'https://valkhoffestival.nl',
 WEEK_URL = BASE_URL + '/lineup/',
 PREFIX = 'vf_',
 ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX = '_v6',
@@ -1536,21 +1534,134 @@ return url.startsWith('http')
 : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
 }
 
-async function fetchWithProxyFallback(url) {
-const proxies = [CORS_PROXY_PRIMARY, CORS_PROXY_FALLBACK];
-for (const proxy of proxies) {
-try {
-const res = await fetch(proxy + url);
-if (res.ok) {
-console.log(`Successfully fetched ${url} via ${proxy}`);
-return res;
-}
-console.warn(`Fetch via ${proxy} failed with status ${res.status}`);
-} catch (err) {
-console.warn(`Fetch via ${proxy} threw an error:`, err);
-}
-}
-throw new Error(`Failed to fetch ${url} using all available proxies.`);
+/**
+ * Haalt een URL op via een reeks van parallelle CORS proxies.
+ * De snelst reagerende werkende proxy wint.
+ */
+async function fetchViaCorsProxy(targetUrl, options = {}) {
+    const proxies = [
+        {
+            "name": "Tuananh Worker",
+            "template": "https://cors-proxy.tuananh.workers.dev/?",
+            "needsEncoding": false,
+            "outputType": "raw",
+            "wrapperField": null
+        },
+        {
+            "name": "corsmirror.com",
+            "template": "https://corsmirror.com/v1?url=",
+            "needsEncoding": true,
+            "outputType": "raw",
+            "wrapperField": null
+        },
+        {
+            "name": "My CORS Proxy",
+            "template": "https://my-cors-proxy-kappa.vercel.app/api/proxy?url=",
+            "needsEncoding": true,
+            "outputType": "raw",
+            "wrapperField": null
+        },
+        {
+            "name": "Codetabs",
+            "template": "https://api.codetabs.com/v1/proxy?quest=",
+            "needsEncoding": true,
+            "outputType": "raw",
+            "wrapperField": null
+        }
+    ];
+
+    const constructProxyUrl = (proxy, url) => {
+        const urlPart = proxy.needsEncoding ? encodeURIComponent(url) : url;
+        return proxy.template + urlPart;
+    };
+
+    const dataUriToBlob = (dataUri) => {
+        const split = dataUri.split(',');
+        const mimeMatch = split[0].match(/:(.*?);/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'text/plain';
+        const binary = atob(split[1]);
+        const array = [];
+        for (let i = 0; i < binary.length; i++) {
+            array.push(binary.charCodeAt(i));
+        }
+        return new Blob([new Uint8Array(array)], { type: mimeType });
+    };
+
+    const fetchPromises = proxies.map(proxy => {
+        const proxyUrl = constructProxyUrl(proxy, targetUrl);
+        return new Promise((resolve, reject) => {
+            fetch(proxyUrl, options)
+                .then(async response => {
+                    if (!response.ok) {
+                        reject(new Error(`Proxy '${proxy.name}' faalde met status: ${response.status}`));
+                        return;
+                    }
+
+                    if (proxy.outputType === 'raw') {
+                        response.proxyName = proxy.name;
+                        resolve(response);
+                        return;
+                    }
+
+                    if (proxy.outputType === 'wrapped' && proxy.wrapperField) {
+                        try {
+                            const json = await response.json();
+                            const content = json[proxy.wrapperField];
+                            
+                            const newHeaders = new Headers(response.headers);
+                            ['content-type', 'content-length', 'transfer-encoding', 'date'].forEach(h => newHeaders.delete(h));
+
+                            let finalBody;
+
+                            if (typeof content === 'object' && content !== null) {
+                                finalBody = JSON.stringify(content);
+                                newHeaders.set('Content-Type', 'application/json');
+                            } else if (typeof content === 'string') {
+                                if (content.startsWith('data:') && content.includes(';base64,')) {
+                                    const blob = dataUriToBlob(content);
+                                    finalBody = blob;
+                                    newHeaders.set('Content-Type', blob.type);
+                                } else {
+                                    finalBody = content;
+                                    if(content.trim().startsWith('<')) {
+                                         newHeaders.set('Content-Type', 'text/html');
+                                    }
+                                }
+                            } else {
+                                finalBody = String(content);
+                            }
+                            
+                            const newResponse = new Response(finalBody, {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: newHeaders 
+                            });
+                            
+                            Object.defineProperty(newResponse, 'proxyName', { value: proxy.name, writable: true });
+                            Object.defineProperty(newResponse, 'url', { value: targetUrl, writable: true });
+                            
+                            resolve(newResponse);
+                        } catch (e) {
+                            reject(new Error(`Proxy '${proxy.name}' data kon niet worden uitgepakt: ${e.message}`));
+                        }
+                    } else {
+                        response.proxyName = proxy.name;
+                        resolve(response);
+                    }
+                })
+                .catch(error => {
+                    reject(new Error(`Proxy '${proxy.name}' gaf een netwerkfout: ${error.message}`));
+                });
+        });
+    });
+
+    try {
+        const firstSuccessfulResponse = await Promise.any(fetchPromises);
+        return firstSuccessfulResponse;
+    } catch (error) {
+        const allErrors = error.errors ? error.errors.map(e => e.message).join('; ') : error.message;
+        throw new Error(`Alle CORS proxies faalden. Fouten: ${allErrors}`);
+    }
 }
 
 async function fetchArtistInfo(artistBasicInfo) {
@@ -1575,7 +1686,7 @@ localStorage.removeItem(artistCacheKey);
 }
 
 try {
-const res = await fetchWithProxyFallback(artistBasicInfo.artistUrl);
+const res = await fetchViaCorsProxy(artistBasicInfo.artistUrl);
 if (!res.ok) return null;
 const html = await res.text();
 const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -1692,7 +1803,7 @@ localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
 allArtistsData = [];
 updateArtistCount(0, 'Artiesten laden...');
 try {
-const res = await fetchWithProxyFallback(WEEK_URL);
+const res = await fetchViaCorsProxy(WEEK_URL);
 if (!res.ok) {
 showError(`Kon basis artiestenlijst niet laden (status ${res.status}).`);
 return;
@@ -1823,7 +1934,8 @@ card.dataset.youtubeTitles = '';
 }
 
 // Haal handmatige link op uit localStorage indien aanwezig
-const manualSpotifyUri = localStorage.getItem(getManualSpotifyKey(artist.name));
+const manualSpotifyKey = getManualSpotifyKey(artist.name);
+const manualSpotifyUri = localStorage.getItem(manualSpotifyKey);
 const activeSpotifyUri = manualSpotifyUri || info.spotifyUri;
 const hasSpotify = !!activeSpotifyUri;
 const noCrawledSpotify = !info.spotifyUri;
@@ -2105,24 +2217,19 @@ lastScrollY = 0;
 }
 
 function forceShowCountStatus() {
-  // Stop de rotatie onmiddellijk
   clearInterval(statusInterval);
-  // Eventueel lopende toast-afhandeling annuleren
   if (toastTimeout) {
     clearTimeout(toastTimeout);
     toastTimeout = null;
   }
-  // Wachtrij legen en terug naar gewone modus
   toastQueue = [];
   isMessaging = false;
   
-  // Zet de slider meteen op de count-tekst, zonder animatie
   statusSlider.style.transition = 'none';
   statusSlot1.textContent = statusTexts.count;
   statusSlider.style.transform = 'translateY(0px)';
-  statusSlider.offsetHeight; // force reflow
+  statusSlider.offsetHeight;
   
-  // Volgende automatische wissel wordt dan de countdown
   currentStatusItemIndex = 0;
   statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
 }
@@ -2253,7 +2360,7 @@ card.style.order = index;
 });
 
 updateArtistCount(visibleCount);
-forceShowCountStatus();  // <-- toon meteen het aantal, stop nachtjes slapen
+forceShowCountStatus();
 
 if (!options.preserveScroll) {
 scrollToArtistListTop();
@@ -2277,11 +2384,10 @@ statusSlider.style.transform = `translateY(-${SLIDE_HEIGHT}px)`;
 
 await new Promise(resolve => setTimeout(resolve, duration));
 
-// Reset zonder animatie naar de nieuwe "current" positie
 statusSlider.style.transition = 'none';
 statusSlot1.textContent = newText;
 statusSlider.style.transform = 'translateY(0px)';
-statusSlider.offsetHeight; // force reflow
+statusSlider.offsetHeight;
 isAnimatingStatus = false;
 }
 
@@ -2451,24 +2557,27 @@ location.reload();
 }
 
 async function runProxyTest() {
-const proxies = {
-'Codetabs (primary)': CORS_PROXY_PRIMARY,
-'corsproxy.io (fallback)': CORS_PROXY_FALLBACK
-};
+const testProxies = [
+    { "name": "Tuananh Worker", "template": "https://cors-proxy.tuananh.workers.dev/?" },
+    { "name": "corsmirror.com", "template": "https://corsmirror.com/v1?url=" },
+    { "name": "My CORS Proxy", "template": "https://my-cors-proxy-kappa.vercel.app/api/proxy?url=" },
+    { "name": "Codetabs", "template": "https://api.codetabs.com/v1/proxy?quest=" }
+];
 let results = [];
 alert('CORS proxy test gestart. Dit kan even duren...');
-for (const [name, url] of Object.entries(proxies)) {
+for (const proxy of testProxies) {
 const startTime = performance.now();
 try {
-const res = await fetch(url + BASE_URL, { signal: AbortSignal.timeout(10000) });
+const proxyUrl = proxy.template + encodeURIComponent(BASE_URL);
+const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
 const duration = performance.now() - startTime;
 if (res.ok) {
-results.push(`${name}: OK (${Math.round(duration)}ms)`);
+results.push(`${proxy.name}: OK (${Math.round(duration)}ms)`);
 } else {
-results.push(`${name}: FAIL (Status: ${res.status})`);
+results.push(`${proxy.name}: FAIL (Status: ${res.status})`);
 }
 } catch (err) {
-results.push(`${name}: FAIL (Error: ${err.name})`);
+results.push(`${proxy.name}: FAIL (Error: ${err.name})`);
 }
 }
 alert('CORS Proxy Test Resultaten:\n\n' + results.join('\n'));
@@ -2804,7 +2913,6 @@ artistListElement.addEventListener('click', e=>{
 const favIcon = e.target.closest('.favorite-icon');
 if(favIcon) toggleFavoriteOnCard(favIcon.dataset.name);
 
-// Handmatige Spotify link invoeren/wijzigen via Edit-knop
 const editButton = e.target.closest('.spotify-edit-button');
 if (editButton) {
 const artistName = editButton.dataset.name;
@@ -2928,109 +3036,6 @@ return Array.from(artistListElement.children)
 });
 }
 
-// Hulpfunctie om Spotify ID & type te isoleren
-function getSpotifyEntityInfo(uriOrUrl) {
-if (!uriOrUrl) return null;
-if (uriOrUrl.startsWith('spotify:')) {
-const parts = uriOrUrl.split(':');
-if (parts.length >= 3) {
-return { type: parts[1], id: parts[2] };
-}
-}
-const match = uriOrUrl.match(/open\.spotify\.com\/(artist|album|track)\/([a-zA-Z0-9]+)/);
-if (match) {
-return { type: match[1], id: match[2] };
-}
-return null;
-}
-
-// Recursieve JSON parser voor diverse Spotify Embed response formaten
-function findTracksInObject(obj) {
-if (!obj || typeof obj !== 'object') return null;
-if (Array.isArray(obj)) {
-if (obj.length > 0 && (obj[0].type === 'track' || (obj[0].uri && obj[0].uri.includes('spotify:track:')))) {
-return obj;
-}
-for (let item of obj) {
-const found = findTracksInObject(item);
-if (found) return found;
-}
-} else {
-for (let key in obj) {
-if (Object.prototype.hasOwnProperty.call(obj, key)) {
-if (key === 'tracks' && Array.isArray(obj[key])) {
-return obj[key];
-}
-const found = findTracksInObject(obj[key]);
-if (found) return found;
-}
-}
-}
-return null;
-}
-
-// Directe Spotify top tracks scrapen uit Spotify Embed
-async function fetchSpotifyEmbedTopTracks(spotifyUriOrUrl, artistName, limit) {
-const info = getSpotifyEntityInfo(spotifyUriOrUrl);
-if (!info) return null;
-
-if (info.type !== 'artist' && info.type !== 'album') {
-if (info.type === 'track') {
-return [{ name: artistName, url: `https://open.spotify.com/track/${info.id}` }];
-}
-return null;
-}
-
-const embedUrl = `https://open.spotify.com/embed/${info.type}/${info.id}`;
-try {
-const res = await fetchWithProxyFallback(embedUrl);
-if (!res.ok) return null;
-const html = await res.text();
-const doc = new DOMParser().parseFromString(html, 'text/html');
-
-let tracks = [];
-const stateScript = doc.getElementById('initial-state');
-if (stateScript) {
-try {
-const decoded = decodeURIComponent(escape(atob(stateScript.textContent.trim())));
-const state = JSON.parse(decoded);
-const rawTracks = findTracksInObject(state);
-if (Array.isArray(rawTracks)) {
-tracks = rawTracks.slice(0, limit).map(t => {
-const trackId = t.id || (t.uri ? t.uri.split(':').pop() : '');
-return {
-name: t.name || 'Onbekend nummer',
-url: `https://open.spotify.com/track/${trackId}`
-};
-});
-}
-} catch (e) {
-console.error("Error parsing initial-state JSON for " + artistName, e);
-}
-}
-
-// Fallback: via Regex zoeken naar track-links in de HTML broncode
-if (tracks.length === 0) {
-const trackRegex = /https:\/\/open\.spotify\.com\/track\/([a-zA-Z0-9]+)/g;
-let match;
-const matchedIds = [];
-while ((match = trackRegex.exec(html)) !== null) {
-matchedIds.push(match[1]);
-}
-const uniqueIds = [...new Set(matchedIds)].slice(0, limit);
-tracks = uniqueIds.map((id, index) => ({
-name: `Top Track ${index + 1}`,
-url: `https://open.spotify.com/track/${id}`
-}));
-}
-
-return tracks.length > 0 ? tracks : null;
-} catch (err) {
-console.error("Error scraping Spotify embed for " + artistName, err);
-return null;
-}
-}
-
 function isArtistNameMatch(expected, actual) {
 const exp = normalizeForSearch(expected);
 const act = normalizeForSearch(actual);
@@ -3101,20 +3106,11 @@ const batch = artists.slice(i, i + ITUNES_BATCH_SIZE);
 const batchResults = await Promise.all(batch.map(async (art) => {
   let tracks = null;
   
-  // 1. Probeer eerst rechtstreeks via Spotify Embed te scrapen
-  if (art.spotifyUri) {
-    tracks = await fetchSpotifyEmbedTopTracks(art.spotifyUri, art.name, trackLimit);
-  }
-  
-  // 2. Fallback: iTunes API met strenge opschoning
-  if (!tracks || tracks.length === 0) {
-    const itunesTracks = await fetchItunesTopTracksCleaned(art.name, trackLimit);
-    if (itunesTracks && itunesTracks.length > 0) {
-      tracks = itunesTracks.map(trackName => ({
-        name: trackName,
-        url: null
-      }));
-    }
+  const itunesTracks = await fetchItunesTopTracksCleaned(art.name, trackLimit);
+  if (itunesTracks && itunesTracks.length > 0) {
+    tracks = itunesTracks.map(trackName => ({
+      name: trackName
+    }));
   }
 
   progress++;
@@ -3127,13 +3123,7 @@ const batchResults = await Promise.all(batch.map(async (art) => {
 
 for (const { name, tracks } of batchResults) {
   tracks.forEach(track => {
-    if (track.url) {
-      // Directe Spotify links die TuneMyMusic 100% foutloos matcht
-      generatedLines.push(`${name} - ${track.name} - ${track.url}`);
-    } else {
-      // Fallback opgeschoonde iTunes text regel
-      generatedLines.push(`${name} - ${track.name}`);
-    }
+    generatedLines.push(`${name} - ${track.name}`);
   });
 }
 
