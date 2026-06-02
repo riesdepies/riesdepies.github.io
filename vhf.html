@@ -1182,6 +1182,24 @@ background-color: #4b5059;
 color: #c6cdd5;
 border-color: #5b6069;
 }
+
+.new-artist-indicator {
+    color: #e2af13;
+    cursor: pointer;
+    font-size: 18px;
+    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease;
+    vertical-align: middle;
+}
+body.dark-mode .new-artist-indicator {
+    color: #ebd275;
+}
+.new-artist-indicator:hover {
+    transform: scale(1.15);
+}
 </style>
 </head>
 <body class="dark-mode">
@@ -1472,7 +1490,8 @@ let sharedFavorites = [];
 
 
 let allArtistsData = [],
-searchClickShouldClear = false;
+searchClickShouldClear = false,
+showingNewOnly = false;
 
 let originalSource = '';
 fetch(window.location.href)
@@ -1502,6 +1521,16 @@ const TRANSITION_DURATION = 600;
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
 
+
+
+function isRecentlyAdded(artistName) {
+    const tsKey = PREFIX + 'added_timestamp_' + artistName.replace(/[^a-zA-Z0-9]/g, '_');
+    const ts = localStorage.getItem(tsKey);
+    if (!ts) return false;
+    const addedDate = parseInt(ts, 10);
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    return (Date.now() - addedDate) <= oneWeekMs;
+}
 
 function normalizeForSearch(str) {
 if (typeof str !== 'string') return '';
@@ -1895,6 +1924,10 @@ spotifyUri: spotifyUri,
 youtubeLinks: youtubeLinks
 };
 localStorage.setItem(artistCacheKey, JSON.stringify(info));
+const tsKey = PREFIX + 'added_timestamp_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_');
+if (!localStorage.getItem(tsKey)) {
+    localStorage.setItem(tsKey, Date.now().toString());
+}
 return info;
 } catch (err) {
 console.error(`Error fetching info for ${artistBasicInfo.name}:`, err);
@@ -1925,6 +1958,12 @@ localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
 localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
 } else {
 allArtistsData = parsedAllArtistsData;
+allArtistsData.forEach(({ artist }) => {
+    const tsKey = PREFIX + 'added_timestamp_' + artist.name.replace(/[^a-zA-Z0-9]/g, '_');
+    if (!localStorage.getItem(tsKey)) {
+        localStorage.setItem(tsKey, Date.now().toString());
+    }
+});
 console.log(`All artists data loaded from cache (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
 return;
 }
@@ -1985,6 +2024,12 @@ updateArtistCount(fetchedCount, `Details geladen voor ${fetchedCount}/${artistBa
 
 
 allArtistsData = newAllArtistsData;
+allArtistsData.forEach(({ artist }) => {
+    const tsKey = PREFIX + 'added_timestamp_' + artist.name.replace(/[^a-zA-Z0-9]/g, '_');
+    if (!localStorage.getItem(tsKey)) {
+        localStorage.setItem(tsKey, Date.now().toString());
+    }
+});
 localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
 setStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, Date.now());
 console.log(`All artists data fetched and cached (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
@@ -2251,9 +2296,29 @@ youtubeLinksHtml += '</div>';
 const durationText = info.duur ? ` (${info.duur})` : '';
 
 
+const showNewIndicators = (function() {
+    const dates = allArtistsData.map(d => {
+        const ts = localStorage.getItem(PREFIX + 'added_timestamp_' + d.artist.name.replace(/[^a-zA-Z0-9]/g, '_'));
+        if (!ts) return '';
+        return new Date(parseInt(ts, 10)).toISOString().split('T')[0];
+    }).filter(Boolean);
+    const uniqueDates = new Set(dates);
+    return uniqueDates.size > 1;
+})();
+
+let indicatorHtml = '';
+if (isRecentlyAdded(artist.name) && showNewIndicators) {
+    const starIconClass = showingNewOnly ? 'fa-solid' : 'fa-regular';
+    indicatorHtml = `
+        <span class="new-artist-indicator" data-name="${artist.name}" title="Filter op nieuwe artiesten">
+            <i class="${starIconClass} fa-star"></i>
+        </span>`;
+}
+
 card.innerHTML = `
 <div class="artist-header">
 <h2>
+${indicatorHtml}
 <a href="${artist.artistUrl}" target="_blank" class="artist-name">${artist.name}</a>
 <span class="now-playing-indicator">
 <svg class="vu-meter-icon" viewBox="0 0 30 30">
@@ -2489,6 +2554,7 @@ normalizeForSearch(podium).includes(normalizedSearchTerm) ||
 
 
 const matchesFavs = !showingFavs || favorites.includes(rawName);
+const matchesNewOnly = !showingNewOnly || isRecentlyAdded(rawName);
 
 
 const start = parseInt(timestampStart, 10);
@@ -2525,7 +2591,7 @@ const isUnknownTimeAndIsToday = (start === 0) && todayDateFilterString && (dag =
 const matchesNowNext = !showingNowNext || isNowOrNextRegular || isUnknownTimeAndIsToday;
 
 
-const isVisible = matchesShared && matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
+const isVisible = matchesShared && matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext && matchesNewOnly;
 
 
 if (isVisible) {
@@ -2572,6 +2638,17 @@ return timeA - timeB;
 
 cardsArray.forEach((card, index) => {
 card.style.order = index;
+});
+
+const starIndicators = document.querySelectorAll('.new-artist-indicator i');
+starIndicators.forEach(icon => {
+    if (showingNewOnly) {
+        icon.classList.remove('fa-regular');
+        icon.classList.add('fa-solid');
+    } else {
+        icon.classList.remove('fa-solid');
+        icon.classList.add('fa-regular');
+    }
 });
 
 
@@ -2652,8 +2729,12 @@ if (overrideText) {
 textToShow = overrideText;
 } else {
 const pluralSuffix = n === 1 ? '' : 'en';
-const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
-textToShow = `${n} ${entity} gevonden`;
+if (showingNewOnly) {
+    textToShow = `${n} nieuwe artiest${pluralSuffix}`;
+} else {
+    const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}`;
+    textToShow = `${n} ${entity} gevonden`;
+}
 }
 
 
@@ -3201,6 +3282,13 @@ applyFiltersAndSort();
 
 
 artistListElement.addEventListener('click', e=>{
+const newIndicator = e.target.closest('.new-artist-indicator');
+if (newIndicator) {
+    e.stopPropagation();
+    showingNewOnly = !showingNewOnly;
+    applyFiltersAndSort({ preserveScroll: true });
+    return;
+}
 const favIcon = e.target.closest('.favorite-icon');
 if(favIcon) toggleFavoriteOnCard(favIcon.dataset.name);
 
