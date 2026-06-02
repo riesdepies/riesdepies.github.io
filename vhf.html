@@ -1474,6 +1474,14 @@ let sharedFavorites = [];
 let allArtistsData = [],
 searchClickShouldClear = false;
 
+let originalSource = '';
+fetch(window.location.href)
+  .then(r => r.text())
+  .then(text => { originalSource = text; })
+  .catch(() => {
+    originalSource = '<!DOCTYPE html>\n<html lang="' + document.documentElement.lang + '">' + document.documentElement.innerHTML + '</html>';
+  });
+
 
 let generatedPlaylistText = "";
 
@@ -3249,7 +3257,45 @@ setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
 });
 
 
-settingsBtn.addEventListener('click', openSettingsModal);
+let settingsPressTimer = null;
+let longPressed = false;
+
+function startSettingsPress(e) {
+  longPressed = false;
+  settingsPressTimer = setTimeout(async () => {
+    longPressed = true;
+    try {
+      const src = originalSource || ('<!DOCTYPE html>\n<html lang="' + document.documentElement.lang + '">' + document.documentElement.innerHTML + '</html>');
+      await navigator.clipboard.writeText(src);
+      showToast('Broncode gekopieerd');
+    } catch (err) {
+      showToast('Kopiëren mislukt');
+    }
+  }, 2000);
+}
+
+function cancelSettingsPress() {
+  if (settingsPressTimer) {
+    clearTimeout(settingsPressTimer);
+    settingsPressTimer = null;
+  }
+}
+
+settingsBtn.addEventListener('mousedown', startSettingsPress);
+settingsBtn.addEventListener('touchstart', startSettingsPress, { passive: true });
+settingsBtn.addEventListener('mouseup', cancelSettingsPress);
+settingsBtn.addEventListener('touchend', cancelSettingsPress);
+settingsBtn.addEventListener('mouseleave', cancelSettingsPress);
+
+settingsBtn.addEventListener('click', function(e) {
+  if (longPressed) {
+    e.preventDefault();
+    e.stopPropagation();
+    longPressed = false;
+    return;
+  }
+  openSettingsModal();
+});
 closeModalBtn.addEventListener('click', closeSettingsModal);
 settingsModalOverlay.addEventListener('click', closeSettingsModal);
 clearCacheBtn.addEventListener('click', clearLocalStorageData);
