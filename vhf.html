@@ -14,6 +14,7 @@ overflow-y: scroll;
 box-sizing: border-box;
 }
 
+
 body {
 font-family: Arial, sans-serif;
 margin: 0;
@@ -25,6 +26,7 @@ background: #f0f0f0;
 body.modal-open {
 overflow: hidden;
 }
+
 
 .control-bar-group {
 position: fixed;
@@ -39,14 +41,17 @@ transition: transform 0.3s ease-out;
 will-change: transform;
 }
 
+
 .control-bar-group.hidden {
 transform: translateY(-100%);
 }
+
 
 .day-filter-container,
 .filter-container {
 margin-bottom: 5px;
 }
+
 
 .day-filter-container {
 display: grid;
@@ -66,15 +71,16 @@ overflow: hidden;
 transition: all 0.2s ease-in-out;
 }
 .day-filter-button.active {
-background: #007bff;
-color: #fff;
+background: #61afef; color: #282c34;
 }
+
 
 .filter-container {
 display: flex;
 gap: 5px;
 align-items: center;
 }
+
 
 .filter-button {
 padding: 10px 12px;
@@ -88,10 +94,11 @@ white-space: nowrap;
 flex-shrink: 0;
 }
 
+
 .filter-button.active {
-background: #007bff;
-color: #fff;
+background: #61afef; color: #282c34;
 }
+
 
 #favoriteToggleBtn {
 display: inline-flex;
@@ -104,6 +111,7 @@ font-size: 16px;
 transition: color 0.2s ease-in-out;
 }
 
+
 #searchField {
 padding: 10px 12px 10px 35px;
 font-size: 14px;
@@ -112,6 +120,7 @@ border: 1px solid #ddd;
 border-radius: 20px;
 width: 100%;
 }
+
 
 .search-wrapper {
 position: relative;
@@ -128,15 +137,17 @@ pointer-events: none;
 transition: color 0.2s ease;
 }
 #searchField:focus + .search-input-icon {
-color: #007bff;
+color: #61afef;
 }
 #searchField.has-content + .search-input-icon {
 color: #fff;
 }
 
+
 .podia-master-container {
 position: relative;
 }
+
 
 #podiaToggleBtn {
 position: relative;
@@ -150,6 +161,7 @@ gap: 8px;
 transform: rotate(180deg);
 }
 
+
 .podia-indicator {
 display: inline-flex;
 align-items: center;
@@ -162,6 +174,7 @@ text-align: center;
 .podia-indicator i {
 transition: transform 0.2s ease;
 }
+
 
 .podia-buttons-container {
 position: absolute;
@@ -190,6 +203,7 @@ pointer-events: auto;
 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+
 #searchField::-webkit-search-decoration,
 #searchField::-webkit-search-cancel-button,
 #searchField::-webkit-search-results-button,
@@ -204,11 +218,10 @@ height: 0;
 }
 #searchField:focus {
 outline: none;
-border-color: #007bff;
+border-color: #61afef;
 }
 #searchField.has-content {
-background: #007bff;
-color: #fff;
+background: #61afef; color: #282c34;
 }
 .info-container {
 background: #fff;
@@ -220,6 +233,7 @@ box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 height: 40px;
 margin-bottom: 0;
 }
+
 
 #statusContainer {
 height: 20px;
@@ -247,6 +261,7 @@ height: 20px;
 line-height: 20px;
 }
 
+
 #sharedViewInfo {
 flex-grow: 1;
 font-weight: bold;
@@ -259,8 +274,7 @@ justify-content: space-between;
 align-items: center;
 }
 #exitSharedViewBtn {
-background: #007bff;
-color: white;
+background: #61afef; color: #282c34;
 border: none;
 border-radius: 15px;
 padding: 4px 12px;
@@ -274,12 +288,14 @@ background: #61afef;
 color: #282c34;
 }
 
+
 .icons-group {
 margin-left: auto;
 display: flex;
 gap: 15px;
 align-items: center;
 }
+
 
 .sort-icon, #settingsBtn {
 cursor: pointer;
@@ -288,7 +304,7 @@ user-select: none;
 font-size: 20px;
 }
 .sort-icon.active {
-color: #007bff;
+color: #61afef;
 }
 #errorMessage {
 display: none;
@@ -336,6 +352,7 @@ margin-left: 10px;
 flex-shrink: 0;
 }
 
+
 .artist-photo {
 width: 100%;
 aspect-ratio: 1 / 1;
@@ -348,12 +365,14 @@ a .artist-photo {
 cursor: pointer;
 }
 
+
 .artist-meta-container {
 display: flex;
 justify-content: space-between;
 align-items: flex-start;
 gap: 15px;
 }
+
 
 .artist-info,
 .artist-description {
@@ -372,14 +391,17 @@ flex-grow: 1;
 margin-top: 15px;
 }
 
+
 .artist-name {
-color: #007bff;
+color: #61afef;
 text-decoration: none;
 }
+
 
 .artist-info p:first-child {
 margin-top: 0;
 }
+
 
 .now-playing-indicator {
 display: none;
@@ -406,12 +428,14 @@ animation: vu-pulse 1.2s ease-in-out infinite;
 .vu-meter-icon .bar:nth-child(3) { animation-delay: -0.6s; }
 .vu-meter-icon .bar:nth-child(4) { animation-delay: -0.9s; }
 
+
 mark {
 background-color: yellow;
 color: black;
 padding: 0.1em;
 border-radius: 3px;
 }
+
 
 .youtube-links-container {
 margin-top: 15px;
@@ -421,6 +445,7 @@ display: flex;
 flex-direction: column;
 gap: 10px;
 }
+
 
 .youtube-link-item {
 display: flex;
@@ -436,6 +461,7 @@ transition: background-color 0.2s;
 background-color: #efefef;
 }
 
+
 .youtube-thumbnail {
 width: 120px;
 height: 67px;
@@ -443,6 +469,7 @@ object-fit: cover;
 border-radius: 4px;
 flex-shrink: 0;
 }
+
 
 .youtube-title {
 font-size: 13px;
@@ -456,6 +483,7 @@ display: -webkit-box;
 -webkit-box-orient: vertical;
 }
 
+
 .action-buttons-wrapper {
 display: flex;
 flex-direction: row;
@@ -468,6 +496,7 @@ display: flex;
 flex-direction: column;
 gap: 6px;
 }
+
 
 .spotify-open-button, .spotify-edit-button {
 display: inline-flex;
@@ -490,6 +519,7 @@ background-color: #67c989;
 .spotify-open-button i, .spotify-edit-button i {
 font-size: 14px;
 }
+
 
 .spotify-play-button {
 background-color: #54c07b;
@@ -515,6 +545,7 @@ margin-right: 8px;
 font-size: 18px;
 }
 
+
 .search-button {
 color: white !important;
 border: none;
@@ -533,12 +564,14 @@ margin-right: 8px;
 font-size: 16px;
 }
 
+
 .google-search-button {
-background-color: #007bff;
+background-color: #61afef;
 }
 .google-search-button:hover {
-background-color: #0069d9;
+background-color: #82c0ff;
 }
+
 
 .youtube-search-button {
 background-color: #e06c75;
@@ -546,6 +579,8 @@ background-color: #e06c75;
 .youtube-search-button:hover {
 background-color: #e57e88;
 }
+
+
 
 
 .docked-spotify-player-wrapper {
@@ -564,9 +599,11 @@ will-change: transform;
 transform: translateY(100%) translateZ(0);
 }
 
+
 .docked-spotify-player-wrapper.visible {
 transform: translateY(0) translateZ(0);
 }
+
 
 .docked-spotify-player-container {
 flex-grow: 1;
@@ -574,12 +611,14 @@ height: 100%;
 padding: 0;
 }
 
+
 #docked-spotify-iframe {
 width: 100%;
 height: 100%;
 display: block;
 border: none;
 }
+
 
 #closeDockedPlayerButton {
 flex-shrink: 0;
@@ -598,6 +637,7 @@ padding: 0 10px;
 #closeDockedPlayerButton:hover {
 background: rgba(255,255,255,0.1);
 }
+
 
 .modal-overlay {
 display: none;
@@ -651,6 +691,7 @@ padding: 0;
 line-height: 1;
 }
 
+
 /* ---------- STIJL VOOR FIELDSETS (KADERS) ---------- */
 .settings-fieldset {
   border: 1px solid #ddd;
@@ -671,6 +712,7 @@ body.dark-mode .settings-fieldset legend {
   color: #abb2bf;
 }
 /* -------------------------------------------------- */
+
 
 /* ---------- DARK MODE TOGGLE (exact uit aanpassing.html) ---------- */
 .theme-switch-wrapper {
@@ -728,6 +770,7 @@ body.dark-mode .theme-switch-wrapper {
 }
 /* ---------------------------------------------------------------- */
 
+
 .setting-group {
   margin: 20px 0;
 }
@@ -741,6 +784,7 @@ body.dark-mode .setting-heading {
   color: #abb2bf;
 }
 
+
 .radio-option {
   display: flex;
   align-items: center;
@@ -753,14 +797,14 @@ body.dark-mode .setting-heading {
   appearance: none;
   width: 18px;
   height: 18px;
-  border: 2px solid #007bff;
+  border: 2px solid #61afef;
   border-radius: 50%;
   margin: 0;
   position: relative;
   cursor: pointer;
 }
 .radio-option input[type="radio"]:checked {
-  background-color: #007bff;
+  background-color: #61afef;
   box-shadow: inset 0 0 0 3px white;
 }
 body.dark-mode .radio-option input[type="radio"] {
@@ -770,6 +814,7 @@ body.dark-mode .radio-option input[type="radio"]:checked {
   background-color: #61afef;
   box-shadow: inset 0 0 0 3px #282c34;
 }
+
 
 .setting-item {
   display: flex;
@@ -819,7 +864,7 @@ body.dark-mode .setting-item {
   border-radius: 50%;
 }
 input:checked + .toggle-slider {
-  background-color: #007bff;
+  background-color: #61afef;
 }
 input:checked + .toggle-slider:before {
   transform: translateX(24px);
@@ -830,6 +875,7 @@ body.dark-mode .toggle-slider {
 body.dark-mode input:checked + .toggle-slider {
   background-color: #61afef;
 }
+
 
 .utility-button {
 width: 100%;
@@ -851,12 +897,11 @@ box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 transition: all 0.2s ease;
 }
 .utility-button.primary {
-background: #007bff;
-color: #fff;
+background: #61afef; color: #282c34;
 font-weight: bold;
 }
 .utility-button.primary:hover {
-background: #0056b3;
+background: #82c0ff;
 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 .utility-button:hover {
@@ -871,9 +916,11 @@ box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
 margin-right: 4px;
 }
 
+
 #openPlaylistBtn {
 margin-top: 0;
 }
+
 
 .playlist-modal-icon {
 width: 1em;
@@ -888,9 +935,11 @@ color: inherit;
 opacity: 0.8;
 }
 
+
 #generatedTextArea {
 margin-top: 15px;
 }
+
 
 body.dark-mode {
 background: #282c34;
@@ -919,6 +968,7 @@ color: #61afef;
 body.dark-mode #searchField.has-content + .search-input-icon {
 color: #282c34;
 }
+
 
 body.dark-mode .day-filter-button.active,
 body.dark-mode .filter-button.active {
@@ -987,13 +1037,16 @@ body.dark-mode .youtube-title {
 color: #c6cdd5;
 }
 
+
 body.dark-mode .google-search-button {
 background-color: #61afef;
 }
 
+
 body.dark-mode .google-search-button:hover {
 background-color: #82c0ff;
 }
+
 
 body.dark-mode .docked-spotify-player-wrapper {
 background-color: #181818;
@@ -1012,6 +1065,7 @@ body.dark-mode .podia-buttons-container .filter-button {
 box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
+
 body.dark-mode .modal-container {
 background: #3b4048;
 color: #abb2bf;
@@ -1022,6 +1076,7 @@ border-bottom-color: #4b5059;
 body.dark-mode .close-modal-btn {
 color: #98a0ad;
 }
+
 
 body.dark-mode .utility-button {
 background: #4b5059;
@@ -1039,6 +1094,7 @@ body.dark-mode .utility-button:hover {
 background: #5b6069;
 }
 
+
 .is-today::after {
 content: '';
 position: absolute;
@@ -1050,7 +1106,7 @@ border-radius: 2px;
 transition: background-color 0.2s ease-in-out;
 }
 body:not(.dark-mode) .is-today:not(.active)::after {
-background-color: #007bff;
+background-color: #61afef;
 }
 body:not(.dark-mode) .is-today.active::after {
 background-color: #ddd;
@@ -1061,6 +1117,7 @@ background-color: #61afef;
 body.dark-mode .is-today.active::after {
 background-color: #282c34;
 }
+
 
 .playlist-loading {
 display: flex;
@@ -1075,7 +1132,7 @@ padding: 8px 0;
 width: 14px;
 height: 14px;
 border: 2px solid #ddd;
-border-top-color: #007bff;
+border-top-color: #61afef;
 border-radius: 50%;
 animation: playlist-spin 0.8s linear infinite;
 flex-shrink: 0;
@@ -1093,11 +1150,12 @@ min-width: 30px;
 }
 .playlist-progress-fill {
 height: 100%;
-background: #007bff;
+background: #61afef;
 border-radius: 2px;
 transition: width 0.4s ease;
 width: 0%;
 }
+
 
 body.dark-mode .playlist-loading {
 color: #98a0ad;
@@ -1113,6 +1171,7 @@ body.dark-mode .playlist-progress-fill {
 background: #61afef;
 }
 
+
 select {
 background-color: #fff;
 color: #333;
@@ -1127,6 +1186,7 @@ border-color: #5b6069;
 </head>
 <body class="dark-mode">
 
+
 <div id="controlBarGroup" class="control-bar-group">
 <div class="day-filter-container">
 <button class="day-filter-button" data-dayfilter="">Za</button>
@@ -1137,6 +1197,7 @@ border-color: #5b6069;
 <button class="day-filter-button" data-dayfilter="">Do</button>
 <button class="day-filter-button" data-dayfilter="">Vr</button>
 </div>
+
 
 <div class="filter-container">
 <div class="podia-master-container">
@@ -1164,6 +1225,8 @@ border-color: #5b6069;
 </div>
 
 
+
+
 <div class="info-container">
 <div id="statusContainer">
 <div id="statusSlider">
@@ -1176,6 +1239,7 @@ border-color: #5b6069;
 <button id="exitSharedViewBtn">Sluit</button>
 </div>
 
+
 <span class="icons-group">
 <svg id="playlistToggleBtn" class="sort-icon" title="Maak playlist" viewBox="0 0 431.67 366.60" style="width: 1em; height: 1em; fill: currentColor; vertical-align: -0.125em;">
 <g transform="translate(-64.000000,420.980462) scale(0.100000,-0.100000)">
@@ -1186,22 +1250,27 @@ border-color: #5b6069;
 </g>
 </svg>
 
+
 <i id="sortAlpha" class="sort-icon fa-solid fa-sort-alpha-down" title="Alfabetisch sorteren"></i>
 <i id="sortTime" class="sort-icon fa-solid fa-clock" title="Sorteren op tijd"></i>
 <i id="settingsBtn" class="fa-solid fa-cog" title="Instellingen"></i>
 </span>
 </div>
 
+
 </div>
+
 
 <div id="errorMessage"></div>
 <div id="artistList"></div>
+
 
 <div id="dockedSpotifyPlayerWrapper" class="docked-spotify-player-wrapper">
 <div id="dockedSpotifyPlayerContainer" class="docked-spotify-player-container">
 </div>
 <button id="closeDockedPlayerButton" title="Sluit player"><i class="fa-solid fa-xmark"></i></button>
 </div>
+
 
 <div id="settingsModalOverlay" class="modal-overlay"></div>
 <div id="settingsModal" class="modal-container">
@@ -1211,6 +1280,7 @@ border-color: #5b6069;
 </div>
 <div class="modal-content">
 
+
 <!-- Dark mode toggle exact zoals in aanpassing.html -->
 <div class="theme-switch-wrapper">
 <span style="font-size: 0.9em; font-weight: bold;">Donkere modus</span>
@@ -1219,6 +1289,7 @@ border-color: #5b6069;
 <span class="slider-toggle"></span>
 </label>
 </div>
+
 
 <fieldset class="settings-fieldset">
 <legend>Dagknoppen</legend>
@@ -1231,6 +1302,7 @@ border-color: #5b6069;
 <span class="radio-custom"></span> Als filters (meer dagen mogelijk)
 </label>
 </fieldset>
+
 
 <fieldset class="settings-fieldset">
 <legend>Nu & Straks filter</legend>
@@ -1248,6 +1320,7 @@ border-color: #5b6069;
 </label>
 </fieldset>
 
+
 <button id="shareFavoritesBtn" class="utility-button"><i class="fa-solid fa-share-nodes"></i> Deel favorieten</button>
 <button id="clearCacheBtn" class="utility-button"><i class="fa-solid fa-eraser"></i> Artiestendetails resetten</button>
 <a href="https://open.spotify.com/user/valkhoffestival?si=xfWQhAUxRuKdcLF4-B0jhg"
@@ -1256,6 +1329,7 @@ id="openPlaylistBtn" class="utility-button" target="_blank" rel="noopener norefe
 </a>
 </div>
 </div>
+
 
 <div id="playlistInfoModalOverlay" class="modal-overlay"></div>
 <div id="playlistInfoModal" class="modal-container">
@@ -1278,6 +1352,7 @@ Playlist generator
 Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van je actieve filters) met de populairste nummers van deze artiesten volgens Apple Music.
 </p>
 
+
 <div class="setting-group">
 <label for="trackCount" style="font-size: 0.9em;">Aantal nummers per artiest:</label>
 <select id="trackCount" style="padding: 6px; border-radius: 4px; width: 100%; margin-top: 5px;">
@@ -1289,9 +1364,11 @@ Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van 
 </select>
 </div>
 
+
 <button id="startGenerationBtn" class="utility-button primary">
 <i class="fa-solid fa-wand-magic-sparkles"></i> Genereer playlist
 </button>
+
 
 <div id="generatorProgress" style="display:none; margin-top: 15px;">
 <div class="playlist-loading">
@@ -1303,7 +1380,9 @@ Maak een tracklist van de <strong>zichtbare artiesten</strong> (afhankelijk van 
 </div>
 </div>
 
-<textarea id="generatedTextArea" readonly style="display:none; width:100%; height:200px; margin-top:15px; font-family:monospace; white-space:pre-wrap; border:1px solid #ccc; border-radius:4px; background:#fafafa;"></textarea>
+
+<textarea id="generatedTextArea" readonly wrap="off" style="display:none; width:100%; height:200px; margin-top:15px; font-family:monospace; white-space:pre; overflow-x:auto; border:1px solid #ccc; border-radius:4px; background:#fafafa;"></textarea>
+
 
 <div id="generatorActions" style="display:none; margin-top: 15px; flex-direction:column; gap: 10px;">
 <button id="modalCopyAndTuneBtn" class="utility-button primary">
@@ -1319,6 +1398,7 @@ Klik op de knop om de lijst te kopiëren en TuneMyMusic te openen. Plak de lijst
 </div>
 </div>
 
+
 <script>
 (function(){
 const BASE_URL = 'https://valkhoffestival.nl',
@@ -1330,8 +1410,10 @@ ALL_ARTISTS_DATA_TIMESTAMP_KEY = PREFIX + 'allArtistsData_timestamp' + ALL_ARTIS
 CACHE_MAX_AGE_MS = 60 * 60 * 1000,
 PLACEHOLDER_IMG_URL = `https://placehold.co/300x300/e0e0e0/777?text=Foto`;
 
+
 const ITUNES_BATCH_SIZE = 5,
 ITUNES_BATCH_DELAY_MS = 1000;
+
 
 const artistListElement = document.getElementById('artistList'),
 errorMessageElement = document.getElementById('errorMessage'),
@@ -1364,6 +1446,7 @@ clearCacheBtn = document.getElementById('clearCacheBtn'),
 shareFavoritesBtn = document.getElementById('shareFavoritesBtn'),
 darkModeCheckbox = document.getElementById('darkModeCheckbox');
 
+
 const playlistToggleBtn = document.getElementById('playlistToggleBtn'),
 playlistInfoModal = document.getElementById('playlistInfoModal'),
 playlistInfoModalOverlay = document.getElementById('playlistInfoModalOverlay'),
@@ -1378,17 +1461,22 @@ modalCopyAndTuneBtn = document.getElementById('modalCopyAndTuneBtn'),
 modalDownloadBtn = document.getElementById('modalDownloadBtn'),
 trackCountSelect = document.getElementById('trackCount');
 
+
 const isAndroidDevice = /android/i.test(navigator.userAgent);
+
 
 let lastScrollY = window.scrollY;
 let ticking = false;
 let isSharedView = false;
 let sharedFavorites = [];
 
+
 let allArtistsData = [],
 searchClickShouldClear = false;
 
+
 let generatedPlaylistText = "";
+
 
 // Status Slider Variabelen
 let statusInterval = null;
@@ -1402,13 +1490,16 @@ const SLIDE_HEIGHT = 20;
 const ANIMATION_INTERVAL = 5000;
 const TRANSITION_DURATION = 600;
 
+
 const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
 const originalHTMLMap = new WeakMap();
+
 
 function normalizeForSearch(str) {
 if (typeof str !== 'string') return '';
 return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
+
 
 const charMapForRegex = {
 'a': 'aàáâãäåāăąæ', 'c': 'cçćč', 'e': 'eèéêëēĕėęě',
@@ -1418,9 +1509,11 @@ const charMapForRegex = {
 'ş': 'sşšś', 'ç': 'cçćč', 'ğ': 'gğ'
 };
 
+
 function buildFlexibleHighlightRegex(originalSearchTerm) {
 if (!originalSearchTerm) return null;
 let regexPattern = '';
+
 
 function getSingleBaseChar(charInput) {
 const lowerChar = charInput.toLowerCase();
@@ -1428,9 +1521,11 @@ const normalized = lowerChar.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 return normalized.length > 0 ? normalized : lowerChar;
 }
 
+
 for (const char of originalSearchTerm) {
 const baseLookupChar = getSingleBaseChar(char);
 let charClass = charMapForRegex[baseLookupChar];
+
 
 if (charClass) {
 regexPattern += '[' + charClass + ']';
@@ -1446,6 +1541,7 @@ return new RegExp(escapeRegExp(originalSearchTerm), 'giu');
 }
 }
 
+
 function getStoredJSON(keySuffix, defaultValue) {
 const item = localStorage.getItem(keySuffix);
 if (item === null) return defaultValue;
@@ -1458,23 +1554,28 @@ return defaultValue;
 }
 }
 
+
 function setStoredJSON(keySuffix, value) {
 localStorage.setItem(keySuffix, JSON.stringify(value));
 }
+
 
 function getStoredString(keySuffix, defaultValue) {
 const item = localStorage.getItem(PREFIX + keySuffix);
 return item === null ? defaultValue : item;
 }
 
+
 function setStoredString(keySuffix, value) {
 localStorage.setItem(PREFIX + keySuffix, value);
 }
+
 
 let isDarkMode = getStoredJSON(PREFIX + 'isDarkMode', null);
 if (isDarkMode === null) {
   isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
+
 
 let sortMode = getStoredString('sortMode', 'time'),
 activePodia = getStoredJSON(PREFIX + 'activePodia', []),
@@ -1485,6 +1586,7 @@ activeDays = getStoredJSON(PREFIX + 'activeDays', []),
 dayFilterMode = getStoredString('dayFilterMode', 'tabs'),
 nowNextMode = getStoredString('nowNextMode', '1hr');
 
+
 function capitalize(s){
 if(!s) return s;
 return s.split(' ').map(word =>
@@ -1492,18 +1594,20 @@ word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 ).join(' ');
 }
 
+
 const DUTCH_MONTH_MAP = {
 'januari': 0, 'februari': 1, 'maart': 2, 'april': 3,
-'mei': 4, 'juni': 5, 'juli': 6, 'augustus': 7,
-'september': 8, 'oktober': 9, 'november': 10, 'december': 11
+'mei': 4, 'juni': 5, 'juli': 6, 'september': 8, 'oktober': 9, 'november': 10, 'december': 11
 };
 const DUTCH_MONTH_NAMES = Object.keys(DUTCH_MONTH_MAP);
+
 
 function getFestivalYear(festivalMonth) {
 const now = new Date();
 if (now.getMonth() > festivalMonth) return now.getFullYear() + 1;
 return now.getFullYear();
 }
+
 
 function getFestivalStartDate() {
 const buttons = document.querySelectorAll('.day-filter-button');
@@ -1516,10 +1620,12 @@ const year = getFestivalYear(month);
 return new Date(year, month, day, 0, 0, 0);
 }
 
+
 // Hulpmiddel om unieke sleutel te genereren voor opslaan van handmatige spotify links
 function getManualSpotifyKey(artistName) {
 return PREFIX + 'manual_spotify_' + artistName.replace(/[^a-zA-Z0-9]/g, '_');
 }
+
 
 function showError(msg){
 errorMessageElement.textContent = msg;
@@ -1533,6 +1639,7 @@ return url.startsWith('http')
 ? url
 : BASE_URL + (url.startsWith('/') ? '' : '/') + url;
 }
+
 
 /**
  * Haalt een URL op via een reeks van parallelle CORS proxies.
@@ -1570,10 +1677,12 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
         }
     ];
 
+
     const constructProxyUrl = (proxy, url) => {
         const urlPart = proxy.needsEncoding ? encodeURIComponent(url) : url;
         return proxy.template + urlPart;
     };
+
 
     const dataUriToBlob = (dataUri) => {
         const split = dataUri.split(',');
@@ -1587,6 +1696,7 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
         return new Blob([new Uint8Array(array)], { type: mimeType });
     };
 
+
     const fetchPromises = proxies.map(proxy => {
         const proxyUrl = constructProxyUrl(proxy, targetUrl);
         return new Promise((resolve, reject) => {
@@ -1597,11 +1707,13 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
                         return;
                     }
 
+
                     if (proxy.outputType === 'raw') {
                         response.proxyName = proxy.name;
                         resolve(response);
                         return;
                     }
+
 
                     if (proxy.outputType === 'wrapped' && proxy.wrapperField) {
                         try {
@@ -1611,11 +1723,14 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
                             const newHeaders = new Headers(response.headers);
                             ['content-type', 'content-length', 'transfer-encoding', 'date'].forEach(h => newHeaders.delete(h));
 
+
                             let finalBody;
+
 
                             if (typeof content === 'object' && content !== null) {
                                 finalBody = JSON.stringify(content);
                                 newHeaders.set('Content-Type', 'application/json');
+                                newHeaders.set('Content-Type', blob.type);
                             } else if (typeof content === 'string') {
                                 if (content.startsWith('data:') && content.includes(';base64,')) {
                                     const blob = dataUriToBlob(content);
@@ -1655,6 +1770,7 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
         });
     });
 
+
     try {
         const firstSuccessfulResponse = await Promise.any(fetchPromises);
         return firstSuccessfulResponse;
@@ -1663,6 +1779,7 @@ async function fetchViaCorsProxy(targetUrl, options = {}) {
         throw new Error(`Alle CORS proxies faalden. Fouten: ${allErrors}`);
     }
 }
+
 
 async function fetchArtistInfo(artistBasicInfo) {
 const artistCacheKey = PREFIX + 'artist_info_' + artistBasicInfo.name.replace(/[^a-zA-Z0-9]/g, '_') + '_v2';
@@ -1685,6 +1802,7 @@ localStorage.removeItem(artistCacheKey);
 }
 }
 
+
 try {
 const res = await fetchViaCorsProxy(artistBasicInfo.artistUrl);
 if (!res.ok) return null;
@@ -1692,6 +1810,7 @@ const html = await res.text();
 const doc = new DOMParser().parseFromString(html, 'text/html');
 const tags = Array.from(doc.querySelectorAll('.meta .tag'));
 const paras = doc.querySelectorAll('.description p');
+
 
 const spotifyIframe = doc.querySelector('.spotify iframe, figure.wp-block-embed.is-provider-spotify iframe, iframe[src*="open.spotify.com"]');
 let spotifyUri = null;
@@ -1710,9 +1829,11 @@ spotifyUri = `spotify:${urlMatch[1]}:${urlMatch[2]}`;
 }
 }
 
+
 if (artistBasicInfo.name === 'Sinem' && !spotifyUri) {
 spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
 }
+
 
 const youtubeIframes = doc.querySelectorAll('figure.wp-block-embed.is-provider-youtube iframe');
 let youtubeLinks = [];
@@ -1734,9 +1855,11 @@ videoId: videoId
 });
 }
 
+
 const rawPodium = tags[tags.length - 3]?.textContent.trim() || 'Onbekend';
 const rawDatum = tags[tags.length - 2]?.textContent.trim() || 'Onbekend';
 const rawTijd = tags[tags.length - 1]?.textContent.trim() || 'Onbekend';
+
 
 let duurTekst = '';
 if (rawTijd.includes('-')) {
@@ -1751,6 +1874,7 @@ const diff = minutesEnd - minutesStart;
 if (diff > 0 && diff <= 24 * 60) duurTekst = diff + ' min';
 }
 }
+
 
 const info = {
 genres: tags.slice(0, -3).map(t => t.textContent.trim()),
@@ -1770,8 +1894,10 @@ return null;
 }
 }
 
+
 async function loadAllArtistsData() {
 hideError();
+
 
 const cachedDataTimestamp = getStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, 0);
 if (Date.now() - cachedDataTimestamp > CACHE_MAX_AGE_MS) {
@@ -1779,6 +1905,7 @@ console.warn(`Cache for ${ALL_ARTISTS_DATA_CACHE_KEY} is older than 1 hour. Inva
 localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
 localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
 }
+
 
 const cachedData = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
 if (cachedData) {
@@ -1800,6 +1927,7 @@ localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
 }
 }
 
+
 allArtistsData = [];
 updateArtistCount(0, 'Artiesten laden...');
 try {
@@ -1811,20 +1939,25 @@ return;
 const html = await res.text();
 const doc = new DOMParser().parseFromString(html, 'text/html');
 
+
 const urlRegex = /url\('([^']+)'\)/;
+
 
 const artistBasicInfos = Array.from(doc.querySelectorAll('a.artist'))
 .map(a => {
 const name = a.querySelector('.nameplate h2').textContent.replace(/\s+/g, ' ').trim();
 const artistUrl = getFullUrl(a.getAttribute('href'));
 
+
 const innerDiv = a.querySelector('.artist-inner');
 const styleAttr = innerDiv?.getAttribute('style');
 const styleMatch = styleAttr ? styleAttr.match(urlRegex) : null;
 const imageUrl = styleMatch && styleMatch[1] ? getFullUrl(styleMatch[1]) : null;
 
+
 return { name, artistUrl, imageUrl };
 });
+
 
 const newAllArtistsData = [];
 let fetchedCount = 0;
@@ -1842,10 +1975,12 @@ fetchedCount++;
 updateArtistCount(fetchedCount, `Details geladen voor ${fetchedCount}/${artistBasicInfos.length} artiesten...`);
 }
 
+
 allArtistsData = newAllArtistsData;
 localStorage.setItem(ALL_ARTISTS_DATA_CACHE_KEY, JSON.stringify(allArtistsData));
 setStoredJSON(ALL_ARTISTS_DATA_TIMESTAMP_KEY, Date.now());
 console.log(`All artists data fetched and cached (key: ${ALL_ARTISTS_DATA_CACHE_KEY}).`);
+
 
 } catch (err) {
 console.error("Error during fetch of all artists data:",err);
@@ -1853,68 +1988,86 @@ showError('Netwerkfout bij ophalen artiestenlijst.');
 }
 }
 
+
 function parseDateTimeForSort(datum, tijd) {
 if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend' || !tijd.includes(':')) {
 return { start: 0, end: 0 };
 }
 
+
 const datumParts = datum.split(' ');
 if (datumParts.length < 2) return { start: 0, end: 0 };
 const dagNum = parseInt(datumParts[0], 10);
+
 
 const tijdDelen = tijd.split('-').map(s => s.trim());
 const startTimeStr = tijdDelen[0];
 const endTimeStr = tijdDelen.length > 1 ? tijdDelen[1] : null;
 
+
 const startTijdParts = startTimeStr.split(':');
 if (startTijdParts.length < 2) return { start: 0, end: 0 };
+
 
 const startUur = parseInt(startTijdParts[0], 10);
 const startMin = parseInt(startTijdParts[1], 10);
 
+
 if (isNaN(dagNum) || isNaN(startUur) || isNaN(startMin)) {
 return { start: 0, end: 0 };
 }
+
 
 const festivalMonth = DUTCH_MONTH_MAP[datumParts[1]?.toLowerCase()] ?? 6;
 const festivalYear = getFestivalYear(festivalMonth);
 const startDate = new Date(festivalYear, festivalMonth, dagNum, startUur, startMin);
 const startTimestamp = startDate.getTime();
 
+
 if (!endTimeStr) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
+
 
 const endTijdParts = endTimeStr.split(':');
 if (endTijdParts.length < 2) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
 
+
 const eindUur = parseInt(endTijdParts[0], 10);
 const eindMin = parseInt(endTijdParts[1], 10);
+
 
 if (isNaN(eindUur) || isNaN(eindMin)) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
 
+
 let endDate = new Date(festivalYear, festivalMonth, dagNum, eindUur, eindMin);
+
 
 if (endDate <= startDate) {
 endDate.setDate(endDate.getDate() + 1);
 }
 
+
 return { start: startTimestamp, end: endDate.getTime() };
 }
 
+
 function renderAllArtistCardsOnce() {
 artistListElement.innerHTML = '';
+
 
 allArtistsData.forEach(({ artist, info }) => {
 const card = document.createElement('div');
 card.className = 'artist-card';
 card.style.display = 'none';
 
+
 const timestamps = parseDateTimeForSort(info.datum, info.tijd);
+
 
 card.dataset.name = normalizeForSearch(artist.name);
 card.dataset.rawName = artist.name;
@@ -1927,11 +2080,13 @@ card.dataset.timestampEnd = timestamps.end;
 card.dataset.genres = normalizeForSearch(info.genres.join(','));
 card.dataset.description = normalizeForSearch(info.description.replace(/<[^>]*>/g, ' '));
 
+
 if (info.youtubeLinks && info.youtubeLinks.length > 0) {
 card.dataset.youtubeTitles = normalizeForSearch(info.youtubeLinks.map(link => link.title).join(' '));
 } else {
 card.dataset.youtubeTitles = '';
 }
+
 
 // Haal handmatige link op uit localStorage indien aanwezig
 const manualSpotifyKey = getManualSpotifyKey(artist.name);
@@ -1940,15 +2095,19 @@ const activeSpotifyUri = manualSpotifyUri || info.spotifyUri;
 const hasSpotify = !!activeSpotifyUri;
 const noCrawledSpotify = !info.spotifyUri;
 
+
 if (activeSpotifyUri) {
 card.dataset.spotifyUri = activeSpotifyUri;
 }
 
+
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 
 const proxiedImageUrlForDataSrc = artist.imageUrl
 ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
 : PLACEHOLDER_IMG_URL;
+
 
 const imageTag = `
 <img
@@ -1957,6 +2116,7 @@ src="${transparentPixel}"
 alt="Foto van ${artist.name}"
 class="artist-photo lazyload">`;
 
+
 let imageHtml;
 if (artist.imageUrl) {
 const highResUrl = `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=2000&h=2000&fit=inside&q=85&output=jpg`;
@@ -1964,6 +2124,7 @@ imageHtml = `<a href="${highResUrl}" target="_blank" title="Bekijk foto in hoge 
 } else {
 imageHtml = imageTag;
 }
+
 
 const dagNum = info.datum !== 'Onbekend' ? info.datum.split(' ')[0].padStart(2, '0') : '';
 let dagNaam = '';
@@ -1977,12 +2138,16 @@ dagNaam = dagen[date.getDay()];
 }
 }
 
+
 const isFav = favorites.includes(artist.name);
+
 
 const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
 
+
 let youtubeSearchUrl;
 let youtubeLinkAttributes = '';
+
 
 if (isAndroidDevice) {
 const youtubeSearchQuery = encodeURIComponent(artist.name).replace(/%20/g, '+');
@@ -1993,7 +2158,9 @@ youtubeSearchUrl = `https://www.youtube.com/results?search_query=${youtubeSearch
 youtubeLinkAttributes = 'target="_blank" rel="noopener noreferrer"';
 }
 
+
 let actionControlsHtml = `<div class="action-buttons-wrapper">`;
+
 
 // 1. Edit knop (alleen als er géén automatische/gecrawlde Spotify link is)
 if (noCrawledSpotify) {
@@ -2003,6 +2170,7 @@ actionControlsHtml += `
 </button>`;
 }
 
+
 // 2. Open Spotify app knop (als er een Spotify link bekend is via crawl of handmatige invoer)
 if (hasSpotify) {
 actionControlsHtml += `
@@ -2011,8 +2179,10 @@ actionControlsHtml += `
 </a>`;
 }
 
+
 // 3. Kolom met gestapelde zoek-/previewknoppen
 actionControlsHtml += `<div class="stacked-buttons-column">`;
+
 
 if (hasSpotify) {
 // Bekende Spotify-link -> toon Preview knop
@@ -2029,6 +2199,7 @@ actionControlsHtml += `
 </a>`;
 }
 
+
 actionControlsHtml += `
 <a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
 <i class="fa-brands fa-google"></i> Zoek..
@@ -2039,6 +2210,7 @@ actionControlsHtml += `
 </div>
 </div>`;
 
+
 let youtubeLinksHtml = '';
 if (info.youtubeLinks && info.youtubeLinks.length > 0) {
 youtubeLinksHtml = '<div class="youtube-links-container">';
@@ -2048,12 +2220,14 @@ const thumbnailUrl = `https://img.youtube.com/vi/${ytLink.videoId}/mqdefault.jpg
 let linkUrl;
 let linkTarget = '';
 
+
 if (isAndroidDevice) {
 linkUrl = `vnd.youtube:${ytLink.videoId}`;
 } else {
 linkUrl = ytLink.url;
 linkTarget = 'target="_blank" rel="noopener noreferrer"';
 }
+
 
 youtubeLinksHtml += `
 <a href="${linkUrl}" ${linkTarget} class="youtube-link-item">
@@ -2065,7 +2239,9 @@ youtubeLinksHtml += `
 youtubeLinksHtml += '</div>';
 }
 
+
 const durationText = info.duur ? ` (${info.duur})` : '';
+
 
 card.innerHTML = `
 <div class="artist-header">
@@ -2102,6 +2278,7 @@ artistListElement.appendChild(card);
 });
 }
 
+
 function setupImageLazyLoader() {
 const lazyImages = document.querySelectorAll('img.lazyload[data-src]');
 if ('IntersectionObserver' in window) {
@@ -2112,6 +2289,7 @@ const image = entry.target;
 const proxiedSrc = image.dataset.src;
 const originalSrc = image.dataset.originalSrc;
 
+
 image.onerror = function() {
 if (this.src !== originalSrc) {
 console.warn(`Image proxy (${proxiedSrc}) failed to load. Falling back to original source: ${originalSrc}`);
@@ -2119,6 +2297,7 @@ this.src = originalSrc;
 }
 this.onerror = null;
 };
+
 
 image.src = proxiedSrc;
 image.classList.remove('lazyload');
@@ -2144,9 +2323,11 @@ image.classList.remove('lazyload');
 }
 }
 
+
 function escapeRegExp(string) {
 return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
 
 function clearHighlight(element) {
 if (element && originalHTMLMap.has(element)) {
@@ -2154,16 +2335,20 @@ element.innerHTML = originalHTMLMap.get(element);
 }
 }
 
+
 function applyHighlight(element, originalSearchTerm) {
 if (!element || !originalSearchTerm) return;
+
 
 if (!originalHTMLMap.has(element)) {
 originalHTMLMap.set(element, element.innerHTML);
 }
 element.innerHTML = originalHTMLMap.get(element);
 
+
 const regex = buildFlexibleHighlightRegex(originalSearchTerm);
 if (!regex) return;
+
 
 function highlightNodeRecursive(node) {
 if (node.nodeType === Node.TEXT_NODE) {
@@ -2177,6 +2362,7 @@ let match;
 while ((match = regex.exec(text)) !== null) {
 const matchedText = match[0];
 const matchStartIndex = match.index;
+
 
 if (matchStartIndex > lastIndex) {
 fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchStartIndex)));
@@ -2207,6 +2393,8 @@ highlightNodeRecursive(element);
 }
 
 
+
+
 function scrollToArtistListTop() {
 if (!artistListElement || !controlBarGroup) return;
 window.scrollTo({ top: 0, behavior: 'auto' });
@@ -2215,6 +2403,7 @@ controlBarGroup.classList.remove('hidden');
 }
 lastScrollY = 0;
 }
+
 
 function forceShowCountStatus() {
   clearInterval(statusInterval);
@@ -2234,17 +2423,21 @@ function forceShowCountStatus() {
   statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
 }
 
+
 function applyFiltersAndSort(options = {}) {
 hideError();
 const originalSearchTerm = searchFieldElement.value;
 const normalizedSearchTerm = normalizeForSearch(originalSearchTerm);
 let visibleCount = 0;
 
+
 const cardElements = artistListElement.children;
 const now = new Date().getTime();
 
+
 const todayButton = document.querySelector('.day-filter-button.is-today');
 const todayDateFilterString = todayButton ? todayButton.dataset.dayfilter : null;
+
 
 for (const card of cardElements) {
 const {
@@ -2259,11 +2452,13 @@ timestampStart,
 timestampEnd
 } = card.dataset;
 
+
 const artistNameEl = card.querySelector('.artist-name');
 const genresEl = card.querySelector('.highlightable-genres');
 const podiumEl = card.querySelector('.highlightable-podium');
 const descriptionEl = card.querySelector('.highlightable-description');
 const youtubeTitleEls = card.querySelectorAll('.youtube-title');
+
 
 clearHighlight(artistNameEl);
 clearHighlight(genresEl);
@@ -2271,9 +2466,11 @@ clearHighlight(podiumEl);
 clearHighlight(descriptionEl);
 youtubeTitleEls.forEach(el => clearHighlight(el));
 
+
 const matchesShared = !isSharedView || sharedFavorites.includes(rawName);
 const matchesDay = !activeDays.length || activeDays.includes(dag);
 const matchesPodium = !activePodia.length || activePodia.includes(podium);
+
 
 const matchesSearch = !normalizedSearchTerm ||
 normalizedArtistName.includes(normalizedSearchTerm) ||
@@ -2282,11 +2479,14 @@ normalizedGenres.includes(normalizedSearchTerm) ||
 normalizeForSearch(podium).includes(normalizedSearchTerm) ||
 (normalizedYoutubeTitles && normalizedYoutubeTitles.includes(normalizedSearchTerm));
 
+
 const matchesFavs = !showingFavs || favorites.includes(rawName);
+
 
 const start = parseInt(timestampStart, 10);
 const end = parseInt(timestampEnd, 10);
 const isNow = start > 0 && start <= now && end > now;
+
 
 let isNext = false;
 if (start > 0) {
@@ -2311,11 +2511,14 @@ break;
 }
 }
 
+
 const isNowOrNextRegular = isNow || isNext;
 const isUnknownTimeAndIsToday = (start === 0) && todayDateFilterString && (dag === todayDateFilterString);
 const matchesNowNext = !showingNowNext || isNowOrNextRegular || isUnknownTimeAndIsToday;
 
+
 const isVisible = matchesShared && matchesDay && matchesPodium && matchesSearch && matchesFavs && matchesNowNext;
+
 
 if (isVisible) {
 card.style.display = '';
@@ -2331,13 +2534,16 @@ youtubeTitleEls.forEach(el => applyHighlight(el, originalSearchTerm));
 card.style.display = 'none';
 }
 
+
 const favIcon = card.querySelector('.favorite-icon');
 if (favIcon) {
 favIcon.innerHTML = favorites.includes(rawName) ? '<i class="fa-solid fa-heart"></i>' : '<i class="fa-regular fa-heart"></i>';
 }
 }
 
+
 const cardsArray = Array.from(cardElements);
+
 
 cardsArray.sort((a, b) => {
 if (sortMode === 'alpha') {
@@ -2355,17 +2561,21 @@ return timeA - timeB;
 }
 });
 
+
 cardsArray.forEach((card, index) => {
 card.style.order = index;
 });
 
+
 updateArtistCount(visibleCount);
 forceShowCountStatus();
+
 
 if (!options.preserveScroll) {
 scrollToArtistListTop();
 }
 }
+
 
 function calculateNightsToSleep() {
 const now = new Date();
@@ -2375,14 +2585,18 @@ const diff = festivalStart - now;
 return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+
 async function transitionStatus(newText, duration = TRANSITION_DURATION) {
 isAnimatingStatus = true;
+
 
 statusSlot2.textContent = newText;
 statusSlider.style.transition = `transform ${duration}ms cubic-bezier(0.68, -0.55, 0.27, 1.55)`;
 statusSlider.style.transform = `translateY(-${SLIDE_HEIGHT}px)`;
 
+
 await new Promise(resolve => setTimeout(resolve, duration));
+
 
 statusSlider.style.transition = 'none';
 statusSlot1.textContent = newText;
@@ -2391,8 +2605,10 @@ statusSlider.offsetHeight;
 isAnimatingStatus = false;
 }
 
+
 function slideStatusAuto() {
 if (isMessaging) return;
+
 
 const nights = calculateNightsToSleep();
 if (nights === null) {
@@ -2400,14 +2616,18 @@ transitionStatus(statusTexts.count);
 return;
 }
 
+
 const plural = nights === 1 ? '' : 'jes';
 statusTexts.countdown = `Nog ${nights} nacht${plural} slapen..`;
+
 
 currentStatusItemIndex = (currentStatusItemIndex + 1) % 2;
 const nextText = currentStatusItemIndex === 0 ? statusTexts.count : statusTexts.countdown;
 
+
 transitionStatus(nextText);
 }
+
 
 function updateArtistCount(n, overrideText = null){
 if (isSharedView) {
@@ -2418,6 +2638,7 @@ if(spanElement) spanElement.textContent = textToShow;
 return;
 }
 
+
 let textToShow;
 if (overrideText) {
 textToShow = overrideText;
@@ -2427,12 +2648,15 @@ const entity = showingFavs ? `favoriet${pluralSuffix}` : `artiest${pluralSuffix}
 textToShow = `${n} ${entity} gevonden`;
 }
 
+
 statusTexts.count = textToShow;
+
 
 if (!isMessaging && currentStatusItemIndex === 0) {
 statusSlot1.textContent = textToShow;
 }
 }
+
 
 let toastTimeout = null;
 function showToast(message) {
@@ -2446,17 +2670,21 @@ function showToast(message) {
   }
 }
 
+
 async function processToastQueue(force = false) {
 if (toastQueue.length === 0) {
 isMessaging = false;
 return;
 }
 
+
 isMessaging = true;
 clearInterval(statusInterval);
 
+
 const message = toastQueue.shift();
 await transitionStatus(message);
+
 
 toastTimeout = setTimeout(async () => {
   const normalText = currentStatusItemIndex === 0 ? statusTexts.count : statusTexts.countdown;
@@ -2467,11 +2695,13 @@ toastTimeout = setTimeout(async () => {
 }, 1400);
 }
 
+
 function startStatusAlternation() {
 if (isMessaging) return;
 clearInterval(statusInterval);
 statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
 }
+
 
 function updateFilterButtonsUI(){
 document.querySelectorAll('#podiaButtonsContainer .filter-button').forEach(btn=>{
@@ -2480,8 +2710,10 @@ btn.classList.toggle('active', activePodia.includes(btn.dataset.podium));
 updatePodiaToggleUI();
 }
 
+
 function updatePodiaToggleUI() {
 const activeCount = activePodia.length;
+
 
 if (activeCount > 0) {
 podiaIndicator.textContent = activeCount;
@@ -2492,10 +2724,12 @@ podiaToggleBtn.classList.remove('active');
 }
 }
 
+
 function updateSortIconsUI(){
 sortAlphaElement.classList.toggle('active', sortMode === 'alpha');
 sortTimeElement.classList.toggle('active', sortMode === 'time');
 }
+
 
 function updateFavoriteToggleUI() {
 const icon = favoriteToggleBtn.querySelector('i');
@@ -2506,6 +2740,7 @@ icon.classList.toggle('fa-regular', !showingFavs);
 }
 }
 
+
 function updateActiveDayTabsUI() {
 document.querySelectorAll('.day-filter-button').forEach(btn => {
 const dayFilterForButton = btn.dataset.dayfilter;
@@ -2513,9 +2748,11 @@ btn.classList.toggle('active', activeDays.includes(dayFilterForButton));
 });
 }
 
+
 function updateLiveStatusOnCards() {
 const now = new Date().getTime();
 const cards = document.querySelectorAll('.artist-card');
+
 
 cards.forEach(card => {
 const start = parseInt(card.dataset.timestampStart, 10);
@@ -2523,7 +2760,9 @@ const end = parseInt(card.dataset.timestampEnd, 10);
 const indicator = card.querySelector('.now-playing-indicator');
 const timeInfoEl = card.querySelector('.time-info');
 
+
 if (!indicator || !timeInfoEl || !start || !end) return;
+
 
 if (start <= now && end > now) {
 const remainingMinutes = Math.ceil((end - now) / 60000);
@@ -2536,6 +2775,7 @@ indicator.style.display = 'none';
 });
 }
 
+
 function toggleFavoriteOnCard(name){
 const idx = favorites.indexOf(name);
 if(idx > -1) favorites.splice(idx,1);
@@ -2543,6 +2783,7 @@ else favorites.push(name);
 setStoredJSON(PREFIX + 'favorites', favorites);
 applyFiltersAndSort({ preserveScroll: true });
 }
+
 
 function clearLocalStorageData(){
 if(!confirm('Weet je zeker dat je alle data (behalve favorieten en voorkeuren) wilt resetten? Dit kan nodig zijn na website updates.'))
@@ -2555,6 +2796,7 @@ localStorage.removeItem(key);
 allArtistsData = [];
 location.reload();
 }
+
 
 async function runProxyTest() {
 const testProxies = [
@@ -2583,12 +2825,14 @@ results.push(`${proxy.name}: FAIL (Error: ${err.name})`);
 alert('CORS Proxy Test Resultaten:\n\n' + results.join('\n'));
 }
 
+
 function updateBodyPadding() {
 if (controlBarGroup) {
 const headerHeight = controlBarGroup.offsetHeight;
 document.body.style.paddingTop = `${headerHeight + 10}px`;
 }
 }
+
 
 function syncPodiaButtonWidths() {
 requestAnimationFrame(() => {
@@ -2599,6 +2843,7 @@ btn.style.width = `${toggleWidth}px`;
 });
 });
 }
+
 
 function handleScrollLogic() {
 if (!controlBarGroup) return;
@@ -2620,6 +2865,7 @@ lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
 ticking = false;
 }
 
+
 function highlightCurrentDayButton() {
 const now = new Date();
 const currentDayFilter = `${now.getDate()} ${DUTCH_MONTH_NAMES[now.getMonth()]}`;
@@ -2629,14 +2875,17 @@ todayButton.classList.add('is-today');
 }
 }
 
+
 function runCacheMigration() {
 const MIGRATION_KEY = 'vf_cache_migration_fix_voerweg_v1';
 if (localStorage.getItem(MIGRATION_KEY)) {
 return;
 }
 
+
 console.log('Cache migratie voor "Club Voerweg" wordt uitgevoerd...');
 let migrationNeeded = false;
+
 
 const cachedDataString = localStorage.getItem(ALL_ARTISTS_DATA_CACHE_KEY);
 if (cachedDataString) {
@@ -2657,19 +2906,23 @@ migrationNeeded = true;
 }
 }
 
+
 if (migrationNeeded) {
 localStorage.removeItem(ALL_ARTISTS_DATA_CACHE_KEY);
 localStorage.removeItem(ALL_ARTISTS_DATA_TIMESTAMP_KEY);
 console.log('Hoofdcache en timestamp verwijderd. Data wordt opnieuw opgehaald.');
 }
 
+
 localStorage.setItem(MIGRATION_KEY, 'true');
 console.log('Cache migratie voltooid.');
 }
 
+
 function checkForSharedFavorites() {
 const urlParams = new URLSearchParams(window.location.search);
 const favsParam = urlParams.get('favs');
+
 
 if (favsParam) {
 try {
@@ -2687,12 +2940,15 @@ isSharedView = false;
 }
 }
 
+
 function setupSharedView() {
 if (!isSharedView) return;
+
 
 statusContainer.style.display = 'none';
 sharedViewInfoElement.style.display = 'flex';
 iconsGroupElement.style.display = 'none';
+
 
 activeDays = [];
 activePodia = [];
@@ -2703,8 +2959,10 @@ searchFieldElement.value = '';
 searchFieldElement.classList.remove('has-content');
 }
 
+
 updateAllFilterUIs();
 }
+
 
 function exitSharedView() {
 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
@@ -2712,21 +2970,25 @@ window.history.pushState({path: newUrl}, '', newUrl);
 location.reload();
 }
 
+
 async function handleShareFavorites() {
 if (favorites.length === 0) {
 alert('Je hebt nog geen favorieten om te delen. Markeer eerst wat artiesten als favoriet.');
 return;
 }
 
+
 const jsonString = JSON.stringify(favorites);
 const base64String = btoa(jsonString);
 const shareUrl = `${window.location.origin}${window.location.pathname}?favs=${base64String}`;
+
 
 const shareData = {
 title: 'Mijn Valkhof Festival Favorieten',
 text: 'Check mijn favoriete artiesten voor Valkhof Festival!',
 url: shareUrl,
 };
+
 
 if (navigator.share) {
 try {
@@ -2746,6 +3008,7 @@ alert('Kon de link niet automatisch kopiëren. Kopieer de link handmatig.');
 }
 }
 
+
 function updateAllFilterUIs() {
 updateActiveDayTabsUI();
 updateFilterButtonsUI();
@@ -2754,10 +3017,12 @@ if (nowNextBtn) nowNextBtn.classList.toggle('active', showingNowNext);
 updateSortIconsUI();
 }
 
+
 function updateDayFilterButtonsData() {
 const mapping = { 'zaterdag': 'za', 'zondag': 'zo', 'maandag': 'ma', 'dinsdag': 'di', 'woensdag': 'wo', 'donderdag': 'do', 'vrijdag': 'vr' };
 const foundDates = [...new Set(allArtistsData.map(d => d.info.datum))].filter(d => d && d !== 'Onbekend');
 const dayButtons = document.querySelectorAll('.day-filter-button');
+
 
 foundDates.forEach(dateStr => {
 const parts = dateStr.split(' ');
@@ -2769,8 +3034,10 @@ const year = getFestivalYear(monthIdx);
 const d = new Date(year, monthIdx, dayNum);
 if (isNaN(d.getTime())) return;
 
+
 const dayName = dagen[d.getDay()];
 const shortLabel = mapping[dayName];
+
 
 dayButtons.forEach(btn => {
 if (btn.textContent.trim().toLowerCase() === shortLabel) {
@@ -2780,6 +3047,7 @@ btn.dataset.dayfilter = dateStr;
 });
 }
 
+
 function initializeEventListeners() {
 dayFilterContainerElement.addEventListener('click', function(e) {
 const dayButton = e.target.closest('.day-filter-button');
@@ -2787,7 +3055,9 @@ if (dayButton) {
 const dayFilter = dayButton.dataset.dayfilter;
 if (!dayFilter) return;
 
+
 const isAlreadyActive = activeDays.includes(dayFilter);
+
 
 if (dayFilterMode === 'tabs') {
 if (isAlreadyActive) {
@@ -2808,11 +3078,13 @@ applyFiltersAndSort();
 }
 });
 
+
 podiaToggleBtn.addEventListener('click', (e) => {
 e.stopPropagation();
 podiaButtonsContainer.classList.toggle('visible');
 podiaToggleBtn.classList.toggle('menu-open');
 });
+
 
 podiaButtonsContainer.addEventListener('click', function(e){
 const btn = e.target.closest('.filter-button');
@@ -2827,6 +3099,7 @@ applyFiltersAndSort();
 }
 });
 
+
 if (nowNextBtn) {
 nowNextBtn.addEventListener('click', function() {
 showingNowNext = !showingNowNext;
@@ -2835,6 +3108,7 @@ this.classList.toggle('active', showingNowNext);
 applyFiltersAndSort();
 });
 }
+
 
 window.addEventListener('click', (e) => {
 const isPodiaMenuVisible = podiaButtonsContainer.classList.contains('visible');
@@ -2846,6 +3120,7 @@ e.preventDefault();
 return;
 }
 
+
 if (settingsModal.classList.contains('visible') && !settingsModal.contains(e.target) && !settingsBtn.contains(e.target)) {
 closeSettingsModal();
 }
@@ -2854,9 +3129,11 @@ closePlaylistInfoModal();
 }
 });
 
+
 searchFieldElement.addEventListener('focus', function() {
 searchClickShouldClear = (this.value.length > 0);
 });
+
 
 searchFieldElement.addEventListener('click', function() {
 if (searchClickShouldClear && this.value.length > 0) {
@@ -2867,6 +3144,7 @@ applyFiltersAndSort();
 searchClickShouldClear = false;
 }
 });
+
 
 searchFieldElement.addEventListener('input', function(){
 searchClickShouldClear = (this.value.length > 0);
@@ -2879,15 +3157,18 @@ runProxyTest(); return;
 applyFiltersAndSort();
 });
 
+
 searchFieldElement.addEventListener('blur', function() {
 searchClickShouldClear = false;
 });
+
 
 searchFieldElement.addEventListener('keydown', function(e) {
 if (e.key === 'Enter' || e.keyCode === 13) {
 this.blur(); e.preventDefault();
 }
 });
+
 
 sortAlphaElement.addEventListener('click', function(){
 sortMode = 'alpha'; setStoredString('sortMode', sortMode);
@@ -2902,6 +3183,7 @@ applyFiltersAndSort();
 showToast('Sortering: chronologisch');
 });
 
+
 favoriteToggleBtn.addEventListener('click', function(){
 showingFavs = !showingFavs;
 if(!isSharedView) setStoredJSON(PREFIX + 'showingFavs', showingFavs);
@@ -2909,9 +3191,11 @@ updateFavoriteToggleUI();
 applyFiltersAndSort();
 });
 
+
 artistListElement.addEventListener('click', e=>{
 const favIcon = e.target.closest('.favorite-icon');
 if(favIcon) toggleFavoriteOnCard(favIcon.dataset.name);
+
 
 const editButton = e.target.closest('.spotify-edit-button');
 if (editButton) {
@@ -2941,6 +3225,7 @@ applyFiltersAndSort({ preserveScroll: true });
 }
 }
 
+
 const spotifyButton = e.target.closest('.spotify-play-button');
 if (spotifyButton) {
 const spotifyUri = spotifyButton.dataset.spotifyUri;
@@ -2957,10 +3242,12 @@ dockedSpotifyPlayerWrapper.classList.add('visible');
 }
 });
 
+
 closeDockedPlayerButton.addEventListener('click', () => {
 dockedSpotifyPlayerWrapper.classList.remove('visible');
 setTimeout(() => { dockedSpotifyPlayerContainer.innerHTML = ''; }, 300);
 });
+
 
 settingsBtn.addEventListener('click', openSettingsModal);
 closeModalBtn.addEventListener('click', closeSettingsModal);
@@ -2969,11 +3256,13 @@ clearCacheBtn.addEventListener('click', clearLocalStorageData);
 shareFavoritesBtn.addEventListener('click', handleShareFavorites);
 exitSharedViewBtn.addEventListener('click', exitSharedView);
 
+
 darkModeCheckbox.addEventListener('change', function() {
 isDarkMode = this.checked;
 setStoredJSON(PREFIX + 'isDarkMode', isDarkMode);
 document.body.classList.toggle('dark-mode', isDarkMode);
 });
+
 
 playlistToggleBtn.addEventListener('click', openPlaylistInfoModal);
 closePlaylistInfoModalBtn.addEventListener('click', closePlaylistInfoModal);
@@ -2982,7 +3271,9 @@ startGenerationBtn.addEventListener('click', handleGeneratePlaylist);
 modalCopyAndTuneBtn.addEventListener('click', handlePlaylistCopyTune);
 modalDownloadBtn.addEventListener('click', handlePlaylistDownload);
 
+
 trackCountSelect.addEventListener('change', resetGeneratorUI);
+
 
 document.querySelectorAll('input[name="dayFilterMode"]').forEach(radio => {
 radio.addEventListener('change', function() {
@@ -3006,6 +3297,7 @@ applyFiltersAndSort();
 });
 });
 
+
 window.addEventListener('scroll', () => {
 if (!ticking) { window.requestAnimationFrame(handleScrollLogic); ticking = true; }
 });
@@ -3013,6 +3305,7 @@ window.addEventListener('resize', () => {
 updateBodyPadding();
 syncPodiaButtonWidths();
 });
+
 
 window.addEventListener('visibilitychange', () => {
 if (document.visibilityState === 'visible') {
@@ -3023,6 +3316,7 @@ applyFiltersAndSort({ preserveScroll: true });
 }
 });
 }
+
 
 function getVisibleArtists() {
 return Array.from(artistListElement.children)
@@ -3036,6 +3330,7 @@ return Array.from(artistListElement.children)
 });
 }
 
+
 function isArtistNameMatch(expected, actual) {
 const exp = normalizeForSearch(expected);
 const act = normalizeForSearch(actual);
@@ -3045,33 +3340,64 @@ const cleanAct = clean(act);
 return cleanAct.includes(cleanExp) || cleanExp.includes(cleanAct);
 }
 
+
 // iTunes search met strenge naamverificatie & zwarte lijst voor covers en tributes
 async function fetchItunesTopTracksCleaned(artistName, limit) {
 try {
-const url = `https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&media=music&entity=song&attribute=artistTerm&limit=15&country=nl`;
-const res = await fetch(url);
-if (!res.ok) return null;
-const data = await res.json();
-if (data.results && data.results.length > 0) {
+let tracks = [];
+const artistSearchUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=musicArtist&limit=1`;
+const artistRes = await fetch(artistSearchUrl);
+if (artistRes.ok) {
+const artistData = await artistRes.json();
+if (artistData.results && artistData.results.length > 0 && artistData.results[0].artistId) {
+const artistId = artistData.results[0].artistId;
+const lookupUrl = `https://itunes.apple.com/lookup?id=${artistId}&entity=song&limit=50`;
+const lookupRes = await fetch(lookupUrl);
+if (lookupRes.ok) {
+const lookupData = await lookupRes.json();
+tracks = lookupData.results.filter(item => item.wrapperType === 'track');
+}
+}
+}
+
+if (tracks.length === 0) {
+const fallbackUrl = `https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&media=music&entity=song&limit=50&country=nl`;
+const fallbackRes = await fetch(fallbackUrl);
+if (fallbackRes.ok) {
+const fallbackData = await fallbackRes.json();
+tracks = fallbackData.results || [];
+}
+}
+
 const forbiddenWords = ['tribute', 'cover', 'karaoke', 'originally performed', 'instrumental', 'originally by', 'made famous by'];
-const filtered = data.results.filter(track => {
+const filtered = tracks.filter(track => {
 const artistMatch = isArtistNameMatch(artistName, track.artistName);
 if (!artistMatch) return false;
 
 const trackNameLower = (track.trackName || '').toLowerCase();
 const albumNameLower = (track.collectionName || '').toLowerCase();
 
-const hasForbidden = forbiddenWords.some(word => 
+const hasForbidden = forbiddenWords.some(word =>
 trackNameLower.includes(word) || albumNameLower.includes(word)
 );
 return !hasForbidden;
 });
 
-return filtered.slice(0, limit).map(t => t.trackName);
+const uniqueTracks = [];
+const seenNames = new Set();
+for (const track of filtered) {
+const normalizedTrackName = track.trackName.toLowerCase().trim();
+if (!seenNames.has(normalizedTrackName)) {
+seenNames.add(normalizedTrackName);
+uniqueTracks.push(track.trackName);
 }
-return null;
+if (uniqueTracks.length >= limit) break;
+}
+
+return uniqueTracks;
 } catch (e) { return null; }
 }
+
 
 function resetGeneratorUI() {
 startGenerationBtn.style.display = 'block';
@@ -3082,14 +3408,17 @@ generatedTextArea.value = '';
 generatedPlaylistText = "";
 }
 
+
 async function handleGeneratePlaylist() {
 const trackLimit = parseInt(trackCountSelect.value, 10) || 3;
 const artists = getVisibleArtists();
+
 
 if (artists.length === 0) {
 showToast('Geen artiesten zichtbaar voor playlist.');
 return;
 }
+
 
 startGenerationBtn.style.display = 'none';
 generatorProgress.style.display = 'block';
@@ -3098,8 +3427,10 @@ generatedTextArea.style.display = 'none';
 generatorProgressFill.style.width = '0%';
 generatorProgressText.textContent = `Tracks ophalen (0/${artists.length})...`;
 
+
 let progress = 0;
 let generatedLines = [];
+
 
 for (let i = 0; i < artists.length; i += ITUNES_BATCH_SIZE) {
 const batch = artists.slice(i, i + ITUNES_BATCH_SIZE);
@@ -3113,6 +3444,7 @@ const batchResults = await Promise.all(batch.map(async (art) => {
     }));
   }
 
+
   progress++;
   const pct = Math.round((progress / artists.length) * 100);
   generatorProgressFill.style.width = pct + '%';
@@ -3121,23 +3453,28 @@ const batchResults = await Promise.all(batch.map(async (art) => {
   return { name: art.name, tracks: tracks || [] };
 }));
 
+
 for (const { name, tracks } of batchResults) {
   tracks.forEach(track => {
     generatedLines.push(`${name} - ${track.name}`);
   });
 }
 
+
 if (i + ITUNES_BATCH_SIZE < artists.length) {
 await new Promise(resolve => setTimeout(resolve, ITUNES_BATCH_DELAY_MS));
 }
 }
 
+
 generatedPlaylistText = generatedLines.join('\n');
 generatedTextArea.value = generatedPlaylistText;
 generatedTextArea.style.display = 'block';
 
+
 generatorProgress.style.display = 'none';
 generatorActions.style.display = 'flex';
+
 
 if (generatedLines.length === 0) {
 showToast('Geen tracks gevonden.');
@@ -3145,6 +3482,7 @@ showToast('Geen tracks gevonden.');
 showToast('Playlist gegenereerd!');
 }
 }
+
 
 async function handlePlaylistCopyTune() {
 if (!generatedPlaylistText) return;
@@ -3157,6 +3495,7 @@ showToast('Kopiëren mislukt.');
 }
 }
 
+
 function handlePlaylistDownload() {
 if (!generatedPlaylistText) return;
 const blob = new Blob([generatedPlaylistText], { type: 'text/plain' });
@@ -3168,6 +3507,7 @@ document.body.removeChild(a); URL.revokeObjectURL(url);
 showToast('Playlist gedownload (.txt)');
 }
 
+
 function openPlaylistInfoModal() {
 document.body.classList.add('modal-open');
 playlistInfoModal.classList.add('visible');
@@ -3175,11 +3515,13 @@ playlistInfoModalOverlay.classList.add('visible');
 resetGeneratorUI();
 }
 
+
 function closePlaylistInfoModal() {
 document.body.classList.remove('modal-open');
 playlistInfoModal.classList.remove('visible');
 playlistInfoModalOverlay.classList.remove('visible');
 }
+
 
 function openSettingsModal() {
 document.body.classList.add('modal-open');
@@ -3195,21 +3537,26 @@ function loadSettings() {
 const savedDayMode = document.querySelector(`input[name="dayFilterMode"][value="${dayFilterMode}"]`);
 if (savedDayMode) savedDayMode.checked = true;
 
+
 const savedNowNextMode = document.querySelector(`input[name="nowNextMode"][value="${nowNextMode}"]`);
 if (savedNowNextMode) savedNowNextMode.checked = true;
+
 
 if (dayFilterMode === 'tabs' && activeDays.length > 1) {
 activeDays = [activeDays[0]];
 if(!isSharedView) setStoredJSON(PREFIX + 'activeDays', activeDays);
 }
 
+
 darkModeCheckbox.checked = isDarkMode;
 document.body.classList.toggle('dark-mode', isDarkMode);
 }
 
+
 async function main() {
 checkForSharedFavorites();
 runCacheMigration();
+
 
 if (isSharedView) {
 setupSharedView();
@@ -3217,7 +3564,9 @@ setupSharedView();
 loadSettings();
 }
 
+
 await loadAllArtistsData();
+
 
 if (allArtistsData.length > 0) {
 updateDayFilterButtonsData();
@@ -3226,11 +3575,13 @@ highlightCurrentDayButton();
 updateAllFilterUIs();
 }
 
+
 const sinemArtistData = allArtistsData.find(d => d.artist.name === 'Sinem');
 if (sinemArtistData && sinemArtistData.info && !sinemArtistData.info.spotifyUri) {
 sinemArtistData.info.spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
 }
 }
+
 
 if (allArtistsData.length > 0) {
 renderAllArtistCardsOnce();
@@ -3246,8 +3597,10 @@ showError('Geen artiesten data gevonden.');
 updateArtistCount(0);
 }
 
+
 statusSlot1.textContent = statusTexts.count || 'Artiesten laden...';
 startStatusAlternation();
+
 
 searchFieldElement.classList.toggle('has-content', searchFieldElement.value.length > 0);
 updateBodyPadding();
@@ -3256,9 +3609,11 @@ initializeEventListeners();
 handleScrollLogic();
 }
 
+
 main();
 })();
 </script>
+
 
 </body>
 </html>
