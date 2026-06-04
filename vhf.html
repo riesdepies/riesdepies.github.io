@@ -59,6 +59,10 @@ grid-template-columns: repeat(7, 1fr);
 gap: 5px;
 }
 .day-filter-button {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
 padding: 10px;
 font-size: 14px;
 text-align: center;
@@ -69,6 +73,43 @@ border-radius: 4px;
 position: relative;
 overflow: hidden;
 transition: all 0.2s ease-in-out;
+}
+.day-filter-button.with-date {
+padding: 6px 2px;
+aspect-ratio: 1 / 1;
+}
+.day-abbr {
+font-weight: bold;
+font-size: 13px;
+line-height: 1.1;
+}
+.day-date {
+font-size: 9px;
+margin-top: 2px;
+opacity: 0.85;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+width: 100%;
+line-height: 1.1;
+}
+.radio-option input[type="checkbox"] {
+appearance: none;
+width: 18px;
+height: 18px;
+border: 2px solid #61afef;
+border-radius: 4px;
+margin: 0;
+position: relative;
+cursor: pointer;
+}
+.radio-option input[type="checkbox"]:checked {
+background-color: #61afef;
+box-shadow: inset 0 0 0 3px white;
+}
+body.dark-mode .radio-option input[type="checkbox"]:checked {
+background-color: #61afef;
+box-shadow: inset 0 0 0 3px #282c34;
 }
 .day-filter-button.active {
 background: #61afef; color: #282c34;
@@ -350,6 +391,7 @@ color: #e06c75;
 font-size: 22px;
 margin-left: 10px;
 flex-shrink: 0;
+transform: translateY(-2px);
 }
 
 
@@ -1187,12 +1229,12 @@ border-color: #5b6069;
     color: #e2af13;
     cursor: pointer;
     font-size: 18px;
-    margin-right: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.1s ease;
+    margin-right: 4px;
+    display: inline-block;
     vertical-align: middle;
+    position: relative;
+    top: -2px;
+    transition: transform 0.1s ease;
 }
 body.dark-mode .new-artist-indicator {
     color: #ebd275;
@@ -1318,6 +1360,10 @@ body.dark-mode .new-artist-indicator {
 <label class="radio-option">
 <input type="radio" name="dayFilterMode" value="filter">
 <span class="radio-custom"></span> Als filters (meer dagen mogelijk)
+</label>
+<label class="radio-option" style="margin-top: 10px; border-top: 1px solid rgba(128,128,128,0.2); padding-top: 10px;">
+<input type="checkbox" id="showDatesCheckbox">
+<span class="radio-custom"></span> Toon datum op knop
 </label>
 </fieldset>
 
@@ -1524,12 +1570,39 @@ const originalHTMLMap = new WeakMap();
 
 
 function isRecentlyAdded(artistName) {
-    const tsKey = PREFIX + 'added_timestamp_' + artistName.replace(/[^a-zA-Z0-9]/g, '_');
-    const ts = localStorage.getItem(tsKey);
-    if (!ts) return false;
-    const addedDate = parseInt(ts, 10);
-    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
-    return (Date.now() - addedDate) <= oneWeekMs;
+const tsKey = PREFIX + 'added_timestamp_' + artistName.replace(/[^a-zA-Z0-9]/g, '_');
+const ts = localStorage.getItem(tsKey);
+if (!ts) return false;
+const addedDate = parseInt(ts, 10);
+const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+const now = Date.now();
+if ((now - addedDate) > oneWeekMs) return false;
+
+const allTimestamps = [];
+for (let i = 0; i < localStorage.length; i++) {
+  const key = localStorage.key(i);
+  if (key.startsWith(PREFIX + 'added_timestamp_')) {
+    const val = localStorage.getItem(key);
+    if (val) {
+      allTimestamps.push(parseInt(val, 10));
+    }
+  }
+}
+
+if (allTimestamps.length > 0) {
+  const allYoungerThanOneWeek = allTimestamps.every(t => (now - t) <= oneWeekMs);
+  if (allYoungerThanOneWeek) {
+    const dates = allTimestamps.map(t => new Date(t).toISOString().split('T')[0]);
+    const uniqueDates = [...new Set(dates)].sort();
+    if (uniqueDates.length > 1) {
+      const latestDate = uniqueDates[uniqueDates.length - 1];
+      const thisArtistDate = new Date(addedDate).toISOString().split('T')[0];
+      return thisArtistDate === latestDate;
+    }
+  }
+}
+
+return true;
 }
 
 function normalizeForSearch(str) {
@@ -1621,7 +1694,8 @@ showingFavs = getStoredJSON(PREFIX + 'showingFavs', false),
 showingNowNext = getStoredJSON(PREFIX + 'showingNowNext', false),
 activeDays = getStoredJSON(PREFIX + 'activeDays', []),
 dayFilterMode = getStoredString('dayFilterMode', 'tabs'),
-nowNextMode = getStoredString('nowNextMode', '1hr');
+nowNextMode = getStoredString('nowNextMode', '1hr'),
+showDatesOnButtons = getStoredJSON(PREFIX + 'showDatesOnButtons', false);
 
 
 function capitalize(s){
@@ -3107,10 +3181,34 @@ updateSortIconsUI();
 }
 
 
+function renderDayButtonsContent() {
+const dayButtons = document.querySelectorAll('.day-filter-button');
+dayButtons.forEach(btn => {
+const abbr = btn.dataset.abbr || btn.textContent.trim();
+const dateLabel = btn.dataset.dateLabel;
+if (showDatesOnButtons && dateLabel) {
+btn.innerHTML = `<div class="day-abbr">${abbr}</div><div class="day-date">${dateLabel}</div>`;
+btn.classList.add('with-date');
+} else {
+btn.innerHTML = abbr;
+btn.classList.remove('with-date');
+}
+});
+updateBodyPadding();
+}
+
+
 function updateDayFilterButtonsData() {
 const mapping = { 'zaterdag': 'za', 'zondag': 'zo', 'maandag': 'ma', 'dinsdag': 'di', 'woensdag': 'wo', 'donderdag': 'do', 'vrijdag': 'vr' };
 const foundDates = [...new Set(allArtistsData.map(d => d.info.datum))].filter(d => d && d !== 'Onbekend');
 const dayButtons = document.querySelectorAll('.day-filter-button');
+
+
+dayButtons.forEach(btn => {
+if (!btn.dataset.abbr) {
+btn.dataset.abbr = btn.textContent.trim();
+}
+});
 
 
 foundDates.forEach(dateStr => {
@@ -3129,11 +3227,13 @@ const shortLabel = mapping[dayName];
 
 
 dayButtons.forEach(btn => {
-if (btn.textContent.trim().toLowerCase() === shortLabel) {
+if (btn.dataset.abbr.toLowerCase() === shortLabel) {
 btn.dataset.dayfilter = dateStr;
+btn.dataset.dateLabel = `${dayNum} ${parts[1]}`;
 }
 });
 });
+renderDayButtonsContent();
 }
 
 
@@ -3432,6 +3532,16 @@ applyFiltersAndSort();
 });
 
 
+const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+if (showDatesCheckbox) {
+showDatesCheckbox.addEventListener('change', function() {
+showDatesOnButtons = this.checked;
+setStoredJSON(PREFIX + 'showDatesOnButtons', showDatesOnButtons);
+renderDayButtonsContent();
+});
+}
+
+
 window.addEventListener('scroll', () => {
 if (!ticking) { window.requestAnimationFrame(handleScrollLogic); ticking = true; }
 });
@@ -3695,6 +3805,12 @@ if(!isSharedView) setStoredJSON(PREFIX + 'activeDays', activeDays);
 
 darkModeCheckbox.checked = isDarkMode;
 document.body.classList.toggle('dark-mode', isDarkMode);
+
+
+const showDatesCheckbox = document.getElementById('showDatesCheckbox');
+if (showDatesCheckbox) {
+showDatesCheckbox.checked = showDatesOnButtons;
+}
 }
 
 
