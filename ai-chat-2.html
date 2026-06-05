@@ -800,8 +800,7 @@
             </div>
 
             <div class="sidebar-group">
-                <label>Developer Console</label>
-                <button class="settings-button" style="width:100%; margin-bottom:8px;" id="toggle-console-button" onclick="toggleConsole()">Enable Console</button>
+                <label>Developer Option</label>
                 <button class="settings-button" style="width:100%;" onclick="copySource(this)">Copy Interface HTML Code</button>
             </div>
         </div>
@@ -826,11 +825,7 @@
         <!-- Chat Logs -->
         <div id="chat-output"></div>
 
-        <!-- Console Overlay Container -->
-        <div id="console-container">
-            <pre id="console-output" style="white-space: pre-wrap; height: calc(100% - 40px); margin: 0;"></pre>
-            <button class="console-copy-code" style="right:16px; top:16px;">Copy Logs</button>
-        </div>
+<!-- Console Overlay Container Removed -->
 
         <!-- Attachment Picker Popover -->
         <div id="attachment-popover" style="display: none;">
@@ -866,7 +861,7 @@
 <div id="toast-notification">Key failed. Trying API Key 2...</div>
 
 <!-- Core Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="cors-proxy-pill" style="position: fixed !important; z-index: 2147483647 !important; padding: 8px 10px !important; border-radius: 25px !important; color: white !important; font-size: 11px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 10px !important; display: none !important; background: rgb(231, 76, 60) !important; border: 2px solid white !important; align-items: center !important; justify-content: center !important; user-select: none !important; touch-action: none !important; transition: top 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), bottom 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), right 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s !important; inset: 20px auto auto 20px;">CORS</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
@@ -945,7 +940,7 @@
     let conversationHistory = [];
     let modelSpecificConversationHistory = { gemini: [] };
     let editIndex = null;
-    let consoleEnabled = false;
+    
     let selectedModel = "";
     let lastUsedModels = {};
     let customGeminiModel = "";
@@ -1006,12 +1001,6 @@
         initializeClearChatButton();
         await handlePageLoadConversation();
 
-        const consoleCopyButton = document.querySelector('.console-copy-code');
-        consoleCopyButton.addEventListener('click', () => {
-            copyToClipboard(document.getElementById('console-output').textContent, consoleCopyButton);
-        });
-        
-        updateConsoleButtonText();
         adjustTextareaAndButtonHeight();
 
         const chatOutputDiv = document.getElementById('chat-output');
@@ -1278,23 +1267,15 @@
 
     async function handlePageLoadConversation() {
         const hasSavedConversation = (await DB.get(CHAT_CONVERSATION_KEY, null)) !== null;
-        const userExplicitlyCleared = (await DB.get(CHAT_CLEARED_STATE_KEY, 'false')) === 'true';
+
+        document.getElementById('chat-output').innerHTML = '';
+        conversationHistory = [];
+        modelSpecificConversationHistory = { gemini: [] };
 
         if (hasSavedConversation) {
-            if (userExplicitlyCleared) {
-                document.getElementById('chat-output').innerHTML = '';
-                conversationHistory = [];
-                modelSpecificConversationHistory = { gemini: [] };
-                chatClearedState = true;
-            } else {
-                document.getElementById('chat-output').innerHTML = '';
-                await loadFullConversation();
-                chatClearedState = false;
-            }
+            chatClearedState = true;
+            await DB.set(CHAT_CLEARED_STATE_KEY, 'true');
         } else {
-            document.getElementById('chat-output').innerHTML = '';
-            conversationHistory = [];
-            modelSpecificConversationHistory = { gemini: [] };
             chatClearedState = false;
             await DB.set(CHAT_CLEARED_STATE_KEY, 'false');
         }
@@ -1399,9 +1380,6 @@
         
         systemPrompt = await DB.get('systemPrompt', "");
         document.getElementById('system-prompt').value = systemPrompt;
-        
-        consoleEnabled = (await DB.get('consoleEnabled', "false")) === "true";
-        document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
         
         let lastUsedApiProvider = await DB.get('lastUsedApiProvider', "openai");
         document.getElementById('api-provider').value = lastUsedApiProvider;
@@ -1522,31 +1500,19 @@
         updateModelHistory(currentProvider, actualModelName);
     }
 
-    function toggleConsole() {
-        consoleEnabled = !consoleEnabled;
-        DB.set('consoleEnabled', consoleEnabled ? "true" : "false");
-        updateConsoleButtonText();
-        document.getElementById('console-container').style.display = consoleEnabled ? 'block' : 'none';
-    }
-
-    function updateConsoleButtonText() { 
-        document.getElementById('toggle-console-button').textContent = consoleEnabled ? 'Disable Console' : 'Enable Console';
-    }
-
     function logErrorToConsole(message) {
-        const consoleOutput = document.getElementById('console-output'); 
-        consoleOutput.textContent += `[Error] ${message}\n`;
+        console.error(message);
         let chatOutput = document.getElementById('chat-output'); 
         let errorMessageDiv = document.createElement('div');
         errorMessageDiv.classList.add('message', 'assistant'); 
         errorMessageDiv.style.backgroundColor = 'var(--accent-red)';
-        errorMessageDiv.innerHTML = `<span class="content">${escapeHtml(String(message).substring(0,200))}... (See developer console logs)</span>`;
+        errorMessageDiv.innerHTML = `<span class="content">${escapeHtml(String(message).substring(0,200))}...</span>`;
         chatOutput.appendChild(errorMessageDiv); 
         chatOutput.scrollTop = chatOutput.scrollHeight;
     }
 
     function logToConsole(message) { 
-        document.getElementById('console-output').textContent += `[Info] ${message}\n`;
+        console.log(message);
     }
 
     function handleSendButtonClick() {
