@@ -837,6 +837,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
                 <span>Attach this app's source code</span>
             </div>
+            <div class="popover-item" onclick="pasteAttachment()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                <span>Paste from clipboard</span>
+            </div>
         </div>
         <input type="file" id="device-file-input" style="display:none;" multiple="" onchange="handleFileSelection(event)">
 
@@ -861,7 +865,7 @@
 <div id="toast-notification">Key failed. Trying API Key 2...</div>
 
 <!-- Core Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script><div id="hls-shadow-host" style="position: fixed; inset: 0px; z-index: 2147483647; pointer-events: none;"></div><div id="cors-proxy-pill" style="position: fixed !important; z-index: 2147483647 !important; padding: 8px 10px !important; border-radius: 25px !important; color: white !important; font-size: 11px !important; font-weight: bold !important; font-family: sans-serif !important; cursor: pointer !important; box-shadow: rgba(0, 0, 0, 0.5) 0px 4px 10px !important; display: none !important; background: rgb(231, 76, 60) !important; border: 2px solid white !important; align-items: center !important; justify-content: center !important; user-select: none !important; touch-action: none !important; transition: top 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), bottom 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), right 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s !important; inset: 20px auto auto 20px;">CORS</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
@@ -1309,6 +1313,49 @@
         document.getElementById('attachment-popover').style.display = 'none';
         const appSource = initialHTML;
         addAttachment("app-chat-interface-source.html", appSource, "text/html", false);
+    }
+
+    async function pasteAttachment() {
+        document.getElementById('attachment-popover').style.display = 'none';
+        try {
+            if (navigator.clipboard && navigator.clipboard.read) {
+                const clipboardItems = await navigator.clipboard.read();
+                let attachedAny = false;
+                for (const item of clipboardItems) {
+                    for (const type of item.types) {
+                        if (type.startsWith('image/') || type === 'application/pdf' || type.startsWith('video/') || type.startsWith('audio/')) {
+                            const blob = await item.getType(type);
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                const ext = type.split('/')[1] || 'bin';
+                                const name = `pasted-file-${Date.now()}.${ext}`;
+                                addAttachment(name, evt.target.result, type, true);
+                            };
+                            reader.readAsDataURL(blob);
+                            attachedAny = true;
+                        } else if (type === 'text/plain' || type === 'text/html') {
+                            const blob = await item.getType(type);
+                            const text = await blob.text();
+                            const ext = type === 'text/html' ? 'html' : 'txt';
+                            const name = `pasted-text-${Date.now()}.${ext}`;
+                            addAttachment(name, text, type, false);
+                            attachedAny = true;
+                        }
+                    }
+                }
+                if (attachedAny) return;
+            }
+            
+            const text = await navigator.clipboard.readText();
+            if (text && text.trim()) {
+                addAttachment(`pasted-text-${Date.now()}.txt`, text, "text/plain", false);
+            } else {
+                showToast("Clipboard is empty or type not supported.");
+            }
+        } catch (err) {
+            console.error("Clipboard paste error:", err);
+            showToast("Failed to read clipboard. Ensure permissions are granted.");
+        }
     }
 
     function handleFileSelection(event) {
