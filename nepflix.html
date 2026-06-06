@@ -877,14 +877,56 @@ function handleMissingKey() {
     scraperStatus.style.display = 'block';
     loader.style.display = 'none';
 
+    // Toon direct een invoerscherm én de status van de automatische scraper
+    scraperStatus.style.background = '#222';
+    scraperStatus.style.border = '1px solid #444';
+    scraperStatus.innerHTML = `
+        <div style="font-family: sans-serif; padding: 15px; max-width: 500px; margin: 0 auto; text-align: center; color: #fff;">
+            <h3 style="margin-top: 0; color: #E50914; font-size: 1.3rem; margin-bottom: 10px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;">TMDB API Toegang Vereist</h3>
+            <p style="color: #ccc; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Er is een TMDB API-sleutel nodig om gegevens op te halen. Voer een sleutel in of wacht tot er automatisch een wordt gevonden.</p>
+            
+            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
+                <input type="text" id="manual-key-input" placeholder="Voer 32-cijferige API sleutel in..." 
+                    style="flex: 1; min-width: 260px; max-width: 320px; padding: 12px; border: 1px solid #555; background: #111; color: #fff; border-radius: 4px; font-size: 14px; outline: none;">
+                <button id="save-manual-key-btn" 
+                    style="background: #E50914; color: #fff; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s;">
+                    Opslaan
+                </button>
+            </div>
+            
+            <div id="scraper-log" style="font-size: 0.85rem; color: #888; border-top: 1px solid #333; padding-top: 12px; margin-top: 10px; font-family: monospace;">
+                Automatisch zoeken naar een sleutel gestart...
+            </div>
+        </div>
+    `;
+
+    const logDiv = document.getElementById('scraper-log');
+    const manualInput = document.getElementById('manual-key-input');
+    const saveBtn = document.getElementById('save-manual-key-btn');
+
+    const saveAction = () => {
+        const key = manualInput.value.trim();
+        if (/^[a-f0-9]{32}$/i.test(key)) {
+            setApiKeyInStorage(key);
+            showToast("API Sleutel handmatig opgeslagen!");
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showToast("Ongeldig formaat. Een TMDB API key bestaat uit 32 hexadecimale tekens.");
+        }
+    };
+
+    saveBtn.addEventListener('click', saveAction);
+    manualInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') saveAction(); });
+
+    // Start automatische scraper op de achtergrond
     TmdbScraper.findKey((msg) => {
-        scraperStatus.innerText = msg;
+        if (logDiv) logDiv.innerText = msg;
     }).then(key => {
         setApiKeyInStorage(key);
-        scraperStatus.innerText = "Key gevonden! Pagina herladen...";
+        if (logDiv) logDiv.innerText = "Sleutel automatisch gevonden! Pagina herladen...";
         setTimeout(() => window.location.reload(), 1000);
     }).catch(err => {
-        scraperStatus.innerText = "Fout: " + err.message;
+        if (logDiv) logDiv.innerText = "Automatisch zoeken mislukt. Voer handmatig een sleutel in.";
     });
 }
 
