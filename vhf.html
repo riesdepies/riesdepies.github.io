@@ -2694,6 +2694,12 @@ const cardsArray = Array.from(cardElements);
 
 
 cardsArray.sort((a, b) => {
+if (normalizedSearchTerm) {
+const nameAMatches = a.dataset.name.includes(normalizedSearchTerm);
+const nameBMatches = b.dataset.name.includes(normalizedSearchTerm);
+if (nameAMatches && !nameBMatches) return -1;
+if (!nameAMatches && nameBMatches) return 1;
+}
 if (sortMode === 'alpha') {
 return a.dataset.name.localeCompare(b.dataset.name);
 } else {
