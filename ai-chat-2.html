@@ -2264,7 +2264,7 @@
     function downloadCode(codeBlock) {
         const code = codeBlock.textContent;
         const isHtml = codeBlock.classList.contains('language-html') || codeBlock.classList.contains('language-markup');
-        const isJs = codeBlock.classList.contains('language-javascript');
+        const isJs = codeBlock.classList.contains('language-javascript') || codeBlock.classList.contains('language-js');
         const hasUserscriptHeader = code.includes('// ==UserScript==');
         let filename = 'code-snippet.txt';
 
@@ -2281,7 +2281,7 @@
         } else {
             const langMatch = Array.from(codeBlock.classList).find(c => c.startsWith('language-'));
             if (langMatch) {
-                const extMap = { 'javascript': 'js', 'python': 'py', 'java': 'java', 'css': 'css', 'json': 'json' };
+                const extMap = { 'javascript': 'js', 'js': 'js', 'python': 'py', 'java': 'java', 'css': 'css', 'json': 'json' };
                 const lang = langMatch.replace('language-', '');
                 filename = `snippet.${extMap[lang] || lang}`;
             }
