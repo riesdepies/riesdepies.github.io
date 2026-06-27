@@ -2616,7 +2616,7 @@ youtubeTitleEls.forEach(el => clearHighlight(el));
 
 const matchesShared = !isSharedView || sharedFavorites.includes(rawName);
 const matchesDay = !activeDays.length || activeDays.includes(dag);
-const matchesPodium = !activePodia.length || activePodia.includes(podium);
+const matchesPodium = !activePodia.length || activePodia.some(p => podium.toLowerCase().includes(p.toLowerCase()));
 
 
 const matchesSearch = !normalizedSearchTerm ||
