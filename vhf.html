@@ -1242,6 +1242,19 @@ body.dark-mode .new-artist-indicator {
 .new-artist-indicator:hover {
     transform: scale(1.15);
 }
+
+/* --- GEAUTOMATISEERDE REPARATIE VOOR ONGESTILEERDE LINKS (KLEUR) --- */
+.artist-card a:not([class]) {
+    color: #61afef !important;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+}
+.artist-card a:not([class]):hover, .artist-card a:not([class]):focus {
+    color: #82c0ff !important;
+}
+
 </style>
 </head>
 <body class="dark-mode">
@@ -3881,6 +3894,29 @@ main();
 })();
 </script>
 
+
+
+<script>
+/* --- GEAUTOMATISEERDE REPARATIE VOOR NIEUW TABBLAD --- */
+function forceExternalLinksToNewTab() {
+    document.querySelectorAll('.artist-card a:not([class])').forEach(function(link) {
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+    });
+}
+// Voer dit uit direct bij het laden en overschrijf/vul aan bij filteren
+const originalApplyFiltersAndSort = window.applyFiltersAndSort;
+if (typeof window.applyFiltersAndSort === 'function') {
+    window.applyFiltersAndSort = function() {
+        originalApplyFiltersAndSort.apply(this, arguments);
+        forceExternalLinksToNewTab();
+    };
+} else {
+    // Fallback/Inhaak interval mocht de functie anders heten of async renderen
+    setInterval(forceExternalLinksToNewTab, 1000);
+}
+document.addEventListener('DOMContentLoaded', forceExternalLinksToNewTab);
+</script>
 
 </body>
 </html>
