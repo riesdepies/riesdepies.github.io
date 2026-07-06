@@ -1771,15 +1771,20 @@ word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 
 const DUTCH_MONTH_MAP = {
 'januari': 0, 'februari': 1, 'maart': 2, 'april': 3,
-'mei': 4, 'juni': 5, 'juli': 6, 'september': 8, 'oktober': 9, 'november': 10, 'december': 11
+'mei': 4, 'juni': 5, 'juli': 6, 'augustus': 7, 'september': 8, 'oktober': 9, 'november': 10, 'december': 11
 };
 const DUTCH_MONTH_NAMES = Object.keys(DUTCH_MONTH_MAP);
 
 
 function getFestivalYear(festivalMonth) {
 const now = new Date();
-if (now.getMonth() > festivalMonth) return now.getFullYear() + 1;
-return now.getFullYear();
+const currentYear = now.getFullYear();
+if (now.getMonth() >= 9) { 
+  if (festivalMonth <= 8) { 
+    return currentYear + 1;
+  }
+}
+return currentYear;
 }
 
 
@@ -2184,63 +2189,56 @@ if (!datum || !tijd || datum === 'Onbekend' || tijd === 'Onbekend' || !tijd.incl
 return { start: 0, end: 0 };
 }
 
-
 const datumParts = datum.split(' ');
 if (datumParts.length < 2) return { start: 0, end: 0 };
 const dagNum = parseInt(datumParts[0], 10);
-
 
 const tijdDelen = tijd.split('-').map(s => s.trim());
 const startTimeStr = tijdDelen[0];
 const endTimeStr = tijdDelen.length > 1 ? tijdDelen[1] : null;
 
-
 const startTijdParts = startTimeStr.split(':');
 if (startTijdParts.length < 2) return { start: 0, end: 0 };
 
-
 const startUur = parseInt(startTijdParts[0], 10);
 const startMin = parseInt(startTijdParts[1], 10);
-
 
 if (isNaN(dagNum) || isNaN(startUur) || isNaN(startMin)) {
 return { start: 0, end: 0 };
 }
 
-
 const festivalMonth = DUTCH_MONTH_MAP[datumParts[1]?.toLowerCase()] ?? 6;
 const festivalYear = getFestivalYear(festivalMonth);
-const startDate = new Date(festivalYear, festivalMonth, dagNum, startUur, startMin);
+let startDate = new Date(festivalYear, festivalMonth, dagNum, startUur, startMin);
+if (startUur < 6) {
+startDate.setDate(startDate.getDate() + 1);
+}
 const startTimestamp = startDate.getTime();
-
 
 if (!endTimeStr) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
-
 
 const endTijdParts = endTimeStr.split(':');
 if (endTijdParts.length < 2) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
 
-
 const eindUur = parseInt(endTijdParts[0], 10);
 const eindMin = parseInt(endTijdParts[1], 10);
-
 
 if (isNaN(eindUur) || isNaN(eindMin)) {
 return { start: startTimestamp, end: startTimestamp + (60 * 60 * 1000) };
 }
 
-
 let endDate = new Date(festivalYear, festivalMonth, dagNum, eindUur, eindMin);
-
+if (eindUur < 6) {
+endDate.setDate(endDate.getDate() + 1);
+}
 
 if (endDate <= startDate) {
 endDate.setDate(endDate.getDate() + 1);
 }
-
 
 return { start: startTimestamp, end: endDate.getTime() };
 }
@@ -2726,7 +2724,7 @@ isNext = start > now && start <= twoHoursFromNow;
 break;
 case 'day':
 const today = new Date();
-if (today.getHours() < 3) {
+if (today.getHours() < 4) {
 today.setDate(today.getDate() - 1);
 }
 today.setHours(3, 0, 0, 0);
@@ -3114,10 +3112,13 @@ ticking = false;
 
 function highlightCurrentDayButton() {
 const now = new Date();
+if (now.getHours() < 4) {
+  now.setDate(now.getDate() - 1);
+}
 const currentDayFilter = `${now.getDate()} ${DUTCH_MONTH_NAMES[now.getMonth()]}`;
 const todayButton = document.querySelector(`.day-filter-button[data-dayfilter="${currentDayFilter}"]`);
 if (todayButton) {
-todayButton.classList.add('is-today');
+  todayButton.classList.add('is-today');
 }
 }
 
