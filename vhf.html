@@ -622,6 +622,13 @@ background-color: #e06c75;
 background-color: #e57e88;
 }
 
+.bandcamp-search-button {
+background-color: #1da0c3;
+}
+.bandcamp-search-button:hover {
+background-color: #2ab2d5;
+}
+
 
 
 
@@ -1087,6 +1094,12 @@ background-color: #61afef;
 
 body.dark-mode .google-search-button:hover {
 background-color: #82c0ff;
+}
+body.dark-mode .bandcamp-search-button {
+background-color: #1da0c3;
+}
+body.dark-mode .bandcamp-search-button:hover {
+background-color: #2ab2d5;
 }
 
 
@@ -2283,6 +2296,7 @@ const isFav = favorites.includes(artist.name);
 
 
 const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
+const bandcampSearchUrl = `https://bandcamp.com/search?q=${encodeURIComponent(artist.name)}&item_type=b`;
 
 
 let youtubeSearchUrl;
@@ -2346,6 +2360,9 @@ actionControlsHtml += `
 </a>
 <a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
 <i class="fa-brands fa-youtube"></i> Zoek..
+</a>
+<a href="${bandcampSearchUrl}" class="bandcamp-search-button search-button" target="_blank" rel="noopener noreferrer">
+<i class="fa-brands fa-bandcamp"></i> Zoek..
 </a>
 </div>
 </div>`;
