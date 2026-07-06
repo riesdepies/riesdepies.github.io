@@ -537,6 +537,7 @@ flex-shrink: 0;
 display: flex;
 flex-direction: column;
 gap: 6px;
+width: 100px; /* Voldoende breedte voor de knoppen en de grid */
 }
 
 
@@ -567,43 +568,64 @@ font-size: 14px;
 background-color: #54c07b;
 color: white !important;
 border: none;
-padding: 6px 12px 6px 10px;
-border-radius: 50px;
+border-radius: 15px;
 cursor: pointer;
 font-size: 13px;
 font-weight: bold;
 display: inline-flex;
 align-items: center;
+justify-content: center;
 text-decoration: none;
 transition: background-color 0.2s;
 flex-shrink: 0;
 white-space: nowrap;
+width: 100%;
+height: 30px;
+padding: 0 10px 0 28px;
+position: relative;
 }
 .spotify-play-button:hover {
 background-color: #67c989;
 }
 .spotify-play-button i {
-margin-right: 8px;
-font-size: 18px;
+position: absolute;
+left: 10px;
+font-size: 16px;
+}
+
+
+/* Compacte zoekknoppen grid-systeem (2 per rij) */
+.search-buttons-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 6px;
+width: 100%;
 }
 
 
 .search-button {
 color: white !important;
 border: none;
-padding: 6px 12px 6px 10px;
-border-radius: 50px;
+border-radius: 15px;
 cursor: pointer;
 font-size: 13px;
 font-weight: bold;
 display: flex;
 align-items: center;
+justify-content: space-between;
 text-decoration: none;
 transition: background-color 0.2s;
+width: 100%;
+height: 30px;
+padding: 0 8px;
 }
-.search-button i {
-margin-right: 8px;
-font-size: 16px;
+.search-button i:first-child {
+font-size: 14px;
+}
+.search-button .compact-search-icon {
+font-size: 11px;
+margin-left: 0;
+opacity: 0.85;
 }
 
 
@@ -627,6 +649,14 @@ background-color: #1da0c3;
 }
 .bandcamp-search-button:hover {
 background-color: #2ab2d5;
+}
+
+/* Fletse kleur oranje voor SoundCloud */
+.soundcloud-search-button {
+background-color: #e88a43;
+}
+.soundcloud-search-button:hover {
+background-color: #f59f5d;
 }
 
 
@@ -1100,6 +1130,13 @@ background-color: #1da0c3;
 }
 body.dark-mode .bandcamp-search-button:hover {
 background-color: #2ab2d5;
+}
+
+body.dark-mode .soundcloud-search-button {
+background-color: #e88a43;
+}
+body.dark-mode .soundcloud-search-button:hover {
+background-color: #f59f5d;
 }
 
 
@@ -2297,6 +2334,7 @@ const isFav = favorites.includes(artist.name);
 
 const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(artist.name)}`;
 const bandcampSearchUrl = `https://bandcamp.com/search?q=${encodeURIComponent(artist.name)}&item_type=b`;
+const soundcloudSearchUrl = `https://soundcloud.com/search/people?q=${encodeURIComponent(artist.name)}`;
 
 
 let youtubeSearchUrl;
@@ -2334,7 +2372,7 @@ actionControlsHtml += `
 }
 
 
-// 3. Kolom met gestapelde zoek-/previewknoppen
+// 3. Kolom met Spotify en de onderliggende 2x2 grid zoekknoppen
 actionControlsHtml += `<div class="stacked-buttons-column">`;
 
 
@@ -2345,25 +2383,34 @@ actionControlsHtml += `
 <i class="fa-brands fa-spotify"></i> Preview
 </button>`;
 } else {
-// Geen Spotify-link -> toon Spotify Zoekknop
+// Geen Spotify-link -> toon Spotify Zoekknop (vult de gehele breedte)
 const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(artist.name)}`;
 actionControlsHtml += `
-<a href="${spotifySearchUrl}" class="spotify-play-button" target="_blank" rel="noopener noreferrer" style="background-color: #54c07b;">
-<i class="fa-solid fa-magnifying-glass"></i> Zoek..
+<a href="${spotifySearchUrl}" class="spotify-play-button" target="_blank" rel="noopener noreferrer">
+<i class="fa-brands fa-spotify"></i> Zoek..
 </a>`;
 }
 
 
+// 2x2 grid met zoekknoppen zonder tekst, alleen met vergrootglas en platform-iconen
 actionControlsHtml += `
-<a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer">
-<i class="fa-brands fa-google"></i> Zoek..
-</a>
-<a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes}>
-<i class="fa-brands fa-youtube"></i> Zoek..
-</a>
-<a href="${bandcampSearchUrl}" class="bandcamp-search-button search-button" target="_blank" rel="noopener noreferrer">
-<i class="fa-brands fa-bandcamp"></i> Zoek..
-</a>
+<div class="search-buttons-grid">
+  <a href="${googleSearchUrl}" class="google-search-button search-button" target="_blank" rel="noopener noreferrer" title="Zoeken op Google">
+    <i class="fa-brands fa-google"></i><i class="fa-solid fa-magnifying-glass compact-search-icon"></i>
+  </a>
+  <a href="${youtubeSearchUrl}" class="youtube-search-button search-button" ${youtubeLinkAttributes} title="Zoeken op YouTube">
+    <i class="fa-brands fa-youtube"></i><i class="fa-solid fa-magnifying-glass compact-search-icon"></i>
+  </a>
+  <a href="${bandcampSearchUrl}" class="bandcamp-search-button search-button" target="_blank" rel="noopener noreferrer" title="Zoeken op Bandcamp">
+    <i class="fa-brands fa-bandcamp"></i><i class="fa-solid fa-magnifying-glass compact-search-icon"></i>
+  </a>
+  <a href="${soundcloudSearchUrl}" class="soundcloud-search-button search-button" target="_blank" rel="noopener noreferrer" title="Zoeken op SoundCloud">
+    <i class="fa-brands fa-soundcloud"></i><i class="fa-solid fa-magnifying-glass compact-search-icon"></i>
+  </a>
+</div>`;
+
+
+actionControlsHtml += `
 </div>
 </div>`;
 
@@ -3418,6 +3465,31 @@ applyFiltersAndSort();
 
 
 artistListElement.addEventListener('click', e=>{
+const selection = window.getSelection().toString().trim();
+if (selection) {
+    const searchBtn = e.target.closest('.google-search-button, .youtube-search-button, .bandcamp-search-button, .soundcloud-search-button, .spotify-play-button, .spotify-open-button');
+    if (searchBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        let url = '';
+        const query = encodeURIComponent(selection);
+        if (searchBtn.classList.contains('google-search-button')) {
+            url = 'https://www.google.com/search?q=' + query;
+        } else if (searchBtn.classList.contains('youtube-search-button')) {
+            url = 'https://www.youtube.com/results?search_query=' + query;
+        } else if (searchBtn.classList.contains('bandcamp-search-button')) {
+            url = 'https://bandcamp.com/search?q=' + query + '&item_type=b';
+        } else if (searchBtn.classList.contains('soundcloud-search-button')) {
+            url = 'https://soundcloud.com/search/people?q=' + query;
+        } else if (searchBtn.classList.contains('spotify-play-button') || searchBtn.classList.contains('spotify-open-button')) {
+            url = 'https://open.spotify.com/search/' + query;
+        }
+        if (url) {
+            window.open(url, '_blank');
+        }
+        return;
+    }
+}
 const newIndicator = e.target.closest('.new-artist-indicator');
 if (newIndicator) {
     e.stopPropagation();
