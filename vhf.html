@@ -3939,6 +3939,39 @@ await loadAllArtistsData();
 
 
 if (allArtistsData.length > 0) {
+// Handmatige injectie/aanvulling voor MUOVIPUSSI
+const mpIndex = allArtistsData.findIndex(d => d.artist.name.toUpperCase() === 'MUOVIPUSSI');
+const mpData = {
+  artist: {
+    name: 'MUOVIPUSSI',
+    artistUrl: 'https://valkhoffestival.nl',
+    imageUrl: null
+  },
+  info: {
+    genres: ['Electronic', 'Punk', 'Performance'],
+    podium: 'Boog',
+    datum: '18 juli',
+    tijd: '21:15 - 22:00',
+    duur: '45 min',
+    description: 'MUOVIPUSSI speelt op zaterdag 18 juli van 21:15 tot 22:00 op podium Boog.',
+    spotifyUri: null,
+    youtubeLinks: []
+  }
+};
+if (mpIndex === -1) {
+  allArtistsData.push(mpData);
+} else {
+  allArtistsData[mpIndex] = {
+    artist: { ...allArtistsData[mpIndex].artist, name: 'MUOVIPUSSI' },
+    info: {
+      ...allArtistsData[mpIndex].info,
+      datum: '18 juli',
+      tijd: '21:15 - 22:00',
+      podium: 'Boog',
+      duur: '45 min'
+    }
+  };
+}
 updateDayFilterButtonsData();
 if (!isSharedView) {
 highlightCurrentDayButton();
