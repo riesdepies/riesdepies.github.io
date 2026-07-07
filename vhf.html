@@ -3939,39 +3939,82 @@ await loadAllArtistsData();
 
 
 if (allArtistsData.length > 0) {
-// Handmatige injectie/aanvulling voor MUOVIPUSSI
-const mpIndex = allArtistsData.findIndex(d => d.artist.name.toUpperCase() === 'MUOVIPUSSI');
-const mpData = {
-  artist: {
-    name: 'MUOVIPUSSI',
-    artistUrl: 'https://valkhoffestival.nl',
-    imageUrl: null
-  },
-  info: {
-    genres: ['Electronic', 'Punk', 'Performance'],
-    podium: 'Boog',
-    datum: '18 juli',
-    tijd: '21:15 - 22:00',
-    duur: '45 min',
-    description: 'MUOVIPUSSI speelt op zaterdag 18 juli van 21:15 tot 22:00 op podium Boog.',
-    spotifyUri: null,
-    youtubeLinks: []
+// Handmatige injectie/aanvulling voor MUOVIPUSSI en N8NOFACE (Dynamisch hersteld via Code Patcher)
+const supplementArtist = (name, targetData) => {
+  let idx = allArtistsData.findIndex(d => d.artist.name.toUpperCase() === name.toUpperCase());
+  if (idx === -1) {
+    const newData = {
+      artist: {
+        name: name,
+        artistUrl: 'https://valkhoffestival.nl',
+        imageUrl: null
+      },
+      info: {
+        genres: [],
+        podium: '',
+        datum: '',
+        tijd: '',
+        duur: '',
+        description: '',
+        spotifyUri: null,
+        youtubeLinks: []
+      }
+    };
+    allArtistsData.push(newData);
+    idx = allArtistsData.length - 1;
+  }
+  
+  const item = allArtistsData[idx];
+  if (!item.info) item.info = {};
+  
+  // Alleen aanvullen wanneer de desbetreffende gegevensvelden daadwerkelijk leeg, onbekend of ontbrekend zijn
+  if (targetData.genres && (!item.info.genres || item.info.genres.length === 0 || item.info.genres.every(g => !g || g === 'Onbekend'))) {
+    item.info.genres = targetData.genres;
+  }
+  if (targetData.podium && (!item.info.podium || item.info.podium === 'Onbekend' || item.info.podium.trim() === '')) {
+    item.info.podium = targetData.podium;
+  }
+  if (targetData.datum && (!item.info.datum || item.info.datum === 'Onbekend' || item.info.datum.trim() === '')) {
+    item.info.datum = targetData.datum;
+  }
+  if (targetData.tijd && (!item.info.tijd || item.info.tijd === 'Onbekend' || item.info.tijd.trim() === '')) {
+    item.info.tijd = targetData.tijd;
+    
+    // Bereken de duur automatisch op basis van de nieuwe tijd
+    if (targetData.tijd.includes('-')) {
+      const [start, end] = targetData.tijd.split('-').map(s => s.trim());
+      const [su, sm] = start.split(':').map(n => parseInt(n, 10));
+      const [eu, em] = end.split(':').map(n => parseInt(n, 10));
+      if (!isNaN(su) && !isNaN(sm) && !isNaN(eu) && !isNaN(em)) {
+        let minutesStart = su * 60 + sm;
+        let minutesEnd = eu * 60 + em;
+        if (minutesEnd <= minutesStart) minutesEnd += 24 * 60;
+        const diff = minutesEnd - minutesStart;
+        if (diff > 0 && diff <= 24 * 60) item.info.duur = diff + ' min';
+      }
+    }
   }
 };
-if (mpIndex === -1) {
-  allArtistsData.push(mpData);
-} else {
-  allArtistsData[mpIndex] = {
-    artist: { ...allArtistsData[mpIndex].artist, name: 'MUOVIPUSSI' },
-    info: {
-      ...allArtistsData[mpIndex].info,
-      datum: '18 juli',
-      tijd: '21:15 - 22:00',
-      podium: 'Boog',
-      duur: '45 min'
-    }
-  };
-}
+
+// Pas aanvullingen toe
+supplementArtist('MUOVIPUSSI', {
+  genres: ['indie'],
+  podium: 'Boog',
+  datum: '18 juli',
+  tijd: '21:15 - 22:00'
+});
+
+supplementArtist('N8NOFACE', {
+  genres: ['rock'],
+  podium: 'Boog',
+  datum: 'woensdag 22 juli',
+  tijd: '22:45 - 23:30'
+});
+
+// Automatische cache-invalidering om wijzigingen direct zichtbaar te maken
+localStorage.removeItem(PREFIX + 'allArtistsData' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX);
+localStorage.removeItem(PREFIX + 'allArtistsData_timestamp' + ALL_ARTISTS_DATA_CACHE_VERSION_SUFFIX);
+
 updateDayFilterButtonsData();
 if (!isSharedView) {
 highlightCurrentDayButton();
@@ -3982,6 +4025,11 @@ updateAllFilterUIs();
 const sinemArtistData = allArtistsData.find(d => d.artist.name === 'Sinem');
 if (sinemArtistData && sinemArtistData.info && !sinemArtistData.info.spotifyUri) {
 sinemArtistData.info.spotifyUri = 'spotify:artist:44F4eMW1zuDkuHXnGzcCNx';
+}
+
+const deMisArtistData = allArtistsData.find(d => d.artist.name === 'De Mis');
+if (deMisArtistData && deMisArtistData.info) {
+    deMisArtistData.info.podium = 'Boog';
 }
 }
 
