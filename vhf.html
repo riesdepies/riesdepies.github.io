@@ -3173,7 +3173,7 @@ const favsParam = urlParams.get('favs');
 
 if (favsParam) {
 try {
-const decodedJson = atob(favsParam);
+const decodedJson = decodeURIComponent(escape(atob(favsParam)));
 const favsArray = JSON.parse(decodedJson);
 if (Array.isArray(favsArray) && favsArray.every(item => typeof item === 'string')) {
 isSharedView = true;
@@ -3226,7 +3226,7 @@ return;
 
 
 const jsonString = JSON.stringify(favorites);
-const base64String = btoa(jsonString);
+const base64String = btoa(unescape(encodeURIComponent(jsonString)));
 const shareUrl = `${window.location.origin}${window.location.pathname}?favs=${base64String}`;
 
 
@@ -3241,17 +3241,40 @@ if (navigator.share) {
 try {
 await navigator.share(shareData);
 console.log('Favorieten succesvol gedeeld.');
+return;
 } catch (err) {
+if (err.name !== 'AbortError') {
 console.error('Fout bij delen:', err);
-}
 } else {
+return;
+}
+}
+}
+
 try {
+if (navigator.clipboard && navigator.clipboard.writeText) {
 await navigator.clipboard.writeText(shareUrl);
 showToast('Deel-link gekopieerd!');
-} catch (err) {
-console.error('Kon link niet naar klembord kopiëren:', err);
-alert('Kon de link niet automatisch kopiëren. Kopieer de link handmatig.');
+} else {
+throw new Error('Geen directe klembord-toegang');
 }
+} catch (err) {
+console.warn('Modern klembord faalde, fallback met textarea wordt gestart:', err);
+const tempTextArea = document.createElement('textarea');
+tempTextArea.value = shareUrl;
+tempTextArea.style.position = 'fixed';
+tempTextArea.style.opacity = '0';
+document.body.appendChild(tempTextArea);
+tempTextArea.focus();
+tempTextArea.select();
+try {
+document.execCommand('copy');
+showToast('Deel-link gekopieerd!');
+} catch (copyErr) {
+console.error('Kopieer-fallback faalde:', copyErr);
+prompt('Kopieer de deel-link handmatig:', shareUrl);
+}
+document.body.removeChild(tempTextArea);
 }
 }
 
