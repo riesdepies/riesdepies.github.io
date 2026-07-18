@@ -3394,7 +3394,10 @@ function forceShowCountStatus() {
   statusSlider.offsetHeight;
   
   currentStatusItemIndex = 0;
-  statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
+  const nights = calculateNightsToSleep();
+  if (nights !== null && nights > 0) {
+    statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
+  }
 }
 
 
@@ -3683,7 +3686,12 @@ toastTimeout = setTimeout(async () => {
 function startStatusAlternation() {
 if (isMessaging) return;
 clearInterval(statusInterval);
-statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
+const nights = calculateNightsToSleep();
+if (nights !== null && nights > 0) {
+  statusInterval = setInterval(slideStatusAuto, ANIMATION_INTERVAL);
+} else {
+  currentStatusItemIndex = 0;
+}
 }
 
 
