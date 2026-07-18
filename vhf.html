@@ -3122,12 +3122,18 @@ youtubeLinksHtml += '</div>';
 let durationText = '';
 if (info.duur) {
   const minutes = parseInt(info.duur, 10);
-  if (!isNaN(minutes) && minutes > 60) {
-    const hours = minutes / 60;
-    const formattedHours = Number(hours.toFixed(2)).toString().replace('.', ',');
-    durationText = ` (${formattedHours} uur)`;
-  } else {
-    durationText = ` (${info.duur})`;
+  if (!isNaN(minutes)) {
+    if (minutes >= 60) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      if (m === 0) {
+        durationText = ` (${h} uur)`;
+      } else {
+        durationText = ` (${h}u ${m}m)`;
+      }
+    } else {
+      durationText = ` (${minutes} min)`;
+    }
   }
 }
 
@@ -3758,7 +3764,19 @@ if (!indicator || !timeInfoEl || !start || !end) return;
 
 if (start <= now && end > now) {
 const remainingMinutes = Math.ceil((end - now) / 60000);
-timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo} (nog ${remainingMinutes} min)`;
+let remainingText = '';
+if (remainingMinutes >= 60) {
+  const h = Math.floor(remainingMinutes / 60);
+  const m = remainingMinutes % 60;
+  if (m === 0) {
+    remainingText = `${h} uur`;
+  } else {
+    remainingText = `${h}u ${m}m`;
+  }
+} else {
+  remainingText = `${remainingMinutes} min`;
+}
+timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo} (nog ${remainingText})`;
 indicator.style.display = 'inline-block';
 } else {
 timeInfoEl.innerHTML = `<strong>Tijd:</strong> ${card.dataset.tijdInfo}${timeInfoEl.dataset.durationText}`;
