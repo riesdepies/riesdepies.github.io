@@ -2969,8 +2969,11 @@ card.dataset.spotifyUri = activeSpotifyUri;
 const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 
+const isVdfLead = (leadingSource === 'vierdaagse');
 const proxiedImageUrlForDataSrc = artist.imageUrl
-? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`
+? (isVdfLead 
+   ? `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=400&q=75&dpr=2&output=webp`
+   : `https://images.weserv.nl/?url=${encodeURIComponent(artist.imageUrl)}&w=300&h=300&fit=cover&q=75&dpr=2&output=webp`)
 : PLACEHOLDER_IMG_URL;
 
 
@@ -2979,7 +2982,7 @@ const imageTag = `
 data-src="${proxiedImageUrlForDataSrc}"
 src="${transparentPixel}"
 alt="Foto van ${artist.name}"
-class="artist-photo lazyload">`;
+class="artist-photo lazyload"${isVdfLead ? ' style="aspect-ratio: auto; object-fit: contain;"' : ''}>`;
 
 
 let imageHtml;
