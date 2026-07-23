@@ -1409,6 +1409,17 @@ body.dark-mode .conflict-comparison {
   vertical-align: middle;
 }
 
+
+/* --- PATCHAR: Afbeeldingsdomein Gebaseerde Aspect Ratio Regels --- */
+img[src*="valkhoffestival.nl"] {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+}
+img[src*="vierdaagsefeesten.nl"] {
+    aspect-ratio: auto !important;
+    object-fit: contain !important;
+}
+
 </style>
 </head>
 <body class="dark-mode">
