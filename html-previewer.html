@@ -69,10 +69,13 @@
                 const htmlCode = decodeCode(hashData);
 
                 if (htmlCode) {
-                    // Fully clear and overwrite the document with the decoded code
-                    document.open();
-                    document.write(htmlCode);
-                    document.close();
+                    // Parse de binnenkomende HTML string en vervang de volledige documentstructuur
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlCode, 'text/html');
+                    
+                    if (doc.documentElement) {
+                        document.replaceChild(doc.documentElement, document.documentElement);
+                    }
                 } else {
                     document.body.innerHTML = '<div style="text-align:center; padding-top:20vh; font-family:sans-serif;"><h2 style="color:#d93025;">Error: Could not decode the provided code string.</h2></div>';
                 }
