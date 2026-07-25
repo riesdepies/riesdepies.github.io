@@ -834,7 +834,7 @@
 
             <div class="sidebar-group">
                 <label for="model-select">Model</label>
-                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-2.5-flash">gemini-2.5-flash</option><option value="gemini-2.5-pro">gemini-2.5-pro</option><option value="custom">custom</option></select>
+                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="custom">custom</option></select>
             </div>
 
             <div class="sidebar-group" id="custom-model-container">
@@ -1596,9 +1596,16 @@
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModelValue = document.getElementById('model-select').value;
         if (selectedModelValue === 'custom') {
-            const customModelInputValue = document.getElementById('custom-model-input').value;
-            if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; await DB.set('customOpenAIModel', customOpenAIModel); }
-            else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; await DB.set('customGeminiModel', customGeminiModel); }
+            const customModelInputValue = document.getElementById('custom-model-input').value.trim();
+            const modelSelect = document.getElementById('model-select');
+            const matchingOption = Array.from(modelSelect.options).find(opt => opt.value !== 'custom' && opt.value === customModelInputValue);
+            if (matchingOption) {
+                modelSelect.value = matchingOption.value;
+                selectedModelValue = matchingOption.value;
+            } else {
+                if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; await DB.set('customOpenAIModel', customOpenAIModel); }
+                else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; await DB.set('customGeminiModel', customGeminiModel); }
+            }
         }
         if (!lastUsedModels) lastUsedModels = {};
         lastUsedModels[currentProvider] = selectedModelValue;
@@ -2389,7 +2396,7 @@
         const oldSelectedValue = modelSelect.value;
         modelSelect.innerHTML = '';
         const modelsByProvider = {
-            gemini: ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'custom'],
+            gemini: ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'custom'],
             openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'gpt-4', 'custom']
         };
 
