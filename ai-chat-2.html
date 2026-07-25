@@ -242,6 +242,19 @@
             align-self: flex-end;
             border-bottom-right-radius: 0.1rem;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .source-item, .attachment-chip {
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+        }
+
+        .source-item.flash-highlight, .attachment-chip.flash-highlight {
+            background-color: var(--accent-blue) !important;
+            border-color: #346393 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 10px rgba(52, 99, 147, 0.8);
         }
 
         .message.assistant {
@@ -1454,24 +1467,36 @@
         event.target.value = ''; 
     }
 
-    function copyPendingAttachment(index) {
+    function copyPendingAttachment(event, index) {
+        if (event) event.stopPropagation();
         const att = pendingAttachments[index];
         if (!att) return;
+        const targetEl = event ? event.currentTarget : null;
         const textToCopy = att.content || att.name;
         navigator.clipboard.writeText(textToCopy).then(() => {
-            showToast(`Copied ${att.name} to clipboard`);
+            showToast("Copied to clipboard");
+            if (targetEl) {
+                targetEl.classList.add('flash-highlight');
+                setTimeout(() => targetEl.classList.remove('flash-highlight'), 400);
+            }
         }).catch(err => {
             console.error("Failed to copy attachment: ", err);
         });
     }
 
-    function copyAttachmentContent(msgIndex, attIndex) {
+    function copyAttachmentContent(event, msgIndex, attIndex) {
+        if (event) event.stopPropagation();
         const msg = conversationHistory[msgIndex];
         if (!msg || !msg.localAttachments || !msg.localAttachments[attIndex]) return;
         const att = msg.localAttachments[attIndex];
+        const targetEl = event ? event.currentTarget : null;
         const textToCopy = att.content || att.name;
         navigator.clipboard.writeText(textToCopy).then(() => {
-            showToast(`Copied ${att.name} to clipboard`);
+            showToast("Copied to clipboard");
+            if (targetEl) {
+                targetEl.classList.add('flash-highlight');
+                setTimeout(() => targetEl.classList.remove('flash-highlight'), 400);
+            }
         }).catch(err => {
             console.error("Failed to copy attachment: ", err);
         });
@@ -1494,7 +1519,7 @@
             const chip = document.createElement('div');
             chip.className = 'attachment-chip';
             chip.innerHTML = `
-                <span style="cursor:pointer;" title="Click to copy content" onclick="copyPendingAttachment(${index})">📎 ${escapeHtml(att.name)}</span>
+                <span style="cursor:pointer;" title="Click to copy content" onclick="copyPendingAttachment(event, ${index})">📎 ${escapeHtml(att.name)}</span>
                 <span class="remove-attachment" onclick="removeAttachment(${index})">×</span>
             `;
             container.appendChild(chip);
@@ -2104,7 +2129,7 @@
             attachmentsContainer.className = 'sources-container';
             let attachmentsHtml = `<div class="sources-title">📎 Attached Files:</div><ul class="sources-list">`;
             localAttachments.forEach((att, aIdx) => {
-                attachmentsHtml += `<li class="source-item" style="color:var(--text-secondary); cursor:pointer;" title="Click to copy content" onclick="copyAttachmentContent(${index}, ${aIdx})">${escapeHtml(att.name)}</li>`;
+                attachmentsHtml += `<li class="source-item" style="color:var(--text-secondary); cursor:pointer;" title="Click to copy content" onclick="copyAttachmentContent(event, ${index}, ${aIdx})">${escapeHtml(att.name)}</li>`;
             });
             attachmentsHtml += `</ul>`;
             attachmentsContainer.innerHTML = attachmentsHtml;
@@ -2135,7 +2160,7 @@
 
         newMessageDiv.addEventListener('click', function(event) {
             if (sender !== 'user') return;
-            if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .download-code')) return;
+            if (event.target.closest('a, button, pre, .reasoning-container, .copy-code, .run-code, .download-code, .sources-container')) return;
 
             const messageIndexOfThisMessage = parseInt(newMessageDiv.dataset.index);
             const currentEditableSpan = newMessageDiv.querySelector('.editable');
