@@ -1454,6 +1454,29 @@
         event.target.value = ''; 
     }
 
+    function copyPendingAttachment(index) {
+        const att = pendingAttachments[index];
+        if (!att) return;
+        const textToCopy = att.content || att.name;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast(`Copied ${att.name} to clipboard`);
+        }).catch(err => {
+            console.error("Failed to copy attachment: ", err);
+        });
+    }
+
+    function copyAttachmentContent(msgIndex, attIndex) {
+        const msg = conversationHistory[msgIndex];
+        if (!msg || !msg.localAttachments || !msg.localAttachments[attIndex]) return;
+        const att = msg.localAttachments[attIndex];
+        const textToCopy = att.content || att.name;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast(`Copied ${att.name} to clipboard`);
+        }).catch(err => {
+            console.error("Failed to copy attachment: ", err);
+        });
+    }
+
     function addAttachment(name, content, type, isBase64) {
         pendingAttachments.push({ name, content, type, isBase64 });
         renderAttachmentPreviews();
@@ -1471,7 +1494,7 @@
             const chip = document.createElement('div');
             chip.className = 'attachment-chip';
             chip.innerHTML = `
-                <span>📎 ${escapeHtml(att.name)}</span>
+                <span style="cursor:pointer;" title="Click to copy content" onclick="copyPendingAttachment(${index})">📎 ${escapeHtml(att.name)}</span>
                 <span class="remove-attachment" onclick="removeAttachment(${index})">×</span>
             `;
             container.appendChild(chip);
@@ -2080,8 +2103,8 @@
             const attachmentsContainer = document.createElement('div');
             attachmentsContainer.className = 'sources-container';
             let attachmentsHtml = `<div class="sources-title">📎 Attached Files:</div><ul class="sources-list">`;
-            localAttachments.forEach(att => {
-                attachmentsHtml += `<li class="source-item" style="color:var(--text-secondary); cursor:default;" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</li>`;
+            localAttachments.forEach((att, aIdx) => {
+                attachmentsHtml += `<li class="source-item" style="color:var(--text-secondary); cursor:pointer;" title="Click to copy content" onclick="copyAttachmentContent(${index}, ${aIdx})">${escapeHtml(att.name)}</li>`;
             });
             attachmentsHtml += `</ul>`;
             attachmentsContainer.innerHTML = attachmentsHtml;
