@@ -1091,18 +1091,15 @@
 
         adjustTextareaAndButtonHeight();
 
-        const chatOutputDiv = document.getElementById('chat-output');
-        chatOutputDiv.addEventListener('click', (event) => {
-            if (event.target === chatOutputDiv && editIndex !== null) {
-                const activeEditableMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
-                const activeEditableSpan = activeEditableMessageDiv ? activeEditableMessageDiv.querySelector('.editable') : null;
+        document.addEventListener('pointerdown', (event) => {
+            if (editIndex === null) return;
+            const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
+            const saveSendButton = document.getElementById('clear-chat-button');
+            
+            if (editingMessageDiv && !editingMessageDiv.contains(event.target) && !saveSendButton.contains(event.target)) {
+                const activeEditableSpan = editingMessageDiv.querySelector('.editable');
                 if (activeEditableSpan) {
                     activeEditableSpan.blur();
-                } else if (editIndex !== null) {
-                    const currentEditingMsgDiv = document.querySelector(`.message.editing`);
-                    if(currentEditingMsgDiv) currentEditingMsgDiv.classList.remove('editing');
-                    editIndex = null;
-                    updateClearChatButtonIcon();
                 }
             }
         });
@@ -2216,17 +2213,23 @@
                         const originalEntry = conversationHistory[blurredIndex];
                         let updatedContent = newText.trim();
                         
-                        if (originalEntry.role === 'user' && originalEntry.localAttachments && originalEntry.localAttachments.length > 0) {
-                            let attachmentSummary = "\n\n--- Attached Files ---";
-                            originalEntry.localAttachments.forEach(att => {
-                                attachmentSummary += `\n\nFilename: ${att.name}\n`;
-                                if (att.isBase64) {
-                                    attachmentSummary += `[Binary encoded file: ${att.type}]\n`;
-                                } else {
-                                    attachmentSummary += `\`\`\`${getLanguageExtension(att.name)}\n${att.content}\n\`\`\``;
-                                }
-                            });
-                            updatedContent += attachmentSummary;
+                        if (originalEntry.role === 'user') {
+                            const markerIndex = originalEntry.content.indexOf("\n\n--- Attached Files ---");
+                            let attachmentSuffix = "";
+                            if (originalEntry.localAttachments && originalEntry.localAttachments.length > 0) {
+                                attachmentSuffix = "\n\n--- Attached Files ---";
+                                originalEntry.localAttachments.forEach(att => {
+                                    attachmentSuffix += `\n\nFilename: ${att.name}\n`;
+                                    if (att.isBase64) {
+                                        attachmentSuffix += `[Binary encoded file: ${att.type}]\n`;
+                                    } else {
+                                        attachmentSuffix += `\`\`\`${getLanguageExtension(att.name)}\n${att.content}\n\`\`\``;
+                                    }
+                                });
+                            } else if (markerIndex !== -1) {
+                                attachmentSuffix = originalEntry.content.substring(markerIndex);
+                            }
+                            updatedContent = newText.trim() + attachmentSuffix;
                         }
                         
                         if (originalEntry.content.trim() !== updatedContent.trim()) {
