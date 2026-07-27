@@ -1403,25 +1403,30 @@
                 const clipboardItems = await navigator.clipboard.read();
                 let attachedAny = false;
                 for (const item of clipboardItems) {
-                    for (const type of item.types) {
-                        if (type.startsWith('image/') || type === 'application/pdf' || type.startsWith('video/') || type.startsWith('audio/')) {
-                            const blob = await item.getType(type);
-                            const reader = new FileReader();
-                            reader.onload = (evt) => {
-                                const ext = type.split('/')[1] || 'bin';
-                                const name = `pasted-file-${Date.now()}.${ext}`;
-                                addAttachment(name, evt.target.result, type, true);
-                            };
-                            reader.readAsDataURL(blob);
-                            attachedAny = true;
-                        } else if (type === 'text/plain' || type === 'text/html') {
-                            const blob = await item.getType(type);
-                            const text = await blob.text();
-                            const ext = type === 'text/html' ? 'html' : 'txt';
-                            const name = `pasted-text-${Date.now()}.${ext}`;
-                            addAttachment(name, text, type, false);
-                            attachedAny = true;
-                        }
+                    const types = item.types;
+                    const binaryType = types.find(t => t.startsWith('image/') || t === 'application/pdf' || t.startsWith('video/') || t.startsWith('audio/'));
+                    if (binaryType) {
+                        const blob = await item.getType(binaryType);
+                        const reader = new FileReader();
+                        reader.onload = (evt) => {
+                            const ext = binaryType.split('/')[1] || 'bin';
+                            const name = `pasted-file-${Date.now()}.${ext}`;
+                            addAttachment(name, evt.target.result, binaryType, true);
+                        };
+                        reader.readAsDataURL(blob);
+                        attachedAny = true;
+                    } else if (types.includes('text/plain')) {
+                        const blob = await item.getType('text/plain');
+                        const text = await blob.text();
+                        const name = `pasted-text-${Date.now()}.txt`;
+                        addAttachment(name, text, 'text/plain', false);
+                        attachedAny = true;
+                    } else if (types.includes('text/html')) {
+                        const blob = await item.getType('text/html');
+                        const text = await blob.text();
+                        const name = `pasted-text-${Date.now()}.html`;
+                        addAttachment(name, text, 'text/html', false);
+                        attachedAny = true;
                     }
                 }
                 if (attachedAny) return;
