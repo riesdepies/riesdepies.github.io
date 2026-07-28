@@ -759,75 +759,7 @@
             display: none !important;
         }
     </style>
-<style>
-        .asm-switch {
-            position: relative;
-            display: inline-block;
-            width: 32px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-        .asm-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .asm-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255,255,255,0.15);
-            transition: .2s;
-            border-radius: 18px;
-        }
-        .asm-slider:before {
-            position: absolute;
-            content: "";
-            height: 12px;
-            width: 12px;
-            left: 3px;
-            bottom: 3px;
-            background-color: #bbb;
-            transition: .2s;
-            border-radius: 50%;
-        }
-        .asm-switch input:checked + .asm-slider {
-            background-color: #f4d217;
-        }
-        .asm-switch input:checked + .asm-slider:before {
-            transform: translateX(14px);
-            background-color: #121214;
-        }
-        .asm-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #aaa;
-            padding: 5px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            width: 28px;
-            height: 28px;
-            box-sizing: border-box;
-        }
-        .asm-btn:hover {
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-            border-color: rgba(255,255,255,0.2);
-        }
-        .asm-btn svg {
-            width: 14px;
-            height: 14px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-    </style></head>
+</head>
 <body>
 
 <div id="app-layout" style="height: 683.636px; top: 0px;">
@@ -850,7 +782,7 @@
 
             <div class="sidebar-group">
                 <label for="model-select">Model</label>
-                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="custom">custom</option></select>
+                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"></select>
             </div>
 
             <div class="sidebar-group" id="custom-model-container">
@@ -909,9 +841,7 @@
         <!-- Chat Logs -->
         <div id="chat-output"></div>
 
-<!-- Console Overlay Container Removed -->
-
-        <!-- Attachment Picker Popover -->
+<!-- Attachment Picker Popover -->
         <div id="attachment-popover" style="display: none;">
             <div class="popover-item" onclick="triggerDeviceFileSelection()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
@@ -1026,14 +956,33 @@
     let currentApiKeyIndex = 0;
     let systemPrompt = "";
     let conversationHistory = [];
-    let modelSpecificConversationHistory = { gemini: [] };
     let editIndex = null;
     
     let selectedModel = "";
     let lastUsedModels = {};
     let customGeminiModel = "";
     let customOpenAIModel = "";
-    let initialHTML = document.documentElement.outerHTML;
+    function getCleanSourceCode() {
+        const clone = document.documentElement.cloneNode(true);
+        // Verwijder extensie-injecties en externe script-tags geinjecteerd door de browser
+        clone.querySelectorAll('script[src*="chrome-extension"], script[src*="moz-extension"], [data-grammarly-part], [data-gr-ext-installed]').forEach(el => el.remove());
+        
+        // Strip eventuele gevoelige gegevens uit invoervelden in de gegenereerde kloon
+        const keysGemini = clone.querySelector('#api-key-gemini');
+        if (keysGemini) keysGemini.value = ''; keysGemini.textContent = '';
+        const keysOpenAI = clone.querySelector('#api-key-openai');
+        if (keysOpenAI) keysOpenAI.value = ''; keysOpenAI.textContent = '';
+        const sysPrompt = clone.querySelector('#system-prompt');
+        if (sysPrompt) sysPrompt.value = ''; sysPrompt.textContent = '';
+        const userInput = clone.querySelector('#user-input');
+        if (userInput) userInput.value = ''; userInput.textContent = '';
+        const chatOutput = clone.querySelector('#chat-output');
+        if (chatOutput) chatOutput.innerHTML = '';
+        const previewContainer = clone.querySelector('#attachment-preview-container');
+        if (previewContainer) previewContainer.innerHTML = '';
+
+        return '<!DOCTYPE html>\n<html lang="' + (document.documentElement.lang || 'en') + '">' + clone.innerHTML + '</html>';
+    }
     
     let chatClearedState = false;
     let currentModel = null;
@@ -1071,7 +1020,6 @@
         send: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>`,
         mic: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>`,
         stop: `<div class="spinner" style="display:block; margin:0;"></div>`,
-        save: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"></path></svg>`,
         swap: `<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="currentColor"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>`,
         brain: `<svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 0 24 24" width="16px" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`,
         copy: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>`,
@@ -1094,7 +1042,7 @@
         document.addEventListener('pointerdown', (event) => {
             if (editIndex === null) return;
             const editingMessageDiv = document.querySelector(`.message[data-index="${editIndex}"]`);
-            const saveSendButton = document.getElementById('clear-chat-button');
+            const saveSendButton = document.getElementById('send-button');
             
             if (editingMessageDiv && !editingMessageDiv.contains(event.target) && !saveSendButton.contains(event.target)) {
                 const activeEditableSpan = editingMessageDiv.querySelector('.editable');
@@ -1241,8 +1189,7 @@
     async function saveFullConversation() {
         const conversationData = {
             conversationHistory: conversationHistory,
-            modelSpecificConversationHistory: modelSpecificConversationHistory
-        };
+            };
         await DB.set(CHAT_CONVERSATION_KEY, conversationData);
     }
 
@@ -1251,15 +1198,12 @@
         if (savedData) {
             try {
                 conversationHistory = savedData.conversationHistory || [];
-                modelSpecificConversationHistory = savedData.modelSpecificConversationHistory || { gemini: [] };
-                if (typeof modelSpecificConversationHistory.gemini === 'undefined') modelSpecificConversationHistory.gemini = [];
                 redrawMessages();
                 return true;
             } catch (e) {
                 console.error("Error parsing saved conversation:", e);
                 await DB.remove(CHAT_CONVERSATION_KEY);
                 conversationHistory = [];
-                modelSpecificConversationHistory = { gemini: [] };
                 return false;
             }
         }
@@ -1275,60 +1219,53 @@
 
     function updateClearChatButtonIcon() {
         const button = document.getElementById('clear-chat-button');
-        if (editIndex !== null && conversationHistory[editIndex]) {
-            const currentEditingRole = conversationHistory[editIndex].role;
-            button.innerHTML = (currentEditingRole === 'user') ? ICONS.send : ICONS.save;
-            button.title = (currentEditingRole === 'user') ? "Send Edit" : "Save Edit";
-            button.disabled = false;
-            Object.assign(button.style, {backgroundColor: 'var(--accent-blue)', borderRadius: '6px', padding: '8px', color: 'white'});
+        Object.assign(button.style, {backgroundColor: 'transparent', padding: '8px', color: 'var(--text-secondary)', borderRadius: ''});
+        button.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash;
+        button.title = chatClearedState ? "Restore Chat" : "Clear Chat";
+        button.disabled = (!chatClearedState && conversationHistory.length === 0);
+    }
+
+    async function submitActiveEdit() {
+        if (editIndex === null) return;
+        const currentEditingIndex = editIndex;
+        const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
+        const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
+
+        if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
+            const newText = editableMessageSpan.innerText;
+            const originalRole = conversationHistory[currentEditingIndex].role;
+
+            editableMessageSpan.setAttribute('contenteditable', 'false');
+            if(messageDiv) messageDiv.classList.remove('editing');
+
+            if (originalRole === 'user') {
+                document.getElementById('user-input').value = newText;
+                const originalEntry = conversationHistory[currentEditingIndex];
+                if (originalEntry && originalEntry.localAttachments) {
+                    pendingAttachments = [...originalEntry.localAttachments];
+                    renderAttachmentPreviews();
+                }
+                sendMessage();
+            } else {
+                conversationHistory[currentEditingIndex].content = newText.trim();
+                await saveFullConversation();
+                editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
+                Prism.highlightAllUnder(editableMessageSpan.closest('.message'));
+                editIndex = null;
+                toggleSendButton();
+                document.getElementById('loading-spinner').style.display = 'none';
+            }
         } else {
-            Object.assign(button.style, {backgroundColor: 'transparent', padding: '8px', color: 'var(--text-secondary)', borderRadius: ''});
-            button.innerHTML = chatClearedState ? ICONS.restore : ICONS.trash;
-            button.title = chatClearedState ? "Restore Chat" : "Clear Chat";
-            button.disabled = (!chatClearedState && conversationHistory.length === 0);
+            const stillEditingDiv = document.querySelector(`.message.editing`);
+            if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
+            const stillEditableSpan = stillEditingDiv ? stillEditableSpan.querySelector('.editable[contenteditable="true"]') : null;
+            if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
+            editIndex = null;
+            toggleSendButton();
         }
     }
 
     async function handleClearChatClick() {
-        if (editIndex !== null) {
-            const currentEditingIndex = editIndex;
-            const messageDiv = document.querySelector(`.message[data-index="${currentEditingIndex}"]`);
-            const editableMessageSpan = messageDiv ? messageDiv.querySelector('.editable') : null;
-
-            if (editableMessageSpan && conversationHistory[currentEditingIndex]) {
-                const newText = editableMessageSpan.innerText;
-                const originalRole = conversationHistory[currentEditingIndex].role;
-
-                editableMessageSpan.setAttribute('contenteditable', 'false');
-                if(messageDiv) messageDiv.classList.remove('editing');
-
-                if (originalRole === 'user') {
-                    document.getElementById('user-input').value = newText;
-                    const originalEntry = conversationHistory[currentEditingIndex];
-                    if (originalEntry && originalEntry.localAttachments) {
-                        pendingAttachments = [...originalEntry.localAttachments];
-                        renderAttachmentPreviews();
-                    }
-                    sendMessage();
-                } else {
-                    conversationHistory[currentEditingIndex].content = newText.trim();
-                    await saveFullConversation();
-                    editableMessageSpan.innerHTML = marked.parse(newText.trim(), { breaks: true });
-                    Prism.highlightAllUnder(editableMessageSpan.closest('.message'));
-                    editIndex = null;
-                    updateClearChatButtonIcon();
-                    document.getElementById('loading-spinner').style.display = 'none';
-                }
-            } else {
-                const stillEditingDiv = document.querySelector(`.message.editing`);
-                if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
-                const stillEditableSpan = stillEditingDiv ? stillEditingDiv.querySelector('.editable[contenteditable="true"]') : null;
-                if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
-                editIndex = null;
-                updateClearChatButtonIcon();
-            }
-            return;
-        }
 
         if (chatClearedState) {
             if (await loadFullConversation()) {
@@ -1337,7 +1274,6 @@
             } else {
                 document.getElementById('chat-output').innerHTML = '';
                 conversationHistory = [];
-                modelSpecificConversationHistory = { gemini: [] };
                 chatClearedState = false;
                 await DB.set(CHAT_CLEARED_STATE_KEY, 'false');
             }
@@ -1355,8 +1291,6 @@
 
         document.getElementById('chat-output').innerHTML = '';
         conversationHistory = [];
-        modelSpecificConversationHistory = { gemini: [] };
-
         if (hasSavedConversation) {
             chatClearedState = true;
             await DB.set(CHAT_CLEARED_STATE_KEY, 'true');
@@ -1392,7 +1326,7 @@
 
     function attachAppSourceCode() {
         document.getElementById('attachment-popover').style.display = 'none';
-        const appSource = initialHTML;
+        const appSource = getCleanSourceCode();
         addAttachment("app-chat-interface-source.html", appSource, "text/html", false);
     }
 
@@ -1618,14 +1552,22 @@
         if (isGenerating) return;
         const sendButton = document.getElementById("send-button");
         const userInput = document.getElementById('user-input');
-        if (userInput.value.trim() === "") {
-            sendButton.innerHTML = ICONS.mic;
-            sendButton.title = "Speak (Hold for manual input)";
-            sendButton.disabled = false;
-        } else {
+        if (editIndex !== null) {
             sendButton.innerHTML = ICONS.send;
-            sendButton.title = "Send Message (Hold to Clear)";
+            sendButton.title = "Submit Edit";
             sendButton.disabled = false;
+            userInput.placeholder = "Click send to submit edit...";
+        } else {
+            userInput.placeholder = "Type a message...";
+            if (userInput.value.trim() === "") {
+                sendButton.innerHTML = ICONS.mic;
+                sendButton.title = "Speak (Hold for manual input)";
+                sendButton.disabled = false;
+            } else {
+                sendButton.innerHTML = ICONS.send;
+                sendButton.title = "Send Message (Hold to Clear)";
+                sendButton.disabled = false;
+            }
         }
     }
 
@@ -1693,6 +1635,8 @@
     function handleSendButtonClick() {
         if (isGenerating) {
             showToast("Hold the stop button to cancel the generation.");
+        } else if (editIndex !== null) {
+            submitActiveEdit();
         } else {
             const userInput = document.getElementById('user-input');
             if (userInput.value.trim() === "") {
@@ -1752,7 +1696,6 @@
 
         if (chatClearedState && editIndex === null) {
             conversationHistory = [];
-            modelSpecificConversationHistory = { gemini: [] };
             chatClearedState = false;
             await DB.remove(CHAT_CLEARED_STATE_KEY);
         }
@@ -1785,9 +1728,6 @@
             if (editIndex !== null && conversationHistory[editIndex] && conversationHistory[editIndex].role === 'user') {
                 conversationHistory[editIndex].content = finalPromptForApi;
                 conversationHistory = conversationHistory.slice(0, editIndex + 1);
-                const numModelSpecificTurnsToKeep = Math.floor(editIndex / 2);
-                if (modelSpecificConversationHistory.gemini) modelSpecificConversationHistory.gemini = modelSpecificConversationHistory.gemini.slice(0, numModelSpecificTurnsToKeep * 2);
-
                 editIndex = null;
                 redrawMessages();
             } else {
@@ -1984,7 +1924,6 @@
                             sources: groundingChunks
                         });
 
-                        modelSpecificConversationHistory.gemini.push({"role": "user", "parts": [{"text": userInput}]}, {"role": "model", "parts": [{"text": fullText}]});
                         displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, groundingChunks);
                         chatOutput.scrollTop = chatOutput.scrollHeight;
                         document.getElementById('loading-spinner').style.display = 'none'; 
@@ -2179,7 +2118,7 @@
                 currentEditableSpan.setAttribute('contenteditable', 'true');
                 editIndex = messageIndexOfThisMessage;
                 newMessageDiv.classList.add('editing');
-                updateClearChatButtonIcon();
+                toggleSendButton();
                 currentEditableSpan.focus();
             }
         });
@@ -2209,8 +2148,8 @@
                     return;
                 }
                 const blurredIndex = parseInt(messageDiv.dataset.index);
-                const saveSendButton = document.getElementById('clear-chat-button');
-                const focusWentToButton = document.activeElement === saveSendButton || saveSendButton.contains(document.activeElement);
+                const clearChatButton = document.getElementById('clear-chat-button');
+                const focusWentToButton = document.activeElement === clearChatButton || (clearChatButton && clearChatButton.contains(document.activeElement));
 
                 if (editIndex === blurredIndex && !focusWentToButton) {
                     const newText = e.target.innerText;
@@ -2250,7 +2189,7 @@
                     e.target.setAttribute('contenteditable', 'false');
                     messageDiv.classList.remove('editing');
                     editIndex = null;
-                    updateClearChatButtonIcon();
+                    toggleSendButton();
                 } else if (editIndex !== blurredIndex) {
                     e.target.setAttribute('contenteditable', 'false');
                     messageDiv.classList.remove('editing');
@@ -2390,7 +2329,7 @@
     }
 
     function copySource(button) { 
-        copyToClipboard(initialHTML, button); 
+        copyToClipboard(getCleanSourceCode(), button); 
     }
     
     function copyToClipboard(text, button) {
