@@ -1,0 +1,34 @@
+{
+  "name": "AI Chat Interface",
+  "short_name": "AI Chat",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#2b5278",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%232b5278' d='M120.5 41.5C210.5 41.3 300.5 41.5 390.5 42 424.7 45.7 448.9 63.2 463 94.5 466.1 102.6 468.1 110.9 469 119.5 470 184.2 469.6 248.9 468 313.5 459.3 352.2 435.4 375.4 396.5 383 345.5 383.3 294.5 383.7 243.5 384 216.5 411 189.5 438 162.5 465 150.8 472 140.3 470.5 131 460.5 129.6 458.7 128.6 456.7 128 454.5 127.5 430.8 127.3 407.2 127.5 383.5 85.2 381.8 57.5 360.8 44.5 320.5 43.3 315.6 42.4 310.6 42 305.5 41.3 243.5 41.3 181.5 42 119.5 46.1 85.8 63.6 61.9 94.5 48 103.1 44.9 111.7 42.7 120.5 41.5Z'/%3E%3Ccircle fill='%23ebe9e9' cx='160' cy='212' r='32'/%3E%3Ccircle fill='%23ebe9e9' cx='256' cy='212' r='32'/%3E%3Ccircle fill='%23ebe9e9' cx='352' cy='212' r='32'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "./share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "shared_files",
+          "accept": [
+            "*/*"
+          ]
+        }
+      ]
+    }
+  }
+}
