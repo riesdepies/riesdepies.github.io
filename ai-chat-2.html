@@ -776,8 +776,6 @@
             display: none !important;
         }
     </style>
-    <link rel="manifest" href="data:application/manifest+json;choice=charset=utf-8,%7B%22name%22%3A%22AI%20Chat%20Interface%22%2C%22short_name%22%3A%22AI%20Chat%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f0f%22%2C%22theme_color%22%3A%22%231c1c1c%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%20512%20512'%253E%253Cpath%20fill%3D'%25232b5278'%20d%3D'M120.5%2041.5C210.5%2041.3%20300.5%2041.5%20390.5%2042%20424.7%2045.7%20448.9%2063.2%20463%2094.5%20466.1%20102.6%20468.1%20110.9%20469%20119.5%20470%20184.2%20469.6%20248.9%20468%20313.5%20459.3%20352.2%20435.4%20396.5%20383%20345.5%20383.3%20294.5%20383.7%20243.5%20384%20216.5%20411%20189.5%20438%20162.5%20465%20150.8%20472%20140.3%20470.5%20131%20460.5%20129.6%20458.7%20128.6%20456.7%20128%20454.5%20127.5%20430.8%20127.3%20407.2%20127.5%20383.5%2085.2%20381.8%2057.5%20360.8%2044.5%20320.5%2043.3%20315.6%2042.4%20310.6%2042%20305.5%2041.3%20243.5%2041.3%20181.5%2042%20119.5%2046.1%2085.8%2063.6%2061.9%2094.5%2048%20103.1%2044.9%20111.7%2042.7%20120.5%2041.5Z'%2F%253E%253Ccircle%20fill%3D'%2523ebe9e9'%20cx%3D'160'%20cy%3D'212'%20r%3D'32'%2F%253E%253Ccircle%20fill%3D'%2523ebe9e9'%20cx%3D'256'%20cy%3D'212'%20r%3D'32'%2F%253E%253Ccircle%20fill%3D'%2523ebe9e9'%20cx%3D'352'%20cy%3D'212'%20r%3D'32'%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%2C%22share_target%22%3A%7B%22action%22%3A%22.%2Fshare-target%22%2C%22method%22%3A%22POST%22%2C%22enctype%22%3A%22multipart%2Fform-data%22%2C%22params%22%3A%7B%22files%22%3A%5B%7B%22name%22%3A%22shared_files%22%2C%22accept%22%3A%5B%22*%2F*%22%5D%7D%5D%7D%7D%7D">
-    <meta name="theme-color" content="#1c1c1c">
 </head>
 <body>
 
@@ -1050,67 +1048,6 @@
 
     // Initialize application using IndexedDB persistence
     document.addEventListener("DOMContentLoaded", async function () {
-
-    // --- PWA SERVICE WORKER & SHARE TARGET HANDLER ---
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            self.addEventListener('install', (e) => self.skipWaiting());
-            self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-            self.addEventListener('fetch', (event) => {
-                const url = new URL(event.request.url);
-                if (url.pathname.endsWith('/share-target') && event.request.method === 'POST') {
-                    event.respondWith((async () => {
-                        const formData = await event.request.formData();
-                        const files = formData.getAll('shared_files');
-                        const cache = await caches.open('shared-files-store');
-                        for (let i = 0; i < files.length; i++) {
-                            await cache.put('file-' + i, new Response(files[i], {
-                                headers: {
-                                    'content-type': files[i].type,
-                                    'x-file-name': encodeURIComponent(files[i].name)
-                                }
-                            }));
-                        }
-                        return Response.redirect('./?share_received=true', 303);
-                    })());
-                }
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.warn('SW Register Notice:', err));
-    }
-
-    async function checkSharedFiles() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('share_received') === 'true') {
-            try {
-                const cache = await caches.open('shared-files-store');
-                const keys = await cache.keys();
-                for (const req of keys) {
-                    const res = await cache.get(req);
-                    const blob = await res.blob();
-                    const fileName = decodeURIComponent(res.headers.get('x-file-name') || 'shared_file');
-                    const isText = blob.type.startsWith('text/') || fileName.endsWith('.js') || fileName.endsWith('.py') || fileName.endsWith('.json') || fileName.endsWith('.css') || fileName.endsWith('.html');
-                    
-                    if (isText) {
-                        const text = await blob.text();
-                        addAttachment(fileName, text, blob.type, false);
-                    } else {
-                        const reader = new FileReader();
-                        reader.onload = (evt) => addAttachment(fileName, evt.target.result, blob.type, true);
-                        reader.readAsDataURL(blob);
-                    }
-                    await cache.delete(req);
-                }
-                showToast("Bestand(en) ontvangen via Android Delen!");
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (err) {
-                console.error("Fout bij ophalen gedeelde bestanden:", err);
-            }
-        }
-    }
-    checkSharedFiles();
-        
         await initIndexedDBData();
         initializeModelSwap();
         initializeSpeechRecognition();
