@@ -781,7 +781,7 @@
 
 <div id="app-layout" style="height: 683.636px; top: 0px;">
     <!-- Collapsible Sidebar -->
-    <div id="sidebar" class="collapsed">
+    <div id="sidebar" class="open">
         <div class="sidebar-header">
             <h2>Settings</h2>
             <button class="icon-btn" onclick="toggleSidebar()" title="Close Settings">
@@ -794,20 +794,21 @@
                 <select id="api-provider" onchange="updateModelOptions(); saveSettings();">
                     <option value="openai">OpenAI</option>
                     <option value="gemini">Google Gemini</option>
+                    <option value="deepseek">DeepSeek</option>
                 </select>
             </div>
 
             <div class="sidebar-group">
                 <label for="model-select">Model</label>
-                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="custom">custom</option></select>
+                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="deepseek-v4-flash">deepseek-v4-flash</option><option value="deepseek-v4-pro">deepseek-v4-pro</option><option value="deepseek-v4-flash-vision-exp">deepseek-v4-flash-vision-exp</option><option value="custom">custom</option></select>
             </div>
 
-            <div class="sidebar-group" id="custom-model-container">
+            <div class="sidebar-group hidden" id="custom-model-container">
                 <label for="custom-model-input" id="custom-model-label">Custom Model Name</label>
                 <input type="text" id="custom-model-input" placeholder="Enter custom model identifier" onchange="saveSettings()">
             </div>
 
-            <div class="sidebar-group" id="grounding-label-container" style="display: block;">
+            <div class="sidebar-group" id="grounding-label-container" style="display: none;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
                     <input type="checkbox" id="enable-grounding" onchange="saveSettings()">
                     Enable Google Search Grounding
@@ -820,9 +821,13 @@
                         <label for="api-key-openai">OpenAI API Key(s)</label>
                         <textarea id="api-key-openai" rows="3" placeholder="Paste your OpenAI API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
-                    <div class="api-key-container" id="gemini-api-key-container" style="display: block;">
+                    <div class="api-key-container" id="gemini-api-key-container" style="display: none;">
                         <label for="api-key-gemini">Google API Key(s)</label>
                         <textarea id="api-key-gemini" rows="3" placeholder="Paste your Google API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
+                    </div>
+                    <div class="api-key-container" id="deepseek-api-key-container" style="display: block;">
+                        <label for="api-key-deepseek">DeepSeek API Key(s)</label>
+                        <textarea id="api-key-deepseek" rows="3" placeholder="Paste your DeepSeek API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
                 </div>
             </div>
@@ -848,11 +853,11 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to gemini-3.5-flash (gemini)" style="display: flex;">gemini-3.7-flash</button>
+                <button id="swap-model-button" title="Swap to deepseek-v4-pro (deepseek)" style="display: flex;">deepseek-v4-flash</button>
             </div>
             
             <div class="header-right">
-                <button class="icon-btn" id="clear-chat-button" title="Clear Chat" style="background-color: transparent; padding: 8px; color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
+                <button class="icon-btn" id="clear-chat-button" title="Restore Chat" style="background-color: transparent; padding: 8px; color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"></path></svg></button>
             </div>
         </div>
 
@@ -894,7 +899,7 @@
 </div>
 
 <div id="model-history-dropdown"></div>
-<div id="toast-notification" class="">Swapped to gemini / gemini-3.6-flash</div>
+<div id="toast-notification" class="">Swapped to gemini / gemini-3.7-flash</div>
 
 <!-- Core Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -970,7 +975,7 @@
     }
 
     // --- STATE MANAGER ---
-    let apiKeys = { gemini: [], openai: [] };
+    let apiKeys = { gemini: [], openai: [], deepseek: [] };
     let currentApiKeyIndex = 0;
     let systemPrompt = "";
     let conversationHistory = [];
@@ -980,6 +985,7 @@
     let lastUsedModels = {};
     let customGeminiModel = "";
     let customOpenAIModel = "";
+    let customDeepSeekModel = "";
     function getCleanSourceCode() {
         const clone = document.documentElement.cloneNode(true);
         // Verwijder extensie-injecties en externe script-tags geinjecteerd door de browser
@@ -990,6 +996,8 @@
         if (keysGemini) keysGemini.value = ''; keysGemini.textContent = '';
         const keysOpenAI = clone.querySelector('#api-key-openai');
         if (keysOpenAI) keysOpenAI.value = ''; keysOpenAI.textContent = '';
+        const keysDeepSeek = clone.querySelector('#api-key-deepseek');
+        if (keysDeepSeek) keysDeepSeek.value = ''; keysDeepSeek.textContent = '';
         const sysPrompt = clone.querySelector('#system-prompt');
         if (sysPrompt) sysPrompt.value = ''; sysPrompt.textContent = '';
         const userInput = clone.querySelector('#user-input');
@@ -1491,12 +1499,15 @@
     async function loadSettings() {
         const loadedKeysGemini = await DB.get('apiKeyGemini', "");
         const loadedKeysOpenAI = await DB.get('apiKeyOpenAI', "");
+        const loadedKeysDeepSeek = await DB.get('apiKeyDeepSeek', "");
         
         apiKeys.gemini = parseApiKeys(loadedKeysGemini, 'gemini');
         apiKeys.openai = parseApiKeys(loadedKeysOpenAI, 'openai');
+        apiKeys.deepseek = parseApiKeys(loadedKeysDeepSeek, 'deepseek');
         
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+        document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
         
         systemPrompt = await DB.get('systemPrompt', "");
         document.getElementById('system-prompt').value = systemPrompt;
@@ -1523,6 +1534,7 @@
 
         customOpenAIModel = await DB.get('customOpenAIModel', "");
         customGeminiModel = await DB.get('customGeminiModel', "");
+        customDeepSeekModel = await DB.get('customDeepSeekModel', "");
 
         const currentProvider = document.getElementById('api-provider').value;
         const currentModelSelect = document.getElementById('model-select');
@@ -1530,6 +1542,7 @@
             const customInput = document.getElementById('custom-model-input');
             if (currentProvider === 'openai') customInput.value = customOpenAIModel;
             else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
+            else if (currentProvider === 'deepseek') customInput.value = customDeepSeekModel;
         }
     }
 
@@ -1537,7 +1550,7 @@
         const modelSelect = document.getElementById('model-select');
         let defaultModel = "";
         const providerDefaultModels = {
-            gemini: 'gemini-3.5-flash', openai: 'gpt-4o'
+            gemini: 'gemini-3.5-flash', openai: 'gpt-4o', deepseek: 'deepseek-v4-flash'
         };
         defaultModel = providerDefaultModels[provider] || "custom";
         if (!lastUsedModels) lastUsedModels = {};
@@ -1555,8 +1568,8 @@
     
     function parseApiKeys(input, provider) {
         let regex;
-        if (provider === 'openai') { 
-            regex = /sk-[a-zA-Z0-9_-]{30,160}/g; 
+        if (provider === 'openai' || provider === 'deepseek') { 
+            regex = /sk-[a-zA-Z0-9_-]{20,160}/g; 
         }
         else if (provider === 'gemini') { 
             regex = /AIzaSy[A-Za-z0-9_-]{33}/g; 
@@ -1594,12 +1607,15 @@
 
         apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
         apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+        apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
         
         await DB.set('apiKeyGemini', apiKeys.gemini.join('\n\n'));
         await DB.set('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
+        await DB.set('apiKeyDeepSeek', apiKeys.deepseek.join('\n\n'));
 
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+        document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
 
         systemPrompt = document.getElementById('system-prompt').value;
         await DB.set('systemPrompt', systemPrompt);
@@ -1618,6 +1634,7 @@
             } else {
                 if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; await DB.set('customOpenAIModel', customOpenAIModel); }
                 else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; await DB.set('customGeminiModel', customGeminiModel); }
+                else if (currentProvider === 'deepseek') { customDeepSeekModel = customModelInputValue; await DB.set('customDeepSeekModel', customDeepSeekModel); }
             }
         }
         if (!lastUsedModels) lastUsedModels = {};
@@ -1970,8 +1987,9 @@
                         playNotificationSound();
                     }
                 }
-                else if (provider === 'openai') {
-                    const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
+                else if (provider === 'openai' || provider === 'deepseek') {
+                    const endpointUrl = provider === 'deepseek' ? "https://api.deepseek.com/chat/completions" : "https://api.openai.com/v1/chat/completions";
+                    const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt, endpointUrl);
                     let partialMessageElement = null;
                     let botResponse = '';
                     const chatOutput = document.getElementById('chat-output');
@@ -2436,7 +2454,8 @@
         modelSelect.innerHTML = '';
         const modelsByProvider = {
             gemini: ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'custom'],
-            openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'gpt-4', 'custom']
+            openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'gpt-4', 'custom'],
+            deepseek: ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-flash-vision-exp', 'custom']
         };
 
         if (modelsByProvider[provider]) {
@@ -2458,10 +2477,11 @@
     }
 
     class OpenAIChat {
-        constructor(apiKey, model, systemPrompt) { 
+        constructor(apiKey, model, systemPrompt, endpointUrl = "https://api.openai.com/v1/chat/completions") { 
             this.apiKey = apiKey; 
             this.model = model; 
             this.systemPrompt = systemPrompt; 
+            this.endpointUrl = endpointUrl;
         }
         setApiKey(apiKey) { this.apiKey = apiKey; } 
         setModel(model) { this.model = model; } 
@@ -2480,7 +2500,7 @@
                 stream: true
             };
 
-            const url = "https://api.openai.com/v1/chat/completions";
+            const url = this.endpointUrl || "https://api.openai.com/v1/chat/completions";
             const response = await fetch(url, {
                 method: "POST",
                 headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
@@ -2547,6 +2567,7 @@
             const customModelInput = document.getElementById('custom-model-input');
             if (provider === 'openai') customModelInput.value = customOpenAIModel;
             else if (provider === 'gemini') customModelInput.value = customGeminiModel;
+            else if (provider === 'deepseek') customModelInput.value = customDeepSeekModel;
             else customModelInput.value = '';
         } else {
             customModelContainer.classList.add('hidden'); 
@@ -2684,7 +2705,7 @@
         recentModels.forEach(item => {
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${item.provider === 'openai' ? 'OpenAI' : 'Google'}</span>`;
+            div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${item.provider === 'openai' ? 'OpenAI' : item.provider === 'deepseek' ? 'DeepSeek' : 'Google'}</span>`;
             div.onclick = () => switchToHistoryModel(item.provider, item.model);
             dropdown.appendChild(div);
         });
