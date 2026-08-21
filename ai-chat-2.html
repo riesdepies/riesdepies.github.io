@@ -781,7 +781,7 @@
 
 <div id="app-layout" style="height: 787.636px; top: 0px;">
     <!-- Collapsible Sidebar -->
-    <div id="sidebar" class="collapsed">
+    <div id="sidebar" class="open">
         <div class="sidebar-header">
             <h2>Settings</h2>
             <button class="icon-btn" onclick="toggleSidebar()" title="Close Settings">
@@ -848,7 +848,7 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to gemini-3.5-flash-lite (gemini)" style="display: flex;">gemini-3.6-flash</button>
+                <button id="swap-model-button" title="Swap to gemini-3.7-flash (gemini)" style="display: flex;">gemini-3.6-flash</button>
             </div>
             
             <div class="header-right">
@@ -894,7 +894,7 @@
 </div>
 
 <div id="model-history-dropdown"></div>
-<div id="toast-notification" class="">Key failed. Trying API Key 3...</div>
+<div id="toast-notification" class="">Swapped to gemini / gemini-3.6-flash</div>
 
 <!-- Core Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -2604,7 +2604,7 @@
         const provider = document.getElementById('api-provider').value;
         let model = document.getElementById('model-select').value;
         if (model === 'custom') {
-            model = document.getElementById('custom-model-input').value;
+            model = document.getElementById('custom-model-input').value.trim() || (provider === 'gemini' ? 'gemini-3.5-flash' : 'gpt-4o');
         }
         const newModel = { provider, model };
 
@@ -2622,11 +2622,12 @@
 
     function updateSwapButtonState() {
         const swapButton = document.getElementById('swap-model-button');
-        if (currentModel && currentModel.model) {
-            swapButton.textContent = currentModel.model;
+        const activeModelName = currentModel && currentModel.model && currentModel.model.trim() !== '' ? currentModel.model : 'custom';
+        if (currentModel) {
+            swapButton.textContent = activeModelName;
             swapButton.style.display = 'flex';
             swapButton.disabled = !previousModel;
-            swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${currentModel.model}`;
+            swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${activeModelName}`;
         } else {
             swapButton.style.display = 'none';
         }
