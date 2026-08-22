@@ -779,7 +779,7 @@
 </head>
 <body>
 
-<div id="app-layout" style="height: 787.636px; top: 0px;">
+<div id="app-layout" style="height: 645.818px; top: 0px;">
     <!-- Collapsible Sidebar -->
     <div id="sidebar" class="collapsed">
         <div class="sidebar-header">
@@ -853,7 +853,7 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to gemini-3.6-flash (gemini)" style="display: flex;">gemini-3.7-flash</button>
+                <button id="swap-model-button" title="Swap to gemini-3.5-flash-lite (gemini)" style="display: flex;">gemini-3.7-flash</button>
             </div>
             
             <div class="header-right">
@@ -2590,32 +2590,41 @@
 
     function initializeModelSwap() {
         const swapButton = document.getElementById('swap-model-button');
-        swapButton.addEventListener('click', (e) => {
-            if (ignoreNextClick) {
-                ignoreNextClick = false;
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-            swapModels();
-        });
-
-        let longPressTimer;
+        let longPressTimer = null;
+        let isLongPressAction = false;
         const LONG_PRESS_MS = 600;
 
-        const startPress = (e) => {
+        const onPointerDown = (e) => {
+            isLongPressAction = false;
             longPressTimer = setTimeout(() => {
+                isLongPressAction = true;
                 showHistoryDropdown();
-                ignoreNextClick = true;
             }, LONG_PRESS_MS);
         };
-        const cancelPress = () => { clearTimeout(longPressTimer); };
 
-        swapButton.addEventListener('mousedown', startPress);
-        swapButton.addEventListener('touchstart', startPress);
-        swapButton.addEventListener('mouseup', cancelPress);
-        swapButton.addEventListener('mouseleave', cancelPress);
-        swapButton.addEventListener('touchend', cancelPress);
+        const onPointerUp = (e) => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            if (!isLongPressAction) {
+                swapModels();
+            }
+            isLongPressAction = false;
+        };
+
+        const onPointerCancel = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            isLongPressAction = false;
+        };
+
+        swapButton.addEventListener('pointerdown', onPointerDown);
+        swapButton.addEventListener('pointerup', onPointerUp);
+        swapButton.addEventListener('pointerleave', onPointerCancel);
+        swapButton.addEventListener('pointercancel', onPointerCancel);
 
         DB.get(PREVIOUS_MODEL_KEY, null).then(val => {
             previousModel = val;
@@ -2680,7 +2689,17 @@
         toggleCustomModelField();
         updateApiKeyVisibility();
         updateSwapButtonState();
-        await saveSettings();
+        
+        // Sla instellingen op zonder updateCurrentModelFromUI aan te roepen die previousModel overschrijft
+        apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
+        apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+        apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
+        await DB.set('lastUsedApiProvider', currentModel.provider);
+        if (!lastUsedModels) lastUsedModels = {};
+        lastUsedModels[currentModel.provider] = currentModel.model;
+        await DB.set('lastUsedModels', lastUsedModels);
+        updateModelHistory(currentModel.provider, currentModel.model);
+        
         showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
     }
 
