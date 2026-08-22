@@ -779,9 +779,9 @@
 </head>
 <body>
 
-<div id="app-layout" style="height: 683.636px; top: 0px;">
+<div id="app-layout" style="height: 787.636px; top: 0px;">
     <!-- Collapsible Sidebar -->
-    <div id="sidebar" class="open">
+    <div id="sidebar" class="collapsed">
         <div class="sidebar-header">
             <h2>Settings</h2>
             <button class="icon-btn" onclick="toggleSidebar()" title="Close Settings">
@@ -800,15 +800,15 @@
 
             <div class="sidebar-group">
                 <label for="model-select">Model</label>
-                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="deepseek-v4-flash">deepseek-v4-flash</option><option value="deepseek-v4-pro">deepseek-v4-pro</option><option value="deepseek-v4-flash-vision-exp">deepseek-v4-flash-vision-exp</option><option value="custom">custom</option></select>
+                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="custom">custom</option></select>
             </div>
 
-            <div class="sidebar-group hidden" id="custom-model-container">
+            <div class="sidebar-group" id="custom-model-container">
                 <label for="custom-model-input" id="custom-model-label">Custom Model Name</label>
                 <input type="text" id="custom-model-input" placeholder="Enter custom model identifier" onchange="saveSettings()">
             </div>
 
-            <div class="sidebar-group" id="grounding-label-container" style="display: none;">
+            <div class="sidebar-group" id="grounding-label-container" style="display: block;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
                     <input type="checkbox" id="enable-grounding" onchange="saveSettings()">
                     Enable Google Search Grounding
@@ -821,11 +821,11 @@
                         <label for="api-key-openai">OpenAI API Key(s)</label>
                         <textarea id="api-key-openai" rows="3" placeholder="Paste your OpenAI API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
-                    <div class="api-key-container" id="gemini-api-key-container" style="display: none;">
+                    <div class="api-key-container" id="gemini-api-key-container" style="display: block;">
                         <label for="api-key-gemini">Google API Key(s)</label>
                         <textarea id="api-key-gemini" rows="3" placeholder="Paste your Google API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
-                    <div class="api-key-container" id="deepseek-api-key-container" style="display: block;">
+                    <div class="api-key-container" id="deepseek-api-key-container" style="display: none;">
                         <label for="api-key-deepseek">DeepSeek API Key(s)</label>
                         <textarea id="api-key-deepseek" rows="3" placeholder="Paste your DeepSeek API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
@@ -853,7 +853,7 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to deepseek-v4-pro (deepseek)" style="display: flex;">deepseek-v4-flash</button>
+                <button id="swap-model-button" title="Swap to gemini-3.6-flash (gemini)" style="display: flex;">gemini-3.7-flash</button>
             </div>
             
             <div class="header-right">
