@@ -779,7 +779,7 @@
 </head>
 <body>
 
-<div id="app-layout" style="height: 645.818px; top: 0px;">
+<div id="app-layout">
     <!-- Collapsible Sidebar -->
     <div id="sidebar" class="collapsed">
         <div class="sidebar-header">
@@ -808,7 +808,7 @@
                 <input type="text" id="custom-model-input" placeholder="Enter custom model identifier" onchange="saveSettings()">
             </div>
 
-            <div class="sidebar-group" id="grounding-label-container" style="display: block;">
+            <div class="sidebar-group" id="grounding-label-container" style="display: none;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
                     <input type="checkbox" id="enable-grounding" onchange="saveSettings()">
                     Enable Google Search Grounding
@@ -817,11 +817,11 @@
 
             <div class="sidebar-group">
                 <div id="api-key-fields">
-                    <div class="api-key-container" id="openai-api-key-container" style="display: none;">
+                    <div class="api-key-container" id="openai-api-key-container" style="display: block;">
                         <label for="api-key-openai">OpenAI API Key(s)</label>
                         <textarea id="api-key-openai" rows="3" placeholder="Paste your OpenAI API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
-                    <div class="api-key-container" id="gemini-api-key-container" style="display: block;">
+                    <div class="api-key-container" id="gemini-api-key-container" style="display: none;">
                         <label for="api-key-gemini">Google API Key(s)</label>
                         <textarea id="api-key-gemini" rows="3" placeholder="Paste your Google API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
@@ -853,11 +853,11 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to gemini-3.5-flash-lite (gemini)" style="display: flex;">gemini-3.7-flash</button>
+                <button id="swap-model-button" style="display: none;"></button>
             </div>
             
             <div class="header-right">
-                <button class="icon-btn" id="clear-chat-button" title="Restore Chat" style="background-color: transparent; padding: 8px; color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"></path></svg></button>
+                <button class="icon-btn" id="clear-chat-button" title="Clear Chat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
             </div>
         </div>
 
@@ -889,17 +889,17 @@
                     <button class="attachment-trigger-btn" onclick="toggleAttachmentPopover(event)" title="Add Attachments">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
-                    <textarea id="user-input" placeholder="Type a message..." rows="1" oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false" style="height: 44px; overflow-y: hidden;"></textarea>
+                    <textarea id="user-input" placeholder="Type a message..." rows="1" oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false"></textarea>
                 </div>
                 <div class="spinner" id="loading-spinner" style="display: none;"></div>
-                <button id="send-button" title="Speak (Hold for manual input)" style="background-color: var(--accent-blue);" class=""><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg></button>
+                <button id="send-button" title="Speak (Hold for manual input)" class=""><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg></button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="model-history-dropdown"></div>
-<div id="toast-notification" class="">Swapped to gemini / gemini-3.7-flash</div>
+<div id="toast-notification" class=""></div>
 
 <!-- Core Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -988,24 +988,61 @@
     let customDeepSeekModel = "";
     function getCleanSourceCode() {
         const clone = document.documentElement.cloneNode(true);
-        // Verwijder extensie-injecties en externe script-tags geinjecteerd door de browser
+        // Verwijder browser-extensies
         clone.querySelectorAll('script[src*="chrome-extension"], script[src*="moz-extension"], [data-grammarly-part], [data-gr-ext-installed]').forEach(el => el.remove());
         
-        // Strip eventuele gevoelige gegevens uit invoervelden in de gegenereerde kloon
+        // Strip API keys en invoerwaarden
         const keysGemini = clone.querySelector('#api-key-gemini');
-        if (keysGemini) keysGemini.value = ''; keysGemini.textContent = '';
+        if (keysGemini) { keysGemini.value = ''; keysGemini.textContent = ''; }
         const keysOpenAI = clone.querySelector('#api-key-openai');
-        if (keysOpenAI) keysOpenAI.value = ''; keysOpenAI.textContent = '';
+        if (keysOpenAI) { keysOpenAI.value = ''; keysOpenAI.textContent = ''; }
         const keysDeepSeek = clone.querySelector('#api-key-deepseek');
-        if (keysDeepSeek) keysDeepSeek.value = ''; keysDeepSeek.textContent = '';
+        if (keysDeepSeek) { keysDeepSeek.value = ''; keysDeepSeek.textContent = ''; }
         const sysPrompt = clone.querySelector('#system-prompt');
-        if (sysPrompt) sysPrompt.value = ''; sysPrompt.textContent = '';
+        if (sysPrompt) { sysPrompt.value = ''; sysPrompt.textContent = ''; }
         const userInput = clone.querySelector('#user-input');
-        if (userInput) userInput.value = ''; userInput.textContent = '';
+        if (userInput) { userInput.value = ''; userInput.textContent = ''; userInput.removeAttribute('style'); }
         const chatOutput = clone.querySelector('#chat-output');
         if (chatOutput) chatOutput.innerHTML = '';
         const previewContainer = clone.querySelector('#attachment-preview-container');
         if (previewContainer) previewContainer.innerHTML = '';
+
+        // Reset dynamische DOM statussen naar standaard beginwaarden
+        const sidebar = clone.querySelector('#sidebar');
+        if (sidebar) { sidebar.className = 'collapsed'; sidebar.removeAttribute('style'); }
+        const swapBtn = clone.querySelector('#swap-model-button');
+        if (swapBtn) { swapBtn.style.display = 'none'; swapBtn.textContent = ''; swapBtn.removeAttribute('title'); swapBtn.removeAttribute('disabled'); }
+        const clearBtn = clone.querySelector('#clear-chat-button');
+        if (clearBtn) { 
+            clearBtn.removeAttribute('style'); 
+            clearBtn.title = 'Clear Chat'; 
+            clearBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+        }
+        const sendBtn = clone.querySelector('#send-button');
+        if (sendBtn) {
+            sendBtn.className = '';
+            sendBtn.removeAttribute('style');
+            sendBtn.title = 'Speak (Hold for manual input)';
+            sendBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>';
+        }
+
+        // Reset visibility containers
+        const openAiContainer = clone.querySelector('#openai-api-key-container');
+        if (openAiContainer) openAiContainer.style.display = 'block';
+        const geminiContainer = clone.querySelector('#gemini-api-key-container');
+        if (geminiContainer) geminiContainer.style.display = 'none';
+        const deepseekContainer = clone.querySelector('#deepseek-api-key-container');
+        if (deepseekContainer) deepseekContainer.style.display = 'none';
+        const groundingContainer = clone.querySelector('#grounding-label-container');
+        if (groundingContainer) groundingContainer.style.display = 'none';
+        const popover = clone.querySelector('#attachment-popover');
+        if (popover) popover.style.display = 'none';
+
+        // Reset layout & toast
+        const appLayout = clone.querySelector('#app-layout');
+        if (appLayout) appLayout.removeAttribute('style');
+        const toast = clone.querySelector('#toast-notification');
+        if (toast) { toast.textContent = ''; toast.className = ''; }
 
         return '<!DOCTYPE html>\n<html lang="' + (document.documentElement.lang || 'en') + '">' + clone.innerHTML + '</html>';
     }
@@ -1057,9 +1094,9 @@
     // Initialize application using IndexedDB persistence
     document.addEventListener("DOMContentLoaded", async function () {
         await initIndexedDBData();
-        initializeModelSwap();
-        initializeSpeechRecognition();
         await loadSettings();
+        await initializeModelSwap();
+        initializeSpeechRecognition();
         initializeClearChatButton();
         await handlePageLoadConversation();
 
@@ -1530,7 +1567,6 @@
         selectedModel = document.getElementById('model-select').value;
         toggleCustomModelField();
         updateApiKeyVisibility();
-        updateCurrentModelFromUI(true);
 
         customOpenAIModel = await DB.get('customOpenAIModel', "");
         customGeminiModel = await DB.get('customGeminiModel', "");
@@ -1544,6 +1580,7 @@
             else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
             else if (currentProvider === 'deepseek') customInput.value = customDeepSeekModel;
         }
+        await updateCurrentModelFromUI(true);
     }
 
     function setDefaultModel(provider) {
@@ -2588,63 +2625,68 @@
         }
     }
 
-    function initializeModelSwap() {
+    async function initializeModelSwap() {
         const swapButton = document.getElementById('swap-model-button');
-        let longPressTimer = null;
-        let isLongPressAction = false;
-        const LONG_PRESS_MS = 600;
+        let pressTimer = null;
+        let isLongPress = false;
+        const LONG_PRESS_MS = 500;
 
-        const onPointerDown = (e) => {
-            isLongPressAction = false;
-            longPressTimer = setTimeout(() => {
-                isLongPressAction = true;
+        previousModel = await DB.get(PREVIOUS_MODEL_KEY, null);
+        updateSwapButtonState();
+
+        const handlePressStart = (e) => {
+            if (e.type === 'touchstart') e.preventDefault();
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
                 showHistoryDropdown();
             }, LONG_PRESS_MS);
         };
 
-        const onPointerUp = (e) => {
-            if (longPressTimer) {
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
+        const handlePressEnd = (e) => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
             }
-            if (!isLongPressAction) {
+            if (e.type === 'touchend') e.preventDefault();
+            if (!isLongPress) {
                 swapModels();
             }
-            isLongPressAction = false;
+            isLongPress = false;
         };
 
-        const onPointerCancel = () => {
-            if (longPressTimer) {
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
+        const handlePressCancel = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
             }
-            isLongPressAction = false;
+            isLongPress = false;
         };
 
-        swapButton.addEventListener('pointerdown', onPointerDown);
-        swapButton.addEventListener('pointerup', onPointerUp);
-        swapButton.addEventListener('pointerleave', onPointerCancel);
-        swapButton.addEventListener('pointercancel', onPointerCancel);
-
-        DB.get(PREVIOUS_MODEL_KEY, null).then(val => {
-            previousModel = val;
-            updateSwapButtonState();
-        });
+        swapButton.addEventListener('mousedown', handlePressStart);
+        swapButton.addEventListener('touchstart', handlePressStart, { passive: false });
+        swapButton.addEventListener('mouseup', handlePressEnd);
+        swapButton.addEventListener('touchend', handlePressEnd, { passive: false });
+        swapButton.addEventListener('mouseleave', handlePressCancel);
+        swapButton.addEventListener('touchcancel', handlePressCancel);
     }
 
     async function updateCurrentModelFromUI(isInitialLoad = false) {
         const provider = document.getElementById('api-provider').value;
         let model = document.getElementById('model-select').value;
         if (model === 'custom') {
-            model = document.getElementById('custom-model-input').value.trim() || (provider === 'gemini' ? 'gemini-3.5-flash' : 'gpt-4o');
+            model = document.getElementById('custom-model-input').value.trim();
+            if (!model) {
+                model = provider === 'gemini' ? 'gemini-3.5-flash' : (provider === 'deepseek' ? 'deepseek-v4-flash' : 'gpt-4o');
+            }
         }
+        if (!model) return;
+
         const newModel = { provider, model };
 
-        if (!isInitialLoad && JSON.stringify(newModel) !== JSON.stringify(currentModel)) {
-            if (currentModel) {
-                previousModel = currentModel;
-                await DB.set(PREVIOUS_MODEL_KEY, previousModel);
-            }
+        if (!isInitialLoad && currentModel && (currentModel.provider !== newModel.provider || currentModel.model !== newModel.model)) {
+            previousModel = { ...currentModel };
+            await DB.set(PREVIOUS_MODEL_KEY, previousModel);
         }
 
         currentModel = newModel;
