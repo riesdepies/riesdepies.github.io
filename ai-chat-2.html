@@ -809,19 +809,7 @@
                 <input type="text" id="custom-model-input" placeholder="Enter custom model identifier" onchange="saveSettings()">
             </div>
 
-            <div class="sidebar-group" id="grounding-label-container" style="display: none;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
-                    <input type="checkbox" id="enable-grounding" onchange="saveSettings()">
-                    Enable Google Search Grounding
-                </label>
-            </div>
-
-            <div class="sidebar-group" id="thinking-label-container" style="display: none;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
-                    <input type="checkbox" id="enable-thinking" onchange="saveSettings()">
-                    Enable Thinking (reasoning — Gemini &amp; GLM)
-                </label>
-            </div>
+            
 
             <div class="sidebar-group">
                 <div id="api-key-fields">
@@ -1062,10 +1050,7 @@
         if (deepseekContainer) deepseekContainer.style.display = 'none';
         const zaiContainer = clone.querySelector('#zai-api-key-container');
         if (zaiContainer) zaiContainer.style.display = 'none';
-        const groundingContainer = clone.querySelector('#grounding-label-container');
-        if (groundingContainer) groundingContainer.style.display = 'none';
-        const thinkingContainer = clone.querySelector('#thinking-label-container');
-        if (thinkingContainer) thinkingContainer.style.display = 'none';
+        
         const popover = clone.querySelector('#attachment-popover');
         if (popover) popover.style.display = 'none';
 
@@ -1586,11 +1571,8 @@
         let lastUsedApiProvider = await DB.get('lastUsedApiProvider', "openai");
         document.getElementById('api-provider').value = lastUsedApiProvider;
 
-        const enableGrounding = (await DB.get('enableGrounding', 'false')) === 'true';
-        document.getElementById('enable-grounding').checked = enableGrounding;
-
-        const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
-        document.getElementById('enable-thinking').checked = enableThinking;
+        const enableGrounding = true;
+        const enableThinking = true;
 
         lastUsedModels = await DB.get('lastUsedModels', {});
 
@@ -1703,8 +1685,8 @@
         systemPrompt = document.getElementById('system-prompt').value;
         await DB.set('systemPrompt', systemPrompt);
 
-        await DB.set('enableGrounding', document.getElementById('enable-grounding').checked);
-        await DB.set('enableThinking', document.getElementById('enable-thinking').checked);
+        await DB.set('enableGrounding', true);
+        await DB.set('enableThinking', true);
 
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModelValue = document.getElementById('model-select').value;
@@ -1938,8 +1920,8 @@
                     // Thinking-instelling (gedeeld met Z.AI via 'Enable Thinking'):
                     //   aan  -> thinkingBudget: -1 (dynamisch denken)
                     //   uit  -> thinkingBudget: 0  (volledige output-budget gaat naar het antwoord)
-                    const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
-                    const enableGrounding = (await DB.get('enableGrounding', 'false')) === 'true';
+                    const enableThinking = true;
+                    const enableGrounding = true;
 
                     const buildRequestBody = (contents, thinkingBudgetOverride) => {
                         const body = {
@@ -2105,12 +2087,12 @@
                     }
 
                     // ---------- Automatisch doorstreamen bij MAX_TOKENS (afgekapt antwoord) ----------
-                    const MAX_CONTINUATIONS = 5;
+                    const MAX_CONTINUATIONS = 3;
                     let continuationCount = 0;
                     while (finishReason === 'MAX_TOKENS' && fullText.trim() && continuationCount < MAX_CONTINUATIONS) {
                         continuationCount++;
                         showToast(`Antwoord afgekapt door de tokenlimiet - wordt automatisch vervolgd (${continuationCount}/${MAX_CONTINUATIONS})...`);
-                        logToConsole(`MAX_TOKENS gedetecteerd - vervolgverzoek ${continuationCount}/${MAX_CONTINUATIONS} (thinking gedeactiveerd voor maximaal token-budget)...`);
+                        logToConsole(`MAX_TOKENS gedetecteerd - vervolgverzoek ${continuationCount}/${MAX_CONTINUATIONS}...`);
                         const continuationContents = [
                             ...geminiApiContents,
                             { "role": "model", "parts": [{ "text": fullText }] },
@@ -2118,8 +2100,7 @@
                         ];
                         finishReason = null;
                         try {
-                            // thinkingBudgetOverride = 0 dwingt af dat geen tokens verloren gaan aan redeneren tijdens het vervolg
-                            await streamGeminiRequest(continuationContents, 0, false);
+                            await streamGeminiRequest(continuationContents, undefined, false);
                         } catch (e) {
                             if (e.name === 'AbortError') throw e;
                             logErrorToConsole(`Vervolgverzoek mislukt: ${e.message}`);
@@ -2235,8 +2216,8 @@
                 else if (provider === 'zai') {
                     const endpointUrl = "https://api.z.ai/api/paas/v4/chat/completions";
 
-                    // GLM-5.3 / GLM-5.3-FLASH: thinking kan alleen 'enabled'
-                    const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
+                    // GLM-5.3 / GLM-5.3-FLASH & Z.AI: thinking altijd aan
+                    const enableThinking = true;
                     const modelLower = (modelToUse || '').toLowerCase();
                     const extraBody = {
                         thinking: { type: modelLower.startsWith('glm-5.3') ? 'enabled' : (enableThinking ? 'enabled' : 'disabled') }
@@ -2892,19 +2873,7 @@
         const targetContainer = document.getElementById(`${provider}-api-key-container`);
         if (targetContainer) targetContainer.style.display = 'block';
 
-        const groundingLabel = document.getElementById('grounding-label-container');
-        if (provider === 'gemini') {
-            groundingLabel.style.display = 'block';
-        } else {
-            groundingLabel.style.display = 'none';
-        }
-
-        const thinkingLabel = document.getElementById('thinking-label-container');
-        if (provider === 'zai' || provider === 'gemini') {
-            thinkingLabel.style.display = 'block';
-        } else {
-            thinkingLabel.style.display = 'none';
-        }
+        // Grounding en Thinking toggles permanent verwijderd
     }
 
     async function initializeModelSwap() {
