@@ -776,12 +776,10 @@
             display: none !important;
         }
     </style>
-<link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2b5278">
 </head>
 <body>
 
-<div id="app-layout" style="height: 787.636px; top: 0px;">
+<div id="app-layout">
     <!-- Collapsible Sidebar -->
     <div id="sidebar" class="collapsed">
         <div class="sidebar-header">
@@ -796,12 +794,14 @@
                 <select id="api-provider" onchange="updateModelOptions(); saveSettings();">
                     <option value="openai">OpenAI</option>
                     <option value="gemini">Google Gemini</option>
+                    <option value="deepseek">DeepSeek</option>
+                    <option value="zai">Z.AI (GLM)</option>
                 </select>
             </div>
 
             <div class="sidebar-group">
                 <label for="model-select">Model</label>
-                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="custom">custom</option></select>
+                <select id="model-select" onchange="toggleCustomModelField(); saveSettings();"><option value="gemini-3.5-flash">gemini-3.5-flash</option><option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite</option><option value="gemini-3.6-flash">gemini-3.6-flash</option><option value="gemini-3.7-flash">gemini-3.7-flash</option><option value="gemini-3.8-flash">gemini-3.8-flash</option><option value="custom">custom</option></select>
             </div>
 
             <div class="sidebar-group hidden" id="custom-model-container">
@@ -809,22 +809,37 @@
                 <input type="text" id="custom-model-input" placeholder="Enter custom model identifier" onchange="saveSettings()">
             </div>
 
-            <div class="sidebar-group" id="grounding-label-container" style="display: block;">
+            <div class="sidebar-group" id="grounding-label-container" style="display: none;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
                     <input type="checkbox" id="enable-grounding" onchange="saveSettings()">
                     Enable Google Search Grounding
                 </label>
             </div>
 
+            <div class="sidebar-group" id="thinking-label-container" style="display: none;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; text-transform: none;">
+                    <input type="checkbox" id="enable-thinking" onchange="saveSettings()">
+                    Enable Thinking (reasoning — Gemini &amp; GLM)
+                </label>
+            </div>
+
             <div class="sidebar-group">
                 <div id="api-key-fields">
-                    <div class="api-key-container" id="openai-api-key-container" style="display: none;">
+                    <div class="api-key-container" id="openai-api-key-container" style="display: block;">
                         <label for="api-key-openai">OpenAI API Key(s)</label>
                         <textarea id="api-key-openai" rows="3" placeholder="Paste your OpenAI API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
-                    <div class="api-key-container" id="gemini-api-key-container" style="display: block;">
+                    <div class="api-key-container" id="gemini-api-key-container" style="display: none;">
                         <label for="api-key-gemini">Google API Key(s)</label>
                         <textarea id="api-key-gemini" rows="3" placeholder="Paste your Google API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
+                    </div>
+                    <div class="api-key-container" id="deepseek-api-key-container" style="display: none;">
+                        <label for="api-key-deepseek">DeepSeek API Key(s)</label>
+                        <textarea id="api-key-deepseek" rows="3" placeholder="Paste your DeepSeek API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
+                    </div>
+                    <div class="api-key-container" id="zai-api-key-container" style="display: none;">
+                        <label for="api-key-zai">Z.AI API Key(s)</label>
+                        <textarea id="api-key-zai" rows="3" placeholder="Paste your Z.AI API key(s) here" onchange="saveSettings()" autocomplete="off" spellcheck="false"></textarea>
                     </div>
                 </div>
             </div>
@@ -850,11 +865,11 @@
                 <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar/Settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <button id="swap-model-button" title="Swap to gemini-3.5-flash-lite (gemini)" style="display: flex;">gemini-3.6-flash</button>
+                <button id="swap-model-button" style="display: none;"></button>
             </div>
             
             <div class="header-right">
-                <button class="icon-btn" id="clear-chat-button" title="Restore Chat" style="background-color: transparent; padding: 8px; color: var(--text-secondary);"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"></path></svg></button>
+                <button class="icon-btn" id="clear-chat-button" title="Clear Chat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg></button>
             </div>
         </div>
 
@@ -886,17 +901,17 @@
                     <button class="attachment-trigger-btn" onclick="toggleAttachmentPopover(event)" title="Add Attachments">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
-                    <textarea id="user-input" placeholder="Type a message..." rows="1" oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false" style="height: 44px; overflow-y: hidden;"></textarea>
+                    <textarea id="user-input" placeholder="Type a message..." rows="1" oninput="handleUserInput()" onkeydown="handleEnter(event)" autocomplete="off" spellcheck="false"></textarea>
                 </div>
                 <div class="spinner" id="loading-spinner" style="display: none;"></div>
-                <button id="send-button" title="Speak (Hold for manual input)" style="background-color: var(--accent-blue);" class=""><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg></button>
+                <button id="send-button" title="Speak (Hold for manual input)" class=""><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg></button>
             </div>
         </div>
     </div>
 </div>
 
 <div id="model-history-dropdown"></div>
-<div id="toast-notification" class="">Key failed. Trying API Key 3...</div>
+<div id="toast-notification" class=""></div>
 
 <!-- Core Scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
@@ -972,7 +987,19 @@
     }
 
     // --- STATE MANAGER ---
-    let apiKeys = { gemini: [], openai: [] };
+    let apiKeys = { gemini: [], openai: [], deepseek: [], zai: [] };
+
+    // Per-model configuratie voor Gemini: outputlimiet + thinking-ondersteuning.
+    // NB: denk-tokens tellen mee binnen maxOutputTokens; bij MAX_TOKENS volgt
+    // automatisch een vervolgverzoek, en de 'Enable Thinking'-schakelaar (ook
+    // zichtbaar voor Gemini) bepaalt of thinking-budget wordt gebruikt.
+    const GEMINI_MODEL_CONFIG = {
+        'gemini-3.5-flash':      { maxOutputTokens: 65536, supportsThinking: true },
+        'gemini-3.5-flash-lite': { maxOutputTokens: 65536, supportsThinking: true },
+        'gemini-3.6-flash':      { maxOutputTokens: 65536, supportsThinking: true },
+        'gemini-3.7-flash':      { maxOutputTokens: 65536, supportsThinking: true },
+        'gemini-3.8-flash':      { maxOutputTokens: 65536, supportsThinking: true }
+    };
     let currentApiKeyIndex = 0;
     let systemPrompt = "";
     let conversationHistory = [];
@@ -982,24 +1009,71 @@
     let lastUsedModels = {};
     let customGeminiModel = "";
     let customOpenAIModel = "";
+    let customDeepSeekModel = "";
+    let customZaiModel = "";
     function getCleanSourceCode() {
         const clone = document.documentElement.cloneNode(true);
-        // Verwijder extensie-injecties en externe script-tags geinjecteerd door de browser
+        // Verwijder browser-extensies
         clone.querySelectorAll('script[src*="chrome-extension"], script[src*="moz-extension"], [data-grammarly-part], [data-gr-ext-installed]').forEach(el => el.remove());
         
-        // Strip eventuele gevoelige gegevens uit invoervelden in de gegenereerde kloon
+        // Strip API keys en invoerwaarden
         const keysGemini = clone.querySelector('#api-key-gemini');
-        if (keysGemini) keysGemini.value = ''; keysGemini.textContent = '';
+        if (keysGemini) { keysGemini.value = ''; keysGemini.textContent = ''; }
         const keysOpenAI = clone.querySelector('#api-key-openai');
-        if (keysOpenAI) keysOpenAI.value = ''; keysOpenAI.textContent = '';
+        if (keysOpenAI) { keysOpenAI.value = ''; keysOpenAI.textContent = ''; }
+        const keysDeepSeek = clone.querySelector('#api-key-deepseek');
+        if (keysDeepSeek) { keysDeepSeek.value = ''; keysDeepSeek.textContent = ''; }
+        const keysZai = clone.querySelector('#api-key-zai');
+        if (keysZai) { keysZai.value = ''; keysZai.textContent = ''; }
         const sysPrompt = clone.querySelector('#system-prompt');
-        if (sysPrompt) sysPrompt.value = ''; sysPrompt.textContent = '';
+        if (sysPrompt) { sysPrompt.value = ''; sysPrompt.textContent = ''; }
         const userInput = clone.querySelector('#user-input');
-        if (userInput) userInput.value = ''; userInput.textContent = '';
+        if (userInput) { userInput.value = ''; userInput.textContent = ''; userInput.removeAttribute('style'); }
         const chatOutput = clone.querySelector('#chat-output');
         if (chatOutput) chatOutput.innerHTML = '';
         const previewContainer = clone.querySelector('#attachment-preview-container');
         if (previewContainer) previewContainer.innerHTML = '';
+
+        // Reset dynamische DOM statussen naar standaard beginwaarden
+        const sidebar = clone.querySelector('#sidebar');
+        if (sidebar) { sidebar.className = 'collapsed'; sidebar.removeAttribute('style'); }
+        const swapBtn = clone.querySelector('#swap-model-button');
+        if (swapBtn) { swapBtn.style.display = 'none'; swapBtn.textContent = ''; swapBtn.removeAttribute('title'); swapBtn.removeAttribute('disabled'); }
+        const clearBtn = clone.querySelector('#clear-chat-button');
+        if (clearBtn) { 
+            clearBtn.removeAttribute('style'); 
+            clearBtn.title = 'Clear Chat'; 
+            clearBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"></path></svg>';
+        }
+        const sendBtn = clone.querySelector('#send-button');
+        if (sendBtn) {
+            sendBtn.className = '';
+            sendBtn.removeAttribute('style');
+            sendBtn.title = 'Speak (Hold for manual input)';
+            sendBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"></path><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"></path></svg>';
+        }
+
+        // Reset visibility containers
+        const openAiContainer = clone.querySelector('#openai-api-key-container');
+        if (openAiContainer) openAiContainer.style.display = 'block';
+        const geminiContainer = clone.querySelector('#gemini-api-key-container');
+        if (geminiContainer) geminiContainer.style.display = 'none';
+        const deepseekContainer = clone.querySelector('#deepseek-api-key-container');
+        if (deepseekContainer) deepseekContainer.style.display = 'none';
+        const zaiContainer = clone.querySelector('#zai-api-key-container');
+        if (zaiContainer) zaiContainer.style.display = 'none';
+        const groundingContainer = clone.querySelector('#grounding-label-container');
+        if (groundingContainer) groundingContainer.style.display = 'none';
+        const thinkingContainer = clone.querySelector('#thinking-label-container');
+        if (thinkingContainer) thinkingContainer.style.display = 'none';
+        const popover = clone.querySelector('#attachment-popover');
+        if (popover) popover.style.display = 'none';
+
+        // Reset layout & toast
+        const appLayout = clone.querySelector('#app-layout');
+        if (appLayout) appLayout.removeAttribute('style');
+        const toast = clone.querySelector('#toast-notification');
+        if (toast) { toast.textContent = ''; toast.className = ''; }
 
         return '<!DOCTYPE html>\n<html lang="' + (document.documentElement.lang || 'en') + '">' + clone.innerHTML + '</html>';
     }
@@ -1051,31 +1125,11 @@
     // Initialize application using IndexedDB persistence
     document.addEventListener("DOMContentLoaded", async function () {
         await initIndexedDBData();
-        initializeModelSwap();
-        initializeSpeechRecognition();
         await loadSettings();
+        await initializeModelSwap();
+        initializeSpeechRecognition();
         initializeClearChatButton();
         await handlePageLoadConversation();
-
-        // --- PWA & SERVICE WORKER INTEGRATIE ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.error('SW Error:', err));
-        }
-
-        async function checkAndProcessSharedFiles() {
-            try {
-                const sharedData = await DB.get('pendingSharedFiles', null);
-                if (sharedData && Array.isArray(sharedData) && sharedData.length > 0) {
-                    for (const fileObj of sharedData) {
-                        addAttachment(fileObj.name, fileObj.content, fileObj.type, fileObj.isBase64);
-                    }
-                    await DB.remove('pendingSharedFiles');
-                    showToast("Gedeelde bestand(en) ingeladen!");
-                }
-            } catch(e) { console.error("Error processing shared files:", e); }
-        }
-        checkAndProcessSharedFiles();
-        
 
         adjustTextareaAndButtonHeight();
 
@@ -1298,7 +1352,7 @@
         } else {
             const stillEditingDiv = document.querySelector(`.message.editing`);
             if(stillEditingDiv) stillEditingDiv.classList.remove('editing');
-            const stillEditableSpan = stillEditingDiv ? stillEditableSpan.querySelector('.editable[contenteditable="true"]') : null;
+            const stillEditableSpan = stillEditingDiv ? stillEditingDiv.querySelector('.editable[contenteditable="true"]') : null;
             if(stillEditableSpan) stillEditableSpan.setAttribute('contenteditable', 'false');
             editIndex = null;
             toggleSendButton();
@@ -1513,12 +1567,18 @@
     async function loadSettings() {
         const loadedKeysGemini = await DB.get('apiKeyGemini', "");
         const loadedKeysOpenAI = await DB.get('apiKeyOpenAI', "");
+        const loadedKeysDeepSeek = await DB.get('apiKeyDeepSeek', "");
+        const loadedKeysZai = await DB.get('apiKeyZai', "");
         
         apiKeys.gemini = parseApiKeys(loadedKeysGemini, 'gemini');
         apiKeys.openai = parseApiKeys(loadedKeysOpenAI, 'openai');
+        apiKeys.deepseek = parseApiKeys(loadedKeysDeepSeek, 'deepseek');
+        apiKeys.zai = parseApiKeys(loadedKeysZai, 'zai');
         
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+        document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
+        document.getElementById('api-key-zai').value = apiKeys.zai.join('\n\n');
         
         systemPrompt = await DB.get('systemPrompt', "");
         document.getElementById('system-prompt').value = systemPrompt;
@@ -1528,6 +1588,9 @@
 
         const enableGrounding = (await DB.get('enableGrounding', 'false')) === 'true';
         document.getElementById('enable-grounding').checked = enableGrounding;
+
+        const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
+        document.getElementById('enable-thinking').checked = enableThinking;
 
         lastUsedModels = await DB.get('lastUsedModels', {});
 
@@ -1541,10 +1604,11 @@
         selectedModel = document.getElementById('model-select').value;
         toggleCustomModelField();
         updateApiKeyVisibility();
-        updateCurrentModelFromUI(true);
 
         customOpenAIModel = await DB.get('customOpenAIModel', "");
         customGeminiModel = await DB.get('customGeminiModel', "");
+        customDeepSeekModel = await DB.get('customDeepSeekModel', "");
+        customZaiModel = await DB.get('customZaiModel', "");
 
         const currentProvider = document.getElementById('api-provider').value;
         const currentModelSelect = document.getElementById('model-select');
@@ -1552,14 +1616,17 @@
             const customInput = document.getElementById('custom-model-input');
             if (currentProvider === 'openai') customInput.value = customOpenAIModel;
             else if (currentProvider === 'gemini') customInput.value = customGeminiModel;
+            else if (currentProvider === 'deepseek') customInput.value = customDeepSeekModel;
+            else if (currentProvider === 'zai') customInput.value = customZaiModel;
         }
+        await updateCurrentModelFromUI(true);
     }
 
     function setDefaultModel(provider) {
         const modelSelect = document.getElementById('model-select');
         let defaultModel = "";
         const providerDefaultModels = {
-            gemini: 'gemini-3.5-flash', openai: 'gpt-4o'
+            gemini: 'gemini-3.5-flash', openai: 'gpt-4o', deepseek: 'deepseek-v4-flash', zai: 'glm-5.3-flash'
         };
         defaultModel = providerDefaultModels[provider] || "custom";
         if (!lastUsedModels) lastUsedModels = {};
@@ -1577,11 +1644,15 @@
     
     function parseApiKeys(input, provider) {
         let regex;
-        if (provider === 'openai') { 
-            regex = /sk-[a-zA-Z0-9_-]{30,160}/g; 
+        if (provider === 'openai' || provider === 'deepseek') { 
+            regex = /sk-[a-zA-Z0-9_-]{20,160}/g; 
         }
         else if (provider === 'gemini') { 
             regex = /AIzaSy[A-Za-z0-9_-]{33}/g; 
+        }
+        else if (provider === 'zai') {
+            // Z.AI keys: "{id}.{secret}" (soms sk-voorvoegsel)
+            regex = /(?:[a-zA-Z0-9_-]{6,}\.[a-zA-Z0-9_-]{12,}|sk-[a-zA-Z0-9_-]{20,160})/g;
         }
         else { return []; }
         const matches = input.match(regex) || [];
@@ -1616,17 +1687,24 @@
 
         apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
         apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+        apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
+        apiKeys.zai = parseApiKeys(document.getElementById('api-key-zai').value, 'zai');
         
         await DB.set('apiKeyGemini', apiKeys.gemini.join('\n\n'));
         await DB.set('apiKeyOpenAI', apiKeys.openai.join('\n\n'));
+        await DB.set('apiKeyDeepSeek', apiKeys.deepseek.join('\n\n'));
+        await DB.set('apiKeyZai', apiKeys.zai.join('\n\n'));
 
         document.getElementById('api-key-gemini').value = apiKeys.gemini.join('\n\n');
         document.getElementById('api-key-openai').value = apiKeys.openai.join('\n\n');
+        document.getElementById('api-key-deepseek').value = apiKeys.deepseek.join('\n\n');
+        document.getElementById('api-key-zai').value = apiKeys.zai.join('\n\n');
 
         systemPrompt = document.getElementById('system-prompt').value;
         await DB.set('systemPrompt', systemPrompt);
 
         await DB.set('enableGrounding', document.getElementById('enable-grounding').checked);
+        await DB.set('enableThinking', document.getElementById('enable-thinking').checked);
 
         let currentProvider = document.getElementById('api-provider').value;
         let selectedModelValue = document.getElementById('model-select').value;
@@ -1640,6 +1718,8 @@
             } else {
                 if (currentProvider === 'openai') { customOpenAIModel = customModelInputValue; await DB.set('customOpenAIModel', customOpenAIModel); }
                 else if (currentProvider === 'gemini') { customGeminiModel = customModelInputValue; await DB.set('customGeminiModel', customGeminiModel); }
+                else if (currentProvider === 'deepseek') { customDeepSeekModel = customModelInputValue; await DB.set('customDeepSeekModel', customDeepSeekModel); }
+                else if (currentProvider === 'zai') { customZaiModel = customModelInputValue; await DB.set('customZaiModel', customZaiModel); }
             }
         }
         if (!lastUsedModels) lastUsedModels = {};
@@ -1837,161 +1917,262 @@
                     }
                     geminiApiContents.push({ "role": "user", "parts": [{"text": userInput}]});
 
-                    let requestBody = {
-                        "systemInstruction": { "parts": [{"text": systemPrompt }] },
-                        "contents": geminiApiContents
-                    };
-
-                    const enableGrounding = (await DB.get('enableGrounding', 'false')) === 'true';
-                    if (enableGrounding) {
-                        requestBody.tools = [{"googleSearch": {}}];
+                    if (conversationHistory[conversationHistory.length - 1]?.localAttachments?.length > 0) {
+                        const lastUserMsg = geminiApiContents[geminiApiContents.length - 1];
+                        conversationHistory[conversationHistory.length - 1].localAttachments.forEach(att => {
+                            if (att.isBase64 && typeof att.content === 'string' && att.content.includes(',')) {
+                                const base64Data = att.content.split(',')[1];
+                                lastUserMsg.parts.push({
+                                    inlineData: {
+                                        mimeType: att.type,
+                                        data: base64Data
+                                    }
+                                });
+                            }
+                        });
                     }
 
-                    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}&alt=sse`, {
-                        method: 'POST', headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(requestBody),
-                        signal: currentAbortController.signal
-                    });
+                    // ---------- Per-model configuratie ----------
+                    const modelConfig = GEMINI_MODEL_CONFIG[modelToUse] || { maxOutputTokens: 65536, supportsThinking: true };
 
-                    if (!response.ok) {
-                        const errorText = await response.text(); 
-                        currentApiKeyIndex++;
-                        if (currentApiKeyIndex < apiKeyArray.length) {
-                            showToast(`Key failed. Trying API Key ${currentApiKeyIndex + 1}...`);
-                            await tryNextApiKey(userInput, provider);
-                        } else { 
-                            document.getElementById('loading-spinner').style.display = 'none'; 
-                            logErrorToConsole(`Gemini API Error: ${errorText}`); 
-                            currentApiKeyIndex = 0;
+                    // Thinking-instelling (gedeeld met Z.AI via 'Enable Thinking'):
+                    //   aan  -> thinkingBudget: -1 (dynamisch denken)
+                    //   uit  -> thinkingBudget: 0  (volledige output-budget gaat naar het antwoord)
+                    const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
+                    const enableGrounding = (await DB.get('enableGrounding', 'false')) === 'true';
+
+                    const buildRequestBody = (contents, thinkingBudgetOverride) => {
+                        const body = {
+                            "systemInstruction": { "parts": [{"text": systemPrompt }] },
+                            "contents": contents,
+                            "generationConfig": {
+                                "maxOutputTokens": modelConfig.maxOutputTokens
+                            }
+                        };
+                        if (modelConfig.supportsThinking) {
+                            const budget = (thinkingBudgetOverride !== undefined) ? thinkingBudgetOverride : (enableThinking ? -1 : 0);
+                            body.generationConfig.thinkingConfig = { "thinkingBudget": budget };
                         }
-                        return;
-                    } else {
-                        const reader = response.body.getReader(); 
-                        const decoder = new TextDecoder();
-                        let buffer = ''; 
-                        let fullText = '';
-                        let partialMessageElement = null;
-                        let allChunks = [];
-                        let lastRenderTime = 0;
+                        if (enableGrounding) {
+                            body.tools = [{"googleSearch": {}}];
+                        }
+                        return body;
+                    };
 
-                        const chatOutput = document.getElementById('chat-output');
+                    // ---------- Gedeelde streaming-state (blijft bestaan over vervolgverzoeken) ----------
+                    const chatOutput = document.getElementById('chat-output');
+                    const CONTINUATION_PROMPT = "Je vorige antwoord werd afgekapt door de output-tokenlimiet. Ga EXACT verder waar je gestopt bent. Herhaal geen tekst, voeg geen inleiding toe en begin niet opnieuw - zet het antwoord naadloos voort (ook midden in een zin of codeblok) en maak het volledig af.";
+                    let fullText = '';
+                    let reasoningText = '';
+                    let partialMessageElement = null;
+                    let partialReasoningEl = null;
+                    let allChunks = [];
+                    let lastRenderTime = 0;
+                    let lastReasoningRender = 0;
+                    let finishReason = null;
+                    let streamError = null;
+                    let groundingChunks = null;
+
+                    const ensurePartialUI = () => {
+                        if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
+                        return partialMessageElement;
+                    };
+
+                    const renderPartial = () => {
+                        if (!partialMessageElement) return;
+                        const editableInPartial = partialMessageElement.querySelector('.editable');
+                        if (editableInPartial) {
+                            const now = Date.now();
+                            if (now - lastRenderTime > 150) {
+                                editableInPartial.innerHTML = marked.parse(fullText.trim(), { breaks: true });
+                                Prism.highlightAllUnder(editableInPartial);
+                                lastRenderTime = now;
+                            }
+                        }
+                    };
+
+                    const appendReasoningUI = () => {
+                        if (!reasoningText) return;
+                        const pm = ensurePartialUI();
+                        if (!partialReasoningEl) {
+                            partialReasoningEl = document.createElement('div');
+                            partialReasoningEl.className = 'reasoning-container';
+                            partialReasoningEl.innerHTML = `
+                                <div class="reasoning-container-header">
+                                    <span style="display:flex; align-items:center; gap:6px;">${ICONS.brain} Thinking...</span>
+                                    <svg class="reasoning-container-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="reasoning-content"></div>`;
+                            pm.insertBefore(partialReasoningEl, pm.firstChild);
+                        }
+                        const now = Date.now();
+                        if (now - lastReasoningRender > 150) {
+                            const rc = partialReasoningEl.querySelector('.reasoning-content');
+                            if (rc) rc.innerHTML = marked.parse(reasoningText.trim(), { breaks: true });
+                            chatOutput.scrollTop = chatOutput.scrollHeight;
+                            lastReasoningRender = now;
+                        }
+                    };
+
+                    const processSseData = (jsonStr) => {
+                        if (!jsonStr || jsonStr === '[DONE]') return;
+                        try {
+                            const json = JSON.parse(jsonStr);
+                            allChunks.push(json);
+                            if (json?.error) {
+                                streamError = json.error.message || JSON.stringify(json.error);
+                            }
+                            const candidate = json?.candidates?.[0];
+                            if (candidate?.finishReason) finishReason = candidate.finishReason;
+                            if (candidate?.groundingMetadata?.groundingChunks) {
+                                groundingChunks = candidate.groundingMetadata.groundingChunks;
+                            }
+                            const parts = candidate?.content?.parts || [];
+                            // Reasoning ('thought')-parts NOOIT aan het antwoord toevoegen;
+                            // apart verzamelen en live in het Thinking-paneel tonen.
+                            const thoughtText = parts.filter(p => p.thought).map(p => p.text || '').join('');
+                            const answerText = parts.filter(p => !p.thought).map(p => p.text || '').join('');
+                            if (thoughtText) { reasoningText += thoughtText; appendReasoningUI(); }
+                            if (answerText) { fullText += answerText; ensurePartialUI(); renderPartial(); }
+                        } catch (e) {
+                            // Silent stream recovery
+                        }
+                    };
+
+                    const streamGeminiRequest = async (contents, thinkingBudgetOverride, isFirstCall) => {
+                        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:streamGenerateContent?key=${apiKey}&alt=sse`, {
+                            method: 'POST', headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(buildRequestBody(contents, thinkingBudgetOverride)),
+                            signal: currentAbortController.signal
+                        });
+
+                        if (!resp.ok) {
+                            const errorText = await resp.text();
+                            if (!isFirstCall) throw new Error(`Gemini API Error: ${errorText}`);
+                            // Eerste aanroep: bestaand gedrag - volgende API key proberen
+                            currentApiKeyIndex++;
+                            if (currentApiKeyIndex < apiKeyArray.length) {
+                                showToast(`Key failed. Trying API Key ${currentApiKeyIndex + 1}...`);
+                                await tryNextApiKey(userInput, provider);
+                            } else {
+                                document.getElementById('loading-spinner').style.display = 'none';
+                                logErrorToConsole(`Gemini API Error: ${errorText}`);
+                                currentApiKeyIndex = 0;
+                            }
+                            return false;
+                        }
+
+                        const reader = resp.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
 
                         while (true) {
                             const {value, done} = await reader.read();
                             if (done) break;
-                            const chunk = decoder.decode(value, {stream: true});
-                            buffer += chunk;
+                            buffer += decoder.decode(value, {stream: true});
                             const lines = buffer.split('\n');
                             buffer = lines.pop();
-
                             for (let line of lines) {
                                 if (line.trim().startsWith('data:')) {
-                                    const jsonStr = line.trim().substring(5).trim();
-                                    if (jsonStr === '[DONE]') continue;
-                                    if (!jsonStr) continue;
-
-                                    try {
-                                        const json = JSON.parse(jsonStr);
-                                        allChunks.push(json);
-                                        const parts = json?.candidates?.[0]?.content?.parts || [];
-                                        const text = parts.map(p => p.text || '').join('');
-
-                                        if (text) {
-                                            fullText += text;
-
-                                            if (!partialMessageElement) {
-                                                partialMessageElement = displayPartialMessage('', 'assistant');
-                                            }
-
-                                            const editableInPartial = partialMessageElement.querySelector('.editable');
-                                            if (editableInPartial) {
-                                                const now = Date.now();
-                                                if (now - lastRenderTime > 150) {
-                                                    editableInPartial.innerHTML = marked.parse(fullText.trim(), { breaks: true });
-                                                    Prism.highlightAllUnder(editableInPartial);
-                                                    lastRenderTime = now;
-                                                }
-                                            }
-                                        }
-                                    } catch (e) {
-                                        // Silent stream recovery
-                                    }
+                                    processSseData(line.trim().substring(5).trim());
                                 }
                             }
                         }
-                        
                         if (buffer.trim().startsWith('data:')) {
-                            const jsonStr = buffer.trim().substring(5).trim();
-                            if (jsonStr !== '[DONE]' && jsonStr) {
-                                try {
-                                    const json = JSON.parse(jsonStr);
-                                    const parts = json?.candidates?.[0]?.content?.parts || [];
-                                    const text = parts.map(p => p.text || '').join('');
-                                    if (text) fullText += text;
-                                } catch (e) {}
-                            }
+                            processSseData(buffer.trim().substring(5).trim());
                         }
+                        return true;
+                    };
 
-                        let reasoningContent = null;
-                        let mainContent = fullText;
-                        const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/;
-                        const thinkMatch = fullText.match(thinkRegex);
-                        if (thinkMatch) {
-                            const matchIndex = thinkMatch.index;
-                            const textBefore = fullText.substring(0, matchIndex);
-                            const backticksBefore = (textBefore.match(/```/g) || []).length;
+                    // ---------- 1e verzoek ----------
+                    const firstCallOk = await streamGeminiRequest(geminiApiContents, undefined, true);
+                    if (!firstCallOk) return;
 
-                            if (backticksBefore % 2 === 0) {
-                                reasoningContent = thinkMatch[1].trim();
-                                mainContent = fullText.replace(thinkRegex, '').trim();
-                            }
+                    // Tokenbudget volledig opgebrand tijdens het denken (geen tekst ontvangen)?
+                    // -> 1x opnieuw zonder thinking zodat het antwoord in het budget past.
+                    if (!fullText.trim() && finishReason === 'MAX_TOKENS' && enableThinking && modelConfig.supportsThinking) {
+                        logToConsole("MAX_TOKENS zonder antwoord (budget ging op aan thinking) - nieuwe poging zonder thinking...");
+                        showToast("Tokenlimiet bereikt tijdens het denken - nieuwe poging zonder thinking...");
+                        finishReason = null; streamError = null; allChunks = [];
+                        try {
+                            await streamGeminiRequest(geminiApiContents, 0, false);
+                        } catch (e) {
+                            if (e.name === 'AbortError') throw e;
+                            logErrorToConsole(`Retry zonder thinking mislukt: ${e.message}`);
                         }
-
-                        if(partialMessageElement) partialMessageElement.remove();
-
-                        let groundingChunks = null;
-                        let streamError = null;
-                        let finishReason = null;
-
-                        for (let chunk of allChunks) {
-                            if (chunk?.error) {
-                                streamError = chunk.error.message || JSON.stringify(chunk.error);
-                            }
-                            const candidate = chunk?.candidates?.[0];
-                            if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
-                                finishReason = candidate.finishReason;
-                            }
-                            if (candidate?.groundingMetadata?.groundingChunks) {
-                                groundingChunks = candidate.groundingMetadata.groundingChunks;
-                            }
-                        }
-
-                        if (!mainContent.trim() && !reasoningContent) {
-                            if (streamError) {
-                                mainContent = `[API Fout: ${streamError}]`;
-                            } else if (finishReason) {
-                                mainContent = `[Geen tekst ontvangen: ${finishReason}]`;
-                            } else {
-                                mainContent = "[Lege reactie ontvangen van de API]";
-                            }
-                        }
-
-                        conversationHistory.push({
-                            role: "assistant",
-                            content: mainContent.trim(),
-                            reasoning: reasoningContent,
-                            sources: groundingChunks
-                        });
-
-                        displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, groundingChunks);
-                        chatOutput.scrollTop = chatOutput.scrollHeight;
-                        document.getElementById('loading-spinner').style.display = 'none'; 
-                        await saveFullConversation();
-                        playNotificationSound();
                     }
+
+                    // ---------- Automatisch doorstreamen bij MAX_TOKENS (afgekapt antwoord) ----------
+                    const MAX_CONTINUATIONS = 3;
+                    let continuationCount = 0;
+                    while (finishReason === 'MAX_TOKENS' && fullText.trim() && continuationCount < MAX_CONTINUATIONS) {
+                        continuationCount++;
+                        showToast(`Antwoord afgekapt door de tokenlimiet - wordt automatisch vervolgd (${continuationCount}/${MAX_CONTINUATIONS})...`);
+                        logToConsole(`MAX_TOKENS gedetecteerd - vervolgverzoek ${continuationCount}/${MAX_CONTINUATIONS}...`);
+                        const continuationContents = [
+                            ...geminiApiContents,
+                            { "role": "model", "parts": [{ "text": fullText }] },
+                            { "role": "user", "parts": [{ "text": CONTINUATION_PROMPT }] }
+                        ];
+                        finishReason = null;
+                        try {
+                            await streamGeminiRequest(continuationContents, undefined, false);
+                        } catch (e) {
+                            if (e.name === 'AbortError') throw e;
+                            logErrorToConsole(`Vervolgverzoek mislukt: ${e.message}`);
+                            break; // Netwerk/API-fout: behoud het deel dat er al staat
+                        }
+                    }
+                    if (finishReason === 'MAX_TOKENS') {
+                        logErrorToConsole(`Antwoord nog steeds afgekapt na ${MAX_CONTINUATIONS} vervolgverzoeken (MAX_TOKENS).`);
+                    }
+
+                    // ---------- Reasoning-afhandeling (incl. <think>-fallback) ----------
+                    let reasoningContent = reasoningText.trim() || null;
+                    let mainContent = fullText;
+                    const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/;
+                    const thinkMatch = fullText.match(thinkRegex);
+                    if (thinkMatch) {
+                        const matchIndex = thinkMatch.index;
+                        const textBefore = fullText.substring(0, matchIndex);
+                        const backticksBefore = (textBefore.match(/```/g) || []).length;
+
+                        if (backticksBefore % 2 === 0) {
+                            if (!reasoningContent) reasoningContent = thinkMatch[1].trim();
+                            mainContent = fullText.replace(thinkRegex, '').trim();
+                        }
+                    }
+
+                    if(partialMessageElement) partialMessageElement.remove();
+
+                    if (!mainContent.trim() && !reasoningContent) {
+                        if (streamError) {
+                            mainContent = `[API Fout: ${streamError}]`;
+                        } else if (finishReason && finishReason !== 'STOP') {
+                            mainContent = `[Geen tekst ontvangen: ${finishReason}]`;
+                        } else {
+                            mainContent = "[Lege reactie ontvangen van de API]";
+                        }
+                    }
+
+                    conversationHistory.push({
+                        role: "assistant",
+                        content: mainContent.trim(),
+                        reasoning: reasoningContent,
+                        sources: groundingChunks
+                    });
+
+                    displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent, groundingChunks);
+                    chatOutput.scrollTop = chatOutput.scrollHeight;
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    await saveFullConversation();
+                    playNotificationSound();
                 }
-                else if (provider === 'openai') {
-                    const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt);
+                else if (provider === 'openai' || provider === 'deepseek') {
+                    const endpointUrl = provider === 'deepseek' ? "https://api.deepseek.com/chat/completions" : "https://api.openai.com/v1/chat/completions";
+                    const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt, endpointUrl);
                     let partialMessageElement = null;
                     let botResponse = '';
                     const chatOutput = document.getElementById('chat-output');
@@ -2045,6 +2226,106 @@
                         } else { 
                             document.getElementById('loading-spinner').style.display = 'none'; 
                             logErrorToConsole(`OpenAI API Error: ${error.message || error}`); 
+                            currentApiKeyIndex = 0; 
+                        }
+                        return;
+                    }
+                }
+                else if (provider === 'zai') {
+                    const endpointUrl = "https://api.z.ai/api/paas/v4/chat/completions";
+
+                    // GLM-5.3 / GLM-5.3-FLASH: thinking kan alleen 'enabled'
+                    const enableThinking = (await DB.get('enableThinking', 'true')) === 'true';
+                    const modelLower = (modelToUse || '').toLowerCase();
+                    const extraBody = {
+                        thinking: { type: modelLower.startsWith('glm-5.3') ? 'enabled' : (enableThinking ? 'enabled' : 'disabled') }
+                    };
+
+                    const chat = new OpenAIChat(apiKey, modelToUse, systemPrompt, endpointUrl, extraBody);
+                    let partialMessageElement = null;
+                    let partialReasoningEl = null;
+                    let botResponse = '';
+                    let reasoningText = '';
+                    const chatOutput = document.getElementById('chat-output');
+                    let lastRenderTime = 0;
+                    let lastReasoningRender = 0;
+
+                    try {
+                        botResponse = await chat.getBotResponse(userInput, (delta) => {
+                            if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
+                            if (partialMessageElement) {
+                                const editableInPartial = partialMessageElement.querySelector('.editable');
+                                if (editableInPartial) {
+                                    const now = Date.now();
+                                    if (now - lastRenderTime > 150) {
+                                        editableInPartial.innerHTML = marked.parse(botResponse.trim(), { breaks: true });
+                                        Prism.highlightAllUnder(editableInPartial);
+                                        lastRenderTime = now;
+                                    }
+                                }
+                            }
+                        }, currentAbortController.signal, (reasoningDelta) => {
+                            // Live thinking-weergave tijdens streaming
+                            reasoningText += reasoningDelta;
+                            if (!partialMessageElement) partialMessageElement = displayPartialMessage('', 'assistant');
+                            if (!partialReasoningEl && partialMessageElement) {
+                                partialReasoningEl = document.createElement('div');
+                                partialReasoningEl.className = 'reasoning-container';
+                                partialReasoningEl.innerHTML = `
+                                    <div class="reasoning-container-header">
+                                        <span style="display:flex; align-items:center; gap:6px;">${ICONS.brain} Thinking...</span>
+                                        <svg class="reasoning-container-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="reasoning-content"></div>`;
+                                partialMessageElement.insertBefore(partialReasoningEl, partialMessageElement.firstChild);
+                            }
+                            const now = Date.now();
+                            if (now - lastReasoningRender > 150) {
+                                const rc = partialReasoningEl.querySelector('.reasoning-content');
+                                if (rc) rc.innerHTML = marked.parse(reasoningText.trim(), { breaks: true });
+                                chatOutput.scrollTop = chatOutput.scrollHeight;
+                                lastReasoningRender = now;
+                            }
+                        });
+                        
+                        if (partialMessageElement) partialMessageElement.remove();
+
+                        // Fallback: <think>-tags in content ook als reasoning afvangen
+                        let reasoningContent = reasoningText.trim() || null;
+                        let mainContent = botResponse;
+                        const thinkRegex = /<think>([\s\S]*?)(?:<\/think>|$)/;
+                        const thinkMatch = mainContent.match(thinkRegex);
+                        if (thinkMatch) {
+                            if (!reasoningContent) reasoningContent = thinkMatch[1].trim();
+                            mainContent = mainContent.replace(thinkRegex, '').trim();
+                        }
+
+                        if (!mainContent.trim() && !reasoningContent) {
+                            mainContent = "[Lege reactie ontvangen van de API]";
+                        }
+
+                        conversationHistory.push({
+                            role: "assistant", 
+                            content: mainContent.trim(),
+                            reasoning: reasoningContent
+                        });
+                        
+                        displayMessage(mainContent, 'assistant', conversationHistory.length - 1, false, reasoningContent);
+                        chatOutput.scrollTop = chatOutput.scrollHeight;
+                        document.getElementById('loading-spinner').style.display = 'none'; 
+                        await saveFullConversation();
+                        playNotificationSound();
+                    } catch (error) {
+                        if (error.name === 'AbortError') throw error;
+                        currentApiKeyIndex++;
+                        if (currentApiKeyIndex < apiKeyArray.length) {
+                            showToast(`Key failed. Trying API Key ${currentApiKeyIndex + 1}...`);
+                            await tryNextApiKey(userInput, provider);
+                        } else { 
+                            document.getElementById('loading-spinner').style.display = 'none'; 
+                            logErrorToConsole(`Z.AI API Error: ${error.message || error}`); 
                             currentApiKeyIndex = 0; 
                         }
                         return;
@@ -2208,7 +2489,11 @@
                 }
                 const blurredIndex = parseInt(messageDiv.dataset.index);
                 const clearChatButton = document.getElementById('clear-chat-button');
-                const focusWentToButton = document.activeElement === clearChatButton || (clearChatButton && clearChatButton.contains(document.activeElement));
+                const sendButton = document.getElementById('send-button');
+                const focusWentToButton = document.activeElement === clearChatButton || 
+                                          (clearChatButton && clearChatButton.contains(document.activeElement)) ||
+                                          document.activeElement === sendButton || 
+                                          (sendButton && sendButton.contains(document.activeElement));
 
                 if (editIndex === blurredIndex && !focusWentToButton) {
                     const newText = e.target.innerText;
@@ -2455,8 +2740,10 @@
         const oldSelectedValue = modelSelect.value;
         modelSelect.innerHTML = '';
         const modelsByProvider = {
-            gemini: ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'custom'],
-            openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'gpt-4', 'custom']
+            gemini: ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash', 'custom'],
+            openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini', 'o4-mini', 'gpt-4', 'custom'],
+            deepseek: ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-v4-flash-vision-exp', 'custom'],
+            zai: ['glm-5.3-flash', 'glm-5.3', 'glm-5.2', 'glm-4.7-flash', 'glm-4.6', 'glm-4.5-flash', 'custom']
         };
 
         if (modelsByProvider[provider]) {
@@ -2478,32 +2765,50 @@
     }
 
     class OpenAIChat {
-        constructor(apiKey, model, systemPrompt) { 
+        constructor(apiKey, model, systemPrompt, endpointUrl = "https://api.openai.com/v1/chat/completions", extraBody = {}) { 
             this.apiKey = apiKey; 
             this.model = model; 
             this.systemPrompt = systemPrompt; 
+            this.endpointUrl = endpointUrl;
+            this.extraBody = extraBody || {};
         }
         setApiKey(apiKey) { this.apiKey = apiKey; } 
         setModel(model) { this.model = model; } 
         setPrePrompt(prePrompt) { this.systemPrompt = prePrompt; }
         
-        async getBotResponse(userMessage, onDelta, signal) {
+        async getBotResponse(userMessage, onDelta, signal, onReasoningDelta) {
             const historyForApi = conversationHistory.slice(0, conversationHistory.length - 1).map(entry => ({
                 role: entry.role === 'assistant' ? 'assistant' : 'user',
                 content: entry.content
             }));
-            const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userMessage} ];
+            let userContentPayload = userMessage;
+            const currentAttachments = conversationHistory[conversationHistory.length - 1]?.localAttachments || [];
+            const binaryAttachments = currentAttachments.filter(a => a.isBase64 && typeof a.content === 'string');
+            
+            if (binaryAttachments.length > 0) {
+                userContentPayload = [{ type: 'text', text: userMessage }];
+                binaryAttachments.forEach(att => {
+                    if (att.type.startsWith('image/')) {
+                        userContentPayload.push({
+                            type: 'image_url',
+                            image_url: { url: att.content }
+                        });
+                    }
+                });
+            }
 
-            const payload = {
+            const messagesForAPI = [ {role: 'system', content: this.systemPrompt}, ...historyForApi, {role: 'user', content: userContentPayload} ];
+
+            const payload = Object.assign({
                 model: this.model,
                 messages: messagesForAPI,
                 stream: true
-            };
+            }, this.extraBody);
 
-            const url = "https://api.openai.com/v1/chat/completions";
+            const url = this.endpointUrl || "https://api.openai.com/v1/chat/completions";
             const response = await fetch(url, {
                 method: "POST",
-                headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey},
+                headers: {"Content-Type": "application/json", Authorization: "Bearer " + this.apiKey, "Accept-Language": "en-US,en"},
                 body: JSON.stringify(payload),
                 signal: signal
             });
@@ -2512,10 +2817,15 @@
             await this.processEventStream(response.body.getReader(), (chunk) => {
                 try {
                     const data = JSON.parse(chunk);
-                    if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) { 
-                        const delta = data.choices[0].delta.content; 
-                        botResponse += delta; 
-                        if (onDelta) onDelta(delta);
+                    if (data.choices && data.choices[0] && data.choices[0].delta) { 
+                        const delta = data.choices[0].delta;
+                        if (delta.reasoning_content && typeof onReasoningDelta === 'function') { 
+                            onReasoningDelta(delta.reasoning_content);
+                        }
+                        if (delta.content) { 
+                            botResponse += delta.content; 
+                            if (onDelta) onDelta(delta.content);
+                        }
                     }
                 } catch(e) {}
             });
@@ -2567,6 +2877,8 @@
             const customModelInput = document.getElementById('custom-model-input');
             if (provider === 'openai') customModelInput.value = customOpenAIModel;
             else if (provider === 'gemini') customModelInput.value = customGeminiModel;
+            else if (provider === 'deepseek') customModelInput.value = customDeepSeekModel;
+            else if (provider === 'zai') customModelInput.value = customZaiModel;
             else customModelInput.value = '';
         } else {
             customModelContainer.classList.add('hidden'); 
@@ -2585,56 +2897,78 @@
         } else {
             groundingLabel.style.display = 'none';
         }
+
+        const thinkingLabel = document.getElementById('thinking-label-container');
+        if (provider === 'zai' || provider === 'gemini') {
+            thinkingLabel.style.display = 'block';
+        } else {
+            thinkingLabel.style.display = 'none';
+        }
     }
 
-    function initializeModelSwap() {
+    async function initializeModelSwap() {
         const swapButton = document.getElementById('swap-model-button');
-        swapButton.addEventListener('click', (e) => {
-            if (ignoreNextClick) {
-                ignoreNextClick = false;
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-            swapModels();
-        });
+        let pressTimer = null;
+        let isLongPress = false;
+        const LONG_PRESS_MS = 500;
 
-        let longPressTimer;
-        const LONG_PRESS_MS = 600;
+        previousModel = await DB.get(PREVIOUS_MODEL_KEY, null);
+        updateSwapButtonState();
 
-        const startPress = (e) => {
-            longPressTimer = setTimeout(() => {
+        const handlePressStart = (e) => {
+            if (e.type === 'touchstart') e.preventDefault();
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
                 showHistoryDropdown();
-                ignoreNextClick = true;
             }, LONG_PRESS_MS);
         };
-        const cancelPress = () => { clearTimeout(longPressTimer); };
 
-        swapButton.addEventListener('mousedown', startPress);
-        swapButton.addEventListener('touchstart', startPress);
-        swapButton.addEventListener('mouseup', cancelPress);
-        swapButton.addEventListener('mouseleave', cancelPress);
-        swapButton.addEventListener('touchend', cancelPress);
+        const handlePressEnd = (e) => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+            if (e.type === 'touchend') e.preventDefault();
+            if (!isLongPress) {
+                swapModels();
+            }
+            isLongPress = false;
+        };
 
-        DB.get(PREVIOUS_MODEL_KEY, null).then(val => {
-            previousModel = val;
-            updateSwapButtonState();
-        });
+        const handlePressCancel = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+            isLongPress = false;
+        };
+
+        swapButton.addEventListener('mousedown', handlePressStart);
+        swapButton.addEventListener('touchstart', handlePressStart, { passive: false });
+        swapButton.addEventListener('mouseup', handlePressEnd);
+        swapButton.addEventListener('touchend', handlePressEnd, { passive: false });
+        swapButton.addEventListener('mouseleave', handlePressCancel);
+        swapButton.addEventListener('touchcancel', handlePressCancel);
     }
 
     async function updateCurrentModelFromUI(isInitialLoad = false) {
         const provider = document.getElementById('api-provider').value;
         let model = document.getElementById('model-select').value;
         if (model === 'custom') {
-            model = document.getElementById('custom-model-input').value;
+            model = document.getElementById('custom-model-input').value.trim();
+            if (!model) {
+                const providerDefaults = { gemini: 'gemini-3.5-flash', deepseek: 'deepseek-v4-flash', openai: 'gpt-4o', zai: 'glm-5.3-flash' };
+                model = providerDefaults[provider] || 'gpt-4o';
+            }
         }
+        if (!model) return;
+
         const newModel = { provider, model };
 
-        if (!isInitialLoad && JSON.stringify(newModel) !== JSON.stringify(currentModel)) {
-            if (currentModel) {
-                previousModel = currentModel;
-                await DB.set(PREVIOUS_MODEL_KEY, previousModel);
-            }
+        if (!isInitialLoad && currentModel && (currentModel.provider !== newModel.provider || currentModel.model !== newModel.model)) {
+            previousModel = { ...currentModel };
+            await DB.set(PREVIOUS_MODEL_KEY, previousModel);
         }
 
         currentModel = newModel;
@@ -2644,11 +2978,12 @@
 
     function updateSwapButtonState() {
         const swapButton = document.getElementById('swap-model-button');
-        if (currentModel && currentModel.model) {
-            swapButton.textContent = currentModel.model;
+        const activeModelName = currentModel && currentModel.model && currentModel.model.trim() !== '' ? currentModel.model : 'custom';
+        if (currentModel) {
+            swapButton.textContent = activeModelName;
             swapButton.style.display = 'flex';
             swapButton.disabled = !previousModel;
-            swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${currentModel.model}`;
+            swapButton.title = previousModel ? `Swap to ${previousModel.model} (${previousModel.provider})` : `Current: ${activeModelName}`;
         } else {
             swapButton.style.display = 'none';
         }
@@ -2678,7 +3013,18 @@
         toggleCustomModelField();
         updateApiKeyVisibility();
         updateSwapButtonState();
-        await saveSettings();
+        
+        // Sla instellingen op zonder updateCurrentModelFromUI aan te roepen die previousModel overschrijft
+        apiKeys.gemini = parseApiKeys(document.getElementById('api-key-gemini').value, 'gemini');
+        apiKeys.openai = parseApiKeys(document.getElementById('api-key-openai').value, 'openai');
+        apiKeys.deepseek = parseApiKeys(document.getElementById('api-key-deepseek').value, 'deepseek');
+        apiKeys.zai = parseApiKeys(document.getElementById('api-key-zai').value, 'zai');
+        await DB.set('lastUsedApiProvider', currentModel.provider);
+        if (!lastUsedModels) lastUsedModels = {};
+        lastUsedModels[currentModel.provider] = currentModel.model;
+        await DB.set('lastUsedModels', lastUsedModels);
+        updateModelHistory(currentModel.provider, currentModel.model);
+        
         showToast(`Swapped to ${currentModel.provider} / ${currentModel.model}`);
     }
 
@@ -2699,11 +3045,12 @@
         const btn = document.getElementById('swap-model-button');
         const rect = btn.getBoundingClientRect();
 
+        const providerNames = { openai: 'OpenAI', deepseek: 'DeepSeek', gemini: 'Google', zai: 'Z.AI' };
         dropdown.innerHTML = '';
         recentModels.forEach(item => {
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${item.provider === 'openai' ? 'OpenAI' : 'Google'}</span>`;
+            div.innerHTML = `<span class="history-item-model">${escapeHtml(item.model)}</span><span class="history-item-provider">${providerNames[item.provider] || item.provider}</span>`;
             div.onclick = () => switchToHistoryModel(item.provider, item.model);
             dropdown.appendChild(div);
         });
@@ -2826,4 +3173,4 @@
         if (!recognition || !isListening) return;
         recognition.stop();
     }
-</script></body></html>
+</script><div id="ai-scriptmaster-host" style="position: static; z-index: 2147483647;"></div></body></html>
