@@ -2105,12 +2105,12 @@
                     }
 
                     // ---------- Automatisch doorstreamen bij MAX_TOKENS (afgekapt antwoord) ----------
-                    const MAX_CONTINUATIONS = 3;
+                    const MAX_CONTINUATIONS = 5;
                     let continuationCount = 0;
                     while (finishReason === 'MAX_TOKENS' && fullText.trim() && continuationCount < MAX_CONTINUATIONS) {
                         continuationCount++;
                         showToast(`Antwoord afgekapt door de tokenlimiet - wordt automatisch vervolgd (${continuationCount}/${MAX_CONTINUATIONS})...`);
-                        logToConsole(`MAX_TOKENS gedetecteerd - vervolgverzoek ${continuationCount}/${MAX_CONTINUATIONS}...`);
+                        logToConsole(`MAX_TOKENS gedetecteerd - vervolgverzoek ${continuationCount}/${MAX_CONTINUATIONS} (thinking gedeactiveerd voor maximaal token-budget)...`);
                         const continuationContents = [
                             ...geminiApiContents,
                             { "role": "model", "parts": [{ "text": fullText }] },
@@ -2118,7 +2118,8 @@
                         ];
                         finishReason = null;
                         try {
-                            await streamGeminiRequest(continuationContents, undefined, false);
+                            // thinkingBudgetOverride = 0 dwingt af dat geen tokens verloren gaan aan redeneren tijdens het vervolg
+                            await streamGeminiRequest(continuationContents, 0, false);
                         } catch (e) {
                             if (e.name === 'AbortError') throw e;
                             logErrorToConsole(`Vervolgverzoek mislukt: ${e.message}`);
